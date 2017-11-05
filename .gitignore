@@ -1,0 +1,16 @@
+# By default, ignore everything
+/*
+*/
+
+!.gitignore
+!README.md
+
+!site-lisp/
+site-lisp/*
+!/site-lisp/README.md
+
+!custom/
+
+
+
+!/chaffin.org
