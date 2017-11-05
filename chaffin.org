@@ -43,7 +43,7 @@
       (require 'bind-key)
     #+END_SRC
 
-*** TODO org-mode
+*** TODO Explain org-mode mirror 
 ** User Information
 
    These values are initialized with the ’name’ and ’email’
@@ -275,7 +275,7 @@
 
 		 (epdfinfo-executable-path
 		  (concat (file-name-as-directory
-			 a  epdfinfo-executable-directory)
+			   epdfinfo-executable-directory)
 			  "epdfinfo")))
 	    (unless (eq pdf-info-epdfinfo-program epdfinfo-executable-path)
 	      (setq pdf-info-epdfinfo-program
@@ -1105,14 +1105,15 @@
 
     #+BEGIN_SRC emacs-lisp :tangle yes
       (use-package magit
-        :ensure t
-        :bind (("C-c v c" . magit-clone)
-               ("C-c v v" . magit-status)
-               ("C-c v b" . magit-blame)
-               ("C-c v i" . magit-init)
-               ("C-c v l" . magit-log-buffer-file)
-               ("C-c v p" . magit-pull))
-        :config (setq magit-save-repository-buffers 'dontask))
+	:ensure t
+	:bind (("C-c v c" . magit-clone)
+	       ("C-c v v" . magit-status)
+	       ("C-c v b" . magit-blame)
+	       ("C-c v i" . magit-init)
+	       ("C-c v l" . magit-log-buffer-file)
+	       ("C-c v p" . magit-pull)
+	       ("C-c v P" . magit-push))
+	:config (setq magit-save-repository-buffers 'dontask))
     #+END_SRC
 
 **** Magithub ([[https://github.com/vermiculus/github][repository]])
@@ -1259,7 +1260,7 @@
          :ensure t)
      #+END_SRC
 
-*** Common-Lisp
+p*** Common-Lisp
 
     Configuration for emacs-lisp.
 
