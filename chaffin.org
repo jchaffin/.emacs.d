@@ -1260,7 +1260,7 @@
          :ensure t)
      #+END_SRC
 
-p*** Common-Lisp
+*** Common-Lisp
 
     Configuration for emacs-lisp.
 
