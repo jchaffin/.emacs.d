@@ -328,9 +328,10 @@ Use UTF-8 Bullets for Org-mode headings.
                 epdfinfo-file-name-as-directory))
 
         (if (not (file-directory-p epdfinfo-file-name-as-directory))
-            (mkdir epdf-info-file-name-as-directory))
-
-        (pdf-tools-install))))
+            (progn
+              (mkdir epdf-info-file-name-as-directory)
+              (pdf-tools-install))
+          (pdf-tools-install-noverify)))))
 #+END_SRC
 
 *** Org GFM
@@ -346,6 +347,16 @@ Use UTF-8 Bullets for Org-mode headings.
 **** TODO Convert org links to markdown format.
 
 ** (Better) Defaults
+*** Dired+
+
+Adds extensions and functionality to dired mode.
+
+#+NAME: dired-plus-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package dired+
+    :ensure t)
+#+END_SRC
+
 *** Page Break Lines ([[https://github.com/purcell/page-break-lines][repository]])
 
 Global minor-mode that turns ~^L~ form feed characters into
@@ -924,21 +935,25 @@ if not better.
           deft-default-extension "org"))
 #+END_SRC
 
-*** Nov ([[https://github.com/wasamasa/nov.el][repository]])
+*** Wakatime
 
-Epub Major Mode
-
-#+NAME: nov-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package nov
-    :if (executable-find "unzip")
+#+NAME: wakatime-mode-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package wakatime-mode
+    :if *is-mac*
     :ensure t
-    :mode (("\\.epub\\'" . nov-mode))
+    :init
+    (add-hook 'prog-mode-hook 'wakatime-mode)
     :config
-    (setq nov-text-width most-positive-fixnum
-          visual-fill-column-center-text t)
-    (add-hook 'nov-mode-hook 'visual-line-mode)
-    (add-hook 'nov-mode-hook 'visual-fill-column-mode))
+    (progn
+      (setq wakatime-cli-path
+            (expand-file-name "~/.local/lib/python3.6/site-packages/wakatime/cli.py")
+            wakatime-python-bin
+            (expand-file-name "~/.pyenv/shims/python"))
+
+      (defun wakatime-dashboard ()
+        (interactive)
+        (browse-url "https://wakatime.com/dashboard"))))
 #+END_SRC
 
 ** UI
@@ -1278,6 +1293,71 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 *** TODO browse-url-dwim
 *** TODO google-this
 *** TODO google-translate
+
+** Email
+*** Mu
+
+#+NAME: mu-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package mu4e
+    :if *is-mac*
+    :load-path "/usr/local/Cellar/mu/0.9.18_1/share/emacs/site-lisp/mu/mu4e"
+    :config
+    (progn
+      (setq mu4e-maildir (expand-file-name "~/.mail")
+            mu4e-context-policy 'pick-first
+            mu4e-compose-policy nil
+            mu4e-get-mail-command "offlineimap -q -u quiet"
+            mu4e-show-images t
+            mu4e-show-addresses t)
+
+       ;; smtp settings
+       (setq mu4e-send-mail-function 'smtp-mail-send-it
+       mu4e-default-smtp-server "smtp.gmail.com"
+       smtpmail-smtp-service 587
+       smtp-mail-smtp-stream-type 'ssl)
+
+
+       (setq mu4e-contexts
+             `( ,(make-mu4e-context
+                  :name "private"
+                  :match-func (lambda (msg)
+                                (when msg
+                                  mu4e-message-contact-field-matches msg
+                                  :to "jchaffin57@gmail.com"))
+                  :leave-func (lambda ()
+                                (mu4e-message "Leaving Gmail Account"))
+                  :vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
+                           ( user-mail-address . "jchaffin57@gmail.com" )
+                           ( user-full-name . "Jacob Chaffin" )
+                           ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
+                           ( mu4e-sent-folder . "/private/[Gmail].Trash" )
+                           ( mu4e-refile-folder . "/archived")
+                           ( mu4e-compose-signature .
+                                                    (concat
+                                                     "Jacob Chaffin\n"
+                                                     "UCLA 19\n"
+                                                     "Linguistics and Computer Science\n"
+                                                     "jchaffin@ucla.edu\n"))))
+
+                ,(make-mu4e-context
+                  :name "school"
+                  :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
+                  :leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
+                  :match-func  (lambda (msg)
+                                 (when msg
+                                   (mu4e-message-contact-field-matches msg
+                                                                       :to (or "jchaffin@ucla.edu" "jchaffin@g.ucla.edu"))))
+                  :vars '( (user-mail-address . "jchaffin@ucla.edu" )
+                           (user-full-name . "Jacob Chaffin" )
+                           (mu4e-compose-signature . (concat
+                                                      "Jacob Chaffin\n"
+                                                      "UCLA 19\n"
+                                                      "Linguistics and Computer Science\n"
+                                                      "jchaffin@ucla.edu\n"
+                                                      "(650)-380-3288\n"))))))))
+
+#+END_SRC
 
 ** Programming Languages
 *** Lisp
