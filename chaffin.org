@@ -31,8 +31,12 @@ compiler.
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
 
 ** Package Management
-*** TODO straight.el
+*** straight.el
+
+Currently we have a tumultous relationship.
+
 *** Use Package
+
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (eval-when-compile
@@ -41,7 +45,9 @@ compiler.
   (require 'bind-key)
 #+END_SRC
 
-*** TODO Explain org-mode mirror 
+*** Org mode mirror
+explanation.
+
 ** User Information
 
 These values are initialized with the ’name’ and ’email’
@@ -319,7 +325,7 @@ Use UTF-8 Bullets for Org-mode headings.
   (use-package ox-gfm
     :ensure t
     :init
-    (with-eval-after-load 'org
+    (with-eval-after-load 'org-mode
       (require 'ox-gfm)))
 #+END_SRC
 

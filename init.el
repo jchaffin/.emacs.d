@@ -22,9 +22,11 @@
 			 :repo "raxod502/use-package"
 			 :upstream (:host github
 				    :repo "jwiegley/use-package")))
+
 (straight-use-package '(org
 			:host github
 			:repo "jchaffin/org-mode"
+			:local-repo-name org
 			:files ("lisp/*.el" "contrib/lisp/*.el")))
 
 
