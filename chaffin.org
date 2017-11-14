@@ -37,7 +37,7 @@ Currently we have a tumultous relationship.
 
 *** Use Package
 
-
+#+NAME: use-package-config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (eval-when-compile
     (require 'use-package))
@@ -45,8 +45,6 @@ Currently we have a tumultous relationship.
   (require 'bind-key)
 #+END_SRC
 
-*** Org mode mirror
-explanation.
 
 ** User Information
 
@@ -223,7 +221,11 @@ conditionally loading dependencies.
 #+NAME: org-directory-config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (when *is-mac*
-    (setq org-directory (expand-file-name "~/Dropbox/org/")))
+    (setq org-directory (expand-file-name "~/Dropbox/org/")
+          ;; https://tex.stackexchange.com/a/319099
+          org-latex-pdf-process
+           '("xelatex -interaction nonstopmode %f"
+             "xelatex -interaction nonstopmode %f")))
 #+END_SRC
 
 **** TODO Using an org mirror and rationale
@@ -277,7 +279,7 @@ conditionally loading dependencies.
           (expand-file-name "~/.emacs.d/resources/Complete.wav")))
 #+END_SRC
 
-*** Org Bullets ([[https://github.com/sabof/org-bullets][repository]])
+*** Org Bullets 
 
 Use UTF-8 Bullets for Org-mode headings.
 
@@ -287,9 +289,9 @@ Use UTF-8 Bullets for Org-mode headings.
     :ensure t
     :init
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-#+END_SRC
 
-*** Org Beautify Theme ([[https://github.com/jonnay/org-beautify-theme/][repository]])
+#+END_SRC
+*** Org Beautify Theme
 
 #+NAME: org-beautify-theme-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -342,7 +344,7 @@ Adds extensions and functionality to dired mode.
     :ensure t)
 #+END_SRC
 
-*** Page Break Lines ([[https://github.com/purcell/page-break-lines][repository]])
+*** Page Break Lines
 
 Global minor-mode that turns ~^L~ form feed characters into
 horizontal line rules.
@@ -387,9 +389,9 @@ know you're around.
   <<emojify-mode-config>>
 #+END_SRC
 
-**** Emacs Dashboard ([[https://github.com/rakanalh/emacs-dashboard][repository]])
+**** Emacs Dashboard
 
-Dashboard is a highly customizable splash screen
+[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
 replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
 It's a nice way of consolidating any combination of tasks,
 agenda items, bookmarks, and pretty much any other enumerable
@@ -547,9 +549,9 @@ rather than the system terminfo.
   (setq system-uses-terminfo nil)
 #+END_SRC
 
-*** Restart Emacs ([[https://github.com/iqbalansari/restart-emacs][repository]])
+*** Restart Emacs
 
-The restart-emacs package allows quickly rebooting Emacs
+The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
 from within Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -568,12 +570,11 @@ Tabs are the bane of humanity[fn:9]. [[http://www.urbandictionary.com/define.php
         indent-tabs-mode nil)
 #+END_SRC
 
-**** ~highlight-indent-guides~ ([[https://github.com/darthfennec/highlight-indent-guides][repository]])
+**** ~highlight-indent-guides~ [][repository]])
+[[https://github.com/darthfennec/highlight-indent-guides][
+Highlight Indent Guides]] sublime-like indentation guides.
 
-Provides sublime-like indentation guides.
-
-/Commented out because of bug that leaves a trail of solid white line
-marks on the indent guide overlay./
+/Commented out because of bug that leaves a trail of solid white line marks on the indent guide overlay./
 
 #+BEGIN_SRC emacs-lisp :tangle no
  (use-package highlight-indent-guides
@@ -618,9 +619,9 @@ snippets corresponding to the major mode of the current buffer mode.
   (add-hook 'prog-mode-hook #'yas-minor-mode)
 #+END_EXAMPLE
 
-*** Flycheck ([[https://github.com/Flycheck/Flycheck][repository]])
+*** Flycheck
 
-On the fly syntax highlighting.
+[[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
   (use-package flycheck
@@ -645,69 +646,69 @@ On the fly syntax highlighting.
 	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
      #+END_SRC
 
-**** Flycheck Package ([[https://github.com/purcell/flycheck-package][repository]])
+**** Flycheck Package
 
-     Not usable with ~straight.el~
+[[https://github.com/purcell/flycheck-package][Flycheck Package]] requires ~package.el~ to be enabled, so it's incompatible with ~straight.el~.
 
-     #+NAME: flycheck-package-config
-     #+BEGIN_SRC emacs-lisp :tangle no
-       (use-package flycheck-package
-	 :ensure t
-	 :init
-	 (eval-after-load 'flycheck
-	   '(flycheck-package-setup)))
-     #+END_SRC
+#+NAME: flycheck-package-config
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package flycheck-package
+    :ensure t
+    :init
+    (eval-after-load 'flycheck
+      '(flycheck-package-setup)))
+#+END_SRC
 
 **** Flycheck in Org Special Edit Buffers
 
-     #+NAME: org-edit-src-code
-     #+BEGIN_SRC emacs-lisp :tangle no
-       (defadvice org-edit-src-code (around set-buffer-file-name activate compile)
-	 (let ((file-name (buffer-file-name))) ;; (1)
-	   ad-do-it                            ;; (2)
-	   ;; (3)
-	   (setq buffer-file-name file-name)))
-     #+END_SRC
+#+NAME: org-edit-src-code
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defadvice org-edit-src-code (around set-buffer-file-name activate compile)
+    (let ((file-name (buffer-file-name))) ;; (1)
+      ad-do-it                            ;; (2)
+      ;; (3)
+      (setq buffer-file-name file-name)))
+#+END_SRC
 
-*** Company ([[https://github.com/company-mode/company-mode][repository]])
+*** Company
 
-    Emacs has two popular packages for code completion --
-    [[https://github.com/auto-complete/auto-complete][autocomplete]] and company. This reddit [[https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode_vs_companymode_which_is_better/][thread]] was enough for
-    me to go with company.
+Emacs has two popular packages for code completion --
+[[https://github.com/auto-complete/auto-complete][autocomplete]] and [[https://github.com/company-mode/company-mode][company]]. This reddit [[https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode_vs_companymode_which_is_better/][thread]] was enough for
+me to go with company.
 
-    If you need more convincing, [[https://github.com/company-mode/company-mode/issues/68][company-mode/company-mode#68]]
-    offers a comprehensive discussion on the two.
+If you need more convincing, [[https://github.com/company-mode/company-mode/issues/68][company-mode/company-mode#68]]
+offers a comprehensive discussion on the two.
 
-    The ticket is from the ‘company-mode‘ repository, so there's
-    probably some bias there, but company-mode hasn't provided
-    any reason for me reconsider my choice.
+The ticket is from the ‘company-mode‘ repository, so there's
+probably some bias there, but company-mode hasn't provided
+any reason for me reconsider my choice.
 
 
-    #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
-      (use-package company
-        :ensure t
-        :defer t
-        :bind (("TAB" . company-indent-or-complete-common)
-               ("C-c /" . company-files)
-               ("M-SPC" . company-complete)
-               (:map company-mode-map
-                     ("C-n" . company-select-next-or-abort)
-                     ("C-p" . company-select-previous-or-abort)))
-        :config
-        (progn
-            (global-company-mode)
-            (setq company-tooltip-limit 20
-                  company-tooltip-align-annotations t
-                  company-idle-delay .3
-                  company-begin-commands '(self-insert-command))
-            <<company-quick-help>>
-            <<company-statistics-config>>
-            <<company-dict-config>>))
-    #+END_SRC
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+  (use-package company
+    :ensure t
+    :defer t
+    :bind (("TAB" . company-indent-or-complete-common)
+           ("C-c /" . company-files)
+           ("M-SPC" . company-complete)
+           (:map company-mode-map
+                 ("C-n" . company-select-next-or-abort)
+                 ("C-p" . company-select-previous-or-abort)))
+    :config
+    (progn
+        (global-company-mode)
+        (setq company-tooltip-limit 20
+              company-tooltip-align-annotations t
+              company-idle-delay .3
+              company-begin-commands '(self-insert-command))
+        <<company-quick-help>>
+        <<company-statistics-config>>
+        <<company-dict-config>>))
+#+END_SRC
 
-**** Company Statistics ([[https://github.com/company-mode/company-statistics][repository]])
+**** Company Statistics
 
-Company statistician uses a persisent store of completions to rank the
+[[https://github.com/company-mode/company-statistics][Company statistics]] uses a persisent store of completions to rank the
 top candidates for completion.
 
 #+NAME: company-statistics-config
@@ -720,8 +721,9 @@ top candidates for completion.
     (add-hook 'after-init-hook 'company-statistics-mode))
 #+END_SRC
 
-**** Company Quick Help ([[https://github.com/expez/company-quickhelp][repository]])
-Emulates ~autocomplete~ documentation-on-idle behavior, but using the
+**** Company Quick Help 
+
+[[https://github.com/expez/company-quickhelp][Company Quick Help]] emulates ~autocomplete~ documentation-on-idle behavior, but using the
 less-buggy ~pos-tip~ package rather than ~popup-el~.
 
 #+NAME: company-quick-help-config
@@ -736,7 +738,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
     (company-quickhelp-mode 1))
 #+END_SRC
 
-**** Company Dict [[https://github.com/hlissner/emacs-company-dict][(repository]])
+**** Company Dict
 
 #+NAME: company-dict-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -750,9 +752,9 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+END_SRC
 
 ** Utilities
-*** Image+ ([[https://github.com/mhayashi1120/Emacs-imagex][repository]])
+*** Image+
 
-Extensions for image file manipulation in Emacs.
+[[https://github.com/mhayashi1120/Emacs-imagex][Image+]]  provides extensions for image file manipulation in Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package image+
@@ -773,9 +775,9 @@ Extensions for image file manipulation in Emacs.
            ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
-*** Ivy ([[https://github.com/abo-abo/swiper][repository]])
+*** Ivy
 
-Ivy is a completion and selection framework in the same vein
+[[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
 as helm.
 It doesn't have the same kind of ecosystem or interopability,
 but its easy to configure, offers a minimalistic interface,
@@ -854,7 +856,10 @@ if not better.
   (("\C-s" . swiper)))
 #+END_SRC
 
-**** Counsel-Projectile ([[https://github.com/ericdanan/counsel-projectile][repository]])
+**** Counsel-Projectile
+
+[[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
+friends.
 
 #+NAME: counsel-projectile-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1014,7 +1019,7 @@ Show the time in the modeline.
   (display-time-mode 1)
 #+END_SRC
 
-**** Smart-Mode-Line ([[https://github.com/Malabarba/smart-mode-line][repository]])
+**** Smart-Mode-Line
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package smart-mode-line
@@ -1040,9 +1045,9 @@ Show the time in the modeline.
     (mode-icons-mode))
 #+END_SRC
 
-*** All The Icons ([[https://github.com/domtronn/all-the-icons.el][repository]])
+*** All The Icons 
 
-A utility package for icons in Emacs.
+[[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package all-the-icons
@@ -1164,9 +1169,9 @@ Use the signature monospaced font on linux, macOS, or Windows OS.
 #+END_SRC
 
 ** VCS
-*** Magit ([[https://github.com/magit/magit][repository]])
+*** Magit
 
-Magit describes itself as one of two git porcelains, the other being
+[[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
 git itself.
 
 A git porcelain is jargon for a program that features a user-friendly
@@ -1192,9 +1197,9 @@ As a git client though, magit is awesome.
     :config (setq magit-save-repository-buffers 'dontask))
 #+END_SRC
 
-**** Magithub ([[https://github.com/vermiculus/github][repository]])
+**** Magithub
 
-Magithub offers an interface to github to complement magit.
+[[https://github.com/vermiculus/github][Magithub]] offers an interface to github to complement magit.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package magithub
@@ -1210,11 +1215,11 @@ Magithub offers an interface to github to complement magit.
       (magithub-feature-autoinject t)))
 #+END_SRC
 
-*** gist.el ([[https://github.com/defunkt/gist.el][repository]])
+*** gist.el
 
 Emacs integration for gist.github.com.
 
-Requires generating a personal access token with ~gist~ scope, and
+[[https://github.com/defunkt/gist.el][Gist]] requires generating a personal access token with ~gist~ scope, and
 optionally ~user~ and ~repo~ scopes.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -1352,7 +1357,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 - [[https://github.com/Fuco1/smartparens/wiki/Paredit-and-smartparens][Paredit and Smartparens]]
 
-***** Paredit ([[http://mumble.net/~campbell/git/paredit.git/][repository]])
+***** Paredit
 
 We could use ~:init~ key to hook the ~enable-paredit-mode~
 function to each of the implementing languages like is
@@ -1375,9 +1380,9 @@ offers more meaningful semantics.
     (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t))
    #+END_SRC
 
-***** Smartparens ([[https://github.com/Fuco1/smartparens][repository]])
+***** Smartparens
 
-Like paredit, smartparens is a minor-mode for managing parens
+Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-mode for managing parens
 pairs. However, it also offers support for curly brackets in
 JavaScript objects, angle brackets in HTML, and most other major
 programming languages. I think I the "delete-on-command" behavior of
@@ -1416,7 +1421,7 @@ Configuration for emacs-lisp.
     (add-hook 'emacs-lisp-mode-hook #'hl-sexp-mode))
 #+END_SRC
 
-**** Slime ([[https://github.com/slime/slime][repository]])
+**** Slime
 
 [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
 
@@ -1475,9 +1480,9 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
     (add-to-hooks #'cljsbuild-mode '(clojure-mode clojurescript-mode)))
 #+END_SRC
 
-***** elein ([[https://github.com/remvee/elein][repository]])
+***** elein
 
-Provides support for leiningen commands in Emacs.
+[[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
 
 #+NAME: elein-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1662,6 +1667,7 @@ CIDER eldoc information.
     :init
     (progn
       (setq TeX-command-default "LaTeX"
+            TeX-engine "xetex"
             TeX-auto-save t
             TeX-parse-self t
             TeX-syntactic-comment t
@@ -2127,7 +2133,7 @@ and slim-mode using company.
 
 **** TODO rvm
 *** TODO Yaml
-*** Docker ([[https://github.com/spotify/dockerfile-mode][repository]])
+*** Docker
 
 #+NAME: dockerfile-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
