@@ -306,32 +306,11 @@ Use UTF-8 Bullets for Org-mode headings.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package org-pdfview
     :ensure pdf-tools
-    :defer-install t
     :mode (("\\.pdf\\'" . pdf-view-mode))
     :init
     (progn
       (require 'pdf-tools)
-      ;; FIX ME
-      (let* ((epdfinfo-executable-directory
-              (concat (file-name-as-directory
-                       user-emacs-directory)
-                      "bin"))
-             (epdfinfo-file-name-as-directory
-              (file-name-as-directory epdfinfo-executable-directory))
-
-             (epdfinfo-executable-path
-              (concat (file-name-as-directory
-                       epdfinfo-executable-directory)
-                      "epdfinfo")))
-        (unless (eq pdf-info-epdfinfo-program epdfinfo-executable-path)
-          (setq pdf-info-epdfinfo-program
-                epdfinfo-file-name-as-directory))
-
-        (if (not (file-directory-p epdfinfo-file-name-as-directory))
-            (progn
-              (mkdir epdf-info-file-name-as-directory)
-              (pdf-tools-install))
-          (pdf-tools-install-noverify)))))
+      (pdf-tools-install)))
 #+END_SRC
 
 *** Org GFM

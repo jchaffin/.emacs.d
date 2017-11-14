@@ -11,6 +11,9 @@ site-lisp/*
 
 !custom/
 
+!secrets/
 
+!resources/
 
+!/init.el
 !/chaffin.org
