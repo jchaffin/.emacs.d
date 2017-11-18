@@ -51,7 +51,7 @@ compiler.
 ** Package Management
 *** straight.el
 
-Currently we have a tumultous relationship.
+Currently we have a tumultuous relationship.
 
 *** Use Package
 
