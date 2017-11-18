@@ -291,7 +291,7 @@ images, etc.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package org-pomodoro
     :ensure t
-    :bind (:map org--mode-map
+    :bind (:map org-mode-map
                 ("C-c M-RET p" . org-pomodoro))
     :config
     (setq org-pomodoro-audio-player "afplay"
@@ -345,7 +345,6 @@ Use UTF-8 Bullets for Org-mode headings.
     (add-to-list 'custom-enabled-themes 'org-beautify)
     (load-theme 'org-beautify t))
 #+END_SRC
-
 
 
 *** Org Pdfview
@@ -422,6 +421,15 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 #+END_SRC
 
 **** TODO Convert org links to markdown format.
+
+*** Org TOC
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package toc-org
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook 'toc-org-enable))
+#+END_SRC
 
 *** Org Latex Export
 
