@@ -291,7 +291,7 @@ images, etc.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package org-pomodoro
     :ensure t
-    :bind (:map org-agenda-mode-map
+    :bind (:map org--mode-map
                 ("C-c M-RET p" . org-pomodoro))
     :config
     (setq org-pomodoro-audio-player "afplay"
@@ -1776,7 +1776,7 @@ process has consisted of the following:
 3. See ~flycheck-clojure~ being weird.
 4. Annoyed Google search.
 5. Edit my ~clojure~ configuration based on the last blog post.
-p. Restart Emacs.
+6. Restart Emacs.
 7. Repeat.
 
 After running into problems documented in issues [[https://github.com/clojure-emacs/squiggly-clojure/issues/45][#45]], [[https://github.com/clojure-emacs/squiggly-clojure/issues/13][#13]], and [[https://github.com/clojure-emacs/squiggly-clojure/issues/46][#46,]]
@@ -1815,8 +1815,13 @@ Let's give this [[https://github.com/typedclojure/typed-clojure-mode][guy]] a tr
  I've now stumbled upon ~cider--debug-mode~.
 
  This mode cannot be called manually, but with ~C-u C-M-x~ instead,
- and now ~flycheck-clojure~ +appears to be sort of working+.
+ and now =flycheck-clojure= +appears to be sort of working+.
 
+*3 months later*: 
+
+The above strikethrough denotes the point in time where I officially
+said [[https://www.si.com/nba/2017/05/16/steve-kerr-sneakers-message][FI]]. 
+ 
 **** Flycheck-Pos-Tip
 
 The ~flycheck-clojure~ repository recommendeds to install
