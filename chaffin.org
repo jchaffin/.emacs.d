@@ -6,6 +6,7 @@
 ** Preface
 *** About
 
+
 [[https://en.wikipedia.org/wiki/literate_programming][Literate Programming]] is a method of writing computer programs where
 the composition, logic, and structure of the program are optimized for
 human comprehension. Introduced by Donald Knuth in his 1983 eponymous
@@ -45,6 +46,12 @@ Currently we have a tumultous relationship.
   (require 'bind-key)
 #+END_SRC
 
+*** Default Packages
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(require 'cl)
+(require 'dash)
+#+END_SRC
 
 ** User Information
 
@@ -68,31 +75,17 @@ directory.
 #+END_SRC
 
 ** Core
-*** Globals
-**** Operating Systems
+*** Constants
+ 
+Variables used throughout this file[fn:2]:
 
-Some packages should only be used on a particular operating system.
-
-Additionally, these globals are useful aliases for the implementing
-conditional structures that initialize and load os-specific settings
-and dependencies[fn:2].
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (defconst *is-mac* (eq system-type 'darwin))
-  (defconst *is-linux* (eq system-type 'linux))
-  (defconst *is-windows* (eq system-type 'windows))
-#+END_SRC
-
-**** Window System
-
-Likewise, there are some packages and bindings that we only want to
-use in a GUI or terminal-based settings. Things like themes, icons,
-images, etc.
-
-Let's set global variables for that too.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (defconst *is-gui* (display-graphic-p))
+#+NAME: define-constants
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+<<defconst-is-macos>>
+<<defconst-is-windows>>
+<<defconst-is-linux>>
+<<defconst-is-gui>>
+<<defconst-computer-name>>
 #+END_SRC
 
 *** Macros
@@ -133,7 +126,12 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 #+END_SRC
 
 ** Environment
-*** MacOS
+*** macOS
+
+#+NAME: defconst-is-macos
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defconst *is-mac* (eq system-type 'darwin))
+#+END_SRC
 
 macOS specific settings[fn:4].
 
@@ -145,6 +143,20 @@ macOS specific settings[fn:4].
        (chaffin/macos-settings)
        <<macos-finder-config>>
        <<macos-dictionary-config>>))
+#+END_SRC
+
+**** Computer Name
+
+#+NAME: defconst-computer-name
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun chaffin/computer-name-cmd ()
+  (let* ((has-scutil (executable-find "scutil"))
+	 (scutil-cmd (lambda () (shell-command-to-string "scutil --get ComputerName"))))
+    (if has-scutil
+	(replace-regexp-in-string "\n" "" (funcall scutil-cmd))
+      nil)))
+
+(defconst *computer-name* (chaffin/computer-name-cmd))
 #+END_SRC
 
 **** Keybindings
@@ -215,17 +227,43 @@ conditionally loading dependencies.
     (setq exec-path-from-shell-check-startup-files nil))
 #+END_SRC
 
-** Org Mode
-*** Org Preamble
+*** Windows/PC
 
-#+NAME: org-directory-config
+#+NAME: defconst-is-windows
+#+BEGIN_SRC emacs-lisp :tangle no
+(defconst *is-windows* (eq system-type 'windows))
+#+END_SRC
+
+*** Linux
+
+#+NAME: defconst-is-linux
+#+BEGIN_SRC emacs-lisp :tangle no
+(defconst *is-linux* (eq system-type 'linux))
+#+END_SRC
+
+*** GUI
+
+Some packages and bindings that we only want to
+use in a GUI or terminal-based settings. Things like themes, icons,
+images, etc.
+
+#+NAME: defconst-is-gui
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defconst *is-gui* (display-graphic-p))
+#+END_SRC
+
+** Org Mode
+*** Org Default Settings
+
+#+NAME: org-default-settings
 #+BEGIN_SRC emacs-lisp :tangle yes
   (when *is-mac*
-    (setq org-directory (expand-file-name "~/Dropbox/org/")
-          ;; https://tex.stackexchange.com/a/319099
-          org-latex-pdf-process
-           '("xelatex -interaction nonstopmode %f"
-             "xelatex -interaction nonstopmode %f")))
+    (setq org-directory (expand-file-name "~/Dropbox/org/")))
+
+(require 'ox-extra)
+(ox-extras-activate '(ignore-headlines))
+
+(setq org-image-actual-width 400)
 #+END_SRC
 
 **** TODO Using an org mirror and rationale
@@ -291,22 +329,24 @@ Use UTF-8 Bullets for Org-mode headings.
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 #+END_SRC
+
 *** Org Beautify Theme
+:PROPERTIES:
+:ID:       54498880-BB9C-46B2-A18B-15DB384869A3
+:END:
 
 #+NAME: org-beautify-theme-config
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package org-beautify-theme
     :ensure nil
     :defines org-beautify-theme-use-box-hack
-    :load-path (lambda () (expand-file-name
-                           (concat
-                            user-emacs-directory
-                            "site-lisp/org-beautify-theme")))
     :config
     (setq org-beautify-theme-use-box-hack nil)
     (add-to-list 'custom-enabled-themes 'org-beautify)
     (load-theme 'org-beautify t))
 #+END_SRC
+
+
 
 *** Org Pdfview
 
@@ -321,6 +361,56 @@ Use UTF-8 Bullets for Org-mode headings.
       (pdf-tools-install)))
 #+END_SRC
 
+*** Org Ref
+
+#+NAME: org-ref-config
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+  (use-package org-ref
+    :if *is-mac*
+    :ensure t
+    :after pdf-tools
+    :defer t
+    :config
+    (progn
+      <<org-ref-open-pdf-at-point>>
+      (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
+            org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
+            org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/")
+      (require 'org-ref-pdf)
+      (require 'org-ref-latex)
+      (require 'org-ref-reftex)
+      (require 'org-ref-utils)
+      (require 'org-ref-url-utils)
+      (require 'org-ref-pubmed)
+      (require 'org-ref-scopus)
+      (require 'org-ref-scifinder)
+      (require 'org-ref-citeproc)
+      (require 'org-ref-sci-id)
+      (require 'org-ref-isbn)
+      (require 'org-ref-wos)
+      (require 'org-ref-worldcat)
+      (require 'x2bib)))
+#+END_SRC
+
+**** Open Pdf at point
+See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view-or-pdf-tools][Using Doc View or PDF Tools]] section of =org-ref= documentation.
+
+#+NAME: org-ref-open-pdf-at-point
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun chaffin/org-ref-open-pdf-at-point ()
+  "Open the pdf for bibtex key under point if it exists."
+  (interactive)
+  (let* ((results (org-ref-get-bibtex-key-and-file))
+         (key (car results))
+         (pdf-file (funcall org-ref-get-pdf-filename-function key)))
+    (if (file-exists-p pdf-file)
+        (find-file pdf-file)
+      (message "No PDF found for %s" key))))
+
+(setq org-ref-open-pdf-function 'chaffin/org-ref-open-pdf-at-point)
+
+#+END_SRC
+
 *** Org GFM
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -332,6 +422,66 @@ Use UTF-8 Bullets for Org-mode headings.
 #+END_SRC
 
 **** TODO Convert org links to markdown format.
+
+*** Org Latex Export
+
+#+NAME: org-latex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
+(setq org-latex-pdf-process
+      '("xelatex -interaction nonstopmode --output-directory %o %f"
+	"bibtex %b"
+	"xelatex -interaction nonstopmode --output-directory %o %f"
+	"xelatex -interaction nonstopmode --output-directory %o %f")
+      org-latex-prefer-user-labels t)
+#+END_SRC
+
+**** Org Per File Class
+Adds a class for exporting to pdf using latex backend without
+importing the default =ox-latex= packages. This allows the export
+settings of a particular file to be completely insulated from most external
+configuration.
+
+#+NAME: org-latex-per-file-class
+#+BEGIN_SRC emacs-lisp :tangle yes
+(add-to-list 'org-latex-classes
+	     '("per-file-class"
+	       "\\documentclass{scrartcl}
+	       [NO-DEFAULT-PACKAGES]
+	       [EXTRA]"
+	       ("\\section{%s}" . "\\section*{%s}")
+	       ("\\subsection{%s}" . "\\subsection*{%s}")
+	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
+
+*** Org Youtube
+
+From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defvar yt-iframe-format
+  ;; You may want to change your width and height.
+  (concat "<iframe width=\"440\""
+          " height=\"335\""
+          " src=\"https://www.youtube.com/embed/%s\""
+          " frameborder=\"0\""
+          " allowfullscreen>%s</iframe>"))
+
+(org-add-link-type
+ "yt"
+ (lambda (handle)
+   (browse-url
+    (concat "https://www.youtube.com/embed/"
+            handle)))
+ (lambda (path desc backend)
+   (cl-case backend
+     (html (format yt-iframe-format
+                   path (or desc "")))
+     (latex (format "\href{%s}{%s}"
+                    path (or desc "video"))))))
+#+END_SRC
 
 ** (Better) Defaults
 *** Dired+
@@ -623,7 +773,7 @@ snippets corresponding to the major mode of the current buffer mode.
 
 [[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes 
   (use-package flycheck
     :defer-install t
     :init
@@ -776,7 +926,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+END_SRC
 
 *** Ivy
-
+**** Ivy Config
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
 as helm.
 It doesn't have the same kind of ecosystem or interopability,
@@ -797,10 +947,11 @@ if not better.
           '((ivy-switch-buffer . ivy--regex-plus)
             (t . ivy--regex-fuzzy)))
     <<ivy-hydra-config>>
-    <<ivy-historian-config>>)
+    <<ivy-historian-config>>
+    <<ivy-org-ref-config>>)
 #+END_SRC
 
-***** Ivy Hydra
+**** Ivy Hydra
 
 #+NAME: ivy-hydra-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -808,10 +959,22 @@ if not better.
     :ensure hydra)
 #+END_SRC
 
-***** Ivy Historian
+**** Ivy Historian
+
+#+NAME: ivy-historian-config
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package ivy-historian
     :ensure historian)
+#+END_SRC
+
+**** Org Ref Ivy
+
+#+NAME: ivy-org-ref-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-ref-completion-library 'org-ref-ivy-cite)
+(require 'org-ref)
+(require 'org-ref-ivy)
+(require 'org-ref-ivy-cite)
 #+END_SRC
 
 **** Counsel
@@ -850,10 +1013,20 @@ if not better.
 **** Swiper
 
 #+NAME: swiper-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
   (use-package swiper
   :bind
-  (("\C-s" . swiper)))
+  (("\C-s" . swiper))
+  :init
+  <<swiper-avy-config>>)
+#+END_SRC
+
+**** Swiper Avy
+
+#+NAME: swiper-avy-config
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package avy
+    :ensure t)
 #+END_SRC
 
 **** Counsel-Projectile
@@ -930,7 +1103,7 @@ friends.
 #+NAME: wakatime-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package wakatime-mode
-    :if *is-mac*
+    :if (and *is-mac* (or (string= (downcase *computer-name*) "hal") (string= (downcase *computer-name*) "junior")))
     :ensure t
     :init
     (add-hook 'prog-mode-hook 'wakatime-mode)
@@ -987,12 +1160,6 @@ This disables Emacs asking questions about loading a new theme.
  (setq custom-safe-themes t)
 #+END_SRC
 
-**** Anti Zenburn Theme                                              :ignore:
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package anti-zenburn-theme
-    :ensure t)
-#+END_SRC
 
 **** Zenburn Theme
 
@@ -1003,7 +1170,19 @@ This disables Emacs asking questions about loading a new theme.
     :config (load-theme 'zenburn))
 #+END_SRC
 
+**** TODO Contrasting theme for use with =sunshine.el=.           :ignore:
+
+***** Anti Zenburn Theme
+
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package anti-zenburn-theme
+    :ensure t)
+#+END_SRC
+
 **** Load Themes
+
+Zenburn theme has to be loaded before [[54498880-BB9C-46B2-A18B-15DB384869A3][Org Beautify]] to preserve compatibility.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
   <<zenburn-theme-config>>
@@ -1072,6 +1251,7 @@ Show the time in the modeline.
 #+END_SRC
 
 *** Terminal
+**** Colors and Display
 
 The ~emacsclient ~nw~ command is a great workflow for remedial file
 editing tasks like fixing a typo or commenting out lines.
@@ -1089,7 +1269,6 @@ The terminal, however, is better suited for speed and agility.
 These settings are adjusted based of my terminal theme and intended to
 optimize code legibility.
 
-
 #+BEGIN_SRC emacs-lisp :tangle no
   (defmacro prefix-color (str-prefix name color)
     `(set-face-attribute ',(intern (concat str-prefix (symbol-name name)))
@@ -1106,7 +1285,6 @@ optimize code legibility.
     (set-face-attribute 'button                       nil :foreground "#3284c6")
     (set-face-attribute 'link-visited                 nil :foreground  "#ba1caa")
     (set-face-attribute 'minibuffer-prompt            nil :foreground "ffc131")
-    ;; Org Mode Faces
     (set-face-attribute 'org-document-title nil :foreground "#1d4dae")
     (set-face-attribute 'org-code           nil :foreground "#de73ea")
     (set-face-attribute 'org-level-1        nil :foreground "#38aef2")
@@ -1117,7 +1295,26 @@ optimize code legibility.
     (set-face-attribute 'org-level-6  nil :weight 'semi-bold   :inherit 'org-level-3))
 #+END_SRC
 
-*** Fit Frame							     :ignore:
+**** Multi-Term
+
+#+NAME: multi-term-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package multi-term
+       :ensure t
+       :bind
+       (("C-c M-RET t" . multi-term)
+	("C-c M-RET p" . multi-term-prev)
+	("C-c M-RET n" . multi-term-next)
+	("C-c M-RET o" . multi-term-dedicated-toggle))
+       :config
+       (progn
+	 (setq multi-term-program
+	     (if (string= shell-file-name "/bin/sh")
+		 "/bin/bash"
+	       shell-file-name))))
+#+END_SRC
+
+*** Fit Frame                                                      :ignore:
 
 #+BEGIN_SRC emacs-lisp :tangle no :exports none :results none
   (use-package fit-frame
@@ -1132,13 +1329,13 @@ Use the signature monospaced font on linux, macOS, or Windows OS.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
  (cond (*is-linux*
-  (set-frame-font "Ubuntu Mono 14" nil t))
+  (set-frame-font "Ubuntu Mono 12" nil t))
  (*is-windows*
-  (set-frame-font "Lucida Sans Typewriter 14" nil t))
+  (set-frame-font "Lucida Sans Typewriter 12" nil t))
  ((eq system-type 'darwin)
-  (set-frame-font "SF Mono 14" nil t))
+  (set-frame-font "SF Mono 12" nil t))
  (t
-  (set-frame-font "Menlo 14" nil t)))
+  (set-frame-font "Menlo 12" nil t)))
 #+END_SRC
 
 *** Sunshine
@@ -1656,7 +1853,8 @@ CIDER eldoc information.
           eclim-wait-for-process t))
 #+END_SRC
 
-*** Latex
+*** LaTeX
+**** Tex Config
 
 #+NAME: tex-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
@@ -1666,8 +1864,8 @@ CIDER eldoc information.
     :functions chaffin/tex-auto-fill-mode
     :init
     (progn
-      (setq TeX-command-default "LaTeX"
-            TeX-engine "xetex"
+      (setq TeX-command-default 'xetex
+            TeX-engine 'xetex
             TeX-auto-save t
             TeX-parse-self t
             TeX-syntactic-comment t
@@ -1704,14 +1902,56 @@ CIDER eldoc information.
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)
       ;; Company AucTeX
       <<company-auctex-config>>
-
       ;; RefTeX
       <<reftex-config>>
       (jchaffin/init-reftex)
+      ;; Bibtex Config
+      <<bibtex-config>>
       ;; Magic Latex Buffer
       <<magic-latex-buffer-config>>
+      ;; Latex Preview Pane
+      ;; buggy
+      ;; <<latex-preview-pane-config>>
+
       ;; Org Edit Latex Buffer
-      <<org-edit-latex-config>>))
+      <<org-edit-latex-config>>
+      ;; Latex Extra
+      <<latex-extra-config>>
+      ;; Auctex latexmk
+      <<auctex-latexmk-config>>
+      ))
+#+END_SRC
+
+**** Bibtex
+
+#+NAME bibtex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq bibtex-autokey-year-length 4
+      bibtex-autokey-name-year-separator "-"
+      bibtex-autokey-year-title-separator "-"
+      bibtex-autokey-titleword-separator "-"
+      bibtex-autokey-titlewords 2
+      bibtex-autokey-titlewords-stretch 1
+      bibtex-autokey-titleword-length 5)
+#+END_SRC
+
+**** LaTeX Extra
+
+#+NAME: latex-extra-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package latex-extra
+  :ensure t
+  :init
+  (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
+#+END_SRC
+
+**** LaTeX Preview Pane
+
+#+NAME: latex-preview-pane-config
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package latex-preview-pane
+    :ensure t
+    :config (latex-preview-pane-enable))
 #+END_SRC
 
 **** Company AucTeX
@@ -1750,7 +1990,17 @@ Prettify dedicated org-mode latex buffers.
             magic-latex-enable-inline-image t)))
 #+END_SRC
 
-**** RefteX
+**** Auctex Latexmk
+
+#+NAME: auctex-latexmk-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package auctex-latexmk
+  :ensure t
+  :config
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
+#+END_SRC
+
+**** RefTeX
 
 
 RefTeX is a citation and reference tool maintained by the
@@ -1763,7 +2013,8 @@ Since Emacs 24.3, its built in with the Emacs distribution.
   (defun jchaffin/init-reftex ()
     (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
     (setq reftex-plug-into-AUCTeX '(nil nil t t t)
-          reftex-use-fonts t))
+          reftex-use-fonts t
+          reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
 #+END_SRC
 
 **** Texinfo
@@ -1771,6 +2022,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 #+texinfo-config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package texinfo
+    :ensure t
     :defines texinfo-section-list
     :commands texinfo-mode
     :init
@@ -1846,7 +2098,7 @@ Tern backend using company.
     :mode (("\\.json\\'" . json-mode)))
 #+END_SRC
 
-**** React                                                           :ignore:
+**** React                                                        :ignore:
 
 Based off/shamelessly copied and pasted from Spacemacs
 React layer.

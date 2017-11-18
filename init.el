@@ -17,19 +17,26 @@
 
 
 (straight-use-package 'el-patch)
+(straight-use-package 'dash)
+
+(when (eq system-type 'darwin)
+  (straight-use-package '(org
+			:host github
+			:repo "jchaffin/org-mode"
+			:local-repo-name org
+			:files ("lisp/*.el" "contrib/lisp/*.el"))))
+
+(straight-use-package '(org-beautify-theme
+			:host github
+			:repo "jchaffin/org-beautify-theme"
+			:uptream (:host github
+				  :repo "jonnay/org-beautify-theme")))
+
 (straight-use-package '(use-package
 			 :host github
 			 :repo "raxod502/use-package"
 			 :upstream (:host github
 				    :repo "jwiegley/use-package")))
-
-(straight-use-package '(org
-			:host github
-			:repo "jchaffin/org-mode"
-			:local-repo-name org
-			:files ("lisp/*.el" "contrib/lisp/*.el")))
-
-
 (eval-when-compile
   (require 'use-package))
 
@@ -66,6 +73,9 @@
 
 
 (defun chaffin--org-init ()
+  (setq org-src-fontify-natively t
+	org-confirm-babel-evaluate nil
+	org-src-preserve-indentation t)
   (org-babel-load-file (concat user-emacs-directory "chaffin.org")))
 
 (add-hook 'after-init-hook #'chaffin--org-init)
