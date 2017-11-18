@@ -1,5 +1,5 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
-#+OPTIONS: H:5 num:t toc:t \n:nil d:nil tasks:nil tags:nil tex:t
+#+OPTIONS: H:5 num:t toc:t \n:nil d:nil tasks:nil tags:nil tex:t num:nil
 #+STARTUP: nohideblocks:t
 
 * Configuration
