@@ -1,8 +1,25 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
+
 #+OPTIONS: H:5 num:t toc:t \n:nil d:nil tasks:nil tags:nil tex:t num:nil
 #+STARTUP: nohideblocks:t
 
-* Configuration
+* Configuration                                                    :TOC_2_gh:
+  - [[#preface][Preface]]
+  - [[#package-management][Package Management]]
+  - [[#user-information][User Information]]
+  - [[#core][Core]]
+  - [[#environment][Environment]]
+  - [[#org-mode][Org Mode]]
+  - [[#better-defaults][(Better) Defaults]]
+  - [[#editing][Editing]]
+  - [[#utilities][Utilities]]
+  - [[#ui][UI]]
+  - [[#vcs][VCS]]
+  - [[#web-browsing][Web Browsing]]
+  - [[#email][Email]]
+  - [[#programming-languages][Programming Languages]]
+  - [[#footnotes][Footnotes]]
+
 ** Preface
 *** About
 
