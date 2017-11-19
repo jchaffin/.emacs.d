@@ -18,3 +18,4 @@ site-lisp/*
 
 !/init.el
 !/chaffin.org
+!/docs/

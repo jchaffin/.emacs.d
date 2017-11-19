@@ -1,212 +1,47 @@
-#+TITLE: Jacob Chaffin's Literate Emacs Configuration
+% Created 2017-11-19 Sun 06:58
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Jacob Chaffin}
+\date{\today}
+\title{Jacob Chaffin's Literate Emacs Configuration}
+\hypersetup{
+ pdfauthor={Jacob Chaffin},
+ pdftitle={Jacob Chaffin's Literate Emacs Configuration},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 25.3.1 (Org mode N/A)}, 
+ pdflang={English}}
+\begin{document}
 
-#+OPTIONS: H:5 num:t toc:nil \n:nil d:nil tasks:nil tags:nil tex:t num:nil
-#+STARTUP: nohideblocks:t
+\maketitle
 
-* Table Of Contents                                       :TOC_4_gh:noexport:
-- [[#configuration][Configuration]]
-  - [[#preface][Preface]]
-    - [[#about][About]]
-    - [[#influences][Influences]]
-  - [[#package-management][Package Management]]
-    - [[#straightel][straight.el]]
-    - [[#use-package][Use Package]]
-    - [[#default-packages][Default Packages]]
-  - [[#user-information][User Information]]
-  - [[#core][Core]]
-    - [[#macros][Macros]]
-      -  [[#with-system][~with-system~]]
-    - [[#functions][Functions]]
-      - [[#add-multiple-hooks][Add multiple hooks]]
-      - [[#join-strings-with-separator][Join Strings with Separator]]
-  - [[#environment][Environment]]
-    - [[#macos][macOS]]
-      - [[#computer-name][Computer Name]]
-      - [[#keybindings][Keybindings]]
-      - [[#reveal-in-osx-finder][Reveal in OSX Finder]]
-      - [[#osx-dictionary][OSX Dictionary]]
-      - [[#exec-path-from-shell][Exec Path From Shell]]
-    - [[#other-operating-systems][Other Operating Systems]]
-      - [[#windowspc][Windows/PC]]
-      - [[#linux][Linux]]
-    - [[#graphical-interace][Graphical Interace]]
-    - [[#custom-file][Custom File]]
-    - [[#backup-files][Backup Files]]
-    - [[#use-emacs-terminfo][Use Emacs Terminfo]]
-  - [[#org-mode][Org Mode]]
-    - [[#org-prettify][Org Prettify]]
-      - [[#improve-legibility][Improve Legibility]]
-      - [[#image-size][Image Size]]
-      - [[#org-bullets][Org Bullets]]
-      - [[#org-beautify-theme][Org Beautify Theme]]
-      - [[#toc-org][TOC Org]]
-    - [[#org-utilities][Org Utilities]]
-      - [[#org-agenda][Org Agenda]]
-      - [[#org-pomodoro][Org Pomodoro]]
-      - [[#org-ref][Org Ref]]
-      - [[#org-id][Org ID]]
-    - [[#org-pdf][Org PDF]]
-      - [[#pdf-tools][Pdf Tools]]
-      - [[#org-pdf-view][Org PDF View]]
-    - [[#org-export][Org Export]]
-      - [[#latex-backend][LaTeX Backend]]
-      - [[#github-flavored-markdown][GitHub Flavored Markdown]]
-      - [[#org-youtube][Org YouTube]]
-      - [[#ox-extra][Ox Extra]]
-  - [[#better-defaults][(Better) Defaults]]
-    - [[#better-utilities][Better Utilities]]
-      - [[#dired][Dired+]]
-      - [[#undo-tree][Undo Tree]]
-      - [[#projectile][Projectile]]
-      - [[#restart-emacs][Restart Emacs]]
-      - [[#popwin][Popwin]]
-    - [[#better-display][Better Display]]
-      - [[#page-break-lines][Page Break Lines]]
-      - [[#splash-screen-replacement][Splash Screen Replacement.]]
-      - [[#inhibit-scratch-buffer][Inhibit Scratch Buffer]]
-      - [[#menu-bar-tool-bar-scroll-bar][Menu Bar, Tool Bar, Scroll Bar]]
-      - [[#truncate-lines][Truncate Lines]]
-    - [[#better-garbage-collection][Better Garbage Collection]]
-    - [[#better-encryption][Better Encryption]]
-      - [[#gnutls][GnuTLS]]
-      - [[#use-gpg2][Use GPG2]]
-      - [[#disable-external-pin-entry][Disable External Pin Entry]]
-      - [[#internal-pinentry-problem-and-solution][Internal Pinentry Problem and Solution]]
-    - [[#better-commands][Better Commands]]
-  - [[#editing][Editing]]
-    - [[#indentation][Indentation]]
-      - [[#highlight-indent-guides][~highlight-indent-guides~]]
-    - [[#yasnippet][YASnippet]]
-    - [[#flycheck][Flycheck]]
-      - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
-      - [[#flycheck-package][Flycheck Package]]
-      - [[#flycheck-in-org-special-edit-buffers][Flycheck in Org Special Edit Buffers]]
-    - [[#company][Company]]
-      - [[#company-statistics][Company Statistics]]
-      - [[#company-quick-help][Company Quick Help]]
-      - [[#company-dict][Company Dict]]
-  - [[#utilities][Utilities]]
-    - [[#image][Image+]]
-    - [[#ivy][Ivy]]
-      - [[#ivy-config][Ivy Config]]
-      - [[#ivy-hydra][Ivy Hydra]]
-      - [[#ivy-historian][Ivy Historian]]
-      - [[#counsel][Counsel]]
-      - [[#swiper][Swiper]]
-      - [[#swiper-avy][Swiper Avy]]
-      - [[#counsel-projectile][Counsel-Projectile]]
-      - [[#smex][Smex]]
-      - [[#counsel-osx-app][Counsel OSX App]]
-      - [[#counsel-dash][Counsel Dash]]
-    - [[#deft][Deft]]
-    - [[#wakatime][Wakatime]]
-  - [[#user-interface][User Interface]]
-    - [[#cursor][Cursor]]
-      - [[#vertical-bar][Vertical Bar]]
-      - [[#disable-blink][Disable Blink]]
-      - [[#smart-cursor-color][Smart Cursor Color]]
-    - [[#theme][Theme]]
-      - [[#enable-custom-themes][Enable Custom Themes]]
-      - [[#zenburn-theme][Zenburn Theme]]
-      - [[#contrasting-theme-for-use-with-sunshineel][Contrasting theme for use with =sunshine.el=.]]
-      - [[#load-themes][Load Themes]]
-    - [[#modeline][Modeline]]
-      - [[#display-time][Display Time]]
-      - [[#smart-mode-line][Smart-Mode-Line]]
-      - [[#mode-icons][Mode Icons]]
-    - [[#all-the-icons][All The Icons]]
-    - [[#terminal][Terminal]]
-      - [[#multi-term][Multi-Term]]
-    - [[#fit-frame][Fit Frame]]
-    - [[#frame-font][Frame Font]]
-    - [[#sunshine][Sunshine]]
-    - [[#theme-changer][Theme Changer]]
-    - [[#emojify][Emojify]]
-  - [[#version-control][Version Control]]
-    - [[#magit][Magit]]
-      - [[#magithub][Magithub]]
-    - [[#gistel][gist.el]]
-    - [[#git-timemachine][git-timemachine]]
-    - [[#git-messenger][git-messenger]]
-    - [[#git-modes][git modes]]
-    - [[#mercurial][Mercurial]]
-      - [[#monky][monky]]
-      - [[#ah][ah]]
-  - [[#web-browsing][Web Browsing]]
-    - [[#osx-browse][osx-browse]]
-    - [[#google-search-query-at-point][google-search-query-at-point]]
-    - [[#browse-url-dwim][browse-url-dwim]]
-    - [[#google-this][google-this]]
-    - [[#google-translate][google-translate]]
-  - [[#email][Email]]
-    - [[#mu][Mu]]
-  - [[#programming-languages][Programming Languages]]
-    - [[#lisp][Lisp]]
-      - [[#parens][Parens]]
-      - [[#hlsexp][Hlsexp]]
-    - [[#common-lisp][Common-Lisp]]
-      - [[#slime][Slime]]
-    - [[#clojure][Clojure]]
-      - [[#clojure-mode-repository][Clojure Mode (repository)]]
-      - [[#clojurescript][ClojureScript]]
-      - [[#clojure-mode-extra-font-locking][Clojure Mode Extra Font Locking]]
-      - [[#cider-repository][Cider (repository)]]
-      - [[#inf-clojure][inf-clojure]]
-      - [[#linting-clojure][Linting Clojure]]
-      - [[#typed-clojure][Typed Clojure]]
-      - [[#flycheck-pos-tip][Flycheck-Pos-Tip]]
-    - [[#java][Java]]
-      - [[#eclim][Eclim]]
-    - [[#latex][LaTeX]]
-      - [[#tex-config][Tex Config]]
-      - [[#bibtex][Bibtex]]
-      - [[#latex-extra][LaTeX Extra]]
-      - [[#latex-preview-pane][LaTeX Preview Pane]]
-      - [[#company-auctex][Company AucTeX]]
-      - [[#org-edit-latex][Org Edit Latex]]
-      - [[#magic-latex-buffer][Magic Latex Buffer]]
-      - [[#auctex-latexmk][Auctex Latexmk]]
-      - [[#reftex][RefTeX]]
-      - [[#texinfo][Texinfo]]
-    - [[#javascript][Javascript]]
-      - [[#javascript-preamble][JavaScript Preamble]]
-      - [[#js2-mode][js2-mode]]
-      - [[#rjsx-mode][rjsx-mode]]
-      - [[#tern][Tern]]
-      - [[#json][JSON]]
-      - [[#react][React]]
-      - [[#coffee][Coffee]]
-      - [[#add-node-modules-path-repository][Add Node Modules Path (repository)]]
-      - [[#npm-mode][Npm Mode]]
-      - [[#enable-syntax-checking-in-js-mode-and-related-mode-buffers][Enable syntax checking in ~js-mode~ and related mode buffers.]]
-    - [[#web][Web]]
-      - [[#web-mode][Web Mode]]
-      - [[#emmet][Emmet]]
-      - [[#html][HTML]]
-      - [[#css][CSS]]
-      - [[#syntax-checking-and-code-completion][Syntax Checking and Code Completion]]
-    - [[#markdown][Markdown]]
-      - [[#markdown-mode][Markdown Mode]]
-      - [[#markdown-mode-1][markdown-mode+]]
-      - [[#markdown-tocontents][markdown-tocontents]]
-      - [[#markdownfmt][markdownfmt]]
-    - [[#ruby][Ruby]]
-      - [[#ruby-mode][ruby-mode]]
-      - [[#rvm][rvm]]
-    - [[#docker][Docker]]
-  - [[#footnotes][Footnotes]]
+\section*{Configuration}
+\label{sec:org2d10916}
+\subsection*{Preface}
+\label{sec:org6bca3c0}
+\subsubsection*{About}
+\label{sec:org9e2ff35}
 
-* Configuration
-** Preface
-*** About
-
-[[https://en.wikipedia.org/wiki/literate_programming][Literate Programming]] is a method of writing computer programs where
+\href{https://en.wikipedia.org/wiki/literate\_programming}{Literate Programming} is a method of writing computer programs where
 the composition, logic, and structure of the program are optimized for
 human comprehension. Introduced by Donald Knuth in his 1983 eponymous
 work, a literate program interoperates source code with macros,
 commentary, and documentation written in natural language prose. The
 source code is then extracted in a pre-compilation step known as
-/tangling/.
+\emph{tangling}.
 
 Where as a program is traditionally presented in a tree structure, a
 programmer implementing literate techniques arranges parts and forms
@@ -217,137 +52,130 @@ literature, where ideas are connected in the form of a web rather than
 the unidirectional order of interpretation that is characteristic of a
 compiler.
 
-*** Influences
+\subsubsection*{Influences}
+\label{sec:org3c95bef}
 
-- [[http://pages.sachachua.com/.emacs.d/sacha.html][Sacha Chua's Emacs Configuration]]
-- [[http://aaronbedra.com/emacs.d/][Aaron Bedra's Emacs Configuration]]
-- [[https://github.com/Wasamasa/dotemacs/blob/master/init.org][wasamasa/dotemacs]]
-- [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
+\begin{itemize}
+\item \href{http://pages.sachachua.com/.emacs.d/sacha.html}{Sacha Chua's Emacs Configuration}
+\item \href{http://aaronbedra.com/emacs.d/}{Aaron Bedra's Emacs Configuration}
+\item \href{https://github.com/Wasamasa/dotemacs/blob/master/init.org}{wasamasa/dotemacs}
+\item \href{http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/}{Optimal Emacs Settings For Org Mode For Literal Programming}
+\end{itemize}
 
-** Package Management
-*** straight.el
+\subsection*{Package Management}
+\label{sec:org3539dc1}
+\subsubsection*{straight.el}
+\label{sec:orgf45399d}
 
 Currently we have a tumultuous relationship.
 
-*** Use Package
+\subsubsection*{Use Package}
+\label{sec:org920788b}
 
-#+NAME: use-package-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (eval-when-compile
     (require 'use-package))
   (require 'diminish)
   (require 'bind-key)
-#+END_SRC
+\end{verbatim}
 
-*** Default Packages
+\subsubsection*{Default Packages}
+\label{sec:org4f345bb}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (require 'cl)
 (require 'dash)
-#+END_SRC
+\end{verbatim}
 
-** User Information
+\subsection*{User Information}
+\label{sec:org4df887d}
 
 These values are initialized with the ’name’ and ’email’
-environment variables, respectively[fn:1].
+environment variables, respectively\footnote{\href{https://www.gnu.org/software/emacs/manual/html\_node/emacs/General-Variables.html\#General-Variables}{Emacs Manual - C.4.1 General Variables}}.
 
 Emacs uses these variables to fill the mail header when sending
 emails in emacs, and various third-party packages rely on them
 for correct behavior.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq user-full-name "Jacob Chaffin"
         user-mail-address "jchaffin@ucla.edu")
-#+END_SRC
+\end{verbatim}
 
 Ensure that programs store emacs information in the cannonical
 directory.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq user-emacs-directory "~/.emacs.d/")
-#+END_SRC
+\end{verbatim}
 
-** Core
-*** Constants                                                    :noexport:
-
-Variables used throughout this file[fn:2]:
-
-#+NAME: define-constants
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-<<defconst-is-macos>>
-<<defconst-is-windows>>
-<<defconst-is-linux>>
-<<defconst-is-gui>>
-#+END_SRC
-
-*** Macros
-****  ~with-system~
+\subsection*{Core}
+\label{sec:orgb030dfb}
+\subsubsection*{Macros}
+\label{sec:org9bb61d1}
+\paragraph*{\texttt{with-system}}
+\label{sec:org24d2e92}
 
 This is a simple utility macro that evaluates code depending on
 operating system type.
 
-Where as the top level ~system-type~ aliases are intended to simplify
-conditionals of the /if-then/ form or /if-else-then/ form, the
-~with-system~ macro is intended for use in structures with a single
+Where as the top level \texttt{system-type} aliases are intended to simplify
+conditionals of the \emph{if-then} form or \emph{if-else-then} form, the
+\texttt{with-system} macro is intended for use in structures with a single
 conditional clause.
 
-In emacs-lisp, this kind of statement can be expressed with the ~when~
-macro[fn:3].
+In emacs-lisp, this kind of statement can be expressed with the \texttt{when}
+macro\footnote{\href{https://www.gnu.org/software/emacs/manual/html\_node/elisp/Conditionals.html}{Emacs Manual - 10.2 Conditionals}}.
 
-Credits to stack overflow user [[https://stackoverflow.com/users/403018/gerstmann][gerstmann]], who provided this solution
-in the following stack overflow [[https://stackoverflow.com/a/26137517/6233622][ticket]].
+Credits to stack overflow user \href{https://stackoverflow.com/users/403018/gerstmann}{gerstmann}, who provided this solution
+in the following stack overflow \href{https://stackoverflow.com/a/26137517/6233622}{ticket}.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (defmacro with-system (type &rest body)
   "If TYPE equals `system-type', evaluate BODY."
   (declare (indent defun))
   `(when (eq system-type ',type)
      ,@body))
-#+END_SRC
+\end{verbatim}
 
-*** Functions
-**** Add multiple hooks
+\subsubsection*{Functions}
+\label{sec:org4410ca7}
+\paragraph*{Add multiple hooks}
+\label{sec:org461b0f5}
 
-See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#7398216]]
+See Stack Overflow ticket \href{https://stackoverflow.com/a/7400476/6233622}{\#7398216}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (defun add-to-hooks (fun hooks)
           "Add function to hooks"
           (dolist (hook hooks)
            (add-hook hook fun)))
-#+END_SRC
+\end{verbatim}
 
-**** Join Strings with Separator
+\paragraph*{Join Strings with Separator}
+\label{sec:org22d6c9b}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (defun join (lst sep)
   (mapconcat 'identity lst sep))
-#+END_SRC
+\end{verbatim}
 
-** Environment
-*** macOS
+\subsection*{Environment}
+\label{sec:org0dfe034}
+\subsubsection*{macOS}
+\label{sec:org56c1a44}
 
 I work on a macbook, so this block is where I'm loading all of my settings that rely on local
 filepaths, macOS applications, and external programs.
 
-#+NAME: defconst-is-macos
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (defconst *is-mac* (eq system-type 'darwin))
-#+END_SRC
+\end{verbatim}
 
-#+NAME: macos-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports results :results output
-  (when *is-mac*
-     (progn
-       <<macos-default-settings>>
-       <<macos-finder-config>>
-       <<macos-dictionary-config>>))
-#+END_SRC
+\paragraph*{Computer Name}
+\label{sec:orgd86864a}
 
-**** Computer Name
-
-#+NAME: defvar-computer-name
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (defun chaffin/computer-name-cmd ()
   (let* ((has-scutil (executable-find "scutil"))
 	 (scutil-cmd (lambda () (shell-command-to-string "scutil --get ComputerName"))))
@@ -357,16 +185,16 @@ filepaths, macOS applications, and external programs.
 
 (defvar computer-name (chaffin/computer-name-cmd))
 (defconst *is-hal* (string= computer-name "hal"))
-#+END_SRC
+\end{verbatim}
 
-**** Keybindings
-macOS specific settings[fn:4].
+\paragraph*{Keybindings}
+\label{sec:org03476d5}
+macOS specific settings\footnote{\href{https://www.emacswiki.org/emacs/EmacsForMacOS}{EmacsForMacOS}}.
 
 Maps the modifier keys based on personal preferences.
 Also sets terminal coding system to "utf-8".
 
-#+NAME: macos-default-settings
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (setq mac-command-modifier 'super
             mac-option-modifier 'meta
             ns-control-modifier 'control
@@ -374,50 +202,51 @@ Also sets terminal coding system to "utf-8".
 
 (set-terminal-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
-#+END_SRC
+\end{verbatim}
 
-**** Reveal in OSX Finder
+\paragraph*{Reveal in OSX Finder}
+\label{sec:org192255f}
 
-#+NAME: macos-finder-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package reveal-in-osx-finder
     :ensure t
     :bind ("C-c z" . reveal-in-osx-finder))
-#+END_SRC
+\end{verbatim}
 
-**** OSX Dictionary
+\paragraph*{OSX Dictionary}
+\label{sec:orgff9b12b}
 
-Provides an interface to /Dictionary.app/ in Emacs.
+Provides an interface to \emph{Dictionary.app} in Emacs.
 
-#+NAME: macos-dictionary-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package osx-dictionary
     :ensure t
     :bind (("C-c C-d" . osx-dictionary-search-word-at-point)
            ("C-c i" . osx-dictionary-search-input)))
-#+END_SRC
+\end{verbatim}
 
-**** Exec Path From Shell
+\paragraph*{Exec Path From Shell}
+\label{sec:orgc53c222}
 
 Emacs relies heavily on shell environment variables.
 
 These variables may not be picked up when launching emacs
 from a gui on a unix-like operating system.
 
-The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] package fixes this problem by copying
+The \href{https://github.com/purcell/exec-path-from-shell}{exec-path-from-shell} package fixes this problem by copying
 user environment variables from the shell.
 
-The ~exec-path-from-shell~ package only works with posix-compliant
-operating systems. This may or may not include Microsoft Windows[fn:5].
+The \texttt{exec-path-from-shell} package only works with posix-compliant
+operating systems. This may or may not include Microsoft Windows\footnote{\href{https://www.quora.com/Is-Windows-POSIX-compliant}{Quora - Is Windows POSIX compliant?}}.
 
-However, the ~exec-path-from-shell~ instructions recommends loading
+However, the \texttt{exec-path-from-shell} instructions recommends loading
 the package on linux and macOS operating system. I don't use Windows
 all that often anyways, so that's fine with me.
 
-The ~:if~ key of ~use-package~ offers us a really concise way for
+The \texttt{:if} key of \texttt{use-package} offers us a really concise way for
 conditionally loading dependencies.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package exec-path-from-shell
     ;; only load `exec-path-from-shell' package on macos and linux.
     :if (memq window-system '(mac ns))
@@ -425,128 +254,128 @@ conditionally loading dependencies.
     :config
     (exec-path-from-shell-initialize)
     (setq exec-path-from-shell-check-startup-files nil))
-#+END_SRC
+\end{verbatim}
 
-*** Other Operating Systems
-**** Windows/PC
+\subsubsection*{Other Operating Systems}
+\label{sec:org721816e}
+\paragraph*{Windows/PC}
+\label{sec:org29ce3ee}
 
-#+NAME: defconst-is-windows
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (defconst *is-windows* (eq system-type 'windows))
-#+END_SRC
+\end{verbatim}
 
-**** Linux
+\paragraph*{Linux}
+\label{sec:orgff1a639}
 
-#+NAME: defconst-is-linux
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (defconst *is-linux* (eq system-type 'linux))
-#+END_SRC
+\end{verbatim}
 
-*** Graphical Interace
+\subsubsection*{Graphical Interace}
+\label{sec:org56a0112}
 
 There's some packages and commands I only want available when Emacs is
 running in a graphical interface. Things like image-rendering, large
 packages, and image rendering.
 
-#+NAME: defconst-is-gui
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (defconst *is-gui* (display-graphic-p))
-#+END_SRC
+\end{verbatim}
 
-*** Custom File
+\subsubsection*{Custom File}
+\label{sec:org90421c4}
 
-By default, Emacs customizations[fn:6] done through the =customize=
-interface write to ~user-init-file~.
+By default, Emacs customizations\footnote{\href{https://www.gnu.org/software/emacs/manual/html\_node/emacs/Saving-Customizations.html}{Emacs Manual - 51.1.4 Saving Customizations}} done through the \texttt{customize}
+interface write to \texttt{user-init-file}.
 
 While I usually prefer configuring emacs programmatically, settings
 that depend on resources outside of this repository, such as
 org-agenda files, will impact portability and potentially break on
 other machines.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (setq custom-file "~/.emacs.d/custom/custom.el")
 (load custom-file)
-#+END_SRC
+\end{verbatim}
 
-*** Backup Files
+\subsubsection*{Backup Files}
+\label{sec:org063da41}
 
 This might come back to bite me one day but I never use them.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (setq make-backup-files nil)
-#+END_SRC
+\end{verbatim}
 
-*** Use Emacs Terminfo
+\subsubsection*{Use Emacs Terminfo}
+\label{sec:orgdcfcc9b}
 Setting this variable to false forces Emacs to use internal terminfo,
 rather than the system terminfo.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq system-uses-terminfo nil)
-#+END_SRC
+\end{verbatim}
 
-** Org Mode
+\subsection*{Org Mode}
+\label{sec:org8728288}
 
-#+NAME: org-mode-settings
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<org-prettify>>
-<<org-utils>>
-<<org-pdf>>
-<<org-export>>
-#+END_SRC
-
-*** Org Prettify
+\subsubsection*{Org Prettify}
+\label{sec:org634f915}
 
 These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
 
-#+NAME: org-prettify
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-<<org-prettify-text>>
-<<org-prettify-image>>
-<<org-prettify-bullets>>
-<<org-prettify-toc-org>>
-#+END_SRC
-
-**** Improve Legibility
-
-#+NAME: org-prettify-text
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (add-hook #'org-mode-hook (lambda ()
                               (auto-fill-mode)
                               (visual-line-mode)))
-#+END_SRC
-
-**** Image Size
-
-Make images compact.
-
-#+NAME: org-prettify-image
-#+BEGIN_SRC emacs-lisp :tangle no
 (setq org-image-actual-width 400)
-#+END_SRC
-
-**** Org Bullets
-
-Use UTF-8 Bullets for Org-mode headings.
-
-#+NAME: org-prettify-bullets
-#+BEGIN_SRC emacs-lisp :tangle no
   (use-package org-bullets
     :ensure t
     :init
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
-#+END_SRC
+(use-package toc-org
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook 'toc-org-enable))
+\end{verbatim}
 
-**** Org Beautify Theme
-:PROPERTIES:
-:ID:       4612DA55-904D-44D4-9E3D-98E6D7AF72E2
-:CUSTOM_ID: org-beautify-theme
-:END:
+\paragraph*{Improve Legibility}
+\label{sec:orgb943234}
 
+\begin{verbatim}
+  (add-hook #'org-mode-hook (lambda ()
+                              (auto-fill-mode)
+                              (visual-line-mode)))
+\end{verbatim}
 
-#+NAME: org-prettify-ob-theme
-#+BEGIN_SRC emacs-lisp :tangle no
+\paragraph*{Image Size}
+\label{sec:org5534c0c}
+
+Make images compact.
+
+\begin{verbatim}
+(setq org-image-actual-width 400)
+\end{verbatim}
+
+\paragraph*{Org Bullets}
+\label{sec:orgcc217a5}
+
+Use UTF-8 Bullets for Org-mode headings.
+
+\begin{verbatim}
+  (use-package org-bullets
+    :ensure t
+    :init
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+\end{verbatim}
+
+\paragraph*{Org Beautify Theme}
+\label{org-beautify-theme}
+\begin{verbatim}
   (use-package org-beautify-theme
     :ensure nil
     :defines org-beautify-theme-use-box-hack
@@ -554,42 +383,26 @@ Use UTF-8 Bullets for Org-mode headings.
     (setq org-beautify-theme-use-box-hack nil)
     (add-to-list 'custom-enabled-themes 'org-beautify)
     (load-theme 'org-beautify t))
-#+END_SRC
+\end{verbatim}
 
-**** TOC Org
+\paragraph*{TOC Org}
+\label{sec:org30e8b94}
 
-#+NAME: org-prettify-toc-org
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (use-package toc-org
   :ensure t
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
-#+END_SRC
+\end{verbatim}
 
-*** Org Utilities
+\subsubsection*{Org Utilities}
+\label{sec:orgbc6b7af}
 
-#+NAME: org-utils
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-<<org-utils-agenda>>
-<<org-utils-pomodoro>>
-<<org-utils-ref>>
-<<org-utils-id>>
-#+END_SRC
-
-**** Org Agenda
-
-#+NAME: org-utils-agenda
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package org-agenda
     :recipe org
     :defer-install t
     :bind (("C-c a" . org-agenda)))
-#+END_SRC
-
-**** Org Pomodoro
-
-#+NAME: org-utils-pomodoro
-#+BEGIN_SRC emacs-lisp :tangle no
   (use-package org-pomodoro
     :ensure t
     :bind (:map org-mode-map
@@ -616,24 +429,6 @@ Use UTF-8 Bullets for Org-mode headings.
           org-pomodoro-long-break-sound-args "--volume 0.2"
           org-pomodoro-long-break-sound
           (expand-file-name "~/.emacs.d/resources/Complete.wav")))
-#+END_SRC
-
-**** Org Ref
-
-:PROPERTIES:
-:ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
-:END:
-
-#+NAME: org-utils-ref
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-utils-ref-settings>>
-<<org-utils-ref-ivy>>
-<<org-utils-ref-open-pdf-at-point>>
-#+END_SRC
-
-
-#+NAME: org-utils-ref-settings
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
   (use-package org-ref
     :if *is-mac*
     :ensure t
@@ -656,24 +451,10 @@ Use UTF-8 Bullets for Org-mode headings.
       (require 'org-ref-wos)
       (require 'org-ref-worldcat)
       (require 'x2bib)))
-#+END_SRC
-
-***** Org Ref Ivy
-
-#+NAME: org-utils-ref-ivy
-#+BEGIN_SRC emacs-lisp :tangle no
 (setq org-ref-completion-library 'org-ref-ivy-cite)
 (require 'org-ref)
 (require 'org-ref-ivy)
 (require 'org-ref-ivy-cite)
-#+END_SRC
-
-***** Open Pdf at point
-
-See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view-or-pdf-tools][Using Doc View or PDF Tools]] section of =org-ref= documentation.
-
-#+NAME: org-utils-ref-open-pdf-at-point
-#+BEGIN_SRC emacs-lisp :tangle no
 (defun chaffin/org-ref-open-pdf-at-point ()
   "Open the pdf for bibtex key under point if it exists."
   (interactive)
@@ -686,36 +467,8 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 
 (setq org-ref-open-pdf-function 'chaffin/org-ref-open-pdf-at-point)
 
-#+END_SRC
-
-**** Org ID
-
-#+NAME: org-utils-id
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<org-utils-id-custom>>
-#+END_SRC
-
-***** Custom ID
-
-#+NAME:  org-utils-id-custom
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<org-utils-id-custom-settings>>
-<<org-utils-id-custom-get>>
-#+END_SRC
-
-#+NAME: org-utils-id-custom-settings
-#+BEGIN_SRC emacs-lisp :tangle no
 (require 'org-id)
 (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-#+END_SRC
-
-
-****** Get Custom ID
-
-From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Org Mode Generate Ids]] blogpost:
-
-#+NAME: org-utils-id-custom-get
-#+BEGIN_SRC emacs-lisp :tangle no
 (defun chaffin/org-custom-id-get (&optional pom create prefix)
   "Get the CUSTOM_ID property of the entry at point-or-marker POM.
    If POM is nil, refer to the entry at point. If the entry does
@@ -734,114 +487,233 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
         (org-entry-put pom "CUSTOM_ID" id)
         (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
         id)))))
-#+END_SRC
+\end{verbatim}
 
-*** Org PDF
+\paragraph*{Org Agenda}
+\label{sec:org9a99710}
 
-#+NAME: org-pdf
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-pdf-pdftools>>
-<<org-pdf-pdfview>>
-<<org-pdf-org-file-apps>>
-#+END_SRC
+\begin{verbatim}
+  (use-package org-agenda
+    :recipe org
+    :defer-install t
+    :bind (("C-c a" . org-agenda)))
+\end{verbatim}
 
-**** Pdf Tools
+\paragraph*{Org Pomodoro}
+\label{sec:org98ba444}
 
-#+NAME: org-pdf-pdftools
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
+  (use-package org-pomodoro
+    :ensure t
+    :bind (:map org-mode-map
+                ("C-c M-RET p" . org-pomodoro))
+    :config
+    (setq org-pomodoro-audio-player "afplay"
+          org-pomodoro-tick-sound
+          (expand-file-name "~/.emacs.d/resources/clock-ticking-2.wav")
+          ;; Start Settings
+          org-pomodoro-start-sound-p t ;; enable starting sound
+          org-pomodoro-start-sound-args "--volume 0.08"
+          org-pomodoro-start-sound
+          (expand-file-name "~/.emacs.d/resources/Victory.wav")
+          ;; Finished Settings
+          org-pomodoro-finished-sound-args "--volume 0.2"
+          org-pomodoro-finished-sound
+          (expand-file-name "~/.emacs.d/resources/Waves.wav")
+          ;; Short Break Settings
+          org-pomodoro-short-break-length 5
+          org-pomodoro-short-break-sound-args "--volume 0.2"
+          org-pomodoro-short-break-sound org-pomodoro-finished-sound
+          ;; Long Break Settings
+          org-pomodoro-long-break-length 15
+          org-pomodoro-long-break-sound-args "--volume 0.2"
+          org-pomodoro-long-break-sound
+          (expand-file-name "~/.emacs.d/resources/Complete.wav")))
+\end{verbatim}
+
+\paragraph*{Org Ref}
+\label{sec:org1457968}
+
+\begin{verbatim}
+  (use-package org-ref
+    :if *is-mac*
+    :ensure t
+    :config
+    (progn
+      (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
+            org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
+            org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/")
+      (require 'org-ref-pdf)
+      (require 'org-ref-latex)
+      (require 'org-ref-reftex)
+      (require 'org-ref-utils)
+      (require 'org-ref-url-utils)
+      (require 'org-ref-pubmed)
+      (require 'org-ref-scopus)
+      (require 'org-ref-scifinder)
+      (require 'org-ref-citeproc)
+      (require 'org-ref-sci-id)
+      (require 'org-ref-isbn)
+      (require 'org-ref-wos)
+      (require 'org-ref-worldcat)
+      (require 'x2bib)))
+\end{verbatim}
+
+\subparagraph*{Org Ref Ivy}
+\label{sec:org4a9ee6e}
+
+\begin{verbatim}
+(setq org-ref-completion-library 'org-ref-ivy-cite)
+(require 'org-ref)
+(require 'org-ref-ivy)
+(require 'org-ref-ivy-cite)
+\end{verbatim}
+
+\subparagraph*{Open Pdf at point}
+\label{sec:org442fd21}
+
+See \href{https://github.com/jkitchin/org-ref/blob/master/org-ref.org\#using-doc-view-or-pdf-tools}{Using Doc View or PDF Tools} section of \texttt{org-ref} documentation.
+
+\begin{verbatim}
+(defun chaffin/org-ref-open-pdf-at-point ()
+  "Open the pdf for bibtex key under point if it exists."
+  (interactive)
+  (let* ((results (org-ref-get-bibtex-key-and-file))
+         (key (car results))
+         (pdf-file (funcall org-ref-get-pdf-filename-function key)))
+    (if (file-exists-p pdf-file)
+        (find-file pdf-file)
+      (message "No PDF found for %s" key))))
+
+(setq org-ref-open-pdf-function 'chaffin/org-ref-open-pdf-at-point)
+
+\end{verbatim}
+
+\paragraph*{Org ID}
+\label{sec:org3fe091f}
+
+\subparagraph*{Custom ID}
+\label{sec:orgc4a8dd4}
+
+\begin{verbatim}
+(require 'org-id)
+(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+\end{verbatim}
+
+
+\begin{itemize}
+\item Get Custom ID
+\label{sec:org432a77c}
+
+From \href{https://writequit.org/articles/emacs-org-mode-generate-ids.html}{Emacs Org Mode Generate Ids} blogpost:
+
+\begin{verbatim}
+(defun chaffin/org-custom-id-get (&optional pom create prefix)
+  "Get the CUSTOM_ID property of the entry at point-or-marker POM.
+   If POM is nil, refer to the entry at point. If the entry does
+   not have an CUSTOM_ID, the function returns nil. However, when
+   CREATE is non nil, create a CUSTOM_ID if none is present
+   already. PREFIX will be passed through to `org-id-new'. In any
+   case, the CUSTOM_ID of the entry is returned."
+  (interactive)
+  (org-with-point-at pom
+    (let ((id (org-entry-get nil "CUSTOM_ID")))
+      (cond
+       ((and id (stringp id) (string-match "\\S-" id))
+        id)
+       (create
+        (setq id (org-id-new (concat prefix "h")))
+        (org-entry-put pom "CUSTOM_ID" id)
+        (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
+        id)))))
+\end{verbatim}
+\end{itemize}
+
+\subsubsection*{Org PDF}
+\label{sec:org5a1d4da}
+
+\paragraph*{Pdf Tools}
+\label{sec:org2150c5b}
+
+\begin{verbatim}
 (use-package pdf-tools
   :ensure t
   :defer t
   :config
   (pdf-tools-install))
-#+END_SRC
+\end{verbatim}
 
-**** Org PDF View
+\paragraph*{Org PDF View}
+\label{sec:org59f9cde}
 
-#+NAME: org-pdf-pdfview
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+\begin{verbatim}
   (use-package org-pdfview
     :after pdf-tools
     :ensure t
     :mode (("\\.pdf\\'" . pdf-view-mode)))
-#+END_SRC
+\end{verbatim}
 
-Now we can open pdf files with =org-pdfview=[fn:7]:
+Now we can open pdf files with \texttt{org-pdfview}\footnote{See \href{https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/}{Note taking with pdf-tools}}:
 
-#+NAME: org-pdf-org-file-apps
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (with-eval-after-load 'org-pdfview
   (add-to-list 'org-file-apps '("\\.pdf\\'" . (lambda (file link) (org-pdfview-open link)))))
-#+END_SRC
+\end{verbatim}
 
-*** Org Export
+\subsubsection*{Org Export}
+\label{sec:orgb0e8c33}
 
-#+NAME: org-export
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-export-latex>>
-<<org-export-gfm>>
-<<org-export-youtube>>
-<<org-export-ox-extra>>
-#+END_SRC
+\paragraph*{\LaTeX{} Backend}
+\label{sec:org090f599}
 
-**** LaTeX Backend
+\subparagraph*{Latexmk}
+\label{sec:org8b66e7f}
 
-#+NAME: org-export-latex
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<tex-config>>
+\href{https://ctan.org/pkg/latexmk?lang=en}{Latexmk} automates the proces of building \LaTeX{} documents to pdf.
 
-(require 'ox-latex)
+It can be done through the \texttt{org-mode} latex export dispatcher in a single command:
 
-<<org-export-latex-user-labels>>
-<<org-export-latex-pdf-process>>
-<<org-export-latex-per-file-class>>
-<<org-export-latex-ftv108-term-paper-class>>
-#+END_SRC
-
-***** Latexmk
-
-[[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
-
-It can be done through the =org-mode= latex export dispatcher in a single command:
-
-#+NAME: org-export-latex-pdf-process
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (setq org-latex-pdf-process
     '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -synctex=1 -pdf -bibtex -f %f"))
-#+END_SRC
+\end{verbatim}
 
-***** Prefer user provided labeling system
+\subparagraph*{Prefer user provided labeling system}
+\label{sec:orgcbe3a8c}
 
-#+NAME: org-export-latex-user-labels
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (setq org-latex-prefer-user-labels t)
-#+END_SRC
+\end{verbatim}
 
-***** Org LaTeX Default Packages
-#+NAME: org-export-latex-default-packages
-#+BEGIN_SRC emacs-lisp :tangle no
+\subparagraph*{Org \LaTeX{} Default Packages}
+\label{sec:org4055c7d}
+\begin{verbatim}
 <<org-export-latex-default-packages-natbib>>
-#+END_SRC
+\end{verbatim}
 
-****** Natbib
+\begin{itemize}
+\item Natbib
+\label{sec:orgaafcae6}
 
-Add [[https://ctan.org/pkg/natbib?lang=en][natbib]] package, as it's the easiest way to get BibTeX support
-through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]] and other tools for LaTeX in Emacs.
+Add \href{https://ctan.org/pkg/natbib?lang=en}{natbib} package, as it's the easiest way to get BibTeX support
+through \href{https://github.com/jkitchin/org-ref/blob/master/org-ref.org}{org-ref} and other tools for \LaTeX{} in Emacs.
 
-#+NAME: org-export-latex-default-packages-natbib
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
-#+END_SRC
+\end{verbatim}
+\end{itemize}
 
-***** Custom Classes
-****** Org Per File Class
+\subparagraph*{Custom Classes}
+\label{sec:org5eb231c}
+\begin{itemize}
+\item Org Per File Class
+\label{sec:orgc010ab3}
 Adds a class for exporting to pdf using latex backend without
-importing the default =ox-latex= packages. This allows the export
+importing the default \texttt{ox-latex} packages. This allows the export
 settings of a particular file to be completely insulated from most external
 configuration.
 
-#+NAME: org-export-latex-per-file-class
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (add-to-list 'org-latex-classes
 	     '("per-file-class"
 	       "\\documentclass{scrartcl}
@@ -852,42 +724,27 @@ configuration.
 	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
 	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
+\end{verbatim}
+\end{itemize}
 
-****** Film Term Paper Class                                  :noexport:
+\paragraph*{GitHub Flavored Markdown}
+\label{sec:orgaa51f6a}
 
-#+NAME: org-export-latex-ftv108-term-paper-class
-#+BEGIN_SRC emacs-lisp :tangle no
-(add-to-list 'org-latex-classes
-	     '("ftv108-term-paper"
-	       "\\documentclass{ftv108-term-paper}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-	       ("\\section{%s}" . "\\section*{%s}")
-	       ("\\subsection{%s}" . "\\subsection*{%s}")
-	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-**** GitHub Flavored Markdown
-
-#+NAME: org-export-gfm
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package ox-gfm
     :ensure t
     :init
     (with-eval-after-load 'org-mode
       (require 'ox-gfm)))
-#+END_SRC
+\end{verbatim}
 
-**** Org YouTube
-From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
+\paragraph*{Org YouTube}
+\label{sec:org0043460}
+From \href{http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html}{Endless Parentheses} blogpost:
 
 Embed YouTube Links in iframe.
 
-#+NAME: org-export-youtube
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (defvar yt-iframe-format
   ;; You may want to change your width and height.
   (concat "<iframe width=\"440\""
@@ -908,106 +765,115 @@ Embed YouTube Links in iframe.
                    path (or desc "")))
      (latex (format "\href{%s}{%s}"
                     path (or desc "video"))))))
-#+END_SRC
+\end{verbatim}
 
-**** Ox Extra
+\paragraph*{Ox Extra}
+\label{sec:org491ee5f}
 
 Ignores headlines tagged "ignore". Unlike "noexport", the contents and
 subtrees of the ignored headlines will be retained.
 
-#+NAME: org-export-ox-extra
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (require 'ox-extra)
 (ox-extras-activate '(ignore-headlines))
-#+END_SRC
+\end{verbatim}
 
-** (Better) Defaults
-*** Better Utilities
-**** Dired+
+\subsection*{(Better) Defaults}
+\label{sec:orgafa7857}
+\subsubsection*{Better Utilities}
+\label{sec:orgc4194a0}
+\paragraph*{Dired+}
+\label{sec:org15198ba}
 
 Adds extensions and functionality to dired mode.
 
-#+NAME: dired-plus-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package dired+
     :ensure t)
-#+END_SRC
+\end{verbatim}
 
-**** Undo Tree
+\paragraph*{Undo Tree}
+\label{sec:org05eb28a}
 
-#+NAME: undo-tree-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package undo-tree
     :ensure t
     :init
     (global-undo-tree-mode))
-#+END_SRC
+\end{verbatim}
 
-**** Projectile
+\paragraph*{Projectile}
+\label{sec:org23de8c6}
 
-#+NAME: projectile-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package projectile
     :ensure t
     :config
     (projectile-mode))
-#+END_SRC
+\end{verbatim}
 
-**** Restart Emacs
+\paragraph*{Restart Emacs}
+\label{sec:orgf45ed26}
 
-The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
+The \href{https://github.com/iqbalansari/restart-emacs}{restart-emacs} package allows quickly rebooting Emacs
 from within Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package restart-emacs
     :ensure t
     :bind (("C-x C-r" . restart-emacs)))
-#+END_SRC
+\end{verbatim}
 
-**** Popwin
+\paragraph*{Popwin}
+\label{sec:org3d05537}
 
-#+NAME: popwin
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (use-package popwin
   :ensure t
   :config (popwin-mode 1))
-#+END_SRC
+\end{verbatim}
 
-*** Better Display
-**** Page Break Lines
+\subsubsection*{Better Display}
+\label{sec:org2d5f6cc}
+\paragraph*{Page Break Lines}
+\label{sec:orgafc7128}
 
-Global minor-mode that turns ~^L~ form feed characters into
+Global minor-mode that turns \texttt{\textasciicircum{}L} form feed characters into
 horizontal line rules.
 
-#+NAME: page-break-lines-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package page-break-lines
     :ensure t
     :init
     (global-page-break-lines-mode))
-#+END_SRC
+\end{verbatim}
 
-**** Splash Screen Replacement.
+\paragraph*{Splash Screen Replacement.}
+\label{sec:org25762b0}
 
 The default splash screen is great when you're starting out,
 but it's more so an annoyance than anything else once you
 know you're around.
 
-***** Enable Emojis for org tags in dashboard agenda widget
+\subparagraph*{Enable Emojis for org tags in dashboard agenda widget}
+\label{sec:orgb9a5189}
 
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-  <<emojify-mode-config>>
-#+END_SRC
+\begin{verbatim}
+    (use-package emojify
+      :ensure t
+      :init (global-emojify-mode))
+\end{verbatim}
 
-***** Emacs Dashboard
+\subparagraph*{Emacs Dashboard}
+\label{sec:org34093f7}
 
-[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
-replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
+\href{https://github.com/rakanalh/emacs-dashboard}{Dashboard} is a highly customizable splash screen
+replacement library used in the popular \href{https://github.com/syl20bnr/spacemacs}{spacemacs} framework.
 It's a nice way of consolidating any combination of tasks,
 agenda items, bookmarks, and pretty much any other enumerable
 list that one may use in the wacky world of Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package dashboard
     :ensure t
     :init
@@ -1024,17 +890,19 @@ list that one may use in the wacky world of Emacs.
                             ( projects . 5)
                             ( recents . 5)
                             ( bookmarks . 5))))
-#+END_SRC
+\end{verbatim}
 
-**** Inhibit Scratch Buffer
+\paragraph*{Inhibit Scratch Buffer}
+\label{sec:orgb833bd1}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq initial-scratch-message nil
         inhibit-startup-message t
         inhibit-startup-screen t)
-#+END_SRC
+\end{verbatim}
 
-**** Menu Bar, Tool Bar, Scroll Bar
+\paragraph*{Menu Bar, Tool Bar, Scroll Bar}
+\label{sec:org36504d7}
 
 Disable scroll bars and tool bar on all system types.
 
@@ -1043,29 +911,31 @@ On macOS, the menu bar is integrated into the UI.
 Disabling it will just empty the menu tab options for Emacs.app,
 so we'll leave it there.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (scroll-bar-mode -1)
   (tool-bar-mode -1)
   (unless (eq system-type 'darwin)
   (menu-bar-mode -1))
-#+END_SRC
+\end{verbatim}
 
-**** Truncate Lines
+\paragraph*{Truncate Lines}
+\label{sec:org2aa98d2}
 
-Not sure this is doing anything...
+Not sure this is doing anything\ldots{}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq-default truncate-lines nil)
-#+END_SRC
+\end{verbatim}
 
-*** Better Garbage Collection
+\subsubsection*{Better Garbage Collection}
+\label{sec:orgcb2db76}
 
 Consider the following from the documentation:
 
-#+BEGIN_QUOTE
+\begin{quote}
 By binding this temporarily to a large number, you can effectively
 prevent garbage collection during a part of the program.
-#+END_QUOTE
+\end{quote}
 
 When I first read how the default garbage collection interval in Emacs
 is notoriously low, I added an arbitrary number of zeros to the
@@ -1074,12 +944,12 @@ configuration and making a lot of mistakes in the process, I've had to
 start Emacs with essentially its default settings pretty frequently
 and I've noticed the lag time I occasionally experience when searching
 long documents is essentially nonexistent in vanilla Emacs. After
-reading this [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][blogpost]], it seems that jacking up the GC interval may
-actually be the /cause/ of the lagtime rather than contributing to the
+reading this \href{http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/}{blogpost}, it seems that jacking up the GC interval may
+actually be the \emph{cause} of the lagtime rather than contributing to the
 solution.
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (defun chaffin/rev-up-gc ()
   (setq gc-cons-threshold most-positive-fixnum))
 
@@ -1088,27 +958,33 @@ solution.
 
 (add-hook 'minibuffer-setup-hook #'chaffin/rev-up-gc)
 (add-hook 'minibuffer-exit-hook 'chaffin/rev-down-gc)
-#+END_SRC
+\end{verbatim}
 
-*** Better Encryption
-**** GnuTLS
+\subsubsection*{Better Encryption}
+\label{sec:org510fb11}
+\paragraph*{GnuTLS}
+\label{sec:org64ec1e7}
 
-- See [[https://github.com/wasamasa/dotemacs/blob/master/init.org#gnutls][wasamasa/dotfiles]]
+\begin{itemize}
+\item See \href{https://github.com/wasamasa/dotemacs/blob/master/init.org\#gnutls}{wasamasa/dotfiles}
+\end{itemize}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq gnutls-min-prime-bits 4096)
-#+END_SRC
+\end{verbatim}
 
-**** Use GPG2
+\paragraph*{Use GPG2}
+\label{sec:org76544e5}
 
 Set GPG program to 'gpg2'.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (when *is-mac*
     (setq epg-gpg-program "gpg2"))
-#+END_SRC
+\end{verbatim}
 
-**** Disable External Pin Entry
+\paragraph*{Disable External Pin Entry}
+\label{sec:org384fce5}
 
 Switching between Emacs and an external tools is annoying.
 
@@ -1116,101 +992,108 @@ By default, decrypting gpg files in Emacs will result in the pin entry
 window being launched from the terminal session.
 
 By disabling the agent info, we can force Emacs to handle this
-internally[fn:8].
+internally\footnote{\href{https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources}{Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources}}.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setenv "GPG_AGENT_INFO" nil)
-#+END_SRC
+\end{verbatim}
 
-Or so I thought...
+Or so I thought\ldots{}
 
-**** Internal Pinentry Problem and Solution
+\paragraph*{Internal Pinentry Problem and Solution}
+\label{sec:orgd466e01}
 
 While I couldn't figure out how to get Emacs to handle gpg pinentry
 internally, I was able to still find a satisfactory solution using the
-~pinentry-mac~ tool.
+\texttt{pinentry-mac} tool.
 
 Note that this solution requires macOS and using gpg2 for encryption.
 
-See ticket [[https://github.com/Homebrew/homebrew-core/issues/14737][#1437]] from the [[https://github.com/Homebrew/homebrew-core][Homebrew/homebrew-core]] repository.
+See ticket \href{https://github.com/Homebrew/homebrew-core/issues/14737}{\#1437} from the \href{https://github.com/Homebrew/homebrew-core}{Homebrew/homebrew-core} repository.
 
-#+BEGIN_EXAMPLE sh
+\begin{verbatim}
   brew install pinentry-mac
   echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
   killall gpg-agent
-#+END_EXAMPLE
+\end{verbatim}
 
-*** Better Commands
-***** Alias Yes Or No
+\subsubsection*{Better Commands}
+\label{sec:org1c5d93c}
+\subparagraph*{Alias Yes Or No}
+\label{sec:org6ab9924}
 
-#+NAME: yes-or-no-p
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (defalias 'yes-or-no-p 'y-or-n-p)
-#+END_SRC
+\end{verbatim}
 
-** Editing
-*** Indentation
+\subsection*{Editing}
+\label{sec:org6f2903d}
+\subsubsection*{Indentation}
+\label{sec:org87e3926}
 
-Tabs are the bane of humanity[fn:9]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity\footnote{\href{https://www.emacswiki.org/emacs/TabsAreEvil}{Emacs Wiki - Tabs Are Evil}}. \href{http://www.urbandictionary.com/define.php?term=dont\%20\%40\%20me}{Don't @ me}.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq tab-width 2
         indent-tabs-mode nil)
-#+END_SRC
+\end{verbatim}
 
-**** ~highlight-indent-guides~
-[[https://github.com/darthfennec/highlight-indent-guides][Highlight Indent Guides]] sublime-like indentation guides.
+\paragraph*{\texttt{highlight-indent-guides}}
+\label{sec:orgb53e383}
+\href{https://github.com/darthfennec/highlight-indent-guides}{Highlight Indent Guides} sublime-like indentation guides.
 
-/Commented out because of bug that leaves a trail of solid white line marks on the indent guide overlay./
+\emph{Commented out because of bug that leaves a trail of solid white line marks on the indent guide overlay.}
 
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
  (use-package highlight-indent-guides
     :ensure t
     :init
     (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
     :config
     (setq highlight-indent-guides-method 'character))
-#+END_SRC
+\end{verbatim}
 
-*** YASnippet
+\subsubsection*{YASnippet}
+\label{sec:org28909e9}
 
 YASnippet is a template system based off the TextMate snippet syntax.
 
 Let's begin by creating a variable for our personal snippets directory.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (setq user-snippets-dir (concat user-emacs-directory "snippets"))
-#+END_SRC
+\end{verbatim}
 
 After installation and enabling the package, add the personal snippets
 directory to the list of directories where YASnippet should look for snippets.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package yasnippet
     :ensure t
     :init
     (yas-global-mode 1)
     :config
     (push 'user-snippets-dir yas-snippet-dirs))
-#+END_SRC
+\end{verbatim}
 
 YASnippet can also be used as a non-global minor mode on a per-buffer
 basis.
 
-Invoking ~yas-reload-all~ will load the snippet tables, and then
-calling ~yas-minor-mode~ from the major mode hooks will load the
+Invoking \texttt{yas-reload-all} will load the snippet tables, and then
+calling \texttt{yas-minor-mode} from the major mode hooks will load the
 snippets corresponding to the major mode of the current buffer mode.
 
-#+BEGIN_EXAMPLE emacs-lisp
+\begin{verbatim}
   (yas-reload-all)
   (add-hook 'prog-mode-hook #'yas-minor-mode)
-#+END_EXAMPLE
+\end{verbatim}
 
-*** Flycheck
+\subsubsection*{Flycheck}
+\label{sec:org509c7c2}
 
-[[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
+\href{https://github.com/Flycheck/Flycheck}{On the fly} syntax highlighting.
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+\begin{verbatim}
   (use-package flycheck
     :defer-install t
     :init
@@ -1218,109 +1101,92 @@ snippets corresponding to the major mode of the current buffer mode.
     :config
       (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
                     flycheck-emacs-lisp-load-path 'inherit)
-      <<flycheck-color-modeline-config>>)
-#+END_SRC
+             (use-package flycheck-color-mode-line
+      	 :ensure t
+      	 :init
+      	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode)))
+\end{verbatim}
 
-**** Flycheck Color Mode Line
+\paragraph*{Flycheck Color Mode Line}
+\label{sec:org7f188cb}
 
-     Colors the modeline according to current Flycheck state of buffer.
+Colors the modeline according to current Flycheck state of buffer.
 
-     #+NAME: flycheck-color-modeline-config
-     #+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
        (use-package flycheck-color-mode-line
 	 :ensure t
 	 :init
 	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
-     #+END_SRC
+\end{verbatim}
 
-**** Flycheck Package
+\paragraph*{Flycheck Package}
+\label{sec:org570c2ee}
 
-[[https://github.com/purcell/flycheck-package][Flycheck Package]] requires ~package.el~ to be enabled, so it's incompatible with ~straight.el~.
+\href{https://github.com/purcell/flycheck-package}{Flycheck Package} requires \texttt{package.el} to be enabled, so it's incompatible with \texttt{straight.el}.
 
-#+NAME: flycheck-package-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package flycheck-package
     :ensure t
     :init
     (eval-after-load 'flycheck
       '(flycheck-package-setup)))
-#+END_SRC
+\end{verbatim}
 
-**** Flycheck in Org Special Edit Buffers
+\paragraph*{Flycheck in Org Special Edit Buffers}
+\label{sec:org8f1b5fc}
 
-#+NAME: org-edit-src-code
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (defadvice org-edit-src-code (around set-buffer-file-name activate compile)
     (let ((file-name (buffer-file-name))) ;; (1)
       ad-do-it                            ;; (2)
       ;; (3)
       (setq buffer-file-name file-name)))
-#+END_SRC
+\end{verbatim}
 
-*** Company
+\subsubsection*{Company}
+\label{sec:orgb36c712}
 
 Emacs has two popular packages for code completion --
-[[https://github.com/auto-complete/auto-complete][autocomplete]] and [[https://github.com/company-mode/company-mode][company]]. This reddit [[https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode_vs_companymode_which_is_better/][thread]] was enough for
+\href{https://github.com/auto-complete/auto-complete}{autocomplete} and \href{https://github.com/company-mode/company-mode}{company}. This reddit \href{https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode\_vs\_companymode\_which\_is\_better/}{thread} was enough for
 me to go with company.
 
-If you need more convincing, [[https://github.com/company-mode/company-mode/issues/68][company-mode/company-mode#68]]
+If you need more convincing, \href{https://github.com/company-mode/company-mode/issues/68}{company-mode/company-mode\#68}
 offers a comprehensive discussion on the two.
 
 The ticket is from the ‘company-mode‘ repository, so there's
 probably some bias there, but company-mode hasn't provided
 any reason for me reconsider my choice.
 
-#+NAME: company-prefix-setup
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-  (use-package company
-    :ensure t
-    :defer t
-    :bind (("TAB" . company-indent-or-complete-common)
-           ("C-c /" . company-files)
-           ("M-SPC" . company-complete)
-           (:map company-mode-map
-                 ("C-n" . company-select-next-or-abort)
-                 ("C-p" . company-select-previous-or-abort)))
-    :config
-    (progn
-        <<company-config>>
-        <<company-quick-help>>
-        <<company-statistics-config>>
-        <<company-dict-config>>))
-#+END_SRC
-
-
-#+NAME: company-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (global-company-mode)
 (setq company-tooltip-limit 20
       company-tooltip-align-annotations t
       company-idle-delay .3
       company-begin-commands '(self-insert-command))
-#+END_SRC
+\end{verbatim}
 
-**** Company Statistics
+\paragraph*{Company Statistics}
+\label{sec:org6ade7f2}
 
-[[https://github.com/company-mode/company-statistics][Company statistics]] uses a persisent store of completions to rank the
+\href{https://github.com/company-mode/company-statistics}{Company statistics} uses a persisent store of completions to rank the
 top candidates for completion.
 
-#+NAME: company-statistics-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package company-statistics
     :ensure t
     :config
     ;; Alternatively,
     ;; (company-statistics-mode)
     (add-hook 'after-init-hook 'company-statistics-mode))
-#+END_SRC
+\end{verbatim}
 
-**** Company Quick Help
+\paragraph*{Company Quick Help}
+\label{sec:org2a6afa7}
 
-[[https://github.com/expez/company-quickhelp][Company Quick Help]] emulates ~autocomplete~ documentation-on-idle behavior, but using the
-less-buggy ~pos-tip~ package rather than ~popup-el~.
+\href{https://github.com/expez/company-quickhelp}{Company Quick Help} emulates \texttt{autocomplete} documentation-on-idle behavior, but using the
+less-buggy \texttt{pos-tip} package rather than \texttt{popup-el}.
 
-#+NAME: company-quick-help-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package company-quickhelp
     :defer t
     :commands (company-quickhelp-manual-begin)
@@ -1329,12 +1195,12 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
           ("C-c h" . company-quickhelp-manual-begin))
     :config
     (company-quickhelp-mode 1))
-#+END_SRC
+\end{verbatim}
 
-**** Company Dict
+\paragraph*{Company Dict}
+\label{sec:orgf4d7107}
 
-#+NAME: company-dict-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package company-dict
    :ensure t
    :init
@@ -1342,14 +1208,16 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
    :config
    (setq company-dict-enable-fuzzy t
          company-dict-enable-yasnippet t))
-#+END_SRC
+\end{verbatim}
 
-** Utilities
-*** Image+
+\subsection*{Utilities}
+\label{sec:org7a90020}
+\subsubsection*{Image+}
+\label{sec:org10f386b}
 
-[[https://github.com/mhayashi1120/Emacs-imagex][Image+]]  provides extensions for image file manipulation in Emacs.
+\href{https://github.com/mhayashi1120/Emacs-imagex}{Image+}  provides extensions for image file manipulation in Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package image+
     :ensure t
     :if *is-gui*
@@ -1366,11 +1234,13 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
            ("S" imagex-sticky-save-image "save file")
            ("r" imagex-sticky-rotate-right "rotate right")
            ("l" imagex-sticky-rotate-left "rotate left")))))
-#+END_SRC
+\end{verbatim}
 
-*** Ivy
-**** Ivy Config
-[[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
+\subsubsection*{Ivy}
+\label{sec:org1357c2e}
+\paragraph*{Ivy Config}
+\label{sec:orgb50a575}
+\href{https://github.com/abo-abo/swiper}{Ivy} is a completion and selection framework in the same vein
 as helm.
 It doesn't have the same kind of ecosystem or interopability,
 but its easy to configure, offers a minimalistic interface,
@@ -1378,11 +1248,10 @@ and is every bit as good of a completion tool as helm is,
 if not better.
 
 I prefer the default regex matcher, but if you want fuzzy matching as
-a fallback or replacement checkout this article on [[https://oremacs.com/2016/01/06/ivy-flx/][better fuzzmatching
-support with ivy]].
+a fallback or replacement checkout this article on \href{https://oremacs.com/2016/01/06/ivy-flx/}{better fuzzmatching
+support with ivy}.
 
-#+NAME: ivy-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+\begin{verbatim}
   (use-package ivy
     :config
     (ivy-mode 1)
@@ -1390,42 +1259,36 @@ support with ivy]].
           ivy-initial-inputs-alist nil
           ivy-re-builders-alist
 	  '((t . ivy--regex-plus)))
-    <<ivy-hydra>>
-    <<ivy-historian>>)
-#+END_SRC
+      (use-package ivy-hydra
+        :ensure hydra)
+    (use-package historian
+      :ensure t)
+    (use-package ivy-historian
+      :after historian 
+      :ensure t))
+\end{verbatim}
 
-**** Ivy Hydra
+\paragraph*{Ivy Hydra}
+\label{sec:orgcae516e}
 
-#+NAME: ivy-hydra
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package ivy-hydra
     :ensure hydra)
-#+END_SRC
+\end{verbatim}
 
-**** Ivy Historian
+\paragraph*{Ivy Historian}
+\label{sec:org77ed887}
 
-#+NAME: ivy-historian
-#+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
-<<historian>>
-<<ivy-historian-settings>>
-#+END_SRC
-
-#+NAME: historian
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
-(use-package historian
-  :ensure t)
-#+END_SRC
-
-#+NAME: ivy-historian-settings
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (use-package ivy-historian
   :after historian 
   :ensure t)
-#+END_SRC
+\end{verbatim}
 
-**** Counsel
+\paragraph*{Counsel}
+\label{sec:orgdcfacdd}
 
-     #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+\begin{verbatim}
        (use-package counsel
          :ensure t
          :bind
@@ -1448,70 +1311,112 @@ support with ivy]].
          ("C-r" . counsel-expression-history))
          :init
            (progn
-             <<ivy-config>>
-             <<swiper-config>>
-             <<counsel-projectile-config>>
-             <<counsel-osx-app-config>>
-             <<counsel-dash-config>>
-             <<smex-config>>))
-     #+END_SRC
+               (use-package ivy
+                 :config
+                 (ivy-mode 1)
+                 (setq ivy-use-virtual-buffers t
+                       ivy-initial-inputs-alist nil
+                       ivy-re-builders-alist
+             	  '((t . ivy--regex-plus)))
+                   (use-package ivy-hydra
+                     :ensure hydra)
+                 (use-package historian
+                   :ensure t)
+                 (use-package ivy-historian
+                   :after historian 
+                   :ensure t))
+               (use-package swiper
+               :bind
+               (("\C-s" . swiper))
+               :init
+                 (use-package avy
+                   :ensure t))
+               (use-package counsel-projectile
+                 :ensure t
+                 :init
+                 (progn
+                   (counsel-projectile-on)))
+                (use-package counsel-osx-app
+                  :if *is-mac*
+                  :ensure t
+                  :bind (("C-c o a" . counsel-osx-app)))
+               (use-package counsel-dash
+                 :if *is-mac*
+                 :ensure t
+                 :init (defun counsel-dash-at-point ()
+                         "Counsel dash with selected point."
+                         (interactive)
+                         (counsel-dash
+                          (if (use-region-p)
+                              (buffer-substring-no-properties
+                               (region-beginning)
+                               (region-end))
+                            (substring-no-properties (or (thing-at-point 'symbol) "")))))
+                 :config
+                 (setq counsel-dash-docsets-path
+                       (expand-file-name "~/Library/Application\sSupport/Dash/DocSets")))
+               (use-package smex
+                 :ensure t
+                 :init (setq-default smex-history-length 32))))
+\end{verbatim}
 
-**** Swiper
+\paragraph*{Swiper}
+\label{sec:org44dd635}
 
-#+NAME: swiper-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+\begin{verbatim}
   (use-package swiper
   :bind
   (("\C-s" . swiper))
   :init
-  <<swiper-avy-config>>)
-#+END_SRC
+    (use-package avy
+      :ensure t))
+\end{verbatim}
 
-**** Swiper Avy
+\paragraph*{Swiper Avy}
+\label{sec:org30195f1}
 
-#+NAME: swiper-avy-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package avy
     :ensure t)
-#+END_SRC
+\end{verbatim}
 
-**** Counsel-Projectile
+\paragraph*{Counsel-Projectile}
+\label{sec:orgbe8bbd4}
 
-[[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
+\href{https://github.com/ericdanan/counsel-projectile}{Counsel Projectile} provides a project management interface via ivy and
 friends.
 
-#+NAME: counsel-projectile-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package counsel-projectile
     :ensure t
     :init
     (progn
       (counsel-projectile-on)))
-#+END_SRC
+\end{verbatim}
 
-**** Smex
+\paragraph*{Smex}
+\label{sec:orgb90303f}
 
-#+NAME: smex-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package smex
     :ensure t
     :init (setq-default smex-history-length 32))
-#+END_SRC
+\end{verbatim}
 
-**** Counsel OSX App
+\paragraph*{Counsel OSX App}
+\label{sec:orgb35e437}
 
- #+NAME: counsel-osx-app-config
- #+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
    (use-package counsel-osx-app
      :if *is-mac*
      :ensure t
      :bind (("C-c o a" . counsel-osx-app)))
- #+END_SRC
+\end{verbatim}
 
-**** Counsel Dash
+\paragraph*{Counsel Dash}
+\label{sec:org90f0b0b}
 
-#+NAME: counsel-dash-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package counsel-dash
     :if *is-mac*
     :ensure t
@@ -1527,13 +1432,14 @@ friends.
     :config
     (setq counsel-dash-docsets-path
           (expand-file-name "~/Library/Application\sSupport/Dash/DocSets")))
-#+END_SRC
+\end{verbatim}
 
-*** Deft
+\subsubsection*{Deft}
+\label{sec:org5c8a397}
 
-[[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
+\href{https://jblevins.org/projects/deft/}{Deft} is a notetaking application for Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package deft
     :ensure t
     :bind ("C-x C-n" . deft)
@@ -1542,12 +1448,12 @@ friends.
           deft-directory "~/Dropbox/org/notes"
           deft-use-filename-as-title t
           deft-default-extension "org"))
-#+END_SRC
+\end{verbatim}
 
-*** Wakatime
+\subsubsection*{Wakatime}
+\label{sec:orgdf602a2}
 
-#+NAME: wakatime-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package wakatime-mode
     :if (and *is-mac* (or (string= (downcase computer-name) "hal") (string= (downcase computer-name) "junior")))
     :ensure t
@@ -1563,90 +1469,86 @@ friends.
       (defun wakatime-dashboard ()
         (interactive)
         (browse-url "https://wakatime.com/dashboard"))))
-#+END_SRC
+\end{verbatim}
 
-** User Interface
-*** Cursor
-**** Vertical Bar
+\subsection*{User Interface}
+\label{sec:org0829b8c}
+\subsubsection*{Cursor}
+\label{sec:org4195e0a}
+\paragraph*{Vertical Bar}
+\label{sec:org87fb0b8}
 
-     Set the cursor to a bar. The default is too thin for my liking.
-     Set the width to 4px. Also remove the cursor in inactive windows.
+Set the cursor to a bar. The default is too thin for my liking.
+Set the width to 4px. Also remove the cursor in inactive windows.
 
-     #+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
        (setq-default cursor-type '(bar . 4)
                      cursor-in-non-selected-windows 'nil
                      x-stretch-cursor t
                      line-spacing 2)
-     #+END_SRC
+\end{verbatim}
 
-**** Disable Blink
+\paragraph*{Disable Blink}
+\label{sec:org87498db}
 
-     Ultimately, I'd like to set a longer blink interval, like the "phase"
-     ~caret_style~ setting in Sublime Text.
+Ultimately, I'd like to set a longer blink interval, like the "phase"
+\texttt{caret\_style} setting in Sublime Text.
 
-     #+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
        (blink-cursor-mode -1)
-     #+END_SRC
+\end{verbatim}
 
-**** Smart Cursor Color
+\paragraph*{Smart Cursor Color}
+\label{sec:orgf351920}
 
-     #+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
        (use-package smart-cursor-color
          :ensure t
          :config
          (smart-cursor-color-mode +1))
-     #+END_SRC
+\end{verbatim}
 
-*** Theme
-**** Enable Custom Themes
+\subsubsection*{Theme}
+\label{sec:org7dc16f0}
+\paragraph*{Enable Custom Themes}
+\label{sec:org8815990}
 
 This disables Emacs asking questions about loading a new theme.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
  (setq custom-safe-themes t)
-#+END_SRC
+\end{verbatim}
 
 
-**** Zenburn Theme
+\paragraph*{Zenburn Theme}
+\label{sec:org735d108}
 
-#+NAME: zenburn-theme-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package zenburn-theme
     :ensure t
     :config (load-theme 'zenburn))
-#+END_SRC
+\end{verbatim}
 
-**** TODO Contrasting theme for use with =sunshine.el=.           :ignore:
+\paragraph*{Load Themes}
+\label{sec:org02f05c6}
 
-***** Anti Zenburn Theme
+Zenburn theme has to be loaded before \hyperref[org-beautify-theme]{Org Beautify Theme} to preserve compatibility.
 
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package anti-zenburn-theme
-    :ensure t)
-#+END_SRC
-
-**** Load Themes
-
-Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
-
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-  <<zenburn-theme-config>>
-  <<org-prettify-ob-theme>>
- #+END_SRC
-
-*** Modeline
-**** Display Time
+\subsubsection*{Modeline}
+\label{sec:orga13267f}
+\paragraph*{Display Time}
+\label{sec:orga850998}
 
 Show the time in the modeline.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (display-time-mode 1)
-#+END_SRC
+\end{verbatim}
 
-**** Smart-Mode-Line
+\paragraph*{Smart-Mode-Line}
+\label{sec:org51bb720}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package smart-mode-line
     :ensure t
     :init
@@ -1657,24 +1559,26 @@ Show the time in the modeline.
           sml/not-confirm-load-theme t)
     (setf rm-blacklist "")
     (sml/setup))
-#+END_SRC
+\end{verbatim}
 
-**** Mode Icons
+\paragraph*{Mode Icons}
+\label{sec:orgaf77438}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package mode-icons
     :ensure t
     :if *is-gui*
     :after smart-mode-line
     :config
     (mode-icons-mode))
-#+END_SRC
+\end{verbatim}
 
-*** All The Icons
+\subsubsection*{All The Icons}
+\label{sec:org56c5fc9}
 
-[[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
+\href{https://github.com/domtronn/all-the-icons.el}{All The Icons} is a utility package for icons in Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package all-the-icons
     :if *is-gui*
     :ensure t
@@ -1694,57 +1598,14 @@ Show the time in the modeline.
     :ensure t
     :config
     (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
-#+END_SRC
+\end{verbatim}
 
-*** Terminal
-**** Colors and Display                                         :noexport:
+\subsubsection*{Terminal}
+\label{sec:orgcb06822}
+\paragraph*{Multi-Term}
+\label{sec:orgddaffe8}
 
-The ~emacsclient -nw~ command is a great workflow for remedial file
-editing tasks like fixing a typo or commenting out lines.
-
-By launching a single Emacs instance, ~emacsclient~ has the rapidity of
-a barebones text editor with the feature-rich UI of a GUI-based Emacs
-instance.
-
-However, the reality of working remotely means that sometimes an Emacs
-instance has to completely terminal-based. I spend most of my time in
-the GUI. It's my home base and as such is configured to maximize
-comfortability.
-
-The terminal, however, is better suited for speed and agility.
-These settings are adjusted based of my terminal theme and intended to
-optimize code legibility.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (defmacro prefix-color (str-prefix name color)
-    `(set-face-attribute ',(intern (concat str-prefix (symbol-name name)))
-                         nil :foreground ,color))
-
-  (when (not *is-gui*)
-    (set-face-attribute 'font-lock-builtin-face       nil :foreground "#8470ff")
-    (set-face-attribute 'font-lock-comment-face       nil :foreground "#778899")
-    (set-face-attribute 'font-lock-constant-face      nil :foreground "#00ee76")
-    (set-face-attribute 'font-lock-doc-face           nil :foreground "#cd2626")
-    (set-face-attribute 'font-lock-keyword-face       nil :foreground "#f15e33")
-    (set-face-attribute 'font-lock-string-face        nil :foreground "#698b22")
-    (set-face-attribute 'font-lock-function-name-face nil :foreground "#b0e2ff")
-    (set-face-attribute 'button                       nil :foreground "#3284c6")
-    (set-face-attribute 'link-visited                 nil :foreground  "#ba1caa")
-    (set-face-attribute 'minibuffer-prompt            nil :foreground "ffc131")
-    (set-face-attribute 'org-document-title nil :foreground "#1d4dae")
-    (set-face-attribute 'org-code           nil :foreground "#de73ea")
-    (set-face-attribute 'org-level-1        nil :foreground "#38aef2")
-    (set-face-attribute 'org-level-2        nil :foreground "#a49ae3")
-    (set-face-attribute 'org-level-3  nil :weight 'ultra-bold  :foreground "#e5dad4")
-    (set-face-attribute 'org-level-4  nil :weight 'extra-bold  :inherit 'org-level-3)
-    (set-face-attribute 'org-level-5  nil :weight 'bold        :inherit 'org-level-3)
-    (set-face-attribute 'org-level-6  nil :weight 'semi-bold   :inherit 'org-level-3))
-#+END_SRC
-
-**** Multi-Term
-
-#+NAME: multi-term-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
 (use-package multi-term
        :ensure t
        :bind
@@ -1758,22 +1619,14 @@ optimize code legibility.
 	     (if (string= shell-file-name "/bin/sh")
 		 "/bin/bash"
 	       shell-file-name))))
-#+END_SRC
+\end{verbatim}
 
-*** Fit Frame                                                      :ignore:
-
-#+BEGIN_SRC emacs-lisp :tangle no :exports none :results none
-  (use-package fit-frame
-    :ensure t
-    :config
-    (add-hook 'after-make-frame-functions 'fit-frame))
-#+END_SRC
-
-*** Frame Font
+\subsubsection*{Frame Font}
+\label{sec:org8425f88}
 
 Use the default monospaced font for each operating system.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
  (cond (*is-linux*
   (set-frame-font "Ubuntu Mono 12" nil t))
  (*is-windows*
@@ -1782,39 +1635,43 @@ Use the default monospaced font for each operating system.
   (set-frame-font "SF Mono 12" nil t))
  (t
   (set-frame-font "Menlo 12" nil t)))
-#+END_SRC
+\end{verbatim}
 
-*** Sunshine
+\subsubsection*{Sunshine}
+\label{sec:org395bcc1}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package sunshine
     :ensure t
     :config
     (setq sunshine-location "90024,USA"))
-#+END_SRC
+\end{verbatim}
 
-*** Theme Changer
+\subsubsection*{Theme Changer}
+\label{sec:org76a1bc7}
 
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package theme-changer
     :ensure t
     :config
     (change-theme 'zenburn-theme 'anti-zenburn-theme))
-#+END_SRC
+\end{verbatim}
 
-*** Emojify
+\subsubsection*{Emojify}
+\label{sec:orgc8d3e70}
 
-#+NAME: emojify-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package emojify
     :ensure t
     :init (global-emojify-mode))
-#+END_SRC
+\end{verbatim}
 
-** Version Control
-*** Magit
+\subsection*{Version Control}
+\label{sec:org05a5b3b}
+\subsubsection*{Magit}
+\label{sec:org07e2eee}
 
-[[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
+\href{https://github.com/magit/magit}{Magit} describes itself as one of two git porcelains, the other being
 git itself.
 
 A git porcelain is jargon for a program that features a user-friendly
@@ -1825,8 +1682,7 @@ Magit would not be very good at that.
 
 As a git client though, magit is awesome.
 
-#+NAME: magit-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package magit
     :ensure t
     :bind (("C-c v b" . magit-blame)
@@ -1839,13 +1695,14 @@ As a git client though, magit is awesome.
            ("C-c v P" . magit-push)
            ("C-c v v" . magit-status))
     :config (setq magit-save-repository-buffers 'dontask))
-#+END_SRC
+\end{verbatim}
 
-**** Magithub
+\paragraph*{Magithub}
+\label{sec:orgdcc6e12}
 
-[[https://github.com/vermiculus/github][Magithub]] offers an interface to github to complement magit.
+\href{https://github.com/vermiculus/github}{Magithub} offers an interface to github to complement magit.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package magithub
     :after magit
     :ensure t
@@ -1855,16 +1712,17 @@ As a git client though, magit is awesome.
     :config
     (progn
       (magithub-feature-autoinject t)))
-#+END_SRC
+\end{verbatim}
 
-*** gist.el
+\subsubsection*{gist.el}
+\label{sec:org458843c}
 
 Emacs integration for gist.github.com.
 
-[[https://github.com/defunkt/gist.el][Gist]] requires generating a personal access token with ~gist~ scope, and
-optionally ~user~ and ~repo~ scopes.
+\href{https://github.com/defunkt/gist.el}{Gist} requires generating a personal access token with \texttt{gist} scope, and
+optionally \texttt{user} and \texttt{repo} scopes.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package gist
     :ensure t
     :bind (("C-c C-g l" . gist-list)
@@ -1873,66 +1731,63 @@ optionally ~user~ and ~repo~ scopes.
            ("C-c C-g p" . gist-buffer-private)
            ("C-c C-g B" . gist-region-or-buffer)
            ("C-c C-g P" . gist-region-or-buffer-private)))
-#+END_SRC
+\end{verbatim}
 
-*** git-timemachine
+\subsubsection*{git-timemachine}
+\label{sec:org35e2850}
 
 Travel back in time (to your last commit).
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package git-timemachine
     :ensure t
     :bind
     ("C-x v t" . git-timemachine-toggle)
     :config
     (setq git-timemachine-abbreviation-length 7))
-#+END_SRC
+\end{verbatim}
 
-*** git-messenger
+\subsubsection*{git-messenger}
+\label{sec:org3aa3257}
 
 Pop-up feature for viewing the last git commit.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package git-messenger
     :ensure t
     :bind
     (("C-c v m" . git-messenger:popup-message)))
-#+END_SRC
+\end{verbatim}
 
-*** git modes
+\subsubsection*{git modes}
+\label{sec:orga4290ca}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package git-modes
     :ensure t)
-#+END_SRC
-
-*** TODO Mercurial
-**** TODO monky
-**** TODO ah
-** Web Browsing
-*** osx-browse
+\end{verbatim}
+\subsection*{Web Browsing}
+\label{sec:org8ac190d}
+\subsubsection*{osx-browse}
+\label{sec:org511524a}
 
 This library provides several useful commands for using the
 Google Chrome, Safari, and Firefox web browsers on macOS.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package osx-browse
     :ensure t
     :if *is-mac*
     :config
     (osx-browse-mode 1))
-#+END_SRC
+\end{verbatim}
 
-*** TODO google-search-query-at-point
-*** TODO browse-url-dwim
-*** TODO google-this
-*** TODO google-translate
+\subsection*{Email}
+\label{sec:orgeb3abb8}
+\subsubsection*{Mu}
+\label{sec:org4156924}
 
-** Email
-*** Mu
-
-#+NAME: mu-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package mu4e
     :if *is-mac*
     :load-path "/usr/local/Cellar/mu/0.9.18_1/share/emacs/site-lisp/mu/mu4e"
@@ -1991,24 +1846,29 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
                                                       "jchaffin@ucla.edu\n"
                                                       "(650)-380-3288\n"))))))))
 
-#+END_SRC
+\end{verbatim}
 
-** Programming Languages
-*** Lisp
-**** Parens
+\subsection*{Programming Languages}
+\label{sec:org01758f4}
+\subsubsection*{Lisp}
+\label{sec:orgd153015}
+\paragraph*{Parens}
+\label{sec:org866780f}
 
-- [[https://github.com/Fuco1/smartparens/wiki/Paredit-and-smartparens][Paredit and Smartparens]]
+\begin{itemize}
+\item \href{https://github.com/Fuco1/smartparens/wiki/Paredit-and-smartparens}{Paredit and Smartparens}
+\end{itemize}
 
-***** Paredit
+\subparagraph*{Paredit}
+\label{sec:org9071adf}
 
-We could use ~:init~ key to hook the ~enable-paredit-mode~
+We could use \texttt{:init} key to hook the \texttt{enable-paredit-mode}
 function to each of the implementing languages like is
-done [[https://github.com/tomjakubowski/.emacs.d/blob/master/init.el][here]], but I think adding the hook in the configuration
+done \href{https://github.com/tomjakubowski/.emacs.d/blob/master/init.el}{here}, but I think adding the hook in the configuration
 block of the programming language is easier to follow and
 offers more meaningful semantics.
 
-#+NAME: paredit-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package paredit
     :ensure t
     :diminish paredit-mode
@@ -2020,11 +1880,12 @@ offers more meaningful semantics.
        'paredit-backward-delete
        'paredit-close-round))
     (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t))
-   #+END_SRC
+\end{verbatim}
 
-***** Smartparens
+\subparagraph*{Smartparens}
+\label{sec:orgc8c55c7}
 
-Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-mode for managing parens
+Like paredit, \href{https://github.com/Fuco1/smartparens}{smartparens} is a minor-mode for managing parens
 pairs. However, it also offers support for curly brackets in
 JavaScript objects, angle brackets in HTML, and most other major
 programming languages. I think I the "delete-on-command" behavior of
@@ -2032,28 +1893,29 @@ paredit for lisp programming, but in languages where locating
 unmatched pairs is less comparable to searching for a needle in a
 haystack, smartparens are a great productivity tool.
 
-#+NAME: smartparens-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package smartparens
     :ensure t
     :init
     (require 'smartparens-config))
-#+END_SRC
+\end{verbatim}
 
-**** Hlsexp
+\paragraph*{Hlsexp}
+\label{sec:org654795a}
 
 Minor mode to highlight s-expresion.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package hl-sexp
     :ensure t)
-#+END_SRC
+\end{verbatim}
 
-*** Common-Lisp
+\subsubsection*{Common-Lisp}
+\label{sec:org79e9913}
 
 Configuration for emacs-lisp.
 
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+\begin{verbatim}
   (use-package lisp-mode
     :after paredit
     :config
@@ -2061,13 +1923,14 @@ Configuration for emacs-lisp.
     (add-hook 'lisp-mode-hook #'hl-sexp-mode)
     (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
     (add-hook 'emacs-lisp-mode-hook #'hl-sexp-mode))
-#+END_SRC
+\end{verbatim}
 
-**** Slime
+\paragraph*{Slime}
+\label{sec:orga51e41e}
 
-[[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
+\href{https://common-lisp.net/project/slime/}{SLIME} is The Superior Lisp Interaction Mode for Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package slime
     :commands slime
     :defines (slime-complete-symbol*-fancy slime-completion-at-point-functions)
@@ -2088,15 +1951,15 @@ Configuration for emacs-lisp.
         (smartparents-strict-mode -1)
         (turn-off-smartparens-mode))
       (add-hook 'slime-repl-mode-hook #'slime-disable-smartparens)))
-#+END_SRC
-
-***** TODO Slime Company
-*** Clojure
-**** Clojure Mode ([[https://gihub.com/clojure-emacs/clojure-mode][repository]])
+\end{verbatim}
+\subsubsection*{Clojure}
+\label{sec:org96fec5d}
+\paragraph*{Clojure Mode (\href{https://gihub.com/clojure-emacs/clojure-mode}{repository})}
+\label{sec:org9356563}
 
 Provides key bindings and code colorization for Clojure(Script).
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+\begin{verbatim}
   (use-package clojure-mode
     :ensure t
     :mode (("\\.edn$" . clojure-mode)
@@ -2105,48 +1968,55 @@ Provides key bindings and code colorization for Clojure(Script).
            ("\\.cljsc$" . clojurec-mode))
     :config
     (add-hook 'clojure-mode-hook #'enable-paredit-mode)
-    <<cljsbuild-config>>
-    <<elein-config>>)
-#+END_SRC
+      (use-package cljsbuild-mode
+        :ensure t
+        :init
+        (add-to-hooks #'cljsbuild-mode '(clojure-mode clojurescript-mode)))
+      (use-package elein
+        :ensure t))
+\end{verbatim}
 
-**** ClojureScript
-***** Lein Cljsbuild
+\paragraph*{ClojureScript}
+\label{sec:org3e47482}
+\subparagraph*{Lein Cljsbuild}
+\label{sec:org8074c38}
 
-Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
+Minor mode offering \texttt{lein cljsbuild} commands for the Leiningen \href{https://github.com/emezeske/lein-cljsbuild}{plugin}.
 
-#+NAME: cljsbuild-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package cljsbuild-mode
     :ensure t
     :init
     (add-to-hooks #'cljsbuild-mode '(clojure-mode clojurescript-mode)))
-#+END_SRC
+\end{verbatim}
 
-***** elein
+\subparagraph*{elein}
+\label{sec:orgb761253}
 
-[[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
+\href{https://github.com/remvee/elein}{Elein} rovides support for leiningen commands in Emacs.
 
-#+NAME: elein-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package elein
     :ensure t)
-#+END_SRC
+\end{verbatim}
 
-**** Clojure Mode Extra Font Locking
+\paragraph*{Clojure Mode Extra Font Locking}
+\label{sec:org7adf88e}
 
-Additional syntax highlighting for ~clojure-mode~.
+Additional syntax highlighting for \texttt{clojure-mode}.
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package clojure-mode-extra-font-locking
     :ensure t)
-#+END_SRC
+\end{verbatim}
 
-**** Cider ([[https://github.com/clojure-emacs/cider][repository]])
+\paragraph*{Cider (\href{https://github.com/clojure-emacs/cider}{repository})}
+\label{sec:orgdb6caa7}
 
 Provides integration with a Clojure repl.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package cider
     :ensure t
     :after company
@@ -2165,115 +2035,121 @@ Provides integration with a Clojure repl.
     (add-hook 'cider-repl-mode-hook #'company-mode)
     (add-hook 'cider-repl-mode-hook #'subword-mode)
     (add-hook 'cider-repl-mode-hook #'enable-paredit-mode))
-#+END_SRC
+\end{verbatim}
 
-**** inf-clojure
+\paragraph*{inf-clojure}
+\label{sec:orgff98f24}
 
- ~inf-clojure~ is a third-party package offering basic integration
- with a running Clojure subprocess. This package is necessary for
- running a Figwheel process with Emacs.
- It's not as feature-rich as CIDER, but still offers the ability
- to load files, switch namespaces, evaluate expressions, show documentation,
- and do macro-expansion.
+\texttt{inf-clojure} is a third-party package offering basic integration
+with a running Clojure subprocess. This package is necessary for
+running a Figwheel process with Emacs.
+It's not as feature-rich as CIDER, but still offers the ability
+to load files, switch namespaces, evaluate expressions, show documentation,
+and do macro-expansion.
 
- /Currently disabled due to conflicts with ~cider~/
+\emph{Currently disabled due to conflicts with \texttt{cider}}
 
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package inf-clojure
     :ensure t
     :init
     (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
-#+END_SRC
+\end{verbatim}
 
- Now lets write a simple function to run Figwheel as a Clojure
- subprocess.
+Now lets write a simple function to run Figwheel as a Clojure
+subprocess.
 
- #+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
    (defun figwheel-repl ()
      (interactive)
      (inf-clojure "lein figwheel"))
- #+END_SRC
+\end{verbatim}
 
-**** Linting Clojure
+\paragraph*{Linting Clojure}
+\label{sec:org9d39366}
 
-The [[https://github.com/clojure-emacs/squiggly-clojure][flycheck-clojure]] package allows syntax checking for Clojure(Script).
-It uses [[https://github.com/jonase/eastwood][eastwood]], [[http://typedclojure.org/][core.typed]] and [[https://github.com/jonase/kibit][kibit]] to lint Clojure(Script) through CIDER.
+The \href{https://github.com/clojure-emacs/squiggly-clojure}{flycheck-clojure} package allows syntax checking for Clojure(Script).
+It uses \href{https://github.com/jonase/eastwood}{eastwood}, \href{http://typedclojure.org/}{core.typed} and \href{https://github.com/jonase/kibit}{kibit} to lint Clojure(Script) through CIDER.
 
 
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package flycheck-clojure
     :ensure t
     :after cider flycheck
     :config
     (flycheck-clojure-setup))
-#+END_SRC
+\end{verbatim}
 
 Okay. There's been some snares getting this package to work, but with
-the help of this [[http://blog.podsnap.com/squiggly.html][blogpost]] from the ~flycheck-clojure~ repo. (note to
+the help of this \href{http://blog.podsnap.com/squiggly.html}{blogpost} from the \texttt{flycheck-clojure} repo. (note to
 self: READMEs are friends), I'm beginning to make progress.
 
 After cloning the project repo from my local file system, my debugging
 process has consisted of the following:
 
-1. Navigate to the [[https://github.com/clojure-emacs/squiggly-clojure/tree/master/sample-project][sample-project]] in the ~squiggly-clojure~ project repo.
-2. Open ~core.clj~
-2. Launch an nrepl with Cider.
-3. See ~flycheck-clojure~ being weird.
-4. Annoyed Google search.
-5. Edit my ~clojure~ configuration based on the last blog post.
-6. Restart Emacs.
-7. Repeat.
+\begin{enumerate}
+\item Navigate to the \href{https://github.com/clojure-emacs/squiggly-clojure/tree/master/sample-project}{sample-project} in the \texttt{squiggly-clojure} project repo.
+\item Open \texttt{core.clj}
+\item Launch an nrepl with Cider.
+\item See \texttt{flycheck-clojure} being weird.
+\item Annoyed Google search.
+\item Edit my \texttt{clojure} configuration based on the last blog post.
+\item Restart Emacs.
+\item Repeat.
+\end{enumerate}
 
-After running into problems documented in issues [[https://github.com/clojure-emacs/squiggly-clojure/issues/45][#45]], [[https://github.com/clojure-emacs/squiggly-clojure/issues/13][#13]], and [[https://github.com/clojure-emacs/squiggly-clojure/issues/46][#46,]]
-+I finally was able to get ~flycheck-clojure~ to stop doing weird things+.
+After running into problems documented in issues \href{https://github.com/clojure-emacs/squiggly-clojure/issues/45}{\#45}, \href{https://github.com/clojure-emacs/squiggly-clojure/issues/13}{\#13}, and \href{https://github.com/clojure-emacs/squiggly-clojure/issues/46}{\#46,}
+\sout{I finally was able to get \texttt{flycheck-clojure} to stop doing weird things}.
 
-+It's now doing nothing at all.+
+\sout{It's now doing nothing at all.}
 
-The project maintainers provide an [[https://github.com/clojure-emacs/example-config][example-config]] for setting up
+The project maintainers provide an \href{https://github.com/clojure-emacs/example-config}{example-config} for setting up
 emacs, cider, flycheck, and friends. I messed around with this config
 for about half an hour and the latency issues and general
 inconsistency are the same.
 
 I'm guessing I need to actually include the linters in my project's
-~project.clj~, but it's weird this package worked at all for bits and
+\texttt{project.clj}, but it's weird this package worked at all for bits and
 stretches if the dependencies need to be installed manually.
 
-**** Typed Clojure
+\paragraph*{Typed Clojure}
+\label{sec:orgd0632e5}
 
-Let's give this [[https://github.com/typedclojure/typed-clojure-mode][guy]] a try.
+Let's give this \href{https://github.com/typedclojure/typed-clojure-mode}{guy} a try.
 
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package typed-clojure-mode
      :ensure t
      :after clojure-mode
      :init
      (add-hook 'clojure-mode-hook 'typed-clojure-mode))
-#+END_SRC
+\end{verbatim}
 
 
-~java.lang.GoEFUrself~!
+\texttt{java.lang.GoEFUrself}!
 
- #+BEGIN_EXAMPLE sh
+\begin{verbatim}
    # CompilerException java.lang.RuntimeException: Unable to resolve symbol: sym in this context, compiling:(clojure/core/types.clj:1170:5)
- #+END_EXAMPLE
+\end{verbatim}
 
- I've now stumbled upon ~cider--debug-mode~.
+I've now stumbled upon \texttt{cider-{}-debug-mode}.
 
- This mode cannot be called manually, but with ~C-u C-M-x~ instead,
- and now =flycheck-clojure= +appears to be sort of working+.
+This mode cannot be called manually, but with \texttt{C-u C-M-x} instead,
+and now \texttt{flycheck-clojure} \sout{appears to be sort of working}.
 
-3 months later...
+3 months later\ldots{}
 
 The above strikethrough denotes the point in time where I officially
-said [[https://www.si.com/nba/2017/05/16/steve-kerr-sneakers-message][FI]].
+said \href{https://www.si.com/nba/2017/05/16/steve-kerr-sneakers-message}{FI}.
 
-**** Flycheck-Pos-Tip
+\paragraph*{Flycheck-Pos-Tip}
+\label{sec:org1fd11dc}
 
-The ~flycheck-clojure~ repository recommendeds to install
-[[https://github.com/flycheck/flycheck-pos-tip][flycheck-pos-tip]] to keep linting and type errors from clashing with
+The \texttt{flycheck-clojure} repository recommendeds to install
+\href{https://github.com/flycheck/flycheck-pos-tip}{flycheck-pos-tip} to keep linting and type errors from clashing with
 CIDER eldoc information.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package flycheck-pos-tip
     :ensure t
     :after flycheck
@@ -2282,12 +2158,14 @@ CIDER eldoc information.
     :config
     (setq flycheck-display-errors-function
           #'flycheck-pos-tip-error-messages))
-#+END_SRC
+\end{verbatim}
 
-*** Java
-**** Eclim
+\subsubsection*{Java}
+\label{sec:org3034dcb}
+\paragraph*{Eclim}
+\label{sec:org88b9eb3}
 
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package eclim
     :ensure t
     :if (eq system-type 'darwin)
@@ -2301,13 +2179,14 @@ CIDER eldoc information.
           eclimd-autostart-with-default-workspace t
           eclim-autostart nil
           eclim-wait-for-process t))
-#+END_SRC
+\end{verbatim}
 
-*** LaTeX
-**** Tex Config
+\subsubsection*{\LaTeX{}}
+\label{sec:org60e7524}
+\paragraph*{Tex Config}
+\label{sec:orgb958070}
 
-#+NAME: tex-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+\begin{verbatim}
   (use-package tex
     :ensure auctex
     :defines latex-nofill-env
@@ -2351,31 +2230,57 @@ CIDER eldoc information.
       (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)
       ;; Company AucTeX
-      <<company-auctex-config>>
+        (use-package company-auctex
+          :ensure t
+          :init
+          (company-auctex-init))
       ;; RefTeX
-      <<reftex-config>>
+        (defun jchaffin/init-reftex ()
+          (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+          (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+                reftex-use-fonts t
+                reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
       (jchaffin/init-reftex)
       ;; Bibtex Config
-      <<bibtex-config>>
+      
       ;; Magic Latex Buffer
-      <<magic-latex-buffer-config>>
+        (use-package magic-latex-buffer
+          :ensure t
+          :init
+          (progn
+            (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
+            (setq magic-latex-enable-block-highlight t
+                  magic-latex-enable-suscript t
+                  magic-latex-enable-pretty-symbols t
+                  magic-latex-enable-block-align t
+                  magic-latex-enable-inline-image t)))
       ;; Latex Preview Pane
       ;; buggy
-      ;; <<latex-preview-pane-config>>
+      ;;   (use-package latex-preview-pane
+      ;;     :ensure t
+      ;;     :config (latex-preview-pane-enable))
 
       ;; Org Edit Latex Buffer
-      <<org-edit-latex-config>>
+        (use-package org-edit-latex
+          :ensure t)
       ;; Latex Extra
-      <<latex-extra-config>>
+      (use-package latex-extra
+        :ensure t
+        :init
+        (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
       ;; Auctex latexmk
-      <<auctex-latexmk-config>>
+      (use-package auctex-latexmk
+        :ensure t
+        :config
+        (setq auctex-latexmk-inherit-TeX-PDF-mode t))
       ))
-#+END_SRC
+\end{verbatim}
 
-**** Bibtex
+\paragraph*{Bibtex}
+\label{sec:org631b0d7}
 
-#+NAME bibtex-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\#+NAME bibtex-config
+\begin{verbatim}
 (setq bibtex-autokey-year-length 4
       bibtex-autokey-name-year-separator "-"
       bibtex-autokey-year-title-separator "-"
@@ -2383,51 +2288,51 @@ CIDER eldoc information.
       bibtex-autokey-titlewords 2
       bibtex-autokey-titlewords-stretch 1
       bibtex-autokey-titleword-length 5)
-#+END_SRC
+\end{verbatim}
 
-**** LaTeX Extra
+\paragraph*{\LaTeX{} Extra}
+\label{sec:org994070f}
 
-#+NAME: latex-extra-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (use-package latex-extra
   :ensure t
   :init
   (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
-#+END_SRC
+\end{verbatim}
 
-**** LaTeX Preview Pane
+\paragraph*{\LaTeX{} Preview Pane}
+\label{sec:org4b49acd}
 
-#+NAME: latex-preview-pane-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package latex-preview-pane
     :ensure t
     :config (latex-preview-pane-enable))
-#+END_SRC
+\end{verbatim}
 
-**** Company AucTeX
+\paragraph*{Company AucTeX}
+\label{sec:org7f14d47}
 
-#+NAME: company-auctex-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package company-auctex
     :ensure t
     :init
     (company-auctex-init))
-#+END_SRC
+\end{verbatim}
 
-**** Org Edit Latex
+\paragraph*{Org Edit Latex}
+\label{sec:org2583e34}
 
-#+NAME: org-edit-latex-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package org-edit-latex
     :ensure t)
-#+END_SRC
+\end{verbatim}
 
-**** Magic Latex Buffer
+\paragraph*{Magic Latex Buffer}
+\label{sec:orgfce3322}
 
 Prettify dedicated org-mode latex buffers.
 
-#+NAME: magic-latex-buffer-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package magic-latex-buffer
     :ensure t
     :init
@@ -2438,19 +2343,20 @@ Prettify dedicated org-mode latex buffers.
             magic-latex-enable-pretty-symbols t
             magic-latex-enable-block-align t
             magic-latex-enable-inline-image t)))
-#+END_SRC
+\end{verbatim}
 
-**** Auctex Latexmk
+\paragraph*{Auctex Latexmk}
+\label{sec:org49fd60e}
 
-#+NAME: auctex-latexmk-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
 (use-package auctex-latexmk
   :ensure t
   :config
   (setq auctex-latexmk-inherit-TeX-PDF-mode t))
-#+END_SRC
+\end{verbatim}
 
-**** RefTeX
+\paragraph*{RefTeX}
+\label{sec:org3afe073}
 
 
 RefTeX is a citation and reference tool maintained by the
@@ -2458,77 +2364,90 @@ AucTeX team.
 
 Since Emacs 24.3, its built in with the Emacs distribution.
 
-#+NAME: reftex-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (defun jchaffin/init-reftex ()
     (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
     (setq reftex-plug-into-AUCTeX '(nil nil t t t)
           reftex-use-fonts t
           reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
-#+END_SRC
+\end{verbatim}
 
-**** Texinfo
+\paragraph*{Texinfo}
+\label{sec:orgd281516}
 
-#+texinfo-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\#+texinfo-config
+\begin{verbatim}
   (use-package texinfo
     :ensure t
     :defines texinfo-section-list
     :commands texinfo-mode
     :init
     (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
-#+END_SRC
+\end{verbatim}
 
-*** Javascript
-**** JavaScript Preamble
+\subsubsection*{Javascript}
+\label{sec:org556ea14}
+\paragraph*{JavaScript Preamble}
+\label{sec:orgcfef13f}
 
-#+NAME: js-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-  <<js2-mode-config>>
-  <<coffee-mode-config>>
-  <<json-mode-config>>
-  <<tern-mode-config>>
-#+END_SRC
+\begin{verbatim}
+    (use-package js2-mode
+      :ensure t
+      :mode (("\\.js\\'" . js2-mode))
+      :config
+      (setq js-indent-level 2))
+    (use-package coffee-mode
+      :ensure t
+      :mode ("\\.coffee\\'" . coffee-mode))
+    (use-package json-mode
+      :defer t
+      :ensure t
+      :mode (("\\.json\\'" . json-mode)))
+    (use-package tern
+      :ensure t
+      :after js2-mode
+      :init (add-hook 'js2-mode-hook 'tern-mode))
+\end{verbatim}
 
-**** js2-mode
+\paragraph*{js2-mode}
+\label{sec:orgbe18e11}
 
-#+NAME: js2-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package js2-mode
     :ensure t
     :mode (("\\.js\\'" . js2-mode))
     :config
     (setq js-indent-level 2))
-#+END_SRC
+\end{verbatim}
 
-**** rjsx-mode
+\paragraph*{rjsx-mode}
+\label{sec:org01eb4cf}
 Real jsx support.
 
-#+NAME: rjsx-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package rjsx-mode
     :ensure t
     :mode "\\.jsx\\'")
-#+END_SRC
+\end{verbatim}
 
-**** Tern
+\paragraph*{Tern}
+\label{sec:orgd84b5ca}
 
-[[https://github.com/proofit404/company-tern][Tern]] is a code-analysis engine for JavaScript.
+\href{https://github.com/proofit404/company-tern}{Tern} is a code-analysis engine for JavaScript.
 
-#+NAME: tern-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package tern
     :ensure t
     :after js2-mode
     :init (add-hook 'js2-mode-hook 'tern-mode))
-#+END_SRC
+\end{verbatim}
 
-***** Company Tern ([[https://github.com/proofit404/company-tern][repository]])
+\subparagraph*{Company Tern (\href{https://github.com/proofit404/company-tern}{repository})}
+\label{sec:org576125f}
 
 Tern backend using company.
 
-#+NAME: company-tern-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package company-tern
     :ensure t
     :init
@@ -2536,25 +2455,22 @@ Tern backend using company.
     :config
     (setq company-tern-property-marker nil
           company-tern-meta-as-single-line t))
-#+END_SRC
+\end{verbatim}
 
-**** JSON
+\paragraph*{JSON}
+\label{sec:orgc3265b4}
 
-#+NAME: json-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package json-mode
     :defer t
     :ensure t
     :mode (("\\.json\\'" . json-mode)))
-#+END_SRC
-
-**** React                                                        :ignore:
+\end{verbatim}
 
 Based off/shamelessly copied and pasted from Spacemacs
 React layer.
 
-#+NAME: react-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (progn
     (define-derived-mode react-mode web-mode "react")
     (add-to-list 'auto-mode-alist '("\\.jsx\\'" . react-mode))
@@ -2562,49 +2478,50 @@ React layer.
     (add-to-list 'auto-mode-alist '("\\.index.android.js\\'" . react-mode))
     (add-to-list 'auto-mode-alist '("\\.index.ios.js\\'" . react-mode))
     (add-to-list 'auto-mode-alist '("\\/\\*\\* @jsx .*\\*/\\'" . react-mode)))
-#+END_SRC
+\end{verbatim}
 
-**** Coffee
+\paragraph*{Coffee}
+\label{sec:org328eb87}
 
-#+NAME: coffee-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package coffee-mode
     :ensure t
     :mode ("\\.coffee\\'" . coffee-mode))
-#+END_SRC
+\end{verbatim}
 
-**** Add Node Modules Path ([[https://github.com/codesuki/add-node-modules-path][repository]])
+\paragraph*{Add Node Modules Path (\href{https://github.com/codesuki/add-node-modules-path}{repository})}
+\label{sec:org8c85111}
 
-#+NAME: add-node-modules-path-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package add-node-modules-path
     :ensure t
     :defer t
     :init
     (add-hook 'js2-mode-hook #'add-node-modules-path))
-#+END_SRC
+\end{verbatim}
 
-**** Npm Mode
+\paragraph*{Npm Mode}
+\label{sec:org7d72b2b}
 
-#+NAME: npm-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package npm-mode
     :ensure t
     :defer t)
-#+END_SRC
-**** Enable syntax checking in ~js-mode~ and related mode buffers.
+\end{verbatim}
+\paragraph*{Enable syntax checking in \texttt{js-mode} and related mode buffers.}
+\label{sec:org7be645f}
 
-#+NAME: flycheck-js-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (dolist (mode '(coffee-mode js2-mode json-mode))
     (push mode flycheck-global-modes))
-#+END_SRC
+\end{verbatim}
 
-*** Web
-**** Web Mode
+\subsubsection*{Web}
+\label{sec:org1f47585}
+\paragraph*{Web Mode}
+\label{sec:org6b01c90}
 
-#+NAME: web-mode-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+\begin{verbatim}
   (use-package web-mode
     :ensure t
     :bind (:map web-mode-map
@@ -2655,16 +2572,55 @@ React layer.
 
       (add-hook 'web-mode-hook #'jchaffin/web-mode-indent)
 
-      <<tagedit-mode-config>>
-      <<css-mode-config>>
-      <<emmet-mode-config>>
-      <<company-web-config>>))
-#+END_SRC
+        (use-package tagedit
+          :ensure t
+          :diminish tagedit-mode
+          :config
+          (progn
+            (tagedit-add-experimental-features)
+            (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
+      
+        (use-package emmet-mode
+          :ensure t
+          :defer t
+          :init
+          (add-to-hooks 'emmet-mode '(css-mode-hook
+                                     html-mode-hook
+                                     web-mode-hook)))
+        (use-package company-web
+          :ensure t
+          :init
+          (progn
+              (use-package company-tern
+                :ensure t
+                :init
+                (add-to-list 'company-backends 'company-tern)
+                :config
+                (setq company-tern-property-marker nil
+                      company-tern-meta-as-single-line t))
+            (defun jchaffin/company-web-mode-hook ()
+              "Autocompletion hook for web-mode"
+              (set (make-local-variable 'company-backends)
+                   '(company-tern company-web-html company-yasnippet company-files)))
+      
+            (add-hook 'web-mode-hook #'jchaffin/company-web-mode-hook)
+      
+            ;; Enable JavaScript completion between <script>...</script> etc.
+            (defadvice company-tern (before web-mode-set-up-ac-sources activate)
+              "Set `tern-mode' based on current language before running company-tern."
+              (if (equal major-mode 'web-mode)
+                  (let ((web-mode-cur-language
+                         (web-mode-language-at-pos)))
+                    (if (or (string= web-mode-cur-language "javascript")
+                            (string= web-mode-cur-language "jsx"))
+                        (unless tern-mode (tern-mode))
+                      (if tern-mode (tern-mode -1))))))))))
+\end{verbatim}
 
-**** Emmet
+\paragraph*{Emmet}
+\label{sec:org991813f}
 
-#+NAME: emmet-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package emmet-mode
     :ensure t
     :defer t
@@ -2672,13 +2628,14 @@ React layer.
     (add-to-hooks 'emmet-mode '(css-mode-hook
                                html-mode-hook
                                web-mode-hook)))
-#+END_SRC
+\end{verbatim}
 
-**** HTML
-***** Tag Edit
+\paragraph*{HTML}
+\label{sec:orgc0eb211}
+\subparagraph*{Tag Edit}
+\label{sec:org390cb0e}
 
-#+NAME: tagedit-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package tagedit
     :ensure t
     :diminish tagedit-mode
@@ -2686,15 +2643,14 @@ React layer.
     (progn
       (tagedit-add-experimental-features)
       (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
-#+END_SRC
+\end{verbatim}
 
-***** TODO Smart Parens
+\paragraph*{CSS}
+\label{sec:org74dbce2}
+\subparagraph*{CSS Mode}
+\label{sec:orgdbff771}
 
-**** CSS
-***** CSS Mode
-
-#+NAME: css-config-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package css-mode
     :ensure t
     :defer t
@@ -2723,48 +2679,55 @@ React layer.
         (search-backward "{")
         (while (not (looking-at "}"))
           (join-line -1)))))
-#+END_SRC
+\end{verbatim}
 
-***** Less
+\subparagraph*{Less}
+\label{sec:orge72d2b6}
 
-#+NAME: css-less-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package css-less-mode
     :ensure t
     :mode ("\\.less\\'" . less-css-mode))
-#+END_SRC
+\end{verbatim}
 
-***** SASS
+\subparagraph*{SASS}
+\label{sec:org77f2874}
 
-#+NAME: sass-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package sass-mode
     :ensure t
     :mode ("\\.sass\\'" . sass-mode))
-#+END_SRC
+\end{verbatim}
 
-***** SCSS
+\subparagraph*{SCSS}
+\label{sec:org2a609c6}
 
-#+NAME: scss-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+\begin{verbatim}
   (use-package scss-mode
     :ensure t
     :mode ("\\.scss\\'" . scss-mode))
-#+END_SRC
+\end{verbatim}
 
-**** Syntax Checking and Code Completion
-***** Company Web ([[https://github.com/osv/company-web][repository]])
+\paragraph*{Syntax Checking and Code Completion}
+\label{sec:org9bbd284}
+\subparagraph*{Company Web (\href{https://github.com/osv/company-web}{repository})}
+\label{sec:org4d68ca5}
 
 Code completion for html-mode, web-mode, jade-mode,
 and slim-mode using company.
 
-#+NAME: company-web-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+\begin{verbatim}
   (use-package company-web
     :ensure t
     :init
     (progn
-      <<company-tern-config>>
+        (use-package company-tern
+          :ensure t
+          :init
+          (add-to-list 'company-backends 'company-tern)
+          :config
+          (setq company-tern-property-marker nil
+                company-tern-meta-as-single-line t))
       (defun jchaffin/company-web-mode-hook ()
         "Autocompletion hook for web-mode"
         (set (make-local-variable 'company-backends)
@@ -2782,15 +2745,19 @@ and slim-mode using company.
                       (string= web-mode-cur-language "jsx"))
                   (unless tern-mode (tern-mode))
                 (if tern-mode (tern-mode -1))))))))
-#+END_SRC
+\end{verbatim}
 
-*** Markdown
-**** Markdown Mode
+\subsubsection*{Markdown}
+\label{sec:orgeabe2a4}
+\paragraph*{Markdown Mode}
+\label{sec:org7f3fd67}
 
-- See https://jblevins.org/projects/markdown-mode/
+\begin{itemize}
+\item See \url{https://jblevins.org/projects/markdown-mode/}
+\end{itemize}
 
-#+NAME markdown-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\#+NAME markdown-mode-config
+\begin{verbatim}
   (use-package markdown-mode
     :ensure t
     :commands (markdown-mode gfm-mode)
@@ -2803,23 +2770,22 @@ and slim-mode using company.
       (when *is-mac*
         ;; FIX ME
         (setq markdown-open-command (lambda () (shell-command "open -a Marked" buffer-file-name))))))
-#+END_SRC
+\end{verbatim}
 
-**** markdown-mode+
+\paragraph*{markdown-mode+}
+\label{sec:org3ce1866}
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package markdown-mode+
     :if *is-mac*
     :ensure t)
-#+END_SRC
+\end{verbatim}
+\subsubsection*{Ruby}
+\label{sec:org9fe9e03}
+\paragraph*{ruby-mode}
+\label{sec:org6042ed3}
 
-**** TODO markdown-tocontents
-**** TODO markdownfmt
-*** Ruby
-**** ruby-mode
-
-#+CONFIG: ruby-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package ruby-mode
     :mode "\\.rb\\'"
     :interpreter "ruby"
@@ -2830,40 +2796,13 @@ and slim-mode using company.
       (inf-ruby-keys))
 
     (add-hook #'ruby-mode-hook #'chaffin/ruby-mode-hook))
-#+END_SRC
+\end{verbatim}
+\subsubsection*{Docker}
+\label{sec:org57159f7}
 
-**** TODO rvm
-*** Docker
-
-#+NAME: dockerfile-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+\begin{verbatim}
   (use-package dockerfile-mode
     :ensure t
     :mode ( "Dockerfile\\'" .  dockerfile-mode))
-#+END_SRC
-
-** Footnotes
-
-[fn:1] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
-
-[fn:2] In lisp, global variables are called /top-level defintions/. By
-convention, globals are wrapped in a pair of asterisks called
-/earmuffs/. Earmuffs are completely optional -- they have no effect on
-how the program is compiled -- its a best practice in all of the many
-dialects of Lisp.
-
-[fn:3] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
-
-[fn:4] [[https://www.emacswiki.org/emacs/EmacsForMacOS][EmacsForMacOS]]
-
-[fn:5] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
-
-[fn:6] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
-
-[fn:7] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
-
-[fn:8] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
-
-[fn:9] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
-
-[fn:10] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+\end{verbatim}
+\end{document}
