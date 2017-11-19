@@ -153,7 +153,7 @@ filepaths, macOS applications, and external programs.
 #+END_SRC
 
 #+NAME: macos-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :results output
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports results :results output
   (when *is-mac*
      (progn
        <<macos-default-settings>>
