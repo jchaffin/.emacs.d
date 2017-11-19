@@ -1,6 +1,6 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
 
-#+OPTIONS: H:5 num:t toc:t \n:nil d:nil tasks:nil tags:nil tex:t num:nil
+#+OPTIONS: H:5 num:t toc:t \n:nil d:nil tasks:nil tags:nil tex:t num:nil todo:nil
 #+STARTUP: nohideblocks:t
 
 * Configuration                                                    :TOC_2_gh:
@@ -13,8 +13,8 @@
   - [[#better-defaults][(Better) Defaults]]
   - [[#editing][Editing]]
   - [[#utilities][Utilities]]
-  - [[#ui][UI]]
-  - [[#vcs][VCS]]
+  - [[#user-interface][User Interface]]
+  - [[#version-control][Version Control]]
   - [[#web-browsing][Web Browsing]]
   - [[#email][Email]]
   - [[#programming-languages][Programming Languages]]
@@ -102,7 +102,6 @@ Variables used throughout this file[fn:2]:
 <<defconst-is-windows>>
 <<defconst-is-linux>>
 <<defconst-is-gui>>
-<<defconst-computer-name>>
 #+END_SRC
 
 *** Macros
@@ -131,7 +130,7 @@ in the following stack overflow [[https://stackoverflow.com/a/26137517/6233622][
 #+END_SRC
 
 *** Functions
-**** Add multiple hooks
+*** Add multiple hooks
 
 See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#7398216]]
 
@@ -145,6 +144,9 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 ** Environment
 *** macOS
 
+I work on a macbook, so this block is where I'm loading all of my settings that rely on local
+filepaths, macOS applications, and external programs.
+
 #+NAME: defconst-is-macos
 #+BEGIN_SRC emacs-lisp :tangle no
   (defconst *is-mac* (eq system-type 'darwin))
@@ -153,7 +155,7 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 macOS specific settings[fn:4].
 
 #+NAME: macos-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none :results output
   (when *is-mac*
      (progn
        <<macos-default-settings>>
@@ -164,8 +166,8 @@ macOS specific settings[fn:4].
 
 **** Computer Name
 
-#+NAME: defconst-computer-name
-#+BEGIN_SRC emacs-lisp :tangle no
+#+NAME: defvar-computer-name
+#+BEGIN_SRC emacs-lisp :tangle yes
 (defun chaffin/computer-name-cmd ()
   (let* ((has-scutil (executable-find "scutil"))
 	 (scutil-cmd (lambda () (shell-command-to-string "scutil --get ComputerName"))))
@@ -173,7 +175,8 @@ macOS specific settings[fn:4].
 	(replace-regexp-in-string "\n" "" (funcall scutil-cmd))
       nil)))
 
-(defconst *computer-name* (chaffin/computer-name-cmd))
+(defvar computer-name (chaffin/computer-name-cmd))
+(defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
 **** Keybindings
@@ -244,29 +247,61 @@ conditionally loading dependencies.
     (setq exec-path-from-shell-check-startup-files nil))
 #+END_SRC
 
-*** Windows/PC
+*** Other Operating Systems
+**** Windows/PC
 
 #+NAME: defconst-is-windows
 #+BEGIN_SRC emacs-lisp :tangle no
 (defconst *is-windows* (eq system-type 'windows))
 #+END_SRC
 
-*** Linux
+**** Linux
 
 #+NAME: defconst-is-linux
 #+BEGIN_SRC emacs-lisp :tangle no
 (defconst *is-linux* (eq system-type 'linux))
 #+END_SRC
 
-*** GUI
+*** Graphical Interace
 
-Some packages and bindings that we only want to
-use in a GUI or terminal-based settings. Things like themes, icons,
-images, etc.
+There's some packages and commands I only want available when Emacs is
+running in a graphical interface. Things like image-rendering, large
+packages, and image rendering.
 
 #+NAME: defconst-is-gui
 #+BEGIN_SRC emacs-lisp :tangle no
   (defconst *is-gui* (display-graphic-p))
+#+END_SRC
+
+*** Custom File
+
+By default, Emacs customizations[fn:7] done through the =customize=
+interface write to ~user-init-file~.
+
+While I usually prefer configuring emacs programmatically, settings
+that depend on resources outside of this repository, such as
+org-agenda files, will impact portability and potentially break on
+other machines.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq custom-file "~/.emacs.d/custom/custom.el")
+(load custom-file)
+#+END_SRC
+
+*** Backup Files
+
+This might come back to bite me one day but I never use them.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq make-backup-files nil)
+#+END_SRC
+
+*** Use Emacs Terminfo
+Setting this variable to false forces Emacs to use internal terminfo,
+rather than the system terminfo.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (setq system-uses-terminfo nil)
 #+END_SRC
 
 ** Org Mode
@@ -281,6 +316,8 @@ images, etc.
 (ox-extras-activate '(ignore-headlines))
 
 (setq org-image-actual-width 400)
+
+(add-to-list 'org-file-apps '("pdf" . auto-mode))
 #+END_SRC
 
 **** TODO Using an org mirror and rationale
@@ -348,6 +385,7 @@ Use UTF-8 Bullets for Org-mode headings.
 #+END_SRC
 
 *** Org Beautify Theme
+
 :PROPERTIES:
 :ID:       54498880-BB9C-46B2-A18B-15DB384869A3
 :END:
@@ -362,7 +400,6 @@ Use UTF-8 Bullets for Org-mode headings.
     (add-to-list 'custom-enabled-themes 'org-beautify)
     (load-theme 'org-beautify t))
 #+END_SRC
-
 
 *** Org Pdfview
 
@@ -448,17 +485,18 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
   (add-hook 'org-mode-hook 'toc-org-enable))
 #+END_SRC
 
-*** Org Latex Export
+*** Org Latex
 
 #+NAME: org-latex-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
+;; (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
+
 (setq org-latex-pdf-process
-      '("xelatex -interaction nonstopmode --output-directory %o %f"
-	"bibtex %b"
-	"xelatex -interaction nonstopmode --output-directory %o %f"
-	"xelatex -interaction nonstopmode --output-directory %o %f")
-      org-latex-prefer-user-labels t)
+    '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -synctex=1 -pdf -bibtex -f %f"))
+
+(setq org-latex-prefer-user-labels t)
+
+
 #+END_SRC
 
 **** Org Per File Class
@@ -474,6 +512,22 @@ configuration.
 	       "\\documentclass{scrartcl}
 	       [NO-DEFAULT-PACKAGES]
 	       [EXTRA]"
+	       ("\\section{%s}" . "\\section*{%s}")
+	       ("\\subsection{%s}" . "\\subsection*{%s}")
+	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
+
+**** MLA class
+
+#+NAME: org-latex-mla-class
+#+BEGIN_SRC emacs-lisp :tangle yes
+(add-to-list 'org-latex-classes
+	     '("ftv108-term-paper"
+	       "\\documentclass{ftv108-term-paper}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]"
 	       ("\\section{%s}" . "\\section*{%s}")
 	       ("\\subsection{%s}" . "\\subsection*{%s}")
 	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -509,7 +563,8 @@ From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-link
 #+END_SRC
 
 ** (Better) Defaults
-*** Dired+
+*** Better Utilities
+**** Dired+
 
 Adds extensions and functionality to dired mode.
 
@@ -519,7 +574,39 @@ Adds extensions and functionality to dired mode.
     :ensure t)
 #+END_SRC
 
-*** Page Break Lines
+**** Undo Tree
+
+#+NAME: undo-tree-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package undo-tree
+    :ensure t
+    :init
+    (global-undo-tree-mode))
+#+END_SRC
+
+**** Projectile
+
+#+NAME: projectile-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package projectile
+    :ensure t
+    :config
+    (projectile-mode))
+#+END_SRC
+
+**** Restart Emacs
+
+The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
+from within Emacs.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package restart-emacs
+    :ensure t
+    :bind (("C-x C-r" . restart-emacs)))
+#+END_SRC
+
+*** Better Display
+**** Page Break Lines
 
 Global minor-mode that turns ~^L~ form feed characters into
 horizontal line rules.
@@ -532,39 +619,19 @@ horizontal line rules.
     (global-page-break-lines-mode))
 #+END_SRC
 
-*** Project Management
-**** Projectile
-
-#+NAME: projectile-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package projectile
-    :ensure t
-    :config
-    (projectile-mode))
-#+END_SRC
-
-*** Undo Tree
-#+NAME: undo-tree-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package undo-tree
-    :ensure t
-    :init
-    (global-undo-tree-mode))
-#+END_SRC
-
-*** Splash Screen Replacement.
+**** Splash Screen Replacement.
 
 The default splash screen is great when you're starting out,
 but it's more so an annoyance than anything else once you
 know you're around.
 
-**** Enable Emojis for org tags in dashboard agenda widget
+***** Enable Emojis for org tags in dashboard agenda widget
 
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
   <<emojify-mode-config>>
 #+END_SRC
 
-**** Emacs Dashboard
+***** Emacs Dashboard
 
 [[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
 replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
@@ -591,7 +658,7 @@ list that one may use in the wacky world of Emacs.
                             ( bookmarks . 5))))
 #+END_SRC
 
-*** Inhibit Scratch Buffer
+**** Inhibit Scratch Buffer
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (setq initial-scratch-message nil
@@ -599,37 +666,7 @@ list that one may use in the wacky world of Emacs.
         inhibit-startup-screen t)
 #+END_SRC
 
-*** Custom File
-
-    By default, Emacs customizations[fn:7] writes to
-    ~user-init-file~.
-
-    While I usually prefer configuring emacs programmatically,
-    settings that depend on features outside of the emacs ecosystem,
-    such as the existence of a particular file in a particular location,
-    will impact portability.
-
-    Let's exercise our first ammendment rights and separate
-    church from state.
-
-    #+BEGIN_SRC emacs-lisp :tangle yes
-      (setq custom-file "~/.emacs.d/custom/custom.el")
-      (load custom-file)
-    #+END_SRC
-
-*** Backup Files
-
-Backups are safe.
-
-I like to live on the wild side. 
-
-And I can always ~M-x recover-this-file~ anyways...
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (setq make-backup-files nil)
-#+END_SRC
-
-*** Menu Bar, Tool Bar, Scroll Bar
+**** Menu Bar, Tool Bar, Scroll Bar
 
 Disable scroll bars and tool bar on all system types.
 
@@ -645,15 +682,48 @@ so we'll leave it there.
   (menu-bar-mode -1))
 #+END_SRC
 
-*** Garbage Collection
+**** Truncate Lines
 
-Allow more than 800 KIB cache size before deallocating memory.
+Not sure this is doing anything...
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-  (setq gc-cons-threshold 50000000)
+  (setq-default truncate-lines nil)
 #+END_SRC
 
-*** GnuTLS
+*** Better Garbage Collection
+
+Consider the following from the documentation:
+
+#+BEGIN_QUOTE
+By binding this temporarily to a large number, you can effectively
+prevent garbage collection during a part of the program.
+#+END_QUOTE
+
+When I first read how the default garbage collection interval in Emacs
+is notoriously low, I added an arbitrary number of zeros to the
+default value and called it a day. However, because I'm writing this monolithic
+configuration and making a lot of mistakes in the process, I've had to
+start Emacs with essentially its default settings pretty frequently
+and I've noticed the lag time I occasionally experience when searching
+long documents is essentially nonexistent in vanilla Emacs. After
+reading this [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][blogpost]], it seems that jacking up the GC interval may
+actually be the /cause/ of the lagtime rather than contributing to the
+solution. 
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun chaffin/rev-up-gc ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun chaffin/rev-down-gc ()
+  (setq gc-cons-threshold 800000))
+
+(add-hook 'minibuffer-setup-hook #'chaffin/rev-up-gc)
+(add-hook 'minibuffer-exit-hook 'chaffin/rev-down-gc)
+#+END_SRC
+
+*** Better Encryption
+**** GnuTLS
 
 - See [[https://github.com/wasamasa/dotemacs/blob/master/init.org#gnutls][wasamasa/dotfiles]]
 
@@ -661,7 +731,7 @@ Allow more than 800 KIB cache size before deallocating memory.
   (setq gnutls-min-prime-bits 4096)
 #+END_SRC
 
-*** Use GPG2
+**** Use GPG2
 
 Set GPG program to 'gpg2'.
 
@@ -670,7 +740,7 @@ Set GPG program to 'gpg2'.
     (setq epg-gpg-program "gpg2"))
 #+END_SRC
 
-*** Disable External Pin Entry
+**** Disable External Pin Entry
 
 Switching between Emacs and an external tools is annoying.
 
@@ -702,37 +772,12 @@ See ticket [[https://github.com/Homebrew/homebrew-core/issues/14737][#1437]] fro
   killall gpg-agent
 #+END_EXAMPLE
 
-*** Alias Yes And No
+*** Better Commands
+***** Alias Yes Or No
 
+#+NAME: yes-or-no-p
 #+BEGIN_SRC emacs-lisp :tangle yes
-  (defalias 'yes-or-no-p 'y-or-n-p)
-#+END_SRC
-
-*** Truncate Lines
-
-Not sure this is doing anything...
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (setq-default truncate-lines nil)
-#+END_SRC
-
-*** Use Emacs Terminfo
-Setting this variable to false forces Emacs to use internal terminfo,
-rather than the system terminfo.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (setq system-uses-terminfo nil)
-#+END_SRC
-
-*** Restart Emacs
-
-The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
-from within Emacs.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package restart-emacs
-    :ensure t
-    :bind (("C-x C-r" . restart-emacs)))
+(defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
 ** Editing
@@ -959,7 +1004,9 @@ but its easy to configure, offers a minimalistic interface,
 and is every bit as good of a completion tool as helm is,
 if not better.
 
-- See [[https://oremacs.com/2016/01/06/ivy-flx/][Better fuzzy matching support in Ivy]]
+I prefer the default regex matcher, but if you want fuzzy matching as
+a fallback or replacement checkout this article on [[https://oremacs.com/2016/01/06/ivy-flx/][better fuzzmatching
+support with ivy]].
 
 #+NAME: ivy-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
@@ -969,8 +1016,7 @@ if not better.
     (setq ivy-use-virtual-buffers t
           ivy-initial-inputs-alist nil
           ivy-re-builders-alist
-          '((ivy-switch-buffer . ivy--regex-plus)
-            (t . ivy--regex-fuzzy)))
+	  '((t . ivy--regex-plus)))
     <<ivy-hydra-config>>
     <<ivy-historian-config>>
     <<ivy-org-ref-config>>)
@@ -1128,7 +1174,7 @@ friends.
 #+NAME: wakatime-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package wakatime-mode
-    :if (and *is-mac* (or (string= (downcase *computer-name*) "hal") (string= (downcase *computer-name*) "junior")))
+    :if (and *is-mac* (or (string= (downcase computer-name) "hal") (string= (downcase computer-name) "junior")))
     :ensure t
     :init
     (add-hook 'prog-mode-hook 'wakatime-mode)
@@ -1144,7 +1190,7 @@ friends.
         (browse-url "https://wakatime.com/dashboard"))))
 #+END_SRC
 
-** UI
+** User Interface
 *** Cursor
 **** Vertical Bar
 
@@ -1275,10 +1321,10 @@ Show the time in the modeline.
     (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
-*** Terminal
-**** Colors and Display
+*** Terminal                                                     
+**** Colors and Display                                         :noexport:
 
-The ~emacsclient ~nw~ command is a great workflow for remedial file
+The ~emacsclient -nw~ command is a great workflow for remedial file
 editing tasks like fixing a typo or commenting out lines.
 
 By launching a single Emacs instance, ~emacsclient~ has the rapidity of
@@ -1350,7 +1396,7 @@ optimize code legibility.
 
 *** Frame Font
 
-Use the signature monospaced font on linux, macOS, or Windows OS.
+Use the default monospaced font for each operating system.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
  (cond (*is-linux*
@@ -1390,7 +1436,7 @@ Use the signature monospaced font on linux, macOS, or Windows OS.
     :init (global-emojify-mode))
 #+END_SRC
 
-** VCS
+** Version Control
 *** Magit
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
@@ -1408,14 +1454,15 @@ As a git client though, magit is awesome.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package magit
     :ensure t
-    :bind (("C-c v c" . magit-clone)
-           ("C-c v v" . magit-status)
-           ("C-c v b" . magit-blame)
+    :bind (("C-c v b" . magit-blame)
+           ("C-c v C" . magit-clone)
+           ("C-c v c" . magit-checkout)
            ("C-c v i" . magit-init)
            ("C-c v m" . magit-merge)
            ("C-c v l" . magit-log-buffer-file)
            ("C-c v p" . magit-pull)
-           ("C-c v P" . magit-push))
+           ("C-c v P" . magit-push)
+           ("C-c v v" . magit-status))
     :config (setq magit-save-repository-buffers 'dontask))
 #+END_SRC
 
@@ -1430,8 +1477,6 @@ As a git client though, magit is awesome.
     :commands magithub-dispatch-popup
     :bind (:map magit-status-mode-map
                 ("@" . magithub-dispatch-popup))
-    :init
-    (setq magithub-dir (concat user-emacs-directory ".magithub/"))
     :config
     (progn
       (magithub-feature-autoinject t)))
@@ -1476,7 +1521,7 @@ Pop-up feature for viewing the last git commit.
   (use-package git-messenger
     :ensure t
     :bind
-    (("C-x v p" . git-messenger:popup-message)))
+    (("C-c v m" . git-messenger:popup-message)))
 #+END_SRC
 
 *** git modes
@@ -1894,7 +1939,7 @@ CIDER eldoc information.
     :functions chaffin/tex-auto-fill-mode
     :init
     (progn
-      (setq TeX-command-default 'xetex
+      (setq TeX-command-default "LaTeX"
             TeX-engine 'xetex
             TeX-auto-save t
             TeX-parse-self t
@@ -2395,7 +2440,6 @@ and slim-mode using company.
 
 **** TODO markdown-tocontents
 **** TODO markdownfmt
-*** TODO Go
 *** Ruby
 **** ruby-mode
 
@@ -2414,7 +2458,6 @@ and slim-mode using company.
 #+END_SRC
 
 **** TODO rvm
-*** TODO Yaml
 *** Docker
 
 #+NAME: dockerfile-mode-config
