@@ -152,10 +152,8 @@ filepaths, macOS applications, and external programs.
   (defconst *is-mac* (eq system-type 'darwin))
 #+END_SRC
 
-macOS specific settings[fn:4].
-
 #+NAME: macos-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none :results output
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :results output
   (when *is-mac*
      (progn
        <<macos-default-settings>>
@@ -180,6 +178,7 @@ macOS specific settings[fn:4].
 #+END_SRC
 
 **** Keybindings
+macOS specific settings[fn:4].
 
 Maps the modifier keys based on personal preferences.
 Also sets terminal coding system to "utf-8".
@@ -904,7 +903,7 @@ probably some bias there, but company-mode hasn't provided
 any reason for me reconsider my choice.
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :results output
   (use-package company
     :ensure t
     :defer t
