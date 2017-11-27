@@ -2,7 +2,6 @@
 
 #+OPTIONS: H:5 num:t toc:nil \n:nil d:nil tasks:nil tags:nil tex:t num:nil
 #+STARTUP: nohideblocks:t
-
 * Table Of Contents                                       :TOC_4_gh:noexport:
 - [[#configuration][Configuration]]
   - [[#preface][Preface]]
@@ -45,8 +44,9 @@
       - [[#org-pomodoro][Org Pomodoro]]
       - [[#org-ref][Org Ref]]
       - [[#org-id][Org ID]]
+      - [[#spell-check][Spell Check]]
     - [[#org-pdf][Org PDF]]
-      - [[#pdf-tools][Pdf Tools]]
+      - [[#pdf-tools][PDF Tools]]
       - [[#org-pdf-view][Org PDF View]]
     - [[#org-export][Org Export]]
       - [[#latex-backend][LaTeX Backend]]
@@ -79,8 +79,8 @@
     - [[#yasnippet][YASnippet]]
     - [[#flycheck][Flycheck]]
       - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
-      - [[#flycheck-package][Flycheck Package]]
       - [[#flycheck-in-org-special-edit-buffers][Flycheck in Org Special Edit Buffers]]
+    - [[#flyspell][Flyspell]]
     - [[#company][Company]]
       - [[#company-statistics][Company Statistics]]
       - [[#company-quick-help][Company Quick Help]]
@@ -144,7 +144,8 @@
     - [[#lisp][Lisp]]
       - [[#parens][Parens]]
       - [[#hlsexp][Hlsexp]]
-    - [[#common-lisp][Common-Lisp]]
+    - [[#emacs-lisp][Emacs Lisp]]
+    - [[#common-lisp][Common Lisp]]
       - [[#slime][Slime]]
     - [[#clojure][Clojure]]
       - [[#clojure-mode-repository][Clojure Mode (repository)]]
@@ -500,7 +501,7 @@ These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
 
 #+NAME: org-prettify
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-prettify-text>>
 <<org-prettify-image>>
 <<org-prettify-bullets>>
@@ -736,6 +737,15 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
         id)))))
 #+END_SRC
 
+**** Spell Check
+
+Add spell checking in org mode buffers using Flyspell.
+
+#+NAME: org-utils-flyspell
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-hook 'org-mode-hook 'turn-on-flyspell)
+#+END_SRC
+
 *** Org PDF
 
 #+NAME: org-pdf
@@ -745,7 +755,13 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 <<org-pdf-org-file-apps>>
 #+END_SRC
 
-**** Pdf Tools
+**** PDF Tools
+
+[[https://github.com/politza/pdf-tools][PDF Tools]] adds several features and enhancements for interacting with
+PDF documents in Emacs. It serves as a replacement for DocView mode.
+
+Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
+[[http://pragmaticemacs.com/category/emacs/][blogpost]] demonstrating how to get the most out of this package.
 
 #+NAME: org-pdf-pdftools
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -762,8 +778,17 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
   (use-package org-pdfview
     :after pdf-tools
+    :bind (:map pdf-view-mode-map
+	      ("C-s" . isearch-forward)
+	      ("h" . pdf-annot-add-highlight-markup-annotation)
+	      ("t" . pdf-annot-add-text-annotation)
+	      ("D" . pdf-annot-delete))
     :ensure t
-    :mode (("\\.pdf\\'" . pdf-view-mode)))
+    :mode (("\\.pdf\\'" . pdf-view-mode))
+    :config
+    (setq-default pdf-view-display-size 'fit-page)
+    ((setq )etq pdf-annot-activate-created-annotations t)
+    (setq pdf-view-resize-factor 1.1))
 #+END_SRC
 
 Now we can open pdf files with =org-pdfview=[fn:7]:
@@ -1208,17 +1233,24 @@ snippets corresponding to the major mode of the current buffer mode.
 
 *** Flycheck
 
+#+NAME: flycheck
+#+BEGIN_SRC :tangle yes :noweb yes :exports none
+<<flycheck-settings>>
+<<flycheck-color-mode-line-config>>
+#+END_SRC
+
 [[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+NAME: flycheck-settings
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
   (use-package flycheck
+    :ensure t
     :defer-install t
     :init
     (setq flycheck-global-modes nil)
     :config
-      (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
-                    flycheck-emacs-lisp-load-path 'inherit)
-      <<flycheck-color-modeline-config>>)
+    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
+		  flycheck-emacs-lisp-load-path 'inherit))
 #+END_SRC
 
 **** Flycheck Color Mode Line
@@ -1233,7 +1265,7 @@ snippets corresponding to the major mode of the current buffer mode.
 	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
      #+END_SRC
 
-**** Flycheck Package
+**** Flycheck Package                                           :noexport:
 
 [[https://github.com/purcell/flycheck-package][Flycheck Package]] requires ~package.el~ to be enabled, so it's incompatible with ~straight.el~.
 
@@ -1248,13 +1280,30 @@ snippets corresponding to the major mode of the current buffer mode.
 
 **** Flycheck in Org Special Edit Buffers
 
-#+NAME: org-edit-src-code
+#+NAME: flycheck-org-special-edit
 #+BEGIN_SRC emacs-lisp :tangle no
   (defadvice org-edit-src-code (around set-buffer-file-name activate compile)
     (let ((file-name (buffer-file-name))) ;; (1)
       ad-do-it                            ;; (2)
       ;; (3)
       (setq buffer-file-name file-name)))
+#+END_SRC
+
+*** Flyspell
+
+:PROPERTIES:
+:ID:       9D04DEB5-0E76-4BCC-B840-85C9B7A262F4
+:CUSTOM_ID: flyspell
+:END:
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package flyspell
+  :ensure t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(with-eval-after-load 'flyspell
+  <<org-utils-flyspell>>)
 #+END_SRC
 
 *** Company
@@ -1381,7 +1430,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as
 a fallback or replacement checkout this article on [[https://oremacs.com/2016/01/06/ivy-flx/][better fuzzmatching
 support with ivy]].
 
-#+NAME: ivy-config
+#+NAME: ivy
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
   (use-package ivy
     :config
@@ -1419,57 +1468,64 @@ support with ivy]].
 #+NAME: ivy-historian-settings
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-historian
-  :after historian 
+  :after historian
   :ensure t)
 #+END_SRC
 
 **** Counsel
 
-     #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-       (use-package counsel
-         :ensure t
-         :bind
-         (("C-c C-r" . ivy-resume)
-          ("C-`" . ivy-avy)
-         ("M-x" . counsel-M-x)
-         ("M-y" . counsel-yank-pop)
-         ("C-x C-f" . counsel-find-file)
-         ("<f1> f" . counsel-describe-function)
-         ("<f1> v" . counsel-describe-variable)
-         ("<f1> l" . counsel-load-library)
-         ("<f2> i" . counsel-info-lookup-symbol)
-         ("<f2> u" . counsel-unicode-char)
-         ("C-c g" . counsel-git)
-         ("C-c j" . counsel-git-grep)
-         ("C-c k" . counsel-ag)
-         ("C-x l" . counsel-locate)
-         ("C-S-o" . counsel-rhythmbox)
-         :map read-expression-map
-         ("C-r" . counsel-expression-history))
-         :init
-           (progn
-             <<ivy-config>>
-             <<swiper-config>>
-             <<counsel-projectile-config>>
-             <<counsel-osx-app-config>>
-             <<counsel-dash-config>>
-             <<smex-config>>))
-     #+END_SRC
+#+NAME: counsel
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+  (use-package counsel
+    :ensure t
+    :bind
+    (("C-c C-r" . ivy-resume)
+     ("C-`" . ivy-avy)
+     ("M-x" . counsel-M-x)
+     ("M-y" . counsel-yank-pop)
+     ("C-x C-f" . counsel-find-file)
+     ("<f1> f" . counsel-describe-function)
+     ("<f1> v" . counsel-describe-variable)
+     ("<f1> l" . counsel-load-library)
+     ("<f2> i" . counsel-info-lookup-symbol)
+     ("<f2> u" . counsel-unicode-char)
+     ("C-c g" . counsel-git)
+     ("C-c j" . counsel-git-grep)
+     ("C-c k" . counsel-ag)
+     ("C-x l" . counsel-locate)
+     ("C-S-o" . counsel-rhythmbox)
+     :map read-expression-map
+     ("C-r" . counsel-expression-history))
+    :init
+    (progn
+        <<ivy>>
+        <<swiper>>
+        <<counsel-projectile-config>>
+        <<counsel-osx-app-config>>
+        <<counsel-dash-config>>
+        <<smex-config>>))
+#+END_SRC
+
+#+RESULTS: counsel
 
 **** Swiper
 
-#+NAME: swiper-config
+#+NAME: swiper
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports code
+<<swiper-avy>>
+<<swiper-settings>>
+#+END_SRC
+
+#+NAME: swiper-settings
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
   (use-package swiper
-  :bind
-  (("\C-s" . swiper))
-  :init
-  <<swiper-avy-config>>)
+    :bind
+    (("\C-s" . swiper)))
 #+END_SRC
 
 **** Swiper Avy
 
-#+NAME: swiper-avy-config
+#+NAME: swiper-avy
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package avy
     :ensure t)
@@ -1515,6 +1571,8 @@ friends.
   (use-package counsel-dash
     :if *is-mac*
     :ensure t
+    :defines chaffin/dash-activate-package-docsets
+
     :init (defun counsel-dash-at-point ()
             "Counsel dash with selected point."
             (interactive)
@@ -1525,8 +1583,29 @@ friends.
                   (region-end))
                (substring-no-properties (or (thing-at-point 'symbol) "")))))
     :config
-    (setq counsel-dash-docsets-path
-          (expand-file-name "~/Library/Application\sSupport/Dash/DocSets")))
+    (progn
+      (defalias 'counsel-dash-installed-docsets 'helm-dash-installed-docsets)
+
+      (defun chaffin/dash-activate-package-docsets (path)
+	"Add dash docsets from specified PATH."
+	(setq counsel-dash-docsets-path path
+	      counsel-dash-common-docsets (counsel-dash-installed-docsets))
+	(message (format "Activated %d docsets from: %s"
+			 (length counsel-dash-common-docsets) path)))
+
+      (setq counsel-dash-docsets-path
+	    (expand-file-name "~/Library/Application\sSupport/Dash/DocSets"))
+
+      (chaffin/dash-activate-package-docsets counsel-dash-docsets-path)))
+
+(add-hook 'emacs-lisp-mode-hook
+	  (lambda ()
+	    (setq-local counsel-dash-docsets '("Emacs_Lisp"))))
+
+(add-hook 'org-mode-hook
+	  (lambda ()
+	    (setq-local counsel-dash-docsets '("Emacs_Lisp"))))
+
 #+END_SRC
 
 *** Deft
@@ -1749,7 +1828,7 @@ optimize code legibility.
        :ensure t
        :bind
        (("C-c M-RET t" . multi-term)
-	("C-c M-RET p" . multi-term-prev)
+	("C-c M-RET b" . multi-term-prev)
 	("C-c M-RET n" . multi-term-next)
 	("C-c M-RET o" . multi-term-dedicated-toggle))
        :config
@@ -2049,7 +2128,16 @@ Minor mode to highlight s-expresion.
     :ensure t)
 #+END_SRC
 
-*** Common-Lisp
+*** Emacs Lisp
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(add-hook 'emacs-lisp-mode-hook
+	  (lambda ()
+	    (paredit-mode 1)
+	    (hl-sexp-mode 1)))
+#+END_SRC
+
+*** Common Lisp
 
 Configuration for emacs-lisp.
 
@@ -2058,9 +2146,7 @@ Configuration for emacs-lisp.
     :after paredit
     :config
     (add-hook 'lisp-mode-hook #'paredit-mode)
-    (add-hook 'lisp-mode-hook #'hl-sexp-mode)
-    (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
-    (add-hook 'emacs-lisp-mode-hook #'hl-sexp-mode))
+    (add-hook 'lisp-mode-hook #'hl-sexp-mode))
 #+END_SRC
 
 **** Slime
@@ -2106,7 +2192,31 @@ Provides key bindings and code colorization for Clojure(Script).
     :config
     (add-hook 'clojure-mode-hook #'enable-paredit-mode)
     <<cljsbuild-config>>
-    <<elein-config>>)
+    <<elein-config>>
+    <<clojure-compojure-config>>)
+#+END_SRC
+
+***** Emacs Indentation for Comjoure
+
+[[https://github.com/weavejester/compojure][Compojure]] is a web framework for Clojure and Clojurescript
+applications. This snippet is taken from the [[https://github.com/weavejester/compojure/wiki/Emacs-indentation][Emacs Indentation]] page of
+the repository wiki to provide better indentation for compojure macros.
+
+#+NAME: clojure-compojure-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(define-clojure-indent
+  (defroutes 2)
+  (GET 2)
+  (POST 2)
+  (PUT 2)
+  (DELETE 2)
+  (HEAD 2)
+  (ANY 2)
+  (OPTIONS 2)
+  (PATCH 2)
+  (rfn 2)
+  (let-routes 1)
+  (context 2))
 #+END_SRC
 
 **** ClojureScript
@@ -2376,7 +2486,7 @@ CIDER eldoc information.
 
 #+NAME bibtex-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq bibtex-autokey-year-length 4
+(setq bibtex-autokey-year-length 2
       bibtex-autokey-name-year-separator "-"
       bibtex-autokey-year-title-separator "-"
       bibtex-autokey-titleword-separator "-"
@@ -2436,7 +2546,7 @@ Prettify dedicated org-mode latex buffers.
       (setq magic-latex-enable-block-highlight t
             magic-latex-enable-suscript t
             magic-latex-enable-pretty-symbols t
-            magic-latex-enable-block-align t
+            magic-latex-enable-block-align nil
             magic-latex-enable-inline-image t)))
 #+END_SRC
 

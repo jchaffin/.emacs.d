@@ -6,7 +6,15 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(safe-local-variable-values (quote ((eval sh-set-shell "zsh")))))
+ '(safe-local-variable-values
+   (quote
+    ((org-ref-default-bibliography . ftv108-term-paper\.bib)
+     (org-ref-pdf-directory concat
+			    (file-name-directory
+			     (buffer-file-name))
+			    "research")
+     (org-latex-hyperref-template)
+     (eval sh-set-shell "zsh")))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
