@@ -2012,19 +2012,19 @@ As a git client though, magit is awesome.
     :ensure t
     :bind
     (("C-c v v" . magit-status)
+     ("C-c v m" . magit-merge)
+     ("C-c v b" . magit-blame)
+     ("C-c v C" . magit-clone)
+     ("C-c v i" . magit-init)
+     ("C-c v l" . magit-log-buffer-file)
      (:map magit-status-mode-map
-	   ("C-c v b" . magit-blame)
-	   ("C-c v C" . magit-clone)
-	   ("C-c v c" . magit-checkout)
-	   ("C-c v d" . magit-done)
-	   ("C-c v D" . magit-done-no-prompt)
-	   ("C-c v f" . magit-stage-file)
-	   ("C-c v i" . magit-init)
-	   ("C-c v m" . magit-merge)
-	   ("C-c v l" . magit-log-buffer-file)
-	   ("C-c v p" . magit-pull)
-	   ("C-c v P" . magit-push)
-	   ("C-c v S" . magit-stash)))
+           ("C-c v c" . magit-checkout)
+           ("C-c v d" . magit-done)
+           ("C-c v D" . magit-done-no-prompt)
+           ("C-c v f" . magit-stage-file)
+           ("C-c v p" . magit-pull)
+           ("C-c v P" . magit-push)
+           ("C-c v S" . magit-stash)))
     :config
     (setq magit-save-repository-buffers 'dontask))
 #+END_SRC
