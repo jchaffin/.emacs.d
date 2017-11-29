@@ -2002,6 +2002,7 @@ As a git client though, magit is awesome.
 
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none 
+<<magit-done-no-prompt>>
 <<magit-done>>
 #+END_SRC
 
@@ -2016,6 +2017,7 @@ As a git client though, magit is awesome.
 	   ("C-c v C" . magit-clone)
 	   ("C-c v c" . magit-checkout)
 	   ("C-c v d" . magit-done)
+	   ("C-c v D" . magit-done-no-prompt)
 	   ("C-c v f" . magit-stage-file)
 	   ("C-c v i" . magit-init)
 	   ("C-c v m" . magit-merge)
@@ -2059,6 +2061,13 @@ yunmodified magit buffers will be killed without confirming."
 	   (message "No magit buffer(s) to kill" )))))
 #+END_SRC
 
+#+NAME: magit-done-no-prompt
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun magit-done-no-prompt ()
+  "Close magit buffers without prompting."
+    (interactive)
+    (magit-done 1))
+#+END_SRC
 
 
 **** Magithub
