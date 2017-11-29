@@ -7,12 +7,3 @@ A modern, literate, sane-ish emacs configuration.
 [straight.el](https://github.com/raxod502/straight.el)) and
 source-code extraction are done in [init.el](/init.el).
 
-
-
-
-
-
-
-
-
-
