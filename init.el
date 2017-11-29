@@ -60,14 +60,13 @@
 	(straight-use-package '(use-package
 				 :host github
 				 :repo "raxod502/use-package"
-				 :upstream 
+				 :upstream
 				 (:host github
 				  :repo "jwiegley/use-package")))
 
-	;; Build my org-mode fork.
 	(straight-use-package '(org
 				  :host github
-				  :repo "jchaffin/org-mode"
+				  :repo "emacsmirror/org"
 				  :local-repo-name org
 				  :files ("lisp/*.el" "contrib/lisp/*.el")))
 
@@ -76,19 +75,18 @@
 				:repo "jchaffin/org-beautify-theme"
 				:upstream (:host github
 						:repo "jonnay/org-beautify-theme")))
-	
+
 	;; [1] https://github.com/raxod502/straight.el/issues/168
 	;; [2] https://github.com/raxod502/radian/blob/master/radian-emacs/radian-org.el
 	;; See [2] For anything you'd ever want to know about whats going on here
 	(use-package org
 	    :commands (org-version)
-	    :bind (("C-c a" . org-agenda))
-	    :functions jchaffin--org-git-version
+	    :functions chaffin--org-git-version
 	    :init
 	    (progn
 	      (require 'subr-x)
-	      (defun jchaffin--org-git-version ()
-		(let ((default-directory (concat user-emacs-directory
+	      (defun chaffin--org-git-version ()
+			(let ((default-directory (concat user-emacs-directory
 						 "straight/repos/org/")))
 		  (if (executable-find "git")
 		      (with-temp-buffer
@@ -98,30 +96,31 @@
 			    (string-trim (buffer-string))
 			  "revision unknown"))
 		    "git not available")))
-	      (defalias #'org-git-version #'jchaffin--org-git-version)
+	      (defalias #'org-git-version #'chaffin--org-git-version)
 
 	      (defun org-release () "N/A")
 	      (provide 'org-version)
 
 	      (with-eval-after-load 'org
-		(defalias #'org-git-version #'jchaffin--org-git-version)))
+						(defalias #'org-git-version #'chaffin--org-git-version)))
 
 	    :config
 	    (setq org-insert-heading-respect-content t
-		  org-startup-indented t))
+					  org-startup-indented t))
 
 
 	(defun chaffin--org-init ()
 	  ;; If tangling fails, setting these variables first
 	  ;; ensures fontified, indented source code and no hassle
 	  ;; of an unaliased yes-or-no for every subsequent extraction.
-	  ;; Have a nice debugging session :smile: 
+	  ;; Have a nice debugging session :smile:
 	  (setq org-src-fontify-natively t
-		org-confirm-babel-evaluate nil
-		org-src-preserve-indentation t)
-	  (org-babel-load-file (concat user-emacs-directory "chaffin.org")))
+			 		org-confirm-babel-evaluate nil
+					org-src-preserve-indentation t)
+			   (org-babel-load-file (concat user-emacs-directory "chaffin.org")))
 
-	(add-hook 'after-init-hook #'chaffin--org-init))
+	(add-hook 'after-init-hook #'chaffin--org-init)
+)
 
   ;; Otherwise
   (progn

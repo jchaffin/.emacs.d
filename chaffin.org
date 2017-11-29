@@ -1,7 +1,11 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
+#+LaTeX_HEADER: \usepackage[T1]{fontenc}
+#+LaTeX_HEADER: \usepackage{mathptmx} 
+#+LaTeX_HEADER: \usepackage[scaled=.90]{helvet} 
+#+LaTeX_HEADER: \usepackage{courier}
 
 #+OPTIONS: H:5 num:t toc:nil \n:nil d:nil tasks:nil tags:nil tex:t num:nil
-#+STARTUP: nohideblocks:t
+
 * Table Of Contents                                       :TOC_4_gh:noexport:
 - [[#configuration][Configuration]]
   - [[#preface][Preface]]
@@ -55,11 +59,13 @@
       - [[#ox-extra][Ox Extra]]
   - [[#better-defaults][(Better) Defaults]]
     - [[#better-utilities][Better Utilities]]
-      - [[#dired][Dired+]]
+      - [[#better-dired][Better Dired]]
       - [[#undo-tree][Undo Tree]]
       - [[#projectile][Projectile]]
       - [[#restart-emacs][Restart Emacs]]
       - [[#popwin][Popwin]]
+    - [[#better-help][Better Help]]
+    - [[#][]]
     - [[#better-display][Better Display]]
       - [[#page-break-lines][Page Break Lines]]
       - [[#splash-screen-replacement][Splash Screen Replacement.]]
@@ -787,7 +793,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
     :mode (("\\.pdf\\'" . pdf-view-mode))
     :config
     (setq-default pdf-view-display-size 'fit-page)
-    ((setq )etq pdf-annot-activate-created-annotations t)
+    (setq pdf-annot-activate-created-annotations t)
     (setq pdf-view-resize-factor 1.1))
 #+END_SRC
 
@@ -858,8 +864,21 @@ through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]]
 (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
 #+END_SRC
 
+***** Hyperref Template
+The default cross-referencing and hyperlink styles provided by
+=hyperref= are awful. This makes them less awful.
+
+#+NAME: org-export-latex-hyperref
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq org-latex-hyperref-template "\\hypersetup{\n colorlinks=true,urlcolor=black,linkcolor=black \n}")
+#+END_SRC
+
+
+
+
 ***** Custom Classes
 ****** Org Per File Class
+
 Adds a class for exporting to pdf using latex backend without
 importing the default =ox-latex= packages. This allows the export
 settings of a particular file to be completely insulated from most external
@@ -948,7 +967,35 @@ subtrees of the ignored headlines will be retained.
 
 ** (Better) Defaults
 *** Better Utilities
-**** Dired+
+**** Better Dired
+***** Reuse dired buffer when moving to parent directory
+From
+[[https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer][emacswiki.org - Dired Reuse Directory Buffer]]:
+
+#+BEGIN_QUOTE
+When moving to parent directory by `^´, Dired by default creates a new buffer for each movement up. The following rebinds `^´ to use the same buffer.
+#+END_QUOTE
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes 
+(add-hook 'dired-mode-hook
+	  (lambda ()
+	    (define-key dired-mode-map (kbd "^")
+	      (lambda () (interactive) (find-alternate-file "..")))))
+#+END_SRC
+
+***** Use other dired buffer as default directory
+When split frames with two dired buffers, default to the other buffer
+as the current directory.
+
+See docstring for =dired-dwim-target=.
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq dired-dwim-target t)
+#+END_SRC
+
+***** Dired+
 
 Adds extensions and functionality to dired mode.
 
@@ -991,6 +1038,7 @@ from within Emacs.
 
 **** Popwin
 
+
 #+NAME: popwin
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package popwin
@@ -998,6 +1046,25 @@ from within Emacs.
   :config (popwin-mode 1))
 #+END_SRC
 
+*** Better Help
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(use-package help+
+  :ensure t)
+
+(use-package help-macro+
+  :ensure t)
+
+(use-package help-fns+
+  :ensure t)
+
+(use-package help-mode+
+  :ensure t)
+#+END_SRC
+
+*** 
 *** Better Display
 **** Page Break Lines
 
@@ -1685,7 +1752,6 @@ This disables Emacs asking questions about loading a new theme.
  (setq custom-safe-themes t)
 #+END_SRC
 
-
 **** Zenburn Theme
 
 #+NAME: zenburn-theme-config
@@ -2009,6 +2075,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 ** Email
 *** Mu
+
 
 #+NAME: mu-config
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -2977,3 +3044,12 @@ dialects of Lisp.
 [fn:9] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
 [fn:10] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+
+
+
+
+
+
+
+
+
