@@ -67,7 +67,6 @@
       - [[#restart-emacs][Restart Emacs]]
       - [[#popwin][Popwin]]
     - [[#better-help][Better Help]]
-    - [[#][]]
     - [[#better-display][Better Display]]
       - [[#page-break-lines][Page Break Lines]]
       - [[#splash-screen-replacement][Splash Screen Replacement.]]
@@ -1095,7 +1094,7 @@ from within Emacs.
   :ensure t)
 #+END_SRC
 
-*** 
+
 *** Better Display
 **** Page Break Lines
 
