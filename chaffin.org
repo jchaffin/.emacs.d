@@ -2112,7 +2112,7 @@ Travel back in time (to your last commit).
   (use-package git-timemachine
     :ensure t
     :bind
-    ("C-x v t" . git-timemachine-toggle)
+    ("C-c v t" . git-timemachine-toggle)
     :config
     (setq git-timemachine-abbreviation-length 7))
 #+END_SRC
