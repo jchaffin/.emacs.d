@@ -22,6 +22,8 @@
     - [[#functions][Functions]]
       - [[#add-multiple-hooks][Add multiple hooks]]
       - [[#join-strings-with-separator][Join Strings with Separator]]
+      - [[#buffer-list-names][Buffer List Names]]
+      - [[#count-windows][Count Windows]]
   - [[#environment][Environment]]
     - [[#macos][macOS]]
       - [[#computer-name][Computer Name]]
@@ -330,6 +332,35 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 (defun join (lst sep)
   (mapconcat 'identity lst sep))
 #+END_SRC
+
+**** Buffer List Names
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun buffer-list-names ()
+  "Get list of buffer names"
+  (let ((f (lambda (b) (buffer-name b)))
+	(buffer-alist (buffer-list)))
+    (mapcar f buffer-alist)))
+#+END_SRC
+
+**** Count Windows
+
+#+NAME: window-count
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun window-count ()
+  "Count number of windows in the current frame."
+  (interactive)
+  (length (window-list)))
+#+END_SRC
+
+#+NAME: window-count-unique
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun window-count-unique ()
+  "Count number of unique windows in the current frame"
+  (interactive)
+  (length (cl-delete-duplicates (mapcar #'window-buffer (window-list)))))
+#+END_SRC
+
 
 ** Environment
 *** macOS
@@ -1970,6 +2001,11 @@ Magit would not be very good at that.
 
 As a git client though, magit is awesome.
 
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none 
+<<magit-done>>
+#+END_SRC
+
 #+NAME: magit-config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package magit
@@ -1985,6 +2021,39 @@ As a git client though, magit is awesome.
            ("C-c v v" . magit-status))
     :config (setq magit-save-repository-buffers 'dontask))
 #+END_SRC
+
+***** =magit-done=
+Magit creates a lot of buffers for various git operations. This
+function kills all open
+
+#+NAME: magit-done
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun magit-done (&optional no-prompt)
+  "Kill magit buffers upon completion of various git processe(s). 
+If called with the interactive prefix argument NO-PROMPT, then 
+yunmodified magit buffers will be killed without confirming."
+  (interactive "P")
+  (let* ((buffer-names (buffer-list-names))
+	 (magit-regexp-string "^\\*magit")
+	 (magit-buffer-names (seq-filter (lambda (b) (string-match magit-regexp-string b)) buffer-names))
+	 (magit-buffers (mapcar (lambda (b) (get-buffer b)) magit-buffer-names)))
+    (cond (no-prompt
+	   (mapcar
+	    (lambda (b)
+	      (if (> (window-count-unique) 1)
+		  (progn
+		    (let ((w (get-buffer-window)))
+		      (kill-buffer b)
+		      (delete-window w)))
+		(kill-buffer b)))
+	    magit-buffers))
+	  (magit-buffers
+	   (kill-some-buffers magit-buffers))
+	  (t
+	   (message "No magit buffer(s) to kill" )))))
+#+END_SRC
+
+
 
 **** Magithub
 
