@@ -320,9 +320,9 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defun add-to-hooks (fun hooks)
-          "Add function to hooks"
-          (dolist (hook hooks)
-           (add-hook hook fun)))
+    "Add function to hooks"
+    (dolist (hook hooks)
+      (add-hook hook fun)))
 #+END_SRC
 
 **** Join Strings with Separator
@@ -3063,7 +3063,13 @@ and slim-mode using company.
       (setq markdown-command "multimarkdown")
       (when *is-mac*
         ;; FIX ME
-        (setq markdown-open-command (lambda () (shell-command "open -a Marked" buffer-file-name))))))
+        (setq markdown-open-command (lambda () (shell-command "open -a Marked" buffer-file-name)))))
+    :config
+    (add-to-hooks  (lambda ()
+		     (visual-line-mode)
+		     (auto-fill-mode))
+		   '(markdown-mode-hook gfm-mode-hook)))
+         
 #+END_SRC
 
 **** markdown-mode+

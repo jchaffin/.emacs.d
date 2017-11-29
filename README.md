@@ -2,5 +2,17 @@
 
 A modern, literate, sane-ish emacs configuration. 
 
-95% of the source-code and documentation is in [chaffin.org](/chaffin.org). The package initialization (using [straight.el](https://github.com/raxod502/straight.el)) and source-code extraction processes are done in the canonical [init.el](/init.el).
+95% of the source-code and documentation is in
+[chaffin.org](/chaffin.org). Package initialization (using
+[straight.el](https://github.com/raxod502/straight.el)) and
+source-code extraction are done in [init.el](/init.el).
+
+
+
+
+
+
+
+
+
 
