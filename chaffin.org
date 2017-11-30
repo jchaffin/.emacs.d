@@ -17,6 +17,7 @@
     - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
   - [[#core][Core]]
+    - [[#constants][Constants]]
     - [[#macros][Macros]]
       -  [[#with-system][~with-system~]]
     - [[#functions][Functions]]
@@ -37,6 +38,7 @@
     - [[#graphical-interace][Graphical Interace]]
     - [[#custom-file][Custom File]]
     - [[#backup-files][Backup Files]]
+    - [[#load-secrets][Load Secrets]]
     - [[#use-emacs-terminfo][Use Emacs Terminfo]]
   - [[#org-mode][Org Mode]]
     - [[#org-prettify][Org Prettify]]
@@ -120,8 +122,10 @@
     - [[#modeline][Modeline]]
       - [[#display-time][Display Time]]
       - [[#smart-mode-line][Smart-Mode-Line]]
+      - [[#spaceline][Spaceline]]
       - [[#mode-icons][Mode Icons]]
     - [[#all-the-icons][All The Icons]]
+      - [[#ivy-all-the-icons][Ivy All the Icons]]
     - [[#terminal][Terminal]]
       - [[#multi-term][Multi-Term]]
     - [[#fit-frame][Fit Frame]]
@@ -276,7 +280,7 @@ directory.
 #+END_SRC
 
 ** Core
-*** Constants                                                    :noexport:
+*** Constants                                                      :ignore:
 
 Variables used throughout this file[fn:2]:
 
@@ -312,7 +316,7 @@ in the following stack overflow [[https://stackoverflow.com/a/26137517/6233622][
   `(when (eq system-type ',type)
      ,@body))
 #+END_SRC
-
+                 
 *** Functions
 **** Add multiple hooks
 
@@ -359,7 +363,6 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
   (interactive)
   (length (cl-delete-duplicates (mapcar #'window-buffer (window-list)))))
 #+END_SRC
-
 
 ** Environment
 *** macOS
@@ -513,7 +516,14 @@ This might come back to bite me one day but I never use them.
 (setq make-backup-files nil)
 #+END_SRC
 
+*** Load Secrets
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(load-library (concat user-emacs-directory "secrets/secrets.el.gpg"))
+#+END_SRC
+
 *** Use Emacs Terminfo
+
 Setting this variable to false forces Emacs to use internal terminfo,
 rather than the system terminfo.
 
@@ -1035,6 +1045,16 @@ Adds extensions and functionality to dired mode.
     :ensure t)
 #+END_SRC
 
+***** Dired Icons
+
+#+NAME: all-the-icons-dired
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package all-the-icons-dired
+  :ensure t
+  :config
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+#+END_SRC
+
 **** Undo Tree
 
 #+NAME: undo-tree-config
@@ -1093,7 +1113,6 @@ from within Emacs.
 (use-package help-mode+
   :ensure t)
 #+END_SRC
-
 
 *** Better Display
 **** Page Break Lines
@@ -1508,7 +1527,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
            ("+" imagex-sticky-zoom-in "zoom in")
            ("-" imagex-sticky-zoom-out "zoom out")
            ("M" imagex-sticky-maximize "maximize")
-           ("O" imagex-sticky-restore-original "resoure orginal")
+           ("O" imagex-sticky-restore-original "restore orginal")
            ("S" imagex-sticky-save-image "save file")
            ("r" imagex-sticky-rotate-right "rotate right")
            ("l" imagex-sticky-rotate-left "rotate left")))))
@@ -1821,7 +1840,7 @@ Show the time in the modeline.
 
 **** Smart-Mode-Line
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package smart-mode-line
     :ensure t
     :init
@@ -1832,6 +1851,36 @@ Show the time in the modeline.
           sml/not-confirm-load-theme t)
     (setf rm-blacklist "")
     (sml/setup))
+#+END_SRC
+
+**** Spaceline
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package spaceline
+  :ensure t
+)
+#+END_SRC
+
+***** Spaceline All the Icons
+
+#+NAME: all-the-icons-spaceline
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package spaceline-all-the-icons
+  :after spaceline
+  :ensure t
+  :config
+  (require 'spaceline-config)
+  (spaceline-all-the-icons-theme 'org-pomodoro)
+  (if flycheck-mode
+      (spaceline-toggle-all-the-icons-flycheck-status-on)
+    (spaceline-toggle-all-the-icons-flycheck-status-off)))
+#+END_SRC
+
+****** Flycheck Segment
+#+BEGIN_SRC emacs-lisp :tangle yes
+(add-hook 'flycheck-mode-hook
+	  (lambda ()
+	    (spaceline-toggle-all-the-icons-flycheck-status)))
 #+END_SRC
 
 **** Mode Icons
@@ -1849,6 +1898,16 @@ Show the time in the modeline.
 
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when *is-gui*
+  <<all-the-icons-setup>>
+  <<all-the-icons-dired>>
+  <<all-the-icons-ivy>>
+  <<all-the-icons-spaceline>>
+)
+#+END_SRC
+
+#+NAME: all-the-icons-setup
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package all-the-icons
     :if *is-gui*
@@ -1856,66 +1915,19 @@ Show the time in the modeline.
     :init
     (unless (straight-check-package "all-the-icons")
       (all-the-icons-install-fonts)))
+#+END_SRC
 
-  (use-package all-the-icons-ivy
-      :after all-the-icons ivy
-      :ensure t
-      :if *is-gui*
-      :init
-      (all-the-icons-ivy-setup))
+**** Ivy All the Icons
 
-  (use-package all-the-icons-dired
-    :if *is-gui*
-    :ensure t
-    :config
-    (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+#+NAME: all-the-icons-ivy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package all-the-icons-ivy
+  :ensure t
+  :init
+  (all-the-icons-ivy-setup))
 #+END_SRC
 
 *** Terminal
-**** Colors and Display                                         :noexport:
-
-The ~emacsclient -nw~ command is a great workflow for remedial file
-editing tasks like fixing a typo or commenting out lines.
-
-By launching a single Emacs instance, ~emacsclient~ has the rapidity of
-a barebones text editor with the feature-rich UI of a GUI-based Emacs
-instance.
-
-However, the reality of working remotely means that sometimes an Emacs
-instance has to completely terminal-based. I spend most of my time in
-the GUI. It's my home base and as such is configured to maximize
-comfortability.
-
-The terminal, however, is better suited for speed and agility.
-These settings are adjusted based of my terminal theme and intended to
-optimize code legibility.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (defmacro prefix-color (str-prefix name color)
-    `(set-face-attribute ',(intern (concat str-prefix (symbol-name name)))
-                         nil :foreground ,color))
-
-  (when (not *is-gui*)
-    (set-face-attribute 'font-lock-builtin-face       nil :foreground "#8470ff")
-    (set-face-attribute 'font-lock-comment-face       nil :foreground "#778899")
-    (set-face-attribute 'font-lock-constant-face      nil :foreground "#00ee76")
-    (set-face-attribute 'font-lock-doc-face           nil :foreground "#cd2626")
-    (set-face-attribute 'font-lock-keyword-face       nil :foreground "#f15e33")
-    (set-face-attribute 'font-lock-string-face        nil :foreground "#698b22")
-    (set-face-attribute 'font-lock-function-name-face nil :foreground "#b0e2ff")
-    (set-face-attribute 'button                       nil :foreground "#3284c6")
-    (set-face-attribute 'link-visited                 nil :foreground  "#ba1caa")
-    (set-face-attribute 'minibuffer-prompt            nil :foreground "ffc131")
-    (set-face-attribute 'org-document-title nil :foreground "#1d4dae")
-    (set-face-attribute 'org-code           nil :foreground "#de73ea")
-    (set-face-attribute 'org-level-1        nil :foreground "#38aef2")
-    (set-face-attribute 'org-level-2        nil :foreground "#a49ae3")
-    (set-face-attribute 'org-level-3  nil :weight 'ultra-bold  :foreground "#e5dad4")
-    (set-face-attribute 'org-level-4  nil :weight 'extra-bold  :inherit 'org-level-3)
-    (set-face-attribute 'org-level-5  nil :weight 'bold        :inherit 'org-level-3)
-    (set-face-attribute 'org-level-6  nil :weight 'semi-bold   :inherit 'org-level-3))
-#+END_SRC
-
 **** Multi-Term
 
 #+NAME: multi-term-config
