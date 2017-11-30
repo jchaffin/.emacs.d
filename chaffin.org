@@ -1869,14 +1869,40 @@ Show the time in the modeline.
   :after spaceline
   :ensure t
   :config
-  (require 'spaceline-config)
-  (spaceline-all-the-icons-theme 'org-pomodoro)
-  (if flycheck-mode
-      (spaceline-toggle-all-the-icons-flycheck-status-on)
+  (progn 
+    (require 'spaceline)
+    (require 'spaceline-config)
+    (require 'spaceline-all-the-icons)
+    (require 'spaceline-all-the-icons-segments)
+
+    (defun battery-macos ()
+      (let* ((battery-shell-command  "pmset -g batt | egrep \"([0-9]+\%).*\" -o --colour=auto | cut -f1 -d';'")
+	     (battery-string
+	      (replace-regexp-in-string "\n" ""
+					(shell-command-to-string
+					 battery-shell-command))))
+	(string-to-number battery-string)))
+
+    (defun battery-macos-spaceline-msg (icon percentage)
+      (concat (number-to-string percentage) "%% " icon))
+
+    (spaceline-define-segment battery
+      (let ((battery-percentage (battery-macos)))
+	(cond ((= battery-percentage 100)
+	       (battery-macos-spaceline-msg "" battery-percentage))
+	      ((> battery-percentage 75)
+	       (battery-macos-spaceline-msg "" battery-percentage))
+	      ((> battery-percentage 50)
+	       (battery-macos-spaeline-msg "" battery-percentage))
+	      ((> battery-percentage 25 "" battery-percentage))
+	      ((> battery-percentage 0 "" battery-percentage)))))
+
+    (spaceline-all-the-icons-theme 'org-pomodoro 'battery)
     (spaceline-toggle-all-the-icons-flycheck-status-off)))
 #+END_SRC
 
 ****** Flycheck Segment
+
 #+BEGIN_SRC emacs-lisp :tangle yes
 (add-hook 'flycheck-mode-hook
 	  (lambda ()
@@ -1997,6 +2023,7 @@ Use the default monospaced font for each operating system.
     :ensure t
     :init (global-emojify-mode))
 #+END_SRC
+
 
 ** Version Control
 *** Magit
