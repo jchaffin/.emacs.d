@@ -121,7 +121,6 @@
       - [[#load-themes][Load Themes]]
     - [[#modeline][Modeline]]
       - [[#display-time][Display Time]]
-      - [[#smart-mode-line][Smart-Mode-Line]]
       - [[#spaceline][Spaceline]]
       - [[#mode-icons][Mode Icons]]
     - [[#all-the-icons][All The Icons]]
@@ -1838,72 +1837,229 @@ Show the time in the modeline.
   (display-time-mode 1)
 #+END_SRC
 
-**** Smart-Mode-Line
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package smart-mode-line
-    :ensure t
-    :init
-    (smart-mode-line-enable)
-    :config
-    (setq sml/mode-width 0
-          sml/name-width 20
-          sml/not-confirm-load-theme t)
-    (setf rm-blacklist "")
-    (sml/setup))
-#+END_SRC
-
 **** Spaceline
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle yes 
 (use-package spaceline
-  :ensure t
-)
+  :ensure t)
 #+END_SRC
 
 ***** Spaceline All the Icons
 
 #+NAME: all-the-icons-spaceline
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes 
 (use-package spaceline-all-the-icons
   :after spaceline
   :ensure t
   :config
-  (progn 
-    (require 'spaceline)
-    (require 'spaceline-config)
-    (require 'spaceline-all-the-icons)
-    (require 'spaceline-all-the-icons-segments)
+  <<spaceline-segment>>
+  (spaceline-all-the-icons-theme 'org-pomodoro 'battery-macos))
+#+END_SRC
 
-    (defun battery-macos ()
-      (let* ((battery-shell-command  "pmset -g batt | egrep \"([0-9]+\%).*\" -o --colour=auto | cut -f1 -d';'")
-	     (battery-string
-	      (replace-regexp-in-string "\n" ""
-					(shell-command-to-string
-					 battery-shell-command))))
-	(string-to-number battery-string)))
+***** Spaceline Segments
 
-    (defun battery-macos-spaceline-msg (icon percentage)
-      (concat (number-to-string percentage) "%% " icon))
+#+NAME: spaceline-segment
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(require 'spaceline)
+(require 'spaceline-segments)
+(require 'spaceline-config)
+(require 'all-the-icons)
+(require 'spaceline-all-the-icons)
+<<spaceline-segment-flycheck>>
+<<spaceline-segment-battery>>
+#+END_SRC
 
-    (spaceline-define-segment battery
-      (let ((battery-percentage (battery-macos)))
-	(cond ((= battery-percentage 100)
-	       (battery-macos-spaceline-msg "" battery-percentage))
-	      ((> battery-percentage 75)
-	       (battery-macos-spaceline-msg "" battery-percentage))
-	      ((> battery-percentage 50)
-	       (battery-macos-spaeline-msg "" battery-percentage))
-	      ((> battery-percentage 25 "" battery-percentage))
-	      ((> battery-percentage 0 "" battery-percentage)))))
+****** Battery Segment
+Spaceline and the all-the-icons spaceline theme support fancy battery
+mode. However, this package is not maintained and doesn't appear to be
+working on macOS due to an underlying issue with the
+=battery-status-function=. Thought it only will work with
+=all-the-icons= and =spaceline-all-the-icons-theme=, the following
+segment is a pretty good replacement: 
 
-    (spaceline-all-the-icons-theme 'org-pomodoro 'battery)
-    (spaceline-toggle-all-the-icons-flycheck-status-off)))
+#+NAME: spaceline-segment-battery
+#+BEGIN_SRC emacs-lisp :tangle no
+;; Variables
+(defvar battery-macos-echo-area-format "Source %L, Battery: %B (%p% load, remaining time %t)")
+(defvar battery-macos-mode-line-format "%p %i")
+
+;; Macros
+(defmacro battery-macos/if-args (arg-list &rest body)
+  `(if ,arg-list
+       ,@body))
+
+(defmacro battery-segment (segment)
+  `(intern (concat "battery-macos-battery-" `,@(symbol-name (quote ,segment)))))
+
+
+;; Functions
+(defun battery-macos-shell-command ()
+  (let* ((battery-status-string (shell-command-to-string "pmset -g batt"))
+	 (battery-status-format-string (replace-regexp-in-string "\n" "" battery-status-string)))
+    battery-status-format-string))
+
+(defun battery-macos-segments (battery-percent &rest battery-status-functions)
+  (let* ((battery-status-string (battery-macos-shell-command))
+ 	 (battery-status-segment-functions (cons battery-percent battery-status-functions))
+ 	 (battery-status-segments (mapcar (lambda (f) (funcall f battery-status-string)) battery-status-segment-functions)))
+    (destructuring-bind (percent &optional status remaining source)
+	battery-status-segments
+      (list (cons ?L (or source "N/A"))
+	    (cons ?p (or (number-to-string percent) "N/A"))
+	    (cons ?B (or status "N/A"))
+	    (cons ?t (or remaining "N/A"))))))
+
+
+(defun battery-macos-pmset ()
+  (let ((percent (battery-segment percent))
+	(source (battery-segment source))
+	(status (battery-segment status))
+	(remaining (battery-segment remaining)))
+    (battery-macos-segments percent status remaining source)))
+
+
+;; Battery Segment Functions
+
+(defun battery-macos-battery-percent (battery-status-string)
+  (let ((battery-percent-string (substring-no-properties battery-status-string
+							 (string-match "[0-9]+%" battery-status-string)
+							 (match-end 0))))
+    (string-to-number (replace-regexp-in-string "%" "" battery-percent-string))))
+
+(defun battery-macos-percent ()
+  (battery-macos-battery-percent (battery-macos-shell-command)))
+
+
+(defun battery-macos-battery-source (battery-status-string)
+  (substring-no-properties battery-status-string
+			   (+ 1 (string-match "'" battery-status-string))
+			   (string-match "'" battery-status-string (match-end 0))))
+
+;; Battery Status Point Helper Functions
+
+(defun battery-macos/status-point-begin (battery-status-string)
+  (with-temp-buffer
+    (insert battery-status-string)
+    (goto-char (point-min))
+    (re-search-forward ";")
+    (point)))
+
+(defun battery-macos/status-point-end (battery-status-string)
+  (with-temp-buffer
+    (insert battery-status-string)
+    (goto-char (point-min))
+    (re-search-forward ";" nil nil 2)
+    (point)))
+
+
+(defun battery-macos-battery-status (battery-status-string)
+  (let* ((pointb (battery-macos/status-point-begin battery-status-string))
+	 (pointe (battery-macos/status-point-end battery-status-string))
+	 (status (substring-no-properties battery-status-string pointb pointe)))
+    (replace-regexp-in-string "; " "" status)))
+
+(defun battery-macos-status ()
+  (battery-macos-battery-status (battery-macos-shell-command)))
+
+
+(defun battery-macos-battery-remaining (battery-status-string)
+  (substring-no-properties battery-status-string
+			   (string-match "[0-9]\\:[0-9]\\{2\\}" battery-status-string)
+			   (match-end 0)))
+
+(defun battery-macos-remaining ()
+  (battery-macos-battery-remaining (battery-macos-shell-command)))
+
+(defun battery-macos-format (format alist)
+  "Substitute %-sequences in FORMAT."
+  (replace-regexp-in-string
+   "%\\w"
+   (lambda (str)
+     (let ((char (aref str 1)))
+       (if (eq char ?%) "%"
+	 (or (cdr (assoc char alist)) ""))))
+   format t t))
+
+;; Spaceline
+(defvar battery-macos-battery-charge '("battery-charging" . "all-the-icons"))
+(defvar battery-macos-battery-full   '("battery-full" . "FontAwesome"))
+(defvar battery-macos-battery-high   '("battery-three-quarters" . "FontAwesome"))
+(defvar battery-macos-battery-mid    '("battery-half" . "FontAwesome"))
+(defvar battery-macos-battery-low    '("battery-quarter" . "FontAwesome"))
+(defvar battery-macos-battery-empty  '("battery-empty" . "FontAwesome"))
+
+(defvar battery-macos-battery-status-icons-alist
+  '(
+    'battery-macos-battery-charge
+    'battery-macos-battery-full
+    'battery-macos-battery-high
+    'battery-macos-battery-mid
+    'battery-macos-battery-low
+    'battery-macos-battery-empty
+    ))
+
+(defvar battery-macos-battery-icon-data-alist
+  '(
+    ("battery-charging"   . "\xe939" )
+    ("battery-empty" . "\xf244")
+    ("battery-full" . "\xf240")
+    ("battery-three-quarters" . "\xf241")
+    ("battery-half" . "\xf242")
+    ("battery-quarter" . "\xf243")
+    ))
+
+(defun battery-macos-status-icon (battery-icon-name &optional data-alist)
+  (let ((alist (or data-alist battery-macos-battery-icon-data-alist)))
+    (cdar (seq-filter (lambda (x) (string= battery-icon-name (car x))) alist))))
+
+(defun battery-macos-status-icon-propertize (battery-icon-var)
+  (let* ((battery-icon-name (car battery-icon-var))
+	 (battery-icon-font-family (cdr battery-icon-var))
+	 (battery-icon-unicode (battery-macos-status-icon battery-icon-name)))
+    (propertize battery-icon-unicode
+		'font-lock-ignore t
+		'rear-nonstick t
+		'display '(raise 0.10)
+		'face
+		`(:inherit (powerline-active2) :family ,battery-icon-font-family)
+		'height 1.2)))
+
+(defun battery-macos/add-battery-icon-to-segment-alist (battery-icon-var)
+    (let ((battery-segment-alist (battery-pmset)))
+      (add-to-list 'battery-segment-alist (cons ?i (battery-macos-status-icon-propertize battery-icon-var)))
+      battery-segment-alist))
+
+(defun battery-macos-spaceline-format (battery-icon-var)
+  (let ((alist (battery-macos/add-battery-icon-to-segment-alist battery-icon-var)))
+    (replace-regexp-in-string "\\([0-9]+\\)" "\\1%%" (battery-macos-format battery-macos-mode-line-format alist))))
+
+;; Aliases
+(defalias 'battery-pmset 'battery-macos-pmset)
+(defalias 'battery-echo-area-format 'battery-macos-echo-area-format)
+
+
+(spaceline-define-segment battery-macos
+  (let ((percent (battery-macos-percent))
+	(status (battery-macos-status)))
+    (cond ((string= status "charging") (battery-macos-spaceline-format battery-macos-battery-charge))
+	  ((= percent 100) (battery-macos-spaceline-format battery-macos-battery-full))
+	  ((> percent 75)  (battery-macos-spaceline-format battery-macos-battery-high))
+	  ((> percent 50)  (battery-macos-spaceline-format battery-macos-battery-mid))
+	  ((> percent 25)  (battery-macos-spaceline-format battery-macos-battery-low))
+	  (t (battery-macos-spaceline-format battery-macos-battery-empty))))
+  :face line-face)
+
 #+END_SRC
 
 ****** Flycheck Segment
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+By default, =spacleine-all-the-icons= theme displays the flycheck
+status no matter what. I only want this enabled when =flycheck-mode=
+is on.
+
+#+NAME: spaceline-segment-flycheck
+#+BEGIN_SRC emacs-lisp :tangle no
+(spaceline-toggle-all-the-icons-flycheck-status-off)
 (add-hook 'flycheck-mode-hook
 	  (lambda ()
 	    (spaceline-toggle-all-the-icons-flycheck-status)))
@@ -2023,7 +2179,6 @@ Use the default monospaced font for each operating system.
     :ensure t
     :init (global-emojify-mode))
 #+END_SRC
-
 
 ** Version Control
 *** Magit
@@ -3181,3 +3336,4 @@ dialects of Lisp.
 
 
 
+.
