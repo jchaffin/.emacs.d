@@ -1879,6 +1879,9 @@ segment is a pretty good replacement:
 
 #+NAME: spaceline-segment-battery
 #+BEGIN_SRC emacs-lisp :tangle no
+(eval-when-compile
+  (require 'battery))
+
 ;; Variables
 (defvar battery-macos-echo-area-format "Source %L, Battery: %B (%p% load, remaining time %t)")
 (defvar battery-macos-mode-line-format "%p %i")
