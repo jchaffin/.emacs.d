@@ -1859,7 +1859,7 @@ Show the time in the modeline.
 ***** Spaceline Segments
 
 #+NAME: spaceline-segment
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (require 'spaceline)
 (require 'spaceline-segments)
 (require 'spaceline-config)
