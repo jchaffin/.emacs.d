@@ -1852,6 +1852,7 @@ Show the time in the modeline.
   :after spaceline
   :ensure t
   :config
+  (setq spaceline-all-the-icons-separator-type 'arrow)
   <<spaceline-segment>>
   (spaceline-all-the-icons-theme 'org-pomodoro 'battery-macos))
 #+END_SRC
@@ -2024,10 +2025,10 @@ segment is a pretty good replacement:
     (propertize battery-icon-unicode
 		'font-lock-ignore t
 		'rear-nonstick t
-		'display '(raise 0.10)
+		'display '(raise 0.01)
+		'height 10
 		'face
-		`(:inherit (powerline-active2) :family ,battery-icon-font-family)
-		'height 1.2)))
+		`(:inherit (powerline-active2) :family ,battery-icon-font-family :height 1))))
 
 (defun battery-macos/add-battery-icon-to-segment-alist (battery-icon-var)
     (let ((battery-segment-alist (battery-pmset)))
@@ -2035,8 +2036,12 @@ segment is a pretty good replacement:
       battery-segment-alist))
 
 (defun battery-macos-spaceline-format (battery-icon-var)
-  (let ((alist (battery-macos/add-battery-icon-to-segment-alist battery-icon-var)))
-    (replace-regexp-in-string "\\([0-9]+\\)" "\\1%%" (battery-macos-format battery-macos-mode-line-format alist))))
+  (let ((alist (battery-macos/add-battery-icon-to-segment-alist battery-icon-var))
+	(space (propertize " " 'display '(space . (:width 1)))))
+    (concat
+     space
+     (replace-regexp-in-string "\\([0-9]+\\)" "\\1%%" (battery-macos-format battery-macos-mode-line-format alist)))))
+
 
 
 
@@ -2050,9 +2055,10 @@ segment is a pretty good replacement:
 	  ((> percent 50)  (battery-macos-spaceline-format battery-macos-battery-mid))
 	  ((> percent 25)  (battery-macos-spaceline-format battery-macos-battery-low))
 	  (t (battery-macos-spaceline-format battery-macos-battery-empty))))
-  :face line-face)
+  :tight t)
 
 #+END_SRC
+
 
 ****** Flycheck Segment
 
@@ -3340,3 +3346,13 @@ dialects of Lisp.
 
 
 .
+
+
+
+
+
+
+
+
+
+
