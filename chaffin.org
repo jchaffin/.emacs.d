@@ -914,7 +914,6 @@ The default cross-referencing and hyperlink styles provided by
 
 
 
-
 ***** Custom Classes
 ****** Org Per File Class
 
@@ -937,7 +936,7 @@ configuration.
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-****** Film Term Paper Class                                  :noexport:
+****** Film Term Paper Class                           :noexport:ignore:
 
 #+NAME: org-export-latex-ftv108-term-paper-class
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1135,7 +1134,8 @@ know you're around.
 
 ***** Enable Emojis for org tags in dashboard agenda widget
 
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+#+NAME: enable-emojify
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :results output
   <<emojify-mode-config>>
 #+END_SRC
 
