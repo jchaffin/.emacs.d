@@ -1886,10 +1886,11 @@ segment is a pretty good replacement:
 (defvar battery-macos-echo-area-format "Source %L, Battery: %B (%p% load, remaining time %t)")
 (defvar battery-macos-mode-line-format "%p %i")
 
+;; Aliases
+(defalias 'battery-pmset 'battery-macos-pmset)
+(defalias 'battery-echo-area-format 'battery-macos-echo-area-format)
+
 ;; Macros
-(defmacro battery-macos/if-args (arg-list &rest body)
-  `(if ,arg-list
-       ,@body))
 
 (defmacro battery-segment (segment)
   `(intern (concat "battery-macos-battery-" `,@(symbol-name (quote ,segment)))))
@@ -1913,6 +1914,7 @@ segment is a pretty good replacement:
 	    (cons ?t (or remaining "N/A"))))))
 
 
+;;;###autoload 
 (defun battery-macos-pmset ()
   (let ((percent (battery-segment percent))
 	(source (battery-segment source))
@@ -2036,11 +2038,9 @@ segment is a pretty good replacement:
   (let ((alist (battery-macos/add-battery-icon-to-segment-alist battery-icon-var)))
     (replace-regexp-in-string "\\([0-9]+\\)" "\\1%%" (battery-macos-format battery-macos-mode-line-format alist))))
 
-;; Aliases
-(defalias 'battery-pmset 'battery-macos-pmset)
-(defalias 'battery-echo-area-format 'battery-macos-echo-area-format)
 
 
+;; Spaceline Segment
 (spaceline-define-segment battery-macos
   (let ((percent (battery-macos-percent))
 	(status (battery-macos-status)))
