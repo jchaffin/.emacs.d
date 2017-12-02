@@ -1135,9 +1135,15 @@ know you're around.
 ***** Enable Emojis for org tags in dashboard agenda widget
 
 #+NAME: enable-emojify
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :results output
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
   <<emojify-mode-config>>
 #+END_SRC
+
+:RESULTS:
+enable-emojify
+
+:results
+enable-emojify
 
 ***** Emacs Dashboard
 
