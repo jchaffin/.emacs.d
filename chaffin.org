@@ -19,27 +19,31 @@
   - [[#core][Core]]
     - [[#constants][Constants]]
     - [[#macros][Macros]]
-      -  [[#with-system][~with-system~]]
+      - [[#with-system][With system]]
+      - [[#if-not][If not]]
+      - [[#major-mode][Major Mode]]
     - [[#functions][Functions]]
       - [[#add-multiple-hooks][Add multiple hooks]]
       - [[#join-strings-with-separator][Join Strings with Separator]]
       - [[#buffer-list-names][Buffer List Names]]
       - [[#count-windows][Count Windows]]
+      - [[#copy-file-path][Copy File Path]]
   - [[#environment][Environment]]
     - [[#macos][macOS]]
       - [[#computer-name][Computer Name]]
-      - [[#keybindings][Keybindings]]
-      - [[#reveal-in-osx-finder][Reveal in OSX Finder]]
+      - [[#macos-keybindings][MacOS Keybindings]]
+      - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
       - [[#osx-dictionary][OSX Dictionary]]
       - [[#exec-path-from-shell][Exec Path From Shell]]
     - [[#other-operating-systems][Other Operating Systems]]
       - [[#windowspc][Windows/PC]]
       - [[#linux][Linux]]
-    - [[#graphical-interace][Graphical Interace]]
+    - [[#graphical-interface][Graphical Interface]]
     - [[#custom-file][Custom File]]
     - [[#backup-files][Backup Files]]
     - [[#load-secrets][Load Secrets]]
     - [[#use-emacs-terminfo][Use Emacs Terminfo]]
+    - [[#keybindings][Keybindings]]
   - [[#org-mode][Org Mode]]
     - [[#org-prettify][Org Prettify]]
       - [[#improve-legibility][Improve Legibility]]
@@ -292,7 +296,7 @@ Variables used throughout this file[fn:2]:
 #+END_SRC
 
 *** Macros
-****  ~with-system~
+**** With system
 
 This is a simple utility macro that evaluates code depending on
 operating system type.
@@ -315,7 +319,40 @@ in the following stack overflow [[https://stackoverflow.com/a/26137517/6233622][
   `(when (eq system-type ',type)
      ,@body))
 #+END_SRC
-                 
+
+**** If not
+
+Clojure-like =if-not= macro in elisp.
+
+#+NAME: if-not
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defmacro if-not (condition then-form &rest rest-forms)
+  `(progn
+     (if (not ,condition)
+	 ,then-form
+       ,@rest-forms)))
+#+END_SRC
+
+**** Major Mode
+***** =with-major-mode=
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defmacro with-major-mode (mode &rest body)
+  (declare (indent defun))
+  `(when (equal major-mode ',mode)
+     ,@body))
+#+END_SRC
+
+***** =if-major-mode= 
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defmacro if-major-mode (mode then-form &rest rest-forms)
+  `(progn
+     (if (equal major-mode ',mode)
+	 ,then-form
+       ,@rest-forms)))
+#+END_SRC
+
 *** Functions
 **** Add multiple hooks
 
@@ -363,6 +400,52 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
   (length (cl-delete-duplicates (mapcar #'window-buffer (window-list)))))
 #+END_SRC
 
+**** Copy File Path
+
+A useful utility function for copying the file path to the buffer. 
+ 
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun copy-file-path (func)
+
+  "Copies the file path and applies the result as an argument to
+function FUNC. To copy the file path to the kill-ring, use the interactive
+function `copy-file-path-as-kill'."
+
+  (destructuring-bind (file dir) 
+      (if-major-mode dired-mode
+	'((substring-no-properties (thing-at-point 'symbol))
+	  dired-directory)
+	(mapcar (lambda (f)
+		  (funcall f buffer-file-name))
+		'(file-name-nondirectory file-name-directory )))
+    (funcall func (expand-file-name file dir))))
+#+END_SRC
+
+***** Copy File Path as New Kill
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun copy-file-path-as-kill ()
+  "Copies the file path of the current dired directory or file buffer to the kill-ring."
+  (interactive)
+  (let ((func (lambda (s) (progn
+			    (kill-new s)
+			    (message "%s" s)))))
+    (copy-file-path func)))
+#+END_SRC
+
+***** Copy File Path As Region Kill
+And just for the fun of it, a function that copies the current file path using a temporary
+buffer.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun copy-file-path-as-region-kill (s)
+  (interactive)
+  (copy-file-path (lambda (s)
+		    (with-temp-buffer
+		      (insert s)
+		      (kill-region (point-min) (point-max))))))
+#+END_SRC
+
 ** Environment
 *** macOS
 
@@ -398,7 +481,7 @@ filepaths, macOS applications, and external programs.
 (defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
-**** Keybindings
+**** MacOS Keybindings
 macOS specific settings[fn:4].
 
 Maps the modifier keys based on personal preferences.
@@ -415,8 +498,7 @@ Also sets terminal coding system to "utf-8".
 (prefer-coding-system 'utf-8)
 #+END_SRC
 
-**** Reveal in OSX Finder
-
+**** Reveal in macOS Finder
 #+NAME: macos-finder-config
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package reveal-in-osx-finder
@@ -481,7 +563,7 @@ conditionally loading dependencies.
 (defconst *is-linux* (eq system-type 'linux))
 #+END_SRC
 
-*** Graphical Interace
+*** Graphical Interface
 
 There's some packages and commands I only want available when Emacs is
 running in a graphical interface. Things like image-rendering, large
@@ -530,6 +612,7 @@ rather than the system terminfo.
   (setq system-uses-terminfo nil)
 #+END_SRC
 
+*** Keybindings
 ** Org Mode
 
 #+NAME: org-mode-settings
@@ -1138,12 +1221,6 @@ know you're around.
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
   <<emojify-mode-config>>
 #+END_SRC
-
-:RESULTS:
-enable-emojify
-
-:results
-enable-emojify
 
 ***** Emacs Dashboard
 
@@ -1860,7 +1937,7 @@ Show the time in the modeline.
   :config
   (setq spaceline-all-the-icons-separator-type 'arrow)
   <<spaceline-segment>>
-  (spaceline-all-the-icons-theme 'org-pomodoro 'battery-macos))
+  (spaceline-all-the-icons-theme 'org-pomodoro))
 #+END_SRC
 
 ***** Spaceline Segments
@@ -2550,6 +2627,7 @@ Provides key bindings and code colorization for Clojure(Script).
            ("\\.cljsc$" . clojurec-mode))
     :config
     (add-hook 'clojure-mode-hook #'enable-paredit-mode)
+    (add-hook 'clojure-mode-hook #'prettify-symbols-mode)
     <<cljsbuild-config>>
     <<elein-config>>
     <<clojure-compojure-config>>)
