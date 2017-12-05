@@ -327,6 +327,7 @@ Clojure-like =if-not= macro in elisp.
 #+NAME: if-not
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defmacro if-not (condition then-form &rest rest-forms)
+  (declare (indent defun))
   `(progn
      (if (not ,condition)
 	 ,then-form
@@ -347,6 +348,7 @@ Clojure-like =if-not= macro in elisp.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defmacro if-major-mode (mode then-form &rest rest-forms)
+  (declare (indent defun))
   `(progn
      (if (equal major-mode ',mode)
 	 ,then-form
@@ -413,8 +415,8 @@ function `copy-file-path-as-kill'."
 
   (destructuring-bind (file dir) 
       (if-major-mode dired-mode
-	'((substring-no-properties (thing-at-point 'symbol))
-	  dired-directory)
+	(list (substring-no-properties (thing-at-point 'symbol))
+	      dired-directory)
 	(mapcar (lambda (f)
 		  (funcall f buffer-file-name))
 		'(file-name-nondirectory file-name-directory )))
