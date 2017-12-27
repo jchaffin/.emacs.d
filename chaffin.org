@@ -1035,10 +1035,10 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 (setq org-latex-prefer-user-labels t)
 #+END_SRC
 
-***** Org LaTeX Default Packages
+***** Org LaTeX Default Packages                                 :ignore:
 
 #+NAME: org-export-latex-default-packages
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :exports none
 <<org-export-latex-default-packages-natbib>>
 #+END_SRC
 
@@ -1056,6 +1056,7 @@ through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]]
 
 #+NAME: org-export-latex-default-packages-minted
 #+BEGIN_SRC emacs-lisp :tangle no
+
 #+END_SRC
 
 ***** Hyperref Template
