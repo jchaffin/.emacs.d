@@ -737,7 +737,7 @@ Use UTF-8 Bullets for Org-mode headings.
 *** Org Utilities
 
 #+NAME: org-utils
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-utils-agenda>>
 <<org-utils-pomodoro>>
 <<org-utils-ref>>
