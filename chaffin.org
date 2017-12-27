@@ -1055,7 +1055,7 @@ through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]]
 ****** Minted
 
 #+NAME: org-export-latex-default-packages-minted
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :exports none
 
 #+END_SRC
 
