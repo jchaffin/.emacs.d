@@ -1,0 +1,7 @@
+# -*- mode: org-mode -*-
+# name: example
+# key: <e
+# --
+#+BEGIN_EXAMPLE
+$1
+#+END_EXAMPLE

@@ -1,0 +1,7 @@
+# -*- mode: org-mode -*-
+# name: src-block
+# key: <s
+# --
+#+BEGIN_SRC $1
+$2
+#+END_SRC
