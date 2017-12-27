@@ -161,7 +161,7 @@ Maps the modifier keys based on personal preferences. Also sets terminal coding 
 
 ```emacs-lisp
   (use-package reveal-in-osx-finder
-    :ensure t
+    :straight t
     :bind ("C-c z" . reveal-in-osx-finder))
 ```
 
@@ -172,7 +172,7 @@ Provides an interface to *Dictionary.app* in Emacs.
 
 ```emacs-lisp
   (use-package osx-dictionary
-    :ensure t
+    :straight t
     :bind (("C-c C-d" . osx-dictionary-search-word-at-point)
            ("C-c i" . osx-dictionary-search-input)))
 ```
@@ -196,7 +196,7 @@ The `:if` key of `use-package` offers us a really concise way for conditionally 
   (use-package exec-path-from-shell
     ;; only load `exec-path-from-shell' package on macos and linux.
     :if (memq window-system '(mac ns))
-    :ensure t
+    :straight t
     :config
     (exec-path-from-shell-initialize)
     (setq exec-path-from-shell-check-startup-files nil))
@@ -272,12 +272,12 @@ These settings subjectively improve the overall viewable-ness of org-mode buffer
                               (visual-line-mode)))
 (setq org-image-actual-width 400)
   (use-package org-bullets
-    :ensure t
+    :straight t
     :init
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 (use-package toc-org
-  :ensure t
+  :straight t
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
 ```
@@ -307,7 +307,7 @@ Use UTF-8 Bullets for Org-mode headings.
 
 ```emacs-lisp
   (use-package org-bullets
-    :ensure t
+    :straight t
     :init
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
@@ -333,7 +333,7 @@ Use UTF-8 Bullets for Org-mode headings.
 
 ```emacs-lisp
 (use-package toc-org
-  :ensure t
+  :straight t
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
 ```
@@ -347,7 +347,7 @@ Use UTF-8 Bullets for Org-mode headings.
     :defer-install t
     :bind (("C-c a" . org-agenda)))
   (use-package org-pomodoro
-    :ensure t
+    :straight t
     :bind (:map org-mode-map
                 ("C-c M-RET p" . org-pomodoro))
     :config
@@ -374,7 +374,7 @@ Use UTF-8 Bullets for Org-mode headings.
           (expand-file-name "~/.emacs.d/resources/Complete.wav")))
   (use-package org-ref
     :if *is-mac*
-    :ensure t
+    :straight t
     :config
     (progn
       (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
@@ -447,7 +447,7 @@ Use UTF-8 Bullets for Org-mode headings.
 
 ```emacs-lisp
   (use-package org-pomodoro
-    :ensure t
+    :straight t
     :bind (:map org-mode-map
                 ("C-c M-RET p" . org-pomodoro))
     :config
@@ -480,7 +480,7 @@ Use UTF-8 Bullets for Org-mode headings.
 ```emacs-lisp
   (use-package org-ref
     :if *is-mac*
-    :ensure t
+    :straight t
     :config
     (progn
       (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
@@ -576,7 +576,7 @@ See [Using Doc View or PDF Tools](https://github.com/jkitchin/org-ref/blob/maste
 
 ```emacs-lisp
 (use-package pdf-tools
-  :ensure t
+  :straight t
   :defer t
   :config
   (pdf-tools-install))
@@ -588,7 +588,7 @@ See [Using Doc View or PDF Tools](https://github.com/jkitchin/org-ref/blob/maste
 ```emacs-lisp
   (use-package org-pdfview
     :after pdf-tools
-    :ensure t
+    :straight t
     :mode (("\\.pdf\\'" . pdf-view-mode)))
 ```
 
@@ -664,7 +664,7 @@ It can be done through the `org-mode` latex export dispatcher in a single comman
 
 ```emacs-lisp
   (use-package ox-gfm
-    :ensure t
+    :straight t
     :init
     (with-eval-after-load 'org-mode
       (require 'ox-gfm)))
@@ -723,7 +723,7 @@ Adds extensions and functionality to dired mode.
 
 ```emacs-lisp
   (use-package dired+
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -731,7 +731,7 @@ Adds extensions and functionality to dired mode.
 
 ```emacs-lisp
   (use-package undo-tree
-    :ensure t
+    :straight t
     :init
     (global-undo-tree-mode))
 ```
@@ -741,7 +741,7 @@ Adds extensions and functionality to dired mode.
 
 ```emacs-lisp
   (use-package projectile
-    :ensure t
+    :straight t
     :config
     (projectile-mode))
 ```
@@ -753,7 +753,7 @@ The [restart-emacs](https://github.com/iqbalansari/restart-emacs) package allows
 
 ```emacs-lisp
   (use-package restart-emacs
-    :ensure t
+    :straight t
     :bind (("C-x C-r" . restart-emacs)))
 ```
 
@@ -762,7 +762,7 @@ The [restart-emacs](https://github.com/iqbalansari/restart-emacs) package allows
 
 ```emacs-lisp
 (use-package popwin
-  :ensure t
+  :straight t
   :config (popwin-mode 1))
 ```
 
@@ -776,7 +776,7 @@ Global minor-mode that turns `^L` form feed characters into horizontal line rule
 
 ```emacs-lisp
   (use-package page-break-lines
-    :ensure t
+    :straight t
     :init
     (global-page-break-lines-mode))
 ```
@@ -791,7 +791,7 @@ The default splash screen is great when you're starting out, but it's more so an
 
 ```emacs-lisp
     (use-package emojify
-      :ensure t
+      :straight t
       :init (global-emojify-mode))
 ```
 
@@ -802,7 +802,7 @@ The default splash screen is great when you're starting out, but it's more so an
 
 ```emacs-lisp
   (use-package dashboard
-    :ensure t
+    :straight t
     :init
     (with-eval-after-load 'page-break-lines
       (if (not (global-page-break-lines-mode))
@@ -955,7 +955,7 @@ Tabs are the bane of humanity<sup><a id="fnr.8" class="footref" href="#fn.8">8</
 
 ```emacs-lisp
  (use-package highlight-indent-guides
-    :ensure t
+    :straight t
     :init
     (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
     :config
@@ -977,7 +977,7 @@ After installation and enabling the package, add the personal snippets directory
 
 ```emacs-lisp
   (use-package yasnippet
-    :ensure t
+    :straight t
     :init
     (yas-global-mode 1)
     :config
@@ -1005,7 +1005,7 @@ Invoking `yas-reload-all` will load the snippet tables, and then calling `yas-mi
       (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
                     flycheck-emacs-lisp-load-path 'inherit)
              (use-package flycheck-color-mode-line
-      	 :ensure t
+      	 :straight t
       	 :init
       	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode)))
 ```
@@ -1017,7 +1017,7 @@ Colors the modeline according to current Flycheck state of buffer.
 
 ```emacs-lisp
        (use-package flycheck-color-mode-line
-	 :ensure t
+	 :straight t
 	 :init
 	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
 ```
@@ -1029,7 +1029,7 @@ Colors the modeline according to current Flycheck state of buffer.
 
 ```emacs-lisp
   (use-package flycheck-package
-    :ensure t
+    :straight t
     :init
     (eval-after-load 'flycheck
       '(flycheck-package-setup)))
@@ -1070,7 +1070,7 @@ The ticket is from the ‘company-mode‘ repository, so there's probably some b
 
 ```emacs-lisp
   (use-package company-statistics
-    :ensure t
+    :straight t
     :config
     ;; Alternatively,
     ;; (company-statistics-mode)
@@ -1098,7 +1098,7 @@ The ticket is from the ‘company-mode‘ repository, so there's probably some b
 
 ```emacs-lisp
   (use-package company-dict
-   :ensure t
+   :straight t
    :init
    (add-to-list 'company-backends 'company-dict)
    :config
@@ -1116,7 +1116,7 @@ The ticket is from the ‘company-mode‘ repository, so there's probably some b
 
 ```emacs-lisp
   (use-package image+
-    :ensure t
+    :straight t
     :if *is-gui*
     :after image
     :config
@@ -1154,10 +1154,10 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
       (use-package ivy-hydra
         :ensure hydra)
     (use-package historian
-      :ensure t)
+      :straight t)
     (use-package ivy-historian
       :after historian 
-      :ensure t))
+      :straight t))
 ```
 
 
@@ -1174,7 +1174,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 ```emacs-lisp
 (use-package ivy-historian
   :after historian 
-  :ensure t)
+  :straight t)
 ```
 
 
@@ -1182,7 +1182,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 ```emacs-lisp
        (use-package counsel
-         :ensure t
+         :straight t
          :bind
          (("C-c C-r" . ivy-resume)
           ("C-`" . ivy-avy)
@@ -1213,28 +1213,28 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
                    (use-package ivy-hydra
                      :ensure hydra)
                  (use-package historian
-                   :ensure t)
+                   :straight t)
                  (use-package ivy-historian
                    :after historian 
-                   :ensure t))
+                   :straight t))
                (use-package swiper
                :bind
                (("\C-s" . swiper))
                :init
                  (use-package avy
-                   :ensure t))
+                   :straight t))
                (use-package counsel-projectile
-                 :ensure t
+                 :straight t
                  :init
                  (progn
                    (counsel-projectile-on)))
                 (use-package counsel-osx-app
                   :if *is-mac*
-                  :ensure t
+                  :straight t
                   :bind (("C-c o a" . counsel-osx-app)))
                (use-package counsel-dash
                  :if *is-mac*
-                 :ensure t
+                 :straight t
                  :init (defun counsel-dash-at-point ()
                          "Counsel dash with selected point."
                          (interactive)
@@ -1248,7 +1248,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
                  (setq counsel-dash-docsets-path
                        (expand-file-name "~/Library/Application\sSupport/Dash/DocSets")))
                (use-package smex
-                 :ensure t
+                 :straight t
                  :init (setq-default smex-history-length 32))))
 ```
 
@@ -1261,7 +1261,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
   (("\C-s" . swiper))
   :init
     (use-package avy
-      :ensure t))
+      :straight t))
 ```
 
 
@@ -1269,7 +1269,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 ```emacs-lisp
   (use-package avy
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -1279,7 +1279,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 ```emacs-lisp
   (use-package counsel-projectile
-    :ensure t
+    :straight t
     :init
     (progn
       (counsel-projectile-on)))
@@ -1290,7 +1290,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 ```emacs-lisp
   (use-package smex
-    :ensure t
+    :straight t
     :init (setq-default smex-history-length 32))
 ```
 
@@ -1300,7 +1300,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 ```emacs-lisp
    (use-package counsel-osx-app
      :if *is-mac*
-     :ensure t
+     :straight t
      :bind (("C-c o a" . counsel-osx-app)))
 ```
 
@@ -1310,7 +1310,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 ```emacs-lisp
   (use-package counsel-dash
     :if *is-mac*
-    :ensure t
+    :straight t
     :init (defun counsel-dash-at-point ()
             "Counsel dash with selected point."
             (interactive)
@@ -1332,7 +1332,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 ```emacs-lisp
   (use-package deft
-    :ensure t
+    :straight t
     :bind ("C-x C-n" . deft)
     :config
     (setq deft-extensions '("org")
@@ -1347,7 +1347,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 ```emacs-lisp
   (use-package wakatime-mode
     :if (and *is-mac* (or (string= (downcase computer-name) "hal") (string= (downcase computer-name) "junior")))
-    :ensure t
+    :straight t
     :init
     (add-hook 'prog-mode-hook 'wakatime-mode)
     :config
@@ -1394,7 +1394,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" `caret_sty
 
 ```emacs-lisp
        (use-package smart-cursor-color
-         :ensure t
+         :straight t
          :config
          (smart-cursor-color-mode +1))
 ```
@@ -1416,7 +1416,7 @@ This disables Emacs asking questions about loading a new theme.
 
 ```emacs-lisp
   (use-package zenburn-theme
-    :ensure t
+    :straight t
     :config (load-theme 'zenburn))
 ```
 
@@ -1442,7 +1442,7 @@ Show the time in the modeline.
 
 ```emacs-lisp
   (use-package smart-mode-line
-    :ensure t
+    :straight t
     :init
     (smart-mode-line-enable)
     :config
@@ -1458,7 +1458,7 @@ Show the time in the modeline.
 
 ```emacs-lisp
   (use-package mode-icons
-    :ensure t
+    :straight t
     :if *is-gui*
     :after smart-mode-line
     :config
@@ -1473,21 +1473,21 @@ Show the time in the modeline.
 ```emacs-lisp
   (use-package all-the-icons
     :if *is-gui*
-    :ensure t
+    :straight t
     :init
     (unless (straight-check-package "all-the-icons")
       (all-the-icons-install-fonts)))
 
   (use-package all-the-icons-ivy
       :after all-the-icons ivy
-      :ensure t
+      :straight t
       :if *is-gui*
       :init
       (all-the-icons-ivy-setup))
 
   (use-package all-the-icons-dired
     :if *is-gui*
-    :ensure t
+    :straight t
     :config
     (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 ```
@@ -1500,7 +1500,7 @@ Show the time in the modeline.
 
 ```emacs-lisp
 (use-package multi-term
-       :ensure t
+       :straight t
        :bind
        (("C-c M-RET t" . multi-term)
 	("C-c M-RET p" . multi-term-prev)
@@ -1535,7 +1535,7 @@ Use the default monospaced font for each operating system.
 
 ```emacs-lisp
   (use-package sunshine
-    :ensure t
+    :straight t
     :config
     (setq sunshine-location "90024,USA"))
 ```
@@ -1545,7 +1545,7 @@ Use the default monospaced font for each operating system.
 
 ```emacs-lisp
   (use-package theme-changer
-    :ensure t
+    :straight t
     :config
     (change-theme 'zenburn-theme 'anti-zenburn-theme))
 ```
@@ -1555,7 +1555,7 @@ Use the default monospaced font for each operating system.
 
 ```emacs-lisp
   (use-package emojify
-    :ensure t
+    :straight t
     :init (global-emojify-mode))
 ```
 
@@ -1575,7 +1575,7 @@ As a git client though, magit is awesome.
 
 ```emacs-lisp
   (use-package magit
-    :ensure t
+    :straight t
     :bind (("C-c v b" . magit-blame)
            ("C-c v C" . magit-clone)
            ("C-c v c" . magit-checkout)
@@ -1596,7 +1596,7 @@ As a git client though, magit is awesome.
 ```emacs-lisp
   (use-package magithub
     :after magit
-    :ensure t
+    :straight t
     :commands magithub-dispatch-popup
     :bind (:map magit-status-mode-map
                 ("@" . magithub-dispatch-popup))
@@ -1614,7 +1614,7 @@ Emacs integration for gist.github.com.
 
 ```emacs-lisp
   (use-package gist
-    :ensure t
+    :straight t
     :bind (("C-c C-g l" . gist-list)
            ("C-c C-g r" . gist-region)
            ("C-c C-g b" . gist-buffer)
@@ -1630,7 +1630,7 @@ Travel back in time (to your last commit).
 
 ```emacs-lisp
   (use-package git-timemachine
-    :ensure t
+    :straight t
     :bind
     ("C-x v t" . git-timemachine-toggle)
     :config
@@ -1644,7 +1644,7 @@ Pop-up feature for viewing the last git commit.
 
 ```emacs-lisp
   (use-package git-messenger
-    :ensure t
+    :straight t
     :bind
     (("C-c v m" . git-messenger:popup-message)))
 ```
@@ -1654,7 +1654,7 @@ Pop-up feature for viewing the last git commit.
 
 ```emacs-lisp
   (use-package git-modes
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -1667,7 +1667,7 @@ This library provides several useful commands for using the Google Chrome, Safar
 
 ```emacs-lisp
   (use-package osx-browse
-    :ensure t
+    :straight t
     :if *is-mac*
     :config
     (osx-browse-mode 1))
@@ -1758,11 +1758,11 @@ We could use `:init` key to hook the `enable-paredit-mode` function to each of t
 
 ```emacs-lisp
   (use-package paredit
-    :ensure t
+    :straight t
     :diminish paredit-mode
     :config
     (use-package eldoc
-      :ensure t
+      :straight t
       :config
       (eldoc-add-command
        'paredit-backward-delete
@@ -1777,7 +1777,7 @@ Like paredit, [smartparens](https://github.com/Fuco1/smartparens) is a minor-mod
 
 ```emacs-lisp
   (use-package smartparens
-    :ensure t
+    :straight t
     :init
     (require 'smartparens-config))
 ```
@@ -1789,7 +1789,7 @@ Minor mode to highlight s-expresion.
 
 ```emacs-lisp
   (use-package hl-sexp
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -1816,7 +1816,7 @@ Configuration for emacs-lisp.
   (use-package slime
     :commands slime
     :defines (slime-complete-symbol*-fancy slime-completion-at-point-functions)
-    :ensure t
+    :straight t
     :if *is-mac*
     :init
     (progn
@@ -1845,7 +1845,7 @@ Provides key bindings and code colorization for Clojure(Script).
 
 ```emacs-lisp
   (use-package clojure-mode
-    :ensure t
+    :straight t
     :mode (("\\.edn$" . clojure-mode)
            ("\\.cljs$" . clojurescript-mode)
            ("\\.cljx$" . clojurex-mode)
@@ -1853,11 +1853,11 @@ Provides key bindings and code colorization for Clojure(Script).
     :config
     (add-hook 'clojure-mode-hook #'enable-paredit-mode)
       (use-package cljsbuild-mode
-        :ensure t
+        :straight t
         :init
         (add-to-hooks #'cljsbuild-mode '(clojure-mode clojurescript-mode)))
       (use-package elein
-        :ensure t))
+        :straight t))
 ```
 
 
@@ -1870,7 +1870,7 @@ Minor mode offering `lein cljsbuild` commands for the Leiningen [plugin](https:/
 
 ```emacs-lisp
   (use-package cljsbuild-mode
-    :ensure t
+    :straight t
     :init
     (add-to-hooks #'cljsbuild-mode '(clojure-mode clojurescript-mode)))
 ```
@@ -1882,7 +1882,7 @@ Minor mode offering `lein cljsbuild` commands for the Leiningen [plugin](https:/
 
 ```emacs-lisp
   (use-package elein
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -1892,7 +1892,7 @@ Additional syntax highlighting for `clojure-mode`.
 
 ```emacs-lisp
   (use-package clojure-mode-extra-font-locking
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -1902,7 +1902,7 @@ Provides integration with a Clojure repl.
 
 ```emacs-lisp
   (use-package cider
-    :ensure t
+    :straight t
     :after company
     :config
     (setq cider-repl-history-file "~/.emacs.d/cider-history"
@@ -1930,7 +1930,7 @@ Provides integration with a Clojure repl.
 
 ```emacs-lisp
   (use-package inf-clojure
-    :ensure t
+    :straight t
     :init
     (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
 ```
@@ -1950,7 +1950,7 @@ The [flycheck-clojure](https://github.com/clojure-emacs/squiggly-clojure) packag
 
 ```emacs-lisp
   (use-package flycheck-clojure
-    :ensure t
+    :straight t
     :after cider flycheck
     :config
     (flycheck-clojure-setup))
@@ -1984,7 +1984,7 @@ Let's give this [guy](https://github.com/typedclojure/typed-clojure-mode) a try.
 
 ```emacs-lisp
   (use-package typed-clojure-mode
-     :ensure t
+     :straight t
      :after clojure-mode
      :init
      (add-hook 'clojure-mode-hook 'typed-clojure-mode))
@@ -2009,7 +2009,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
 
 ```emacs-lisp
   (use-package flycheck-pos-tip
-    :ensure t
+    :straight t
     :after flycheck
     :init
     (flycheck-pos-tip-mode)
@@ -2026,7 +2026,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
 
 ```emacs-lisp
   (use-package eclim
-    :ensure t
+    :straight t
     :if (eq system-type 'darwin)
     ;; load my forked version
     ;; :load-path "site-lisp/emacs-eclim/"
@@ -2091,7 +2091,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)
       ;; Company AucTeX
         (use-package company-auctex
-          :ensure t
+          :straight t
           :init
           (company-auctex-init))
       ;; RefTeX
@@ -2105,7 +2105,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
       
       ;; Magic Latex Buffer
         (use-package magic-latex-buffer
-          :ensure t
+          :straight t
           :init
           (progn
             (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
@@ -2117,20 +2117,20 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
       ;; Latex Preview Pane
       ;; buggy
       ;;   (use-package latex-preview-pane
-      ;;     :ensure t
+      ;;     :straight t
       ;;     :config (latex-preview-pane-enable))
 
       ;; Org Edit Latex Buffer
         (use-package org-edit-latex
-          :ensure t)
+          :straight t)
       ;; Latex Extra
       (use-package latex-extra
-        :ensure t
+        :straight t
         :init
         (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
       ;; Auctex latexmk
       (use-package auctex-latexmk
-        :ensure t
+        :straight t
         :config
         (setq auctex-latexmk-inherit-TeX-PDF-mode t))
       ))
@@ -2156,7 +2156,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
 
 ```emacs-lisp
 (use-package latex-extra
-  :ensure t
+  :straight t
   :init
   (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
 ```
@@ -2166,7 +2166,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
 
 ```emacs-lisp
   (use-package latex-preview-pane
-    :ensure t
+    :straight t
     :config (latex-preview-pane-enable))
 ```
 
@@ -2175,7 +2175,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
 
 ```emacs-lisp
   (use-package company-auctex
-    :ensure t
+    :straight t
     :init
     (company-auctex-init))
 ```
@@ -2185,7 +2185,7 @@ The `flycheck-clojure` repository recommendeds to install [flycheck-pos-tip](htt
 
 ```emacs-lisp
   (use-package org-edit-latex
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -2195,7 +2195,7 @@ Prettify dedicated org-mode latex buffers.
 
 ```emacs-lisp
   (use-package magic-latex-buffer
-    :ensure t
+    :straight t
     :init
     (progn
       (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
@@ -2211,7 +2211,7 @@ Prettify dedicated org-mode latex buffers.
 
 ```emacs-lisp
 (use-package auctex-latexmk
-  :ensure t
+  :straight t
   :config
   (setq auctex-latexmk-inherit-TeX-PDF-mode t))
 ```
@@ -2238,7 +2238,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 ```emacs-lisp
   (use-package texinfo
-    :ensure t
+    :straight t
     :defines texinfo-section-list
     :commands texinfo-mode
     :init
@@ -2253,19 +2253,19 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 ```emacs-lisp
     (use-package js2-mode
-      :ensure t
+      :straight t
       :mode (("\\.js\\'" . js2-mode))
       :config
       (setq js-indent-level 2))
     (use-package coffee-mode
-      :ensure t
+      :straight t
       :mode ("\\.coffee\\'" . coffee-mode))
     (use-package json-mode
       :defer t
-      :ensure t
+      :straight t
       :mode (("\\.json\\'" . json-mode)))
     (use-package tern
-      :ensure t
+      :straight t
       :after js2-mode
       :init (add-hook 'js2-mode-hook 'tern-mode))
 ```
@@ -2275,7 +2275,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 ```emacs-lisp
   (use-package js2-mode
-    :ensure t
+    :straight t
     :mode (("\\.js\\'" . js2-mode))
     :config
     (setq js-indent-level 2))
@@ -2288,7 +2288,7 @@ Real jsx support.
 
 ```emacs-lisp
   (use-package rjsx-mode
-    :ensure t
+    :straight t
     :mode "\\.jsx\\'")
 ```
 
@@ -2299,7 +2299,7 @@ Real jsx support.
 
 ```emacs-lisp
   (use-package tern
-    :ensure t
+    :straight t
     :after js2-mode
     :init (add-hook 'js2-mode-hook 'tern-mode))
 ```
@@ -2311,7 +2311,7 @@ Tern backend using company.
 
 ```emacs-lisp
   (use-package company-tern
-    :ensure t
+    :straight t
     :init
     (add-to-list 'company-backends 'company-tern)
     :config
@@ -2325,7 +2325,7 @@ Tern backend using company.
 ```emacs-lisp
   (use-package json-mode
     :defer t
-    :ensure t
+    :straight t
     :mode (("\\.json\\'" . json-mode)))
 ```
 
@@ -2346,7 +2346,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package coffee-mode
-    :ensure t
+    :straight t
     :mode ("\\.coffee\\'" . coffee-mode))
 ```
 
@@ -2355,7 +2355,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package add-node-modules-path
-    :ensure t
+    :straight t
     :defer t
     :init
     (add-hook 'js2-mode-hook #'add-node-modules-path))
@@ -2366,7 +2366,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package npm-mode
-    :ensure t
+    :straight t
     :defer t)
 ```
 
@@ -2386,7 +2386,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package web-mode
-    :ensure t
+    :straight t
     :bind (:map web-mode-map
                 ("M-n" . web-mode-tag-match))
     :mode
@@ -2436,7 +2436,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
       (add-hook 'web-mode-hook #'jchaffin/web-mode-indent)
 
         (use-package tagedit
-          :ensure t
+          :straight t
           :diminish tagedit-mode
           :config
           (progn
@@ -2444,18 +2444,18 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
             (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
       
         (use-package emmet-mode
-          :ensure t
+          :straight t
           :defer t
           :init
           (add-to-hooks 'emmet-mode '(css-mode-hook
                                      html-mode-hook
                                      web-mode-hook)))
         (use-package company-web
-          :ensure t
+          :straight t
           :init
           (progn
               (use-package company-tern
-                :ensure t
+                :straight t
                 :init
                 (add-to-list 'company-backends 'company-tern)
                 :config
@@ -2485,7 +2485,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package emmet-mode
-    :ensure t
+    :straight t
     :defer t
     :init
     (add-to-hooks 'emmet-mode '(css-mode-hook
@@ -2501,7 +2501,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package tagedit
-    :ensure t
+    :straight t
     :diminish tagedit-mode
     :config
     (progn
@@ -2517,7 +2517,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package css-mode
-    :ensure t
+    :straight t
     :defer t
     :commands css-expand-statment css-contract-statement
     :bind (("C-c c z" . css-contract-statement)
@@ -2551,7 +2551,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package css-less-mode
-    :ensure t
+    :straight t
     :mode ("\\.less\\'" . less-css-mode))
 ```
 
@@ -2560,7 +2560,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package sass-mode
-    :ensure t
+    :straight t
     :mode ("\\.sass\\'" . sass-mode))
 ```
 
@@ -2569,7 +2569,7 @@ Based off/shamelessly copied and pasted from Spacemacs React layer.
 
 ```emacs-lisp
   (use-package scss-mode
-    :ensure t
+    :straight t
     :mode ("\\.scss\\'" . scss-mode))
 ```
 
@@ -2583,11 +2583,11 @@ Code completion for html-mode, web-mode, jade-mode, and slim-mode using company.
 
 ```emacs-lisp
   (use-package company-web
-    :ensure t
+    :straight t
     :init
     (progn
         (use-package company-tern
-          :ensure t
+          :straight t
           :init
           (add-to-list 'company-backends 'company-tern)
           :config
@@ -2624,7 +2624,7 @@ Code completion for html-mode, web-mode, jade-mode, and slim-mode using company.
 
 ```emacs-lisp
   (use-package markdown-mode
-    :ensure t
+    :straight t
     :commands (markdown-mode gfm-mode)
     :mode (("README\\.md\\'" . gfm-mode)
            ("\\.md\\'" . markdown-mode)
@@ -2643,7 +2643,7 @@ Code completion for html-mode, web-mode, jade-mode, and slim-mode using company.
 ```emacs-lisp
   (use-package markdown-mode+
     :if *is-mac*
-    :ensure t)
+    :straight t)
 ```
 
 
@@ -2670,7 +2670,7 @@ Code completion for html-mode, web-mode, jade-mode, and slim-mode using company.
 
 ```emacs-lisp
   (use-package dockerfile-mode
-    :ensure t
+    :straight t
     :mode ( "Dockerfile\\'" .  dockerfile-mode))
 ```
 

@@ -23,6 +23,8 @@
       - [[#if-not][If not]]
       - [[#major-mode][Major Mode]]
     - [[#functions][Functions]]
+      - [[#reload-initialization-file][Reload Initialization File]]
+      - [[#eval-buffer-using-straightel-transaction-system][Eval Buffer using =straight.el= transaction system.]]
       - [[#add-multiple-hooks][Add multiple hooks]]
       - [[#join-strings-with-separator][Join Strings with Separator]]
       - [[#buffer-list-names][Buffer List Names]]
@@ -52,7 +54,6 @@
       - [[#org-beautify-theme][Org Beautify Theme]]
       - [[#toc-org][TOC Org]]
     - [[#org-utilities][Org Utilities]]
-      - [[#org-agenda][Org Agenda]]
       - [[#org-pomodoro][Org Pomodoro]]
       - [[#org-ref][Org Ref]]
       - [[#org-id][Org ID]]
@@ -358,6 +359,37 @@ Clojure-like =if-not= macro in elisp.
 #+END_SRC
 
 *** Functions
+**** Reload Initialization File
+
+#+NAME: chaffin-reload-init
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun chaffin-reload-init ()
+  "Reload init.el"
+  (interactive)
+  (straight-transaction
+    (straight-mark-transaction-as-init)
+    (message "Reloading initialization file...")
+    (load user-init-file nil 'nomessage)
+    (message "Reloading initialization file...done.")))
+#+END_SRC
+
+**** Eval Buffer using =straight.el= transaction system.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun chaffin-eval-buffer ()
+  "Evaluate current buffer using the `straight' 
+   transaction system."
+  (interactive)
+  (message "Evaluating %s..." (buffer-name))
+  (straight-transaction
+    (if (null buffer-file-name)
+	(eval-buffer)
+      (when (string= buffer-file-name user-init-file)
+	(straight-mark-transaction-as-init))
+      (load-file buffer-file-name)))
+  (message "Evaluating %s...done." (buffer-name)))
+#+END_SRC
+
 **** Add multiple hooks
 
 See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#7398216]]
@@ -506,7 +538,7 @@ Also sets terminal coding system to "utf-8".
 #+NAME: macos-finder-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
-  :ensure t
+  :straight t
   :bind ("C-c z" . reveal-in-osx-finder))
 #+END_SRC
 
@@ -517,7 +549,7 @@ Provides an interface to /Dictionary.app/ in Emacs.
 #+NAME: macos-dictionary-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package osx-dictionary
-  :ensure t
+  :straight t
   :bind (("C-c C-d" . osx-dictionary-search-word-at-point)
 	 ("C-c i" . osx-dictionary-search-input)))
 #+END_SRC
@@ -546,7 +578,7 @@ conditionally loading dependencies.
 (use-package exec-path-from-shell
   ;; only load `exec-path-from-shell' package on macos and linux.
   :if (memq window-system '(mac ns))
-  :ensure t
+  :straight t
   :config
   (exec-path-from-shell-initialize)
   (setq exec-path-from-shell-check-startup-files nil))
@@ -666,7 +698,7 @@ Use UTF-8 Bullets for Org-mode headings.
 #+NAME: org-prettify-bullets
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
-  :ensure t
+  :straight t
   :init
   (add-hook 'org-mode-hook
 	    (lambda ()
@@ -683,20 +715,21 @@ Use UTF-8 Bullets for Org-mode headings.
 #+NAME: org-prettify-ob-theme
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-beautify-theme
-  :ensure nil
-  :defines org-beautify-theme-use-box-hack
+  :straight t
   :config
-  (setq org-beautify-theme-use-box-hack nil)
-  (add-to-list 'custom-enabled-themes 'org-beautify)
-  (load-theme 'org-beautify t))
+  (progn
+    (setq org-beautify-theme-use-box-hack nil)
+    (add-to-list 'custom-enabled-themes 'org-beautify)
+    (load-theme 'org-beautify t)))
 #+END_SRC
+
 
 **** TOC Org
 
 #+NAME: org-prettify-toc-org
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package toc-org
-  :ensure t
+  :straight t
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
 #+END_SRC
@@ -711,22 +744,12 @@ Use UTF-8 Bullets for Org-mode headings.
 <<org-utils-id>>
 #+END_SRC
 
-**** Org Agenda
-
-#+NAME: org-utils-agenda
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package org-agenda
-  :recipe org
-  :defer-install t
-  :bind (("C-c a" . org-agenda)))
-#+END_SRC
-
 **** Org Pomodoro
 
 #+NAME: org-utils-pomodoro
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-pomodoro
-  :ensure t
+  :straight t
   :bind (:map org-mode-map
 	      ("C-c M-RET p" . org-pomodoro))
   :config
@@ -771,7 +794,7 @@ Use UTF-8 Bullets for Org-mode headings.
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (use-package org-ref
   :if *is-mac*
-  :ensure t
+  :straight t
   :config
   (progn
     (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
@@ -935,7 +958,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+NAME: org-pdf-pdftools
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pdf-tools
-  :ensure t
+  :straight t
   :defer t
   :config
   (pdf-tools-install))
@@ -952,7 +975,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 	    ("h" . pdf-annot-add-highlight-markup-annotation)
 	    ("t" . pdf-annot-add-text-annotation)
 	    ("D" . pdf-annot-delete))
-  :ensure t
+  :straight t
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :config
   (setq-default pdf-view-display-size 'fit-page)
@@ -1088,7 +1111,7 @@ configuration.
 #+NAME: org-export-gfm
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-gfm
-  :ensure t
+  :straight t
   :init
   (with-eval-after-load 'org-mode
     (require 'ox-gfm)))
@@ -1174,7 +1197,7 @@ Adds extensions and functionality to dired mode.
 #+NAME: dired-plus-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dired+
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 ***** Dired Icons
@@ -1182,7 +1205,7 @@ Adds extensions and functionality to dired mode.
 #+NAME: all-the-icons-dired
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons-dired
-  :ensure t
+  :straight t
   :config
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
@@ -1192,7 +1215,7 @@ Adds extensions and functionality to dired mode.
 #+NAME: undo-tree-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package undo-tree
-  :ensure t
+  :straight t
   :init
   (global-undo-tree-mode))
 #+END_SRC
@@ -1202,7 +1225,7 @@ Adds extensions and functionality to dired mode.
 #+NAME: projectile-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package projectile
-  :ensure t
+  :straight t
   :config
   (projectile-mode))
 #+END_SRC
@@ -1214,7 +1237,7 @@ from within Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package restart-emacs
-  :ensure t
+  :straight t
   :bind (("C-x C-r" . restart-emacs)))
 #+END_SRC
 
@@ -1224,7 +1247,7 @@ from within Emacs.
 #+NAME: popwin
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package popwin
-  :ensure t
+  :straight t
   :config (popwin-mode 1))
 #+END_SRC
 
@@ -1234,16 +1257,16 @@ from within Emacs.
 #+BEGIN_SRC emacs-lisp :tangle yes
 
 (use-package help+
-  :ensure t)
+  :straight t)
 
 (use-package help-macro+
-  :ensure t)
+  :straight t)
 
 (use-package help-fns+
-  :ensure t)
+  :straight t)
 
 (use-package help-mode+
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 *** Better Display
@@ -1255,7 +1278,7 @@ horizontal line rules.
 #+NAME: page-break-lines-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package page-break-lines
-  :ensure t
+  :straight t
   :init
   (global-page-break-lines-mode))
 #+END_SRC
@@ -1283,7 +1306,7 @@ list that one may use in the wacky world of Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dashboard
-  :ensure t
+  :straight t
   :init
   (with-eval-after-load 'page-break-lines
     (if (not (global-page-break-lines-mode))
@@ -1291,16 +1314,17 @@ list that one may use in the wacky world of Emacs.
   :config
   (dashboard-setup-startup-hook))
 
-(defun chaffin/dashboard-init ()
-  (progn
-    (add-to-list 'dashboard-items '(agenda) t)
-    (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
-	  dashboard-items '(( agenda . 10)
-			    ( projects . 5)
-			    ( recents . 5)
-			    ( bookmarks . 5)))))
-
-(chaffin/dashboard-init)
+(with-eval-after-load 'dashboard
+  (defun chaffin/dashboard-init ()
+    (progn
+      (add-to-list 'dashboard-items '(agenda) t)
+      (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
+	    dashboard-items '(( agenda . 10)
+			      ( projects . 5)
+			      ( recents . 5)
+			      ( bookmarks . 5)))))
+  (chaffin/dashboard-init))
+      
 #+END_SRC
 
 **** Inhibit Scratch Buffer
@@ -1442,7 +1466,7 @@ Highlight Indent Guides]] sublime-like indentation guides.
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package highlight-indent-guides
-   :ensure t
+   :straight t
    :init
    (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
    :config
@@ -1464,7 +1488,7 @@ directory to the list of directories where YASnippet should look for snippets.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package yasnippet
-  :ensure t
+  :straight t
   :init
   (yas-global-mode 1)
   :config
@@ -1496,7 +1520,7 @@ snippets corresponding to the major mode of the current buffer mode.
 #+NAME: flycheck-settings
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package flycheck
-  :ensure t
+  :straight t
   :defer-install t
   :init
   (setq flycheck-global-modes nil)
@@ -1512,7 +1536,7 @@ snippets corresponding to the major mode of the current buffer mode.
      #+NAME: flycheck-color-modeline-config
      #+BEGIN_SRC emacs-lisp :tangle no
        (use-package flycheck-color-mode-line
-	 :ensure t
+	 :straight t
 	 :init
 	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
      #+END_SRC
@@ -1524,7 +1548,7 @@ snippets corresponding to the major mode of the current buffer mode.
 #+NAME: flycheck-package-config
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package flycheck-package
-    :ensure t
+    :straight t
     :init
     (eval-after-load 'flycheck
       '(flycheck-package-setup)))
@@ -1550,7 +1574,7 @@ snippets corresponding to the major mode of the current buffer mode.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package flyspell
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
@@ -1574,14 +1598,14 @@ any reason for me reconsider my choice.
 #+NAME: company-prefix-setup
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (use-package company
-  :ensure t
+  :straight t
   :defer t
   :bind (("TAB" . company-indent-or-complete-common)
-         ("C-c /" . company-files)
-         ("M-SPC" . company-complete)
-         (:map company-mode-map
-               ("M-n" . company-select-next-or-abort)
-               ("M-p" . company-select-previous-or-abort)))
+	 ("C-c /" . company-files)
+	 ("M-SPC" . company-complete)
+	 (:map company-mode-map
+	       ("M-n" . company-select-next-or-abort)
+	       ("M-p" . company-select-previous-or-abort)))
   :config
   (progn
 
@@ -1612,7 +1636,7 @@ top candidates for completion.
 #+NAME: company-statistics-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-statistics
-  :ensure t
+  :straight t
   :config
   ;; Alternatively,
   ;; (company-statistics-mode)
@@ -1641,7 +1665,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+NAME: company-dict-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-dict
-  :ensure t
+  :straight t
   :init
   (add-to-list 'company-backends 'company-dict)
   :config
@@ -1656,7 +1680,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package image+
-  :ensure t
+  :straight t
   :if *is-gui*
   :after image
   :config
@@ -1704,7 +1728,7 @@ support with ivy]].
 #+NAME: ivy-hydra
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-hydra
-  :ensure hydra)
+  :after hydra)
 #+END_SRC
 
 **** Ivy Historian
@@ -1718,14 +1742,14 @@ support with ivy]].
 #+NAME: historian
 #+BEGIN_SRC emacs-lisp :tangle no :exports none
 (use-package historian
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 #+NAME: ivy-historian-settings
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-historian
   :after historian
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 **** Counsel
@@ -1733,7 +1757,7 @@ support with ivy]].
 #+NAME: counsel
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (use-package counsel
-  :ensure t
+  :straight t
   :bind
   (("C-c C-r" . ivy-resume)
    ("C-`" . ivy-avy)
@@ -1783,7 +1807,7 @@ support with ivy]].
 #+NAME: swiper-avy
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package avy
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 **** Counsel-Projectile
@@ -1794,10 +1818,10 @@ friends.
 #+NAME: counsel-projectile-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-projectile
-  :ensure t
+  :straight t
+  :after projectile
   :init
-  (progn
-    (counsel-projectile-on)))
+  (counsel-projectile-mode))
 #+END_SRC
 
 **** Smex
@@ -1805,7 +1829,7 @@ friends.
 #+NAME: smex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package smex
-  :ensure t
+  :straight t
   :init (setq-default smex-history-length 32))
 #+END_SRC
 
@@ -1815,7 +1839,7 @@ friends.
  #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-osx-app
   :if *is-mac*
-  :ensure t
+  :straight t
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
 
@@ -1825,7 +1849,7 @@ friends.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-dash
   :if *is-mac*
-  :ensure t
+  :straight t
   :defines chaffin/dash-activate-package-docsets
   :init
   (defun counsel-dash-at-point ()
@@ -1912,7 +1936,7 @@ a dependency.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package deft
-  :ensure t
+  :straight t
   :bind ("C-x C-n" . deft)
   :config
   (progn
@@ -1928,7 +1952,7 @@ a dependency.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package wakatime-mode
   :if (and *is-mac* (or (string= (downcase computer-name) "hal") (string= (downcase computer-name) "junior")))
-  :ensure t
+  :straight t
   :init
   (add-hook 'prog-mode-hook 'wakatime-mode)
   :config
@@ -1970,7 +1994,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package smart-cursor-color
-  :ensure t
+  :straight t
   :config
   (smart-cursor-color-mode +1))
 #+END_SRC
@@ -1989,7 +2013,7 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: zenburn-theme-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package zenburn-theme
-  :ensure t
+  :straight t
   :config (load-theme 'zenburn))
 #+END_SRC
 
@@ -2000,7 +2024,7 @@ This disables Emacs asking questions about loading a new theme.
 
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package anti-zenburn-theme
-    :ensure t)
+    :straight t)
 #+END_SRC
 
 **** Load Themes
@@ -2025,7 +2049,7 @@ Show the time in the modeline.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package spaceline
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 ***** Spaceline All the Icons
@@ -2034,7 +2058,7 @@ Show the time in the modeline.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package spaceline-all-the-icons
   :after spaceline
-  :ensure t
+  :straight t
   :config
   (setq spaceline-all-the-icons-separator-type 'arrow)
   <<spaceline-segment>>
@@ -2263,7 +2287,7 @@ is on.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package mode-icons
-  :ensure t
+  :straight t
   :if *is-gui*
   :after smart-mode-line
   :config
@@ -2286,7 +2310,7 @@ is on.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package all-the-icons
   :if *is-gui*
-  :ensure t
+  :straight t
   :init
   (unless (straight-check-package "all-the-icons")
     (all-the-icons-install-fonts)))
@@ -2297,7 +2321,7 @@ is on.
 #+NAME: all-the-icons-ivy
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons-ivy
-  :ensure t
+  :straight t
   :init
   (all-the-icons-ivy-setup))
 #+END_SRC
@@ -2308,7 +2332,7 @@ is on.
 #+NAME: multi-term-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package multi-term
-  :ensure t
+  :straight t
   :bind
   (("C-c M-RET t" . multi-term)
    ("C-c M-RET b" . multi-term-prev)
@@ -2326,7 +2350,7 @@ is on.
 
 #+BEGIN_SRC emacs-lisp :tangle no :exports none :results none
 (use-package fit-frame
-  :ensure t
+  :straight t
   :config
   (add-hook 'after-make-frame-functions 'fit-frame))
 #+END_SRC
@@ -2350,7 +2374,7 @@ Use the default monospaced font for each operating system.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package sunshine
-  :ensure t
+  :straight t
   :config
   (setq sunshine-location "90024,USA"))
 #+END_SRC
@@ -2359,7 +2383,7 @@ Use the default monospaced font for each operating system.
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package theme-changer
-  :ensure t
+  :straight t
   :config
   (change-theme 'zenburn-theme 'anti-zenburn-theme))
 #+END_SRC
@@ -2369,7 +2393,7 @@ Use the default monospaced font for each operating system.
 #+NAME: emojify-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package emojify
-  :ensure t
+  :straight t
   :init (global-emojify-mode))
 #+END_SRC
 
@@ -2396,7 +2420,7 @@ As a git client though, magit is awesome.
 #+NAME: magit-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package magit
-  :ensure t
+  :straight t
   :bind
   (("C-c v v" . magit-status)
    ("C-c v m" . magit-merge)
@@ -2463,7 +2487,7 @@ yunmodified magit buffers will be killed without confirming."
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package magithub
   :after magit
-  :ensure t
+  :straight t
   :commands magithub-dispatch-popup
   :bind (:map magit-status-mode-map
 	      ("@" . magithub-dispatch-popup))
@@ -2481,7 +2505,7 @@ optionally ~user~ and ~repo~ scopes.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package gist
-  :ensure t
+  :straight t
   :bind
   (("C-c C-g l" . gist-list)
    ("C-c C-g r" . gist-region)
@@ -2497,7 +2521,7 @@ Travel back in time (to your last commit).
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package git-timemachine
-  :ensure t
+  :straight t
   :bind
   ("C-c v t" . git-timemachine-toggle)
   :config
@@ -2511,7 +2535,7 @@ Pop-up feature for viewing the last git commit.
 #+BEGIN_SRC emacs-lisp :tangle yes
 
 (use-package git-messenger
-  :ensure t
+  :straight t
   :bind
   (("C-c C-v m" . git-messenger:popup-message)))
 
@@ -2521,7 +2545,7 @@ Pop-up feature for viewing the last git commit.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package git-modes
-:ensure t)
+:straight t)
 #+END_SRC
 
 *** TODO Mercurial
@@ -2535,7 +2559,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package osx-browse
-:ensure t
+:straight t
 :if *is-mac*
 :init
 (osx-browse-mode 1))
@@ -2628,12 +2652,12 @@ offers more meaningful semantics.
 #+NAME: paredit-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package paredit
-  :ensure t
+  :straight t
   :diminish paredit-mode
   :config
   (progn
     (use-package eldoc
-      :ensure t
+      :straight t
       :config
       (eldoc-add-command
        'paredit-backward-delete
@@ -2655,7 +2679,7 @@ haystack, smartparens are a great productivity tool.
 #+NAME: smartparens-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package smartparens
-  :ensure t
+  :straight t
   :init
   (require 'smartparens-config))
 #+END_SRC
@@ -2666,7 +2690,7 @@ Minor mode to highlight s-expresion.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package hl-sexp
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 *** Emacs Lisp
@@ -2680,12 +2704,10 @@ Minor mode to highlight s-expresion.
 
 *** Common Lisp
 
-Configuration for emacs-lisp.
+Configuration for common-lisp
 
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-(use-package lisp-mode
-  :after paredit
-  :config
+(with-eval-after-load 'paredit
   (add-hook 'lisp-mode-hook #'paredit-mode)
   (add-hook 'lisp-mode-hook #'hl-sexp-mode))
 #+END_SRC
@@ -2698,19 +2720,20 @@ Configuration for emacs-lisp.
 (use-package slime
   :commands slime
   :defines (slime-complete-symbol*-fancy slime-completion-at-point-functions)
-  :ensure t
+  :straight t
   :if *is-mac*
   :init
   (progn
-    (setq slime-contribs '(slime-asdf
-			   slime-fancy
-			   slime-indentation
-			   slime-sbcl-exts
-			   slime-scratch)
-	  inferior-lisp-program "sbcl"
-	  ;; enable fuzzy matching in code buffer and SLIME REPL
-	  slime-complete-symbol*-fancy t
-	  slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
+    (setq slime-contribs
+            '(slime-asdf
+      			  slime-fancy
+			        slime-indentation
+      			  slime-sbcl-exts
+      			  slime-scratch)
+	        inferior-lisp-program "sbcl"
+      	  ;; enable fuzzy matching in code buffer and SLIME REPL
+      	  slime-complete-symbol*-fancy t
+      	  slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
 
     (defun slime-disable-smartparens ()
       (smartparents-strict-mode -1)
@@ -2736,7 +2759,7 @@ Provides key bindings and font-locking for Clojure.
 #+NAME: clojure-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package clojure-mode
-  :ensure t
+  :straight t
   :mode (("\\.edn$"   . clojure-mode)
 	 ("\\.cljs$"  . clojurescript-mode)
 	 ("\\.cljx$"  . clojurex-mode)
@@ -2779,7 +2802,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+NAME: cljsbuild-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cljsbuild-mode
-  :ensure t
+  :straight t
   :init
   (add-to-hooks #'cljsbuild-mode
                  '(clojure-mode clojurescript-mode)))
@@ -2792,7 +2815,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+NAME: elein-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package elein
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 **** Clojure Mode Extra Font Locking
@@ -2802,7 +2825,7 @@ Additional syntax highlighting for ~clojure-mode~.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package clojure-mode-extra-font-locking
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 **** Cider ([[https://github.com/clojure-emacs/cider][repository]])
@@ -2811,7 +2834,7 @@ Provides integration with a Clojure repl.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package cider
-  :ensure t
+  :straight t
   :after company
   :config
   (setq cider-repl-history-file "~/.emacs.d/cider-history"
@@ -2843,7 +2866,7 @@ Provides integration with a Clojure repl.
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package inf-clojure
-  :ensure t
+  :straight t
   :init
   (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
 #+END_SRC
@@ -2865,7 +2888,7 @@ It uses [[https://github.com/jonase/eastwood][eastwood]], [[http://typedclojure.
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package flycheck-clojure
-  :ensure t
+  :straight t
   :after cider flycheck
   :config
   (flycheck-clojure-setup))
@@ -2907,7 +2930,7 @@ Let's give this [[https://github.com/typedclojure/typed-clojure-mode][guy]] a tr
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package typed-clojure-mode
-  :ensure t
+  :straight t
   :after clojure-mode
   :init
   (add-hook 'clojure-mode-hook 'typed-clojure-mode))
@@ -2938,7 +2961,7 @@ CIDER eldoc information.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package flycheck-pos-tip
-  :ensure t
+  :straight t
   :after flycheck
   :init
   (flycheck-pos-tip-mode)
@@ -2952,7 +2975,7 @@ CIDER eldoc information.
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package eclim
-  :ensure t
+  :straight t
   :if (eq system-type 'darwin)
   ;; load my forked version
   ;; :load-path "site-lisp/emacs-eclim/"
@@ -2972,7 +2995,10 @@ CIDER eldoc information.
 #+NAME: tex-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (use-package tex
-  :ensure auctex
+  :straight (auctex
+	     :host github
+	     :repo "emacsmirror/auctex"
+	     :files (:defaults (:exclude "*.el.in")))
   :defines latex-nofill-env
   :functions chaffin/tex-auto-fill-mode
   :init
@@ -3051,10 +3077,12 @@ of the current paragraph."
 
 #+NAME: latex-extra-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package latex-extra
-  :ensure t
-  :init
-  (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
+;; See [1] https://github/Malabarba/latex-extra/issues/23
+(let ((byte-compile-warnings '(not free-vars)))
+  (use-package latex-extra
+    :straight t
+    :config
+    (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
 #+END_SRC
 
 **** LaTeX Preview Pane
@@ -3062,7 +3090,7 @@ of the current paragraph."
 #+NAME: latex-preview-pane-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-preview-pane
-  :ensure t
+  :straight t
   :config (latex-preview-pane-enable))
 #+END_SRC
 
@@ -3071,7 +3099,7 @@ of the current paragraph."
 #+NAME: company-auctex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-auctex
-  :ensure t
+  :straight t
   :init
   (company-auctex-init))
 #+END_SRC
@@ -3081,7 +3109,7 @@ of the current paragraph."
 #+NAME: org-edit-latex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-edit-latex
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 **** Magic Latex Buffer
@@ -3091,7 +3119,7 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: magic-latex-buffer-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magic-latex-buffer
-  :ensure t
+  :straight t
   :init
   (progn
     (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
@@ -3107,7 +3135,7 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: auctex-latexmk-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package auctex-latexmk
-  :ensure t
+  :straight t
   :config
   (setq auctex-latexmk-inherit-TeX-PDF-mode t))
 #+END_SRC
@@ -3134,7 +3162,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 #+texinfo-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package texinfo
-  :ensure t
+  :straight t
   :defines texinfo-section-list
   :commands texinfo-mode
   :init
@@ -3157,7 +3185,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 #+NAME: js2-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package js2-mode
-  :ensure t
+  :straight t
   :mode (("\\.js\\'" . js2-mode))
   :config
   (progn
@@ -3171,7 +3199,7 @@ Real jsx support.
 #+NAME: rjsx-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package rjsx-mode
-  :ensure t
+  :straight t
   :mode "\\.jsx\\'")
 #+END_SRC
 
@@ -3182,7 +3210,7 @@ Real jsx support.
 #+NAME: tern-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tern
-  :ensure t
+  :straight t
   :after js2-mode
   :init (add-hook 'js2-mode-hook 'tern-mode))
 #+END_SRC
@@ -3194,7 +3222,7 @@ Tern backend using company.
 #+NAME: company-tern-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-tern
-  :ensure t
+  :straight t
   :init
   (add-to-list 'company-backends 'company-tern)
   :config
@@ -3209,7 +3237,7 @@ Tern backend using company.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package json-mode
   :defer t
-  :ensure t
+  :straight t
   :mode (("\\.json\\'" . json-mode)))
 #+END_SRC
 
@@ -3235,7 +3263,7 @@ React layer.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package tide
   :defer t
-  :ensure t
+  :straight t
   :after flycheck
   :config
   (progn
@@ -3259,7 +3287,7 @@ React layer.
 #+NAME: coffee-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package coffee-mode
-  :ensure t
+  :straight t
   :mode ("\\.coffee\\'" . coffee-mode))
 #+END_SRC
 
@@ -3268,7 +3296,7 @@ React layer.
 #+NAME: add-node-modules-path-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package add-node-modules-path
-  :ensure t
+  :straight t
   :defer t
   :init
   (add-hook 'js2-mode-hook #'add-node-modules-path))
@@ -3279,7 +3307,7 @@ React layer.
 #+NAME: npm-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
-  :ensure t
+  :straight t
   :defer t)
 #+END_SRC
 
@@ -3298,7 +3326,7 @@ React layer.
 #+NAME: web-mode-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
 (use-package web-mode
-  :ensure t
+  :straight t
   :bind (:map web-mode-map
 	      ("M-n" . web-mode-tag-match))
   :mode
@@ -3358,7 +3386,7 @@ React layer.
 #+NAME: emmet-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package emmet-mode
-  :ensure t
+  :straight t
   :defer t
   :init
   (add-to-hooks 'emmet-mode '(css-mode-hook
@@ -3372,7 +3400,7 @@ React layer.
 #+NAME: tagedit-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tagedit
-  :ensure t
+  :straight t
   :diminish tagedit-mode
   :config
   (progn
@@ -3388,7 +3416,7 @@ React layer.
 #+NAME: css-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package css-mode
-  :ensure t
+  :straight t
   :defer t
   :commands css-expand-statement css-contract-statement
   :bind (("C-c c z" . css-contract-statement)
@@ -3422,7 +3450,7 @@ React layer.
 #+NAME: css-less-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package css-less-mode
-  :ensure t
+  :straight t
   :mode ("\\.less\\'" . less-css-mode))
 #+END_SRC
 
@@ -3431,7 +3459,7 @@ React layer.
 #+NAME: sass-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package sass-mode
-  :ensure t
+  :straight t
   :mode ("\\.sass\\'" . sass-mode))
 #+END_SRC
 
@@ -3440,7 +3468,7 @@ React layer.
 #+NAME: scss-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package scss-mode
-  :ensure t
+  :straight t
   :mode ("\\.scss\\'" . scss-mode))
 #+END_SRC
 
@@ -3453,7 +3481,7 @@ and slim-mode using company.
 #+NAME: company-web-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package company-web
-  :ensure t
+  :straight t
   :init
   (progn
     <<company-tern-config>>
@@ -3485,7 +3513,7 @@ and slim-mode using company.
 #+BEGIN_SRC emacs-lisp :tangle yes
 
 (use-package markdown-mode
-  :ensure t
+  :straight t
   :commands (markdown-mode gfm-mode)
   :mode (("README\\.md\\'" . gfm-mode)
 	 ("\\.md\\'" . markdown-mode)
@@ -3509,7 +3537,7 @@ and slim-mode using company.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package markdown-mode+
   :if *is-mac*
-  :ensure t)
+  :straight t)
 #+END_SRC
 
 **** TODO markdown-tocontents
@@ -3528,7 +3556,7 @@ and slim-mode using company.
     (defun chaffin/ruby-mode-hook ()
       (require 'inf-ruby)
       (inf-ruby-keys))
-    
+
     (add-hook #'ruby-mode-hook #'chaffin/ruby-mode-hook)))
 #+END_SRC
 
@@ -3538,7 +3566,7 @@ and slim-mode using company.
 #+NAME: dockerfile-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dockerfile-mode
-  :ensure t
+  :straight t
   :mode ( "Dockerfile\\'" .  dockerfile-mode))
 #+END_SRC
 

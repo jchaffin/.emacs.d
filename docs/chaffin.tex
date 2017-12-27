@@ -22,7 +22,7 @@
  pdftitle={Jacob Chaffin's Literate Emacs Configuration},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 25.3.1 (Org mode N/A)}, 
+ pdfcreator={Emacs 25.3.1 (Org mode N/A)},
  pdflang={English}}
 \begin{document}
 
@@ -209,7 +209,7 @@ Also sets terminal coding system to "utf-8".
 
 \begin{verbatim}
   (use-package reveal-in-osx-finder
-    :ensure t
+    :straight t
     :bind ("C-c z" . reveal-in-osx-finder))
 \end{verbatim}
 
@@ -220,7 +220,7 @@ Provides an interface to \emph{Dictionary.app} in Emacs.
 
 \begin{verbatim}
   (use-package osx-dictionary
-    :ensure t
+    :straight t
     :bind (("C-c C-d" . osx-dictionary-search-word-at-point)
            ("C-c i" . osx-dictionary-search-input)))
 \end{verbatim}
@@ -250,7 +250,7 @@ conditionally loading dependencies.
   (use-package exec-path-from-shell
     ;; only load `exec-path-from-shell' package on macos and linux.
     :if (memq window-system '(mac ns))
-    :ensure t
+    :straight t
     :config
     (exec-path-from-shell-initialize)
     (setq exec-path-from-shell-check-startup-files nil))
@@ -332,12 +332,12 @@ org-mode buffers.
                               (visual-line-mode)))
 (setq org-image-actual-width 400)
   (use-package org-bullets
-    :ensure t
+    :straight t
     :init
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 (use-package toc-org
-  :ensure t
+  :straight t
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
 \end{verbatim}
@@ -367,7 +367,7 @@ Use UTF-8 Bullets for Org-mode headings.
 
 \begin{verbatim}
   (use-package org-bullets
-    :ensure t
+    :straight t
     :init
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
@@ -390,7 +390,7 @@ Use UTF-8 Bullets for Org-mode headings.
 
 \begin{verbatim}
 (use-package toc-org
-  :ensure t
+  :straight t
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
 \end{verbatim}
@@ -404,7 +404,7 @@ Use UTF-8 Bullets for Org-mode headings.
     :defer-install t
     :bind (("C-c a" . org-agenda)))
   (use-package org-pomodoro
-    :ensure t
+    :straight t
     :bind (:map org-mode-map
                 ("C-c M-RET p" . org-pomodoro))
     :config
@@ -431,7 +431,7 @@ Use UTF-8 Bullets for Org-mode headings.
           (expand-file-name "~/.emacs.d/resources/Complete.wav")))
   (use-package org-ref
     :if *is-mac*
-    :ensure t
+    :straight t
     :config
     (progn
       (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
@@ -504,7 +504,7 @@ Use UTF-8 Bullets for Org-mode headings.
 
 \begin{verbatim}
   (use-package org-pomodoro
-    :ensure t
+    :straight t
     :bind (:map org-mode-map
                 ("C-c M-RET p" . org-pomodoro))
     :config
@@ -537,7 +537,7 @@ Use UTF-8 Bullets for Org-mode headings.
 \begin{verbatim}
   (use-package org-ref
     :if *is-mac*
-    :ensure t
+    :straight t
     :config
     (progn
       (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
@@ -637,7 +637,7 @@ From \href{https://writequit.org/articles/emacs-org-mode-generate-ids.html}{Emac
 
 \begin{verbatim}
 (use-package pdf-tools
-  :ensure t
+  :straight t
   :defer t
   :config
   (pdf-tools-install))
@@ -649,7 +649,7 @@ From \href{https://writequit.org/articles/emacs-org-mode-generate-ids.html}{Emac
 \begin{verbatim}
   (use-package org-pdfview
     :after pdf-tools
-    :ensure t
+    :straight t
     :mode (("\\.pdf\\'" . pdf-view-mode)))
 \end{verbatim}
 
@@ -732,7 +732,7 @@ configuration.
 
 \begin{verbatim}
   (use-package ox-gfm
-    :ensure t
+    :straight t
     :init
     (with-eval-after-load 'org-mode
       (require 'ox-gfm)))
@@ -789,7 +789,7 @@ Adds extensions and functionality to dired mode.
 
 \begin{verbatim}
   (use-package dired+
-    :ensure t)
+    :straight t)
 \end{verbatim}
 
 \paragraph*{Undo Tree}
@@ -797,7 +797,7 @@ Adds extensions and functionality to dired mode.
 
 \begin{verbatim}
   (use-package undo-tree
-    :ensure t
+    :straight t
     :init
     (global-undo-tree-mode))
 \end{verbatim}
@@ -807,7 +807,7 @@ Adds extensions and functionality to dired mode.
 
 \begin{verbatim}
   (use-package projectile
-    :ensure t
+    :straight t
     :config
     (projectile-mode))
 \end{verbatim}
@@ -820,7 +820,7 @@ from within Emacs.
 
 \begin{verbatim}
   (use-package restart-emacs
-    :ensure t
+    :straight t
     :bind (("C-x C-r" . restart-emacs)))
 \end{verbatim}
 
@@ -829,7 +829,7 @@ from within Emacs.
 
 \begin{verbatim}
 (use-package popwin
-  :ensure t
+  :straight t
   :config (popwin-mode 1))
 \end{verbatim}
 
@@ -843,7 +843,7 @@ horizontal line rules.
 
 \begin{verbatim}
   (use-package page-break-lines
-    :ensure t
+    :straight t
     :init
     (global-page-break-lines-mode))
 \end{verbatim}
@@ -860,7 +860,7 @@ know you're around.
 
 \begin{verbatim}
     (use-package emojify
-      :ensure t
+      :straight t
       :init (global-emojify-mode))
 \end{verbatim}
 
@@ -875,7 +875,7 @@ list that one may use in the wacky world of Emacs.
 
 \begin{verbatim}
   (use-package dashboard
-    :ensure t
+    :straight t
     :init
     (with-eval-after-load 'page-break-lines
       (if (not (global-page-break-lines-mode))
@@ -1046,7 +1046,7 @@ Tabs are the bane of humanity\footnote{\href{https://www.emacswiki.org/emacs/Tab
 
 \begin{verbatim}
  (use-package highlight-indent-guides
-    :ensure t
+    :straight t
     :init
     (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
     :config
@@ -1069,7 +1069,7 @@ directory to the list of directories where YASnippet should look for snippets.
 
 \begin{verbatim}
   (use-package yasnippet
-    :ensure t
+    :straight t
     :init
     (yas-global-mode 1)
     :config
@@ -1102,7 +1102,7 @@ snippets corresponding to the major mode of the current buffer mode.
       (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
                     flycheck-emacs-lisp-load-path 'inherit)
              (use-package flycheck-color-mode-line
-      	 :ensure t
+      	 :straight t
       	 :init
       	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode)))
 \end{verbatim}
@@ -1114,7 +1114,7 @@ Colors the modeline according to current Flycheck state of buffer.
 
 \begin{verbatim}
        (use-package flycheck-color-mode-line
-	 :ensure t
+	 :straight t
 	 :init
 	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
 \end{verbatim}
@@ -1126,7 +1126,7 @@ Colors the modeline according to current Flycheck state of buffer.
 
 \begin{verbatim}
   (use-package flycheck-package
-    :ensure t
+    :straight t
     :init
     (eval-after-load 'flycheck
       '(flycheck-package-setup)))
@@ -1173,7 +1173,7 @@ top candidates for completion.
 
 \begin{verbatim}
   (use-package company-statistics
-    :ensure t
+    :straight t
     :config
     ;; Alternatively,
     ;; (company-statistics-mode)
@@ -1202,7 +1202,7 @@ less-buggy \texttt{pos-tip} package rather than \texttt{popup-el}.
 
 \begin{verbatim}
   (use-package company-dict
-   :ensure t
+   :straight t
    :init
    (add-to-list 'company-backends 'company-dict)
    :config
@@ -1219,7 +1219,7 @@ less-buggy \texttt{pos-tip} package rather than \texttt{popup-el}.
 
 \begin{verbatim}
   (use-package image+
-    :ensure t
+    :straight t
     :if *is-gui*
     :after image
     :config
@@ -1262,10 +1262,10 @@ support with ivy}.
       (use-package ivy-hydra
         :ensure hydra)
     (use-package historian
-      :ensure t)
+      :straight t)
     (use-package ivy-historian
-      :after historian 
-      :ensure t))
+      :after historian
+      :straight t))
 \end{verbatim}
 
 \paragraph*{Ivy Hydra}
@@ -1281,8 +1281,8 @@ support with ivy}.
 
 \begin{verbatim}
 (use-package ivy-historian
-  :after historian 
-  :ensure t)
+  :after historian
+  :straight t)
 \end{verbatim}
 
 \paragraph*{Counsel}
@@ -1290,7 +1290,7 @@ support with ivy}.
 
 \begin{verbatim}
        (use-package counsel
-         :ensure t
+         :straight t
          :bind
          (("C-c C-r" . ivy-resume)
           ("C-`" . ivy-avy)
@@ -1321,28 +1321,28 @@ support with ivy}.
                    (use-package ivy-hydra
                      :ensure hydra)
                  (use-package historian
-                   :ensure t)
+                   :straight t)
                  (use-package ivy-historian
-                   :after historian 
-                   :ensure t))
+                   :after historian
+                   :straight t))
                (use-package swiper
                :bind
                (("\C-s" . swiper))
                :init
                  (use-package avy
-                   :ensure t))
+                   :straight t))
                (use-package counsel-projectile
-                 :ensure t
+                 :straight t
                  :init
                  (progn
                    (counsel-projectile-on)))
                 (use-package counsel-osx-app
                   :if *is-mac*
-                  :ensure t
+                  :straight t
                   :bind (("C-c o a" . counsel-osx-app)))
                (use-package counsel-dash
                  :if *is-mac*
-                 :ensure t
+                 :straight t
                  :init (defun counsel-dash-at-point ()
                          "Counsel dash with selected point."
                          (interactive)
@@ -1356,7 +1356,7 @@ support with ivy}.
                  (setq counsel-dash-docsets-path
                        (expand-file-name "~/Library/Application\sSupport/Dash/DocSets")))
                (use-package smex
-                 :ensure t
+                 :straight t
                  :init (setq-default smex-history-length 32))))
 \end{verbatim}
 
@@ -1369,7 +1369,7 @@ support with ivy}.
   (("\C-s" . swiper))
   :init
     (use-package avy
-      :ensure t))
+      :straight t))
 \end{verbatim}
 
 \paragraph*{Swiper Avy}
@@ -1377,7 +1377,7 @@ support with ivy}.
 
 \begin{verbatim}
   (use-package avy
-    :ensure t)
+    :straight t)
 \end{verbatim}
 
 \paragraph*{Counsel-Projectile}
@@ -1388,7 +1388,7 @@ friends.
 
 \begin{verbatim}
   (use-package counsel-projectile
-    :ensure t
+    :straight t
     :init
     (progn
       (counsel-projectile-on)))
@@ -1399,7 +1399,7 @@ friends.
 
 \begin{verbatim}
   (use-package smex
-    :ensure t
+    :straight t
     :init (setq-default smex-history-length 32))
 \end{verbatim}
 
@@ -1409,7 +1409,7 @@ friends.
 \begin{verbatim}
    (use-package counsel-osx-app
      :if *is-mac*
-     :ensure t
+     :straight t
      :bind (("C-c o a" . counsel-osx-app)))
 \end{verbatim}
 
@@ -1419,7 +1419,7 @@ friends.
 \begin{verbatim}
   (use-package counsel-dash
     :if *is-mac*
-    :ensure t
+    :straight t
     :init (defun counsel-dash-at-point ()
             "Counsel dash with selected point."
             (interactive)
@@ -1441,7 +1441,7 @@ friends.
 
 \begin{verbatim}
   (use-package deft
-    :ensure t
+    :straight t
     :bind ("C-x C-n" . deft)
     :config
     (setq deft-extensions '("org")
@@ -1456,7 +1456,7 @@ friends.
 \begin{verbatim}
   (use-package wakatime-mode
     :if (and *is-mac* (or (string= (downcase computer-name) "hal") (string= (downcase computer-name) "junior")))
-    :ensure t
+    :straight t
     :init
     (add-hook 'prog-mode-hook 'wakatime-mode)
     :config
@@ -1503,7 +1503,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 \begin{verbatim}
        (use-package smart-cursor-color
-         :ensure t
+         :straight t
          :config
          (smart-cursor-color-mode +1))
 \end{verbatim}
@@ -1525,7 +1525,7 @@ This disables Emacs asking questions about loading a new theme.
 
 \begin{verbatim}
   (use-package zenburn-theme
-    :ensure t
+    :straight t
     :config (load-theme 'zenburn))
 \end{verbatim}
 
@@ -1550,7 +1550,7 @@ Show the time in the modeline.
 
 \begin{verbatim}
   (use-package smart-mode-line
-    :ensure t
+    :straight t
     :init
     (smart-mode-line-enable)
     :config
@@ -1566,7 +1566,7 @@ Show the time in the modeline.
 
 \begin{verbatim}
   (use-package mode-icons
-    :ensure t
+    :straight t
     :if *is-gui*
     :after smart-mode-line
     :config
@@ -1581,21 +1581,21 @@ Show the time in the modeline.
 \begin{verbatim}
   (use-package all-the-icons
     :if *is-gui*
-    :ensure t
+    :straight t
     :init
     (unless (straight-check-package "all-the-icons")
       (all-the-icons-install-fonts)))
 
   (use-package all-the-icons-ivy
       :after all-the-icons ivy
-      :ensure t
+      :straight t
       :if *is-gui*
       :init
       (all-the-icons-ivy-setup))
 
   (use-package all-the-icons-dired
     :if *is-gui*
-    :ensure t
+    :straight t
     :config
     (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 \end{verbatim}
@@ -1607,7 +1607,7 @@ Show the time in the modeline.
 
 \begin{verbatim}
 (use-package multi-term
-       :ensure t
+       :straight t
        :bind
        (("C-c M-RET t" . multi-term)
 	("C-c M-RET p" . multi-term-prev)
@@ -1642,7 +1642,7 @@ Use the default monospaced font for each operating system.
 
 \begin{verbatim}
   (use-package sunshine
-    :ensure t
+    :straight t
     :config
     (setq sunshine-location "90024,USA"))
 \end{verbatim}
@@ -1652,7 +1652,7 @@ Use the default monospaced font for each operating system.
 
 \begin{verbatim}
   (use-package theme-changer
-    :ensure t
+    :straight t
     :config
     (change-theme 'zenburn-theme 'anti-zenburn-theme))
 \end{verbatim}
@@ -1662,7 +1662,7 @@ Use the default monospaced font for each operating system.
 
 \begin{verbatim}
   (use-package emojify
-    :ensure t
+    :straight t
     :init (global-emojify-mode))
 \end{verbatim}
 
@@ -1684,7 +1684,7 @@ As a git client though, magit is awesome.
 
 \begin{verbatim}
   (use-package magit
-    :ensure t
+    :straight t
     :bind (("C-c v b" . magit-blame)
            ("C-c v C" . magit-clone)
            ("C-c v c" . magit-checkout)
@@ -1705,7 +1705,7 @@ As a git client though, magit is awesome.
 \begin{verbatim}
   (use-package magithub
     :after magit
-    :ensure t
+    :straight t
     :commands magithub-dispatch-popup
     :bind (:map magit-status-mode-map
                 ("@" . magithub-dispatch-popup))
@@ -1724,7 +1724,7 @@ optionally \texttt{user} and \texttt{repo} scopes.
 
 \begin{verbatim}
   (use-package gist
-    :ensure t
+    :straight t
     :bind (("C-c C-g l" . gist-list)
            ("C-c C-g r" . gist-region)
            ("C-c C-g b" . gist-buffer)
@@ -1740,7 +1740,7 @@ Travel back in time (to your last commit).
 
 \begin{verbatim}
   (use-package git-timemachine
-    :ensure t
+    :straight t
     :bind
     ("C-x v t" . git-timemachine-toggle)
     :config
@@ -1754,7 +1754,7 @@ Pop-up feature for viewing the last git commit.
 
 \begin{verbatim}
   (use-package git-messenger
-    :ensure t
+    :straight t
     :bind
     (("C-c v m" . git-messenger:popup-message)))
 \end{verbatim}
@@ -1764,7 +1764,7 @@ Pop-up feature for viewing the last git commit.
 
 \begin{verbatim}
   (use-package git-modes
-    :ensure t)
+    :straight t)
 \end{verbatim}
 \subsection*{Web Browsing}
 \label{sec:org8ac190d}
@@ -1776,7 +1776,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 \begin{verbatim}
   (use-package osx-browse
-    :ensure t
+    :straight t
     :if *is-mac*
     :config
     (osx-browse-mode 1))
@@ -1870,11 +1870,11 @@ offers more meaningful semantics.
 
 \begin{verbatim}
   (use-package paredit
-    :ensure t
+    :straight t
     :diminish paredit-mode
     :config
     (use-package eldoc
-      :ensure t
+      :straight t
       :config
       (eldoc-add-command
        'paredit-backward-delete
@@ -1895,7 +1895,7 @@ haystack, smartparens are a great productivity tool.
 
 \begin{verbatim}
   (use-package smartparens
-    :ensure t
+    :straight t
     :init
     (require 'smartparens-config))
 \end{verbatim}
@@ -1907,7 +1907,7 @@ Minor mode to highlight s-expresion.
 
 \begin{verbatim}
   (use-package hl-sexp
-    :ensure t)
+    :straight t)
 \end{verbatim}
 
 \subsubsection*{Common-Lisp}
@@ -1934,7 +1934,7 @@ Configuration for emacs-lisp.
   (use-package slime
     :commands slime
     :defines (slime-complete-symbol*-fancy slime-completion-at-point-functions)
-    :ensure t
+    :straight t
     :if *is-mac*
     :init
     (progn
@@ -1961,7 +1961,7 @@ Provides key bindings and code colorization for Clojure(Script).
 
 \begin{verbatim}
   (use-package clojure-mode
-    :ensure t
+    :straight t
     :mode (("\\.edn$" . clojure-mode)
            ("\\.cljs$" . clojurescript-mode)
            ("\\.cljx$" . clojurex-mode)
@@ -1969,11 +1969,11 @@ Provides key bindings and code colorization for Clojure(Script).
     :config
     (add-hook 'clojure-mode-hook #'enable-paredit-mode)
       (use-package cljsbuild-mode
-        :ensure t
+        :straight t
         :init
         (add-to-hooks #'cljsbuild-mode '(clojure-mode clojurescript-mode)))
       (use-package elein
-        :ensure t))
+        :straight t))
 \end{verbatim}
 
 \paragraph*{ClojureScript}
@@ -1985,7 +1985,7 @@ Minor mode offering \texttt{lein cljsbuild} commands for the Leiningen \href{htt
 
 \begin{verbatim}
   (use-package cljsbuild-mode
-    :ensure t
+    :straight t
     :init
     (add-to-hooks #'cljsbuild-mode '(clojure-mode clojurescript-mode)))
 \end{verbatim}
@@ -1997,7 +1997,7 @@ Minor mode offering \texttt{lein cljsbuild} commands for the Leiningen \href{htt
 
 \begin{verbatim}
   (use-package elein
-    :ensure t)
+    :straight t)
 \end{verbatim}
 
 \paragraph*{Clojure Mode Extra Font Locking}
@@ -2008,7 +2008,7 @@ Additional syntax highlighting for \texttt{clojure-mode}.
 
 \begin{verbatim}
   (use-package clojure-mode-extra-font-locking
-    :ensure t)
+    :straight t)
 \end{verbatim}
 
 \paragraph*{Cider (\href{https://github.com/clojure-emacs/cider}{repository})}
@@ -2018,7 +2018,7 @@ Provides integration with a Clojure repl.
 
 \begin{verbatim}
   (use-package cider
-    :ensure t
+    :straight t
     :after company
     :config
     (setq cider-repl-history-file "~/.emacs.d/cider-history"
@@ -2051,7 +2051,7 @@ and do macro-expansion.
 
 \begin{verbatim}
   (use-package inf-clojure
-    :ensure t
+    :straight t
     :init
     (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
 \end{verbatim}
@@ -2074,7 +2074,7 @@ It uses \href{https://github.com/jonase/eastwood}{eastwood}, \href{http://typedc
 
 \begin{verbatim}
   (use-package flycheck-clojure
-    :ensure t
+    :straight t
     :after cider flycheck
     :config
     (flycheck-clojure-setup))
@@ -2119,7 +2119,7 @@ Let's give this \href{https://github.com/typedclojure/typed-clojure-mode}{guy} a
 
 \begin{verbatim}
   (use-package typed-clojure-mode
-     :ensure t
+     :straight t
      :after clojure-mode
      :init
      (add-hook 'clojure-mode-hook 'typed-clojure-mode))
@@ -2151,7 +2151,7 @@ CIDER eldoc information.
 
 \begin{verbatim}
   (use-package flycheck-pos-tip
-    :ensure t
+    :straight t
     :after flycheck
     :init
     (flycheck-pos-tip-mode)
@@ -2167,7 +2167,7 @@ CIDER eldoc information.
 
 \begin{verbatim}
   (use-package eclim
-    :ensure t
+    :straight t
     :if (eq system-type 'darwin)
     ;; load my forked version
     ;; :load-path "site-lisp/emacs-eclim/"
@@ -2231,7 +2231,7 @@ CIDER eldoc information.
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)
       ;; Company AucTeX
         (use-package company-auctex
-          :ensure t
+          :straight t
           :init
           (company-auctex-init))
       ;; RefTeX
@@ -2242,10 +2242,10 @@ CIDER eldoc information.
                 reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
       (jchaffin/init-reftex)
       ;; Bibtex Config
-      
+
       ;; Magic Latex Buffer
         (use-package magic-latex-buffer
-          :ensure t
+          :straight t
           :init
           (progn
             (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
@@ -2257,20 +2257,20 @@ CIDER eldoc information.
       ;; Latex Preview Pane
       ;; buggy
       ;;   (use-package latex-preview-pane
-      ;;     :ensure t
+      ;;     :straight t
       ;;     :config (latex-preview-pane-enable))
 
       ;; Org Edit Latex Buffer
         (use-package org-edit-latex
-          :ensure t)
+          :straight t)
       ;; Latex Extra
       (use-package latex-extra
-        :ensure t
+        :straight t
         :init
         (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
       ;; Auctex latexmk
       (use-package auctex-latexmk
-        :ensure t
+        :straight t
         :config
         (setq auctex-latexmk-inherit-TeX-PDF-mode t))
       ))
@@ -2295,7 +2295,7 @@ CIDER eldoc information.
 
 \begin{verbatim}
 (use-package latex-extra
-  :ensure t
+  :straight t
   :init
   (add-hook 'LaTeX-mode-hook 'latex-extra-mode))
 \end{verbatim}
@@ -2305,7 +2305,7 @@ CIDER eldoc information.
 
 \begin{verbatim}
   (use-package latex-preview-pane
-    :ensure t
+    :straight t
     :config (latex-preview-pane-enable))
 \end{verbatim}
 
@@ -2314,7 +2314,7 @@ CIDER eldoc information.
 
 \begin{verbatim}
   (use-package company-auctex
-    :ensure t
+    :straight t
     :init
     (company-auctex-init))
 \end{verbatim}
@@ -2324,7 +2324,7 @@ CIDER eldoc information.
 
 \begin{verbatim}
   (use-package org-edit-latex
-    :ensure t)
+    :straight t)
 \end{verbatim}
 
 \paragraph*{Magic Latex Buffer}
@@ -2334,7 +2334,7 @@ Prettify dedicated org-mode latex buffers.
 
 \begin{verbatim}
   (use-package magic-latex-buffer
-    :ensure t
+    :straight t
     :init
     (progn
       (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
@@ -2350,7 +2350,7 @@ Prettify dedicated org-mode latex buffers.
 
 \begin{verbatim}
 (use-package auctex-latexmk
-  :ensure t
+  :straight t
   :config
   (setq auctex-latexmk-inherit-TeX-PDF-mode t))
 \end{verbatim}
@@ -2378,7 +2378,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 \#+texinfo-config
 \begin{verbatim}
   (use-package texinfo
-    :ensure t
+    :straight t
     :defines texinfo-section-list
     :commands texinfo-mode
     :init
@@ -2392,19 +2392,19 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 \begin{verbatim}
     (use-package js2-mode
-      :ensure t
+      :straight t
       :mode (("\\.js\\'" . js2-mode))
       :config
       (setq js-indent-level 2))
     (use-package coffee-mode
-      :ensure t
+      :straight t
       :mode ("\\.coffee\\'" . coffee-mode))
     (use-package json-mode
       :defer t
-      :ensure t
+      :straight t
       :mode (("\\.json\\'" . json-mode)))
     (use-package tern
-      :ensure t
+      :straight t
       :after js2-mode
       :init (add-hook 'js2-mode-hook 'tern-mode))
 \end{verbatim}
@@ -2414,7 +2414,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 \begin{verbatim}
   (use-package js2-mode
-    :ensure t
+    :straight t
     :mode (("\\.js\\'" . js2-mode))
     :config
     (setq js-indent-level 2))
@@ -2426,7 +2426,7 @@ Real jsx support.
 
 \begin{verbatim}
   (use-package rjsx-mode
-    :ensure t
+    :straight t
     :mode "\\.jsx\\'")
 \end{verbatim}
 
@@ -2437,7 +2437,7 @@ Real jsx support.
 
 \begin{verbatim}
   (use-package tern
-    :ensure t
+    :straight t
     :after js2-mode
     :init (add-hook 'js2-mode-hook 'tern-mode))
 \end{verbatim}
@@ -2449,7 +2449,7 @@ Tern backend using company.
 
 \begin{verbatim}
   (use-package company-tern
-    :ensure t
+    :straight t
     :init
     (add-to-list 'company-backends 'company-tern)
     :config
@@ -2463,7 +2463,7 @@ Tern backend using company.
 \begin{verbatim}
   (use-package json-mode
     :defer t
-    :ensure t
+    :straight t
     :mode (("\\.json\\'" . json-mode)))
 \end{verbatim}
 
@@ -2485,7 +2485,7 @@ React layer.
 
 \begin{verbatim}
   (use-package coffee-mode
-    :ensure t
+    :straight t
     :mode ("\\.coffee\\'" . coffee-mode))
 \end{verbatim}
 
@@ -2494,7 +2494,7 @@ React layer.
 
 \begin{verbatim}
   (use-package add-node-modules-path
-    :ensure t
+    :straight t
     :defer t
     :init
     (add-hook 'js2-mode-hook #'add-node-modules-path))
@@ -2505,7 +2505,7 @@ React layer.
 
 \begin{verbatim}
   (use-package npm-mode
-    :ensure t
+    :straight t
     :defer t)
 \end{verbatim}
 \paragraph*{Enable syntax checking in \texttt{js-mode} and related mode buffers.}
@@ -2523,7 +2523,7 @@ React layer.
 
 \begin{verbatim}
   (use-package web-mode
-    :ensure t
+    :straight t
     :bind (:map web-mode-map
                 ("M-n" . web-mode-tag-match))
     :mode
@@ -2573,26 +2573,26 @@ React layer.
       (add-hook 'web-mode-hook #'jchaffin/web-mode-indent)
 
         (use-package tagedit
-          :ensure t
+          :straight t
           :diminish tagedit-mode
           :config
           (progn
             (tagedit-add-experimental-features)
             (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
-      
+
         (use-package emmet-mode
-          :ensure t
+          :straight t
           :defer t
           :init
           (add-to-hooks 'emmet-mode '(css-mode-hook
                                      html-mode-hook
                                      web-mode-hook)))
         (use-package company-web
-          :ensure t
+          :straight t
           :init
           (progn
               (use-package company-tern
-                :ensure t
+                :straight t
                 :init
                 (add-to-list 'company-backends 'company-tern)
                 :config
@@ -2602,9 +2602,9 @@ React layer.
               "Autocompletion hook for web-mode"
               (set (make-local-variable 'company-backends)
                    '(company-tern company-web-html company-yasnippet company-files)))
-      
+
             (add-hook 'web-mode-hook #'jchaffin/company-web-mode-hook)
-      
+
             ;; Enable JavaScript completion between <script>...</script> etc.
             (defadvice company-tern (before web-mode-set-up-ac-sources activate)
               "Set `tern-mode' based on current language before running company-tern."
@@ -2622,7 +2622,7 @@ React layer.
 
 \begin{verbatim}
   (use-package emmet-mode
-    :ensure t
+    :straight t
     :defer t
     :init
     (add-to-hooks 'emmet-mode '(css-mode-hook
@@ -2637,7 +2637,7 @@ React layer.
 
 \begin{verbatim}
   (use-package tagedit
-    :ensure t
+    :straight t
     :diminish tagedit-mode
     :config
     (progn
@@ -2652,7 +2652,7 @@ React layer.
 
 \begin{verbatim}
   (use-package css-mode
-    :ensure t
+    :straight t
     :defer t
     :commands css-expand-statment css-contract-statement
     :bind (("C-c c z" . css-contract-statement)
@@ -2686,7 +2686,7 @@ React layer.
 
 \begin{verbatim}
   (use-package css-less-mode
-    :ensure t
+    :straight t
     :mode ("\\.less\\'" . less-css-mode))
 \end{verbatim}
 
@@ -2695,7 +2695,7 @@ React layer.
 
 \begin{verbatim}
   (use-package sass-mode
-    :ensure t
+    :straight t
     :mode ("\\.sass\\'" . sass-mode))
 \end{verbatim}
 
@@ -2704,7 +2704,7 @@ React layer.
 
 \begin{verbatim}
   (use-package scss-mode
-    :ensure t
+    :straight t
     :mode ("\\.scss\\'" . scss-mode))
 \end{verbatim}
 
@@ -2718,11 +2718,11 @@ and slim-mode using company.
 
 \begin{verbatim}
   (use-package company-web
-    :ensure t
+    :straight t
     :init
     (progn
         (use-package company-tern
-          :ensure t
+          :straight t
           :init
           (add-to-list 'company-backends 'company-tern)
           :config
@@ -2759,7 +2759,7 @@ and slim-mode using company.
 \#+NAME markdown-mode-config
 \begin{verbatim}
   (use-package markdown-mode
-    :ensure t
+    :straight t
     :commands (markdown-mode gfm-mode)
     :mode (("README\\.md\\'" . gfm-mode)
            ("\\.md\\'" . markdown-mode)
@@ -2778,7 +2778,7 @@ and slim-mode using company.
 \begin{verbatim}
   (use-package markdown-mode+
     :if *is-mac*
-    :ensure t)
+    :straight t)
 \end{verbatim}
 \subsubsection*{Ruby}
 \label{sec:org9fe9e03}
@@ -2802,7 +2802,7 @@ and slim-mode using company.
 
 \begin{verbatim}
   (use-package dockerfile-mode
-    :ensure t
+    :straight t
     :mode ( "Dockerfile\\'" .  dockerfile-mode))
 \end{verbatim}
 \end{document}
