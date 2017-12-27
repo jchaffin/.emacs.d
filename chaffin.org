@@ -2545,7 +2545,7 @@ Pop-up feature for viewing the last git commit.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package git-modes
-:straight t)
+  :straight t)
 #+END_SRC
 
 *** TODO Mercurial
@@ -2559,10 +2559,10 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package osx-browse
-:straight t
-:if *is-mac*
-:init
-(osx-browse-mode 1))
+  :straight t
+  :if *is-mac*
+  :init
+  (osx-browse-mode 1))
 #+END_SRC
 
 *** TODO google-search-query-at-point
@@ -3062,7 +3062,7 @@ of the current paragraph."
 
 **** Bibtex
 
-#+NAME bibtex-config
+#+NAME: bibtex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq bibtex-autokey-year-length 2
       bibtex-autokey-name-year-separator "-"
