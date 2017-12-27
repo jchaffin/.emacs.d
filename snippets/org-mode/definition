@@ -1,0 +1,7 @@
+# -*- mode: org-mode -*-
+# name: definition
+# key: <d
+# --
+#+BEGIN_DEFINITION
+$1
+#+END_DEFINITION
