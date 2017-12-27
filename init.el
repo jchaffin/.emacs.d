@@ -27,7 +27,7 @@
 
 ;;; Code
 
-(if (eq system-type 'darwin)
+(if (eq system-type (or 'darwin 'gnu/linux))
     ;; On macOS, use straight.el as package manager
     ;; https://github.com/raxod502/straight.el
     ;; and tangle literate configuration file.

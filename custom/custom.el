@@ -1,6 +1,4 @@
-(setq org-agenda-files '("~/Dropbox/Documents/Courses/FTV_108/org/TODOS.org"
-			 "~/Dropbox/Documents/Courses/PHILO_31/org/TODOS.org"
-			 "~/Dropbox/Documents/Courses/LING_20/org/TODOS.org"))
+(setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -8,7 +6,15 @@
  ;; If there is more than one, they won't work right.
  '(safe-local-variable-values
    (quote
-    ((org-ref-default-bibliography . ftv108-term-paper\.bib)
+    ((eval bibtex-set-dialect
+	   (quote bibtex))
+     (org-image-actual-width)
+     (eval bibtex-set-dialect
+	   (quote biblatex))
+     (cider-cljs-lein-repl . "(do (user/go) (user/cljs-repl))")
+     (cider-refresh-after-fn . "reloaded.repl/resume")
+     (cider-refresh-before-fn . "reloaded.repl/suspend")
+     (org-ref-default-bibliography . ftv108-term-paper\.bib)
      (org-ref-pdf-directory concat
 			    (file-name-directory
 			     (buffer-file-name))
