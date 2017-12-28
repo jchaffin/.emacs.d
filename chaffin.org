@@ -66,9 +66,6 @@
       - [[#org-pdf-view][Org PDF View]]
     - [[#org-export][Org Export]]
       - [[#latex-backend][LaTeX Backend]]
-      - [[#github-flavored-markdown][GitHub Flavored Markdown]]
-      - [[#org-youtube][Org YouTube]]
-      - [[#ox-extra][Ox Extra]]
   - [[#better-defaults][(Better) Defaults]]
     - [[#better-utilities][Better Utilities]]
       - [[#better-dired][Better Dired]]
@@ -136,10 +133,8 @@
       - [[#ivy-all-the-icons][Ivy All the Icons]]
     - [[#terminal][Terminal]]
       - [[#multi-term][Multi-Term]]
-    - [[#fit-frame][Fit Frame]]
     - [[#frame-font][Frame Font]]
     - [[#sunshine][Sunshine]]
-    - [[#theme-changer][Theme Changer]]
     - [[#emojify][Emojify]]
   - [[#version-control][Version Control]]
     - [[#magit][Magit]]
@@ -1144,75 +1139,6 @@ configuration.
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-****** Film Term Paper Class                           :noexport:ignore:
-
-#+NAME: org-export-latex-ftv108-term-paper-class
-#+BEGIN_SRC emacs-lisp :tangle no
-(add-to-list 'org-latex-classes
-	     '("ftv108-term-paper"
-	       "\\documentclass{ftv108-term-paper}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-	       ("\\section{%s}" . "\\section*{%s}")
-	       ("\\subsection{%s}" . "\\subsection*{%s}")
-	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-**** GitHub Flavored Markdown
-
-#+NAME: org-export-gfm
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package ox-gfm
-  :straight t
-  :init
-  (with-eval-after-load 'org-mode
-    (require 'ox-gfm)))
-#+END_SRC
-
-**** Org YouTube
-
-From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
-
-Embed YouTube Links in iframe.
-
-#+NAME: org-export-youtube
-#+BEGIN_SRC emacs-lisp :tangle no
-(defvar yt-iframe-format
-  ;; You may want to change your width and height.
-  (concat "<iframe width=\"440\""
-          " height=\"335\""
-          " src=\"https://www.youtube.com/embed/%s\""
-          " frameborder=\"0\""
-          " allowfullscreen>%s</iframe>"))
-
-(org-add-link-type
- "yt"
- (lambda (handle)
-   (browse-url
-    (concat "https://www.youtube.com/embed/"
-            handle)))
- (lambda (path desc backend)
-   (cl-case backend
-     (html (format yt-iframe-format
-                   path (or desc "")))
-     (latex (format "\href{%s}{%s}"
-                    path (or desc "video"))))))
-#+END_SRC
-
-**** Ox Extra
-
-Ignores headlines tagged "ignore". Unlike "noexport", the contents and
-subtrees of the ignored headlines will be retained.
-
-#+NAME: org-export-ox-extra
-#+BEGIN_SRC emacs-lisp :tangle no
-
-(require 'ox-extra)
-(ox-extras-activate '(ignore-headlines))
-
-#+END_SRC
 
 ** (Better) Defaults
 *** Better Utilities
@@ -2413,15 +2339,6 @@ is on.
 	    shell-file-name))))
 #+END_SRC
 
-*** Fit Frame                                                      :ignore:
-
-#+BEGIN_SRC emacs-lisp :tangle no :exports none :results none
-(use-package fit-frame
-  :straight t
-  :config
-  (add-hook 'after-make-frame-functions 'fit-frame))
-#+END_SRC
-
 *** Frame Font
 
 Use the default monospaced font for each operating system.
@@ -2439,20 +2356,11 @@ Use the default monospaced font for each operating system.
 
 *** Sunshine
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package sunshine
   :straight t
   :config
   (setq sunshine-location "90024,USA"))
-#+END_SRC
-
-*** Theme Changer
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package theme-changer
-  :straight t
-  :config
-  (change-theme 'zenburn-theme 'anti-zenburn-theme))
 #+END_SRC
 
 *** Emojify
