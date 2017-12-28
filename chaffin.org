@@ -30,6 +30,9 @@
       - [[#buffer-list-names][Buffer List Names]]
       - [[#count-windows][Count Windows]]
       - [[#copy-file-path][Copy File Path]]
+      - [[#list-directory-contents-without-wildcards][List Directory Contents without wildcards]]
+      - [[#resolve-path-relative-to-user-emacs-directory][Resolve Path Relative to user-emacs-directory]]
+      - [[#explore-a-local-repository][Explore a local repository]]
   - [[#environment][Environment]]
     - [[#macos][macOS]]
       - [[#computer-name][Computer Name]]
@@ -77,7 +80,7 @@
     - [[#better-display][Better Display]]
       - [[#page-break-lines][Page Break Lines]]
       - [[#splash-screen-replacement][Splash Screen Replacement.]]
-      - [[#inhibit-scratch-buffer][Inhibit Scratch Buffer]]
+      - [[#initial-startup-display][Initial Startup Display]]
       - [[#menu-bar-tool-bar-scroll-bar][Menu Bar, Tool Bar, Scroll Bar]]
       - [[#truncate-lines][Truncate Lines]]
     - [[#better-garbage-collection][Better Garbage Collection]]
@@ -480,6 +483,56 @@ buffer.
 		    (with-temp-buffer
 		      (insert s)
 		      (kill-region (point-min) (point-max))))))
+#+END_SRC
+
+**** List Directory Contents without wildcards
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+;; (defun directory-files-no-wildcards (directory &optional full nosort)
+;;   (let ((match "^\\([^\s]\\|[^.]\\|\\.[^.]\\|\\.\\..\\)"))
+;;     (directory-files directory full match nosort)))
+
+(defun directory-files-no-wildcards (directory &optional full nosort)
+  (seq-filter (lambda (x)
+		(not
+		 (or (string-empty-p (string-trim x))
+		     (or (string= "." x)
+			 (string= ".." x)))))
+	      (directory-files directory full nil nosort)))
+#+END_SRC
+
+**** Resolve Path Relative to user-emacs-directory
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun emacs-directory (path)
+  (let* ((user-emacs-directory* (or user-emacs-directory "~/.emacs.d/")))
+    (concat
+     (file-name-as-directory user-emacs-directory*)
+     path)))
+#+END_SRC
+
+**** Explore a local repository 
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun go-to-repo--ivy ()
+  (let ((repo-dir "~/.emacs.d/straight/repos/"))
+
+    (ivy-read
+     "Go to Package Directory: "
+     (directory-files repo-dir)
+     :action (lambda (package)
+	       (let ((default-directory (concat
+					 (file-name-as-directory
+					  repo-dir)
+					 package)))
+		 (dired default-directory))))))
+
+
+(defun go-to-repo ()
+  (interactive)
+  (if (eq completing-read-function 'ivy-completing-read)
+      (go-to-repo--ivy)
+    (message "Currently this operating only supports the Ivy completion framework.")))
 #+END_SRC
 
 ** Environment
@@ -1165,11 +1218,13 @@ subtrees of the ignored headlines will be retained.
 *** Better Utilities
 **** Better Dired
 ***** Reuse dired buffer when moving to parent directory
-From
-[[https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer][emacswiki.org - Dired Reuse Directory Buffer]]:
+
+From [[https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer][emacswiki.org]]
 
 #+BEGIN_QUOTE
-When moving to parent directory by `^´, Dired by default creates a new buffer for each movement up. The following rebinds `^´ to use the same buffer.
+When moving to parent directory by `^´, Dired by default creates a new
+buffer for each movement up. The following rebinds `^´ to use the same
+buffer.
 #+END_QUOTE
 
 
@@ -1181,6 +1236,7 @@ When moving to parent directory by `^´, Dired by default creates a new buffer f
 #+END_SRC
 
 ***** Use other dired buffer as default directory
+
 When split frames with two dired buffers, default to the other buffer
 as the current directory.
 
@@ -1253,7 +1309,6 @@ from within Emacs.
 #+END_SRC
 
 *** Better Help
-
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 
@@ -1328,12 +1383,23 @@ list that one may use in the wacky world of Emacs.
       
 #+END_SRC
 
-**** Inhibit Scratch Buffer
+**** Initial Startup Display
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq initial-scratch-message nil
       inhibit-startup-message t
       inhibit-startup-screen t)
+#+END_SRC
+
+***** Startup Message
+
+Replace the startup-echo-area-message with the version info of the
+current Emacs distribution. 
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defalias #'startup-echo-area-message
+  (lambda ()
+    (replace-regexp-in-string "\n" "" (emacs-version))))
 #+END_SRC
 
 **** Menu Bar, Tool Bar, Scroll Bar
@@ -1791,7 +1857,7 @@ support with ivy]].
 **** Swiper
 
 #+NAME: swiper
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports code
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<swiper-avy>>
 <<swiper-settings>>
 #+END_SRC
@@ -2750,14 +2816,23 @@ Configuration for common-lisp
 <<clojure-mode-config>>
 <<cljsbuild-config>>
 <<elein-config>>
-<<clojure-compojure-config>>
 #+END_SRC
 
 **** Clojure Mode ([[https://gihub.com/clojure-emacs/clojure-mode][repository]])
 
+#+NAME: clojure-mode-config
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+<<clojure-mode-config-base>>
+
+(with-eval-after-load 'clojure-mode
+  <<clojure-mode-config-compojure>>
+  <<clojure-mode-config-om-next>>)
+
+#+END_SRC
+
 Provides key bindings and font-locking for Clojure.
 
-#+NAME: clojure-mode-config
+#+NAME: clojure-mode-config-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package clojure-mode
   :straight t
@@ -2767,20 +2842,21 @@ Provides key bindings and font-locking for Clojure.
 	 ("\\.cljsc$" . clojurec-mode))
   :config
   (progn
+    (setq clojure-indent-style :always-indent)
     (add-hook 'clojure-mode-hook #'enable-paredit-mode)
     (add-hook 'clojure-mode-hook #'prettify-symbols-mode)))
 #+END_SRC
 
-***** Emacs Indentation for Comjoure
+***** Emacs Indentation for Clojure(Script) Libraries
+****** Compojure
 
 [[https://github.com/weavejester/compojure][Compojure]] is a web framework for Clojure and Clojurescript
 applications. This snippet is taken from the [[https://github.com/weavejester/compojure/wiki/Emacs-indentation][Emacs Indentation]] page of
 the repository wiki to provide better indentation for compojure macros.
 
-#+NAME: clojure-compojure-config
+#+NAME: clojure-mode-config-compojure
 #+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'clojure-mode
-  (define-clojure-indent
+(define-clojure-indent
   (defroutes 2)
   (GET 2)
   (POST 2)
@@ -2792,7 +2868,15 @@ the repository wiki to provide better indentation for compojure macros.
   (PATCH 2)
   (rfn 2)
   (let-routes 1)
-  (context 2)))
+  (context 2))
+#+END_SRC
+
+****** Om Next
+
+#+NAME: clojure-mode-config-om-next
+#+BEGIN_SRC emacs-lisp :tangle no
+(put-clojure-indent 'defui '(1 nil nil (1)))
+(put-clojure-indent 'dom/div 1)
 #+END_SRC
 
 **** ClojureScript
@@ -3443,7 +3527,10 @@ React layer.
       (end-of-line)
       (search-backward "{")
       (while (not (looking-at "}"))
-	(join-line -1)))))
+	(join-line -1))))
+
+  :config
+  (setq css-indent-offset 2))
 #+END_SRC
 
 ***** Less
