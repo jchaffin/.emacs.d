@@ -108,11 +108,7 @@
       - [[#ivy-historian][Ivy Historian]]
       - [[#counsel][Counsel]]
       - [[#swiper][Swiper]]
-      - [[#swiper-avy][Swiper Avy]]
-      - [[#counsel-projectile][Counsel-Projectile]]
       - [[#smex][Smex]]
-      - [[#counsel-osx-app][Counsel OSX App]]
-      - [[#counsel-dash][Counsel Dash]]
     - [[#deft][Deft]]
     - [[#wakatime][Wakatime]]
   - [[#user-interface][User Interface]]
@@ -637,7 +633,8 @@ This might come back to bite me one day but I never use them.
 *** Load Secrets
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(load-library (concat user-emacs-directory "secrets/secrets.el.gpg"))
+(when *is-mac*
+  (load-library (concat user-emacs-directory "secrets/secrets.el.gpg")))
 #+END_SRC
 
 *** Use Emacs Terminfo
@@ -700,9 +697,7 @@ Use UTF-8 Bullets for Org-mode headings.
 (use-package org-bullets
   :straight t
   :init
-  (add-hook 'org-mode-hook
-	    (lambda ()
-	      (org-bullets-mode 1))))
+  (org-bullets-mode))
 #+END_SRC
 
 **** Org Beautify Theme
@@ -714,13 +709,14 @@ Use UTF-8 Bullets for Org-mode headings.
 
 #+NAME: org-prettify-ob-theme
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-beautify-theme
-  :straight t
-  :config
-  (progn
-    (setq org-beautify-theme-use-box-hack nil)
-    (add-to-list 'custom-enabled-themes 'org-beautify)
-    (load-theme 'org-beautify t)))
+(when *is-gui*
+  (use-package org-beautify-theme
+    :straight t
+    :config
+    (progn
+      (setq org-beautify-theme-use-box-hack nil)
+      (add-to-list 'custom-enabled-themes 'org-beautify)
+      (load-theme 'org-beautify t))))
 #+END_SRC
 
 
@@ -1346,9 +1342,9 @@ Disabling it will just empty the menu tab options for Emacs.app,
 so we'll leave it there.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
-  (unless (eq system-type 'darwin)
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+(unless *is-mac*
   (menu-bar-mode -1))
 #+END_SRC
 
@@ -1786,32 +1782,7 @@ support with ivy]].
       <<smex-config>>))
 #+END_SRC
 
-#+RESULTS: counsel
-
-**** Swiper
-
-#+NAME: swiper
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports code
-<<swiper-avy>>
-<<swiper-settings>>
-#+END_SRC
-
-#+NAME: swiper-settings
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-(use-package swiper
-  :bind
-  (("\C-s" . swiper)))
-#+END_SRC
-
-**** Swiper Avy
-
-#+NAME: swiper-avy
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package avy
-  :straight t)
-#+END_SRC
-
-**** Counsel-Projectile
+***** Counsel-Projectile
 
 [[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
 friends.
@@ -1825,16 +1796,7 @@ friends.
   (counsel-projectile-mode))
 #+END_SRC
 
-**** Smex
-
-#+NAME: smex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package smex
-  :straight t
-  :init (setq-default smex-history-length 32))
-#+END_SRC
-
-**** Counsel OSX App
+***** Counsel OSX App
 
  #+NAME: counsel-osx-app-config
  #+BEGIN_SRC emacs-lisp :tangle no
@@ -1844,7 +1806,7 @@ friends.
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
 
-**** Counsel Dash
+***** Counsel Dash
 
 #+NAME: counsel-dash-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1881,7 +1843,7 @@ friends.
 
 #+END_SRC
 
-***** Counsel Dash Replacement
+****** Counsel Dash Replacement
 
 Counsel Dash is a wrapper around helm-dash. Helm-dash depends on helm,
 which defeats the purpose of using a lightweight alternative such as
@@ -1930,6 +1892,40 @@ a dependency.
 	   (region-end))
 	(substring-no-properties (or (thing-at-point 'symbol) "")))))))
 #+END_SRC
+
+**** Swiper
+
+#+NAME: swiper
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports code
+<<swiper-avy>>
+<<swiper-settings>>
+#+END_SRC
+
+#+NAME: swiper-settings
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(use-package swiper
+  :bind
+  (("\C-s" . swiper)))
+#+END_SRC
+
+***** Swiper Avy
+
+#+NAME: swiper-avy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package avy
+  :straight t)
+#+END_SRC
+
+**** Smex
+
+#+NAME: smex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package smex
+  :straight t
+  :init (setq-default smex-history-length 32))
+#+END_SRC
+
+
 
 *** Deft
 
@@ -2013,13 +2009,13 @@ This disables Emacs asking questions about loading a new theme.
 
 #+NAME: zenburn-theme-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package zenburn-theme
-  :straight t
-  :config (load-theme 'zenburn))
+(when *is-gui*
+  (use-package zenburn-theme
+    :straight t
+    :config (load-theme 'zenburn)))
 #+END_SRC
 
 **** TODO Contrasting theme for use with =sunshine.el=.           :ignore:
-
 ***** Anti Zenburn Theme
 
 
