@@ -10,6 +10,7 @@
 - [[#configuration][Configuration]]
   - [[#preface][Preface]]
     - [[#about][About]]
+      -  [[#literate-programming][Literate Programming]]
     - [[#influences][Influences]]
   - [[#package-management][Package Management]]
     - [[#straightel][straight.el]]
@@ -40,6 +41,7 @@
       - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
       - [[#osx-dictionary][OSX Dictionary]]
       - [[#exec-path-from-shell][Exec Path From Shell]]
+      - [[#open-with][Open With]]
     - [[#other-operating-systems][Other Operating Systems]]
       - [[#windowspc][Windows/PC]]
       - [[#linux][Linux]]
@@ -105,10 +107,8 @@
       - [[#company-dict][Company Dict]]
   - [[#utilities][Utilities]]
     - [[#image][Image+]]
-    - [[#ivy][Ivy]]
-      - [[#ivy-config][Ivy Config]]
-      - [[#ivy-hydra][Ivy Hydra]]
-      - [[#ivy-historian][Ivy Historian]]
+    - [[#completion-framework][Completion Framework]]
+      - [[#ivy][Ivy]]
       - [[#counsel][Counsel]]
       - [[#swiper][Swiper]]
       - [[#smex][Smex]]
@@ -149,7 +149,7 @@
       - [[#ah][ah]]
   - [[#web-browsing][Web Browsing]]
     - [[#osx-browse][osx-browse]]
-    - [[#google-search-query-at-point][google-search-query-at-point]]
+    - [[#google-search-at-point][Google Search at point.]]
     - [[#browse-url-dwim][browse-url-dwim]]
     - [[#google-this][google-this]]
     - [[#google-translate][google-translate]]
@@ -235,7 +235,15 @@
 
 * Configuration
 ** Preface
-*** About
+*** About 
+
+This document contains my entire configuration for the GNU Emacs text
+editor. It written as some combination of travelogue, technical
+notebook, personal journal, and clipboard of woefully shameless
+copy-and-pastes from various online forums.
+
+
+****  Literate Programming
 
 [[https://en.wikipedia.org/wiki/literate_programming][Literate Programming]] is a method of writing computer programs where
 the composition, logic, and structure of the program are optimized for
@@ -571,7 +579,8 @@ filepaths, macOS applications, and external programs.
      (progn
        <<macos-default-settings>>
        <<macos-finder-config>>
-       <<macos-dictionary-config>>))
+       <<macos-dictionary-config>>
+       <<macos-open-with>>))
 #+END_SRC
 
 **** Computer Name
@@ -654,6 +663,117 @@ conditionally loading dependencies.
   :config
   (exec-path-from-shell-initialize)
   (setq exec-path-from-shell-check-startup-files nil))
+#+END_SRC
+
+**** Open With
+
+#+NAME: macos-open-with
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun chaffin/open-with-default-app ()
+  (when buffer-file-name
+    (shell-command (concat
+                    (if (eq system-type 'darwin)
+                        "open"
+                      (read-shell-command "Open current file with: "))
+                    " "
+                    buffer-file-name))))
+
+
+
+(defun chaffin/open-with-sublime-text ()
+  "Opens current buffer or file at point in Sublime Text.app."
+  (interactive)
+  (let* ((path (buffer-file-name))
+         (filename-at-point (dired-file-name-at-point))
+         ;; Create a full path if filename-at-point is non-nil.
+         (filename-at-point (if filename-at-point
+                                (expand-file-name filename-at-point)
+                              nil))
+         dir file)
+
+    (cond (path
+           (setq dir (file-name-directory path))
+           (setq file (file-name-nondirectory path)))
+          (filename-at-point
+           ;; if filename-at-point is available from dired.
+           (setq dir (file-name-directory filename-at-point))
+           (setq file (file-name-nondirectory filename-at-point)))
+
+          (t
+           ;; Otherwise,
+           (setq dir (expand-file-name default-directory))))
+
+    (chaffin//sublime-exec dir file))) ;; end chaffin/open-with-sublime-text
+
+
+
+;; Local function for `chaffin/open-with-sublime-text' function.
+(defun chaffin//sublime-exec (dir file)
+  (interactive)
+  (let* ((revealpath (if file
+                         (concat dir file)
+                       dir)))
+    (view-mode)
+    (view-mode-enable)
+    (message (format "path from `exec-sublime-bin:' %s" revealpath))
+    (shell-command (concat
+                    "subl"
+                    " "
+                    revealpath))))
+;; end chaffin//sublime-exec
+
+(defun chaffin//get-file-dir-or-home ()
+  "If inside a file buffer, return the directory, else return home."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        "~/"
+      (file-name-directory filename))
+    (message filename)))
+
+(defun chaffin/iterm-goto-filedir-or-home ()
+  "Go to current working directory and focus iTerm."
+  (interactive)
+  (do-applescript
+   (concat
+    "tell application \"iTerm\"\n"
+    "  tell the current session of current window\n"
+    (format "  write text \"cd %s\"\n"
+            (replace-regexp-in-string "\\\\" "\\\\\\\\"
+                                      (shell-quote-argument (or default-directory "~"))))
+    "   end tell\n"
+    "end tell\n"
+    "do shell script \"open -a iTerm\"\n")))
+
+(defun chaffin/iterm-focus ()
+  (interactive)
+  (do-applescript
+   " do shell script \"open -a iTerm\"\n"))
+
+(defun chaffin/iterm-shell-command (command &optional prefix)
+  "cd to `default-directory' then run COMMAND in iTerm.
+With PREFIX, cd to project root."
+  (interactive (list (read-shell-command
+                      "iTerm Shell Command: ")
+                     current-prefix-arg))
+  (let* ((dir (if prefix (project-root)
+                default-directory))
+         ;; if COMMAND is empty, just change directory
+         (cmd (format "cd %s ;%s" dir command)))
+    (do-applescript
+     (format
+      (concat
+       "tell application \"iTerm\"\n"
+       "  activate\n"
+       "  set _session to current session of current window\n"
+       "  tell _session\n"
+       "    set command to get the clipboard\n"
+       "    write text \"%s\"\n"
+       "  end tell\n"
+       "end tell")
+      cmd))))
+
+
 #+END_SRC
 
 *** Other Operating Systems
@@ -1636,24 +1756,23 @@ snippets corresponding to the major mode of the current buffer mode.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package flycheck
   :straight t
-  :defer-install t
   :init
   (setq flycheck-global-modes nil)
   :config
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
-		flycheck-emacs-lisp-load-path 'inherit))
+                flycheck-emacs-lisp-load-path 'inherit))
 #+END_SRC
 
 **** Flycheck Color Mode Line
 
-     Colors the modeline according to current Flycheck state of buffer.
+Colors the modeline according to current Flycheck state of buffer.
 
-     #+NAME: flycheck-color-modeline-config
-     #+BEGIN_SRC emacs-lisp :tangle no
-       (use-package flycheck-color-mode-line
-	 :straight t
-	 :init
-	 (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
+#+NAME: flycheck-color-modeline-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-color-mode-line
+  :straight t
+  :init
+  (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
      #+END_SRC
 
 **** Flycheck Package                                           :noexport:
@@ -1662,22 +1781,22 @@ snippets corresponding to the major mode of the current buffer mode.
 
 #+NAME: flycheck-package-config
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package flycheck-package
-    :straight t
-    :init
-    (eval-after-load 'flycheck
-      '(flycheck-package-setup)))
+(use-package flycheck-package
+  :straight t
+  :init
+  (eval-after-load 'flycheck
+    '(flycheck-package-setup)))
 #+END_SRC
 
 **** Flycheck in Org Special Edit Buffers
 
 #+NAME: flycheck-org-special-edit
 #+BEGIN_SRC emacs-lisp :tangle no
-  (defadvice org-edit-src-code (around set-buffer-file-name activate compile)
-    (let ((file-name (buffer-file-name))) ;; (1)
-      ad-do-it                            ;; (2)
-      ;; (3)
-      (setq buffer-file-name file-name)))
+(defadvice org-edit-src-code (around set-buffer-file-name activate compile)
+  (let ((file-name (buffer-file-name))) ;; (1)
+    ad-do-it                            ;; (2)
+    ;; (3)
+    (setq buffer-file-name file-name)))
 #+END_SRC
 
 *** Flyspell
@@ -1716,20 +1835,16 @@ any reason for me reconsider my choice.
   :straight t
   :defer t
   :bind (("TAB" . company-indent-or-complete-common)
-  ("C-c /" . company-files)
-	 ("M-SPC" . company-complete)
-	 (:map company-mode-map
-	       ("M-n" . company-select-next-or-abort)
-	       ("M-p" . company-select-previous-or-abort)))
+         ("C-c /" . company-files)
+         ("M-SPC" . company-complete)
+          (:map company-mode-map
+               ("M-n" . company-select-next-or-abort)
+               ("M-p" . company-select-previous-or-abort)))
   :config
   (progn
-
     <<company-config>>
-
     <<company-quick-help>>
-
     <<company-statistics-config>>
-
     <<company-dict-config>>))
 #+END_SRC
 
@@ -1812,8 +1927,10 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 	 ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
-*** Ivy
-**** Ivy Config
+*** Completion Framework
+**** Ivy
+
+***** Ivy Config
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
 as helm.
 It doesn't have the same kind of ecosystem or interopability,
@@ -1838,7 +1955,7 @@ support with ivy]].
   <<ivy-historian>>)
 #+END_SRC
 
-**** Ivy Hydra
+***** Ivy Hydra
 
 #+NAME: ivy-hydra
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1846,7 +1963,7 @@ support with ivy]].
   :after (hydra))
 #+END_SRC
 
-**** Ivy Historian
+***** Ivy Historian
 
 #+NAME: ivy-historian
 #+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
@@ -2031,26 +2148,27 @@ friends.
 
 #+NAME: counsel-itunes
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package counsel-itunes
-  :straight
-  (counsel-itunes
-   :host github
-   :repo "jchaffin/counsel-itunes")
-  :config
-  (progn
-    ;; make prefix command
-    (define-prefix-command 'counsel-itunes-keymap)
-    (define-key 'chaffin-keymap "i" 'counsel-itunes-keymap)
-    ;; define keymap
-    (define-key 'counsel-itunes-keymap "-"    #'counsel-itunes-volume-down)
-    (define-key 'counsel-itunes-keymap "+"    #'counsel-itunes-volume-up)
-    (define-key 'counsel-itunes-keymap "t"    #'counsel-itunes-tracklist)
-    (define-key 'counsel-itunes-keymap "p"    #'counsel-itunes-play-pause)
-    (define-key 'counsel-itunes-keymap "c"    #'counsel-itunes-current-track)
-    (define-key 'counsel-itunes-keymap "P"    #'counsel-itunes-playlist)
-    (define-key 'counsel-itunes-keymap "n"    #'counsel-itunes-next-track)
-    (define-key 'counsel-itunes-keymap "b"    #'counsel-itunes-previous-track)
-    (define-key 'counsel-itunes-keymap "s"    #'counsel-itunes-shuffle)))
+(when (executable-find "osascript")
+  (use-package counsel-itunes
+    :straight
+    (counsel-itunes
+     :host github
+     :repo "jchaffin/counsel-itunes")
+    :config
+    (progn
+      ;; make prefix command
+      (define-prefix-command 'counsel-itunes-keymap)
+      (define-key 'chaffin-keymap "i" 'counsel-itunes-keymap)
+      ;; define keymap
+      (define-key 'counsel-itunes-keymap "-"    #'counsel-itunes-volume-down)
+      (define-key 'counsel-itunes-keymap "+"    #'counsel-itunes-volume-up)
+      (define-key 'counsel-itunes-keymap "t"    #'counsel-itunes-tracklist)
+      (define-key 'counsel-itunes-keymap "p"    #'counsel-itunes-play-pause)
+      (define-key 'counsel-itunes-keymap "c"    #'counsel-itunes-current-track)
+      (define-key 'counsel-itunes-keymap "P"    #'counsel-itunes-playlist)
+      (define-key 'counsel-itunes-keymap "n"    #'counsel-itunes-next-track)
+      (define-key 'counsel-itunes-keymap "b"    #'counsel-itunes-previous-track)
+      (define-key 'counsel-itunes-keymap "s"    #'counsel-itunes-shuffle))))
 #+END_SRC
 
 **** Swiper
@@ -2078,13 +2196,28 @@ friends.
 
 **** Smex
 
+#+BEGIN_QUOTE
+A smart M-x enhancement for Emacs.
+#+END_QUOTE
+
+This is disabled in the [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Bcompletion/ivy/layers.el][spacemacs ivy layer]] with the following
+commentblock:
+
+#+BEGIN_QUOTE
+;; smex is handled by the `ivy' layer and we don't want
+;; to use the ownership mechanism of layers because it is dependent
+;; on the order of layer declaration
+#+END_QUOTE
+
+Too much "cider" for this programmer to parse that rn.
+
 #+NAME: smex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package smex
   :straight t
-  :init (setq-default smex-history-length 32))
+  :init
+  (setq-default smex-history-length 32))
 #+END_SRC
-
 
 *** Deft
 
@@ -2731,7 +2864,32 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
   (osx-browse-mode 1))
 #+END_SRC
 
-*** TODO google-search-query-at-point
+*** Google Search at point.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun chaffin/google-search-query-at-point (&optional edit-query)
+  "Search for the expression at point in the default web browser.
+If the optional prefix EDIT-QUERY is specified,
+the user will be prompted to edit the search string first."
+  (interactive "P")
+  (let* ((search-prefix "https://google.com/search?q=")
+         (thing (if (thing-at-point 'url)
+                    (thing-at-point-url-at-point)
+                  (concat
+                   search-prefix
+                   (if (use-region-p)
+                       (buffer-substring-no-properties
+                        (region-beginning) (region-end))
+                     (thing-at-point 'word)))))
+         (search (if (or edit-query
+                         (and (>= (length thing) (length search-prefix))
+                              (string= (substring thing (length search-prefix)) "")))
+                     (concat search-prefix
+                             (read-from-minibuffer "Search Query: "))
+                   thing)))
+    (browse-url search)))
+#+END_SRC
+
 *** TODO browse-url-dwim
 *** TODO google-this
 *** TODO google-translate
