@@ -66,6 +66,9 @@
       - [[#org-pdf-view][Org PDF View]]
     - [[#org-export][Org Export]]
       - [[#latex-backend][LaTeX Backend]]
+      - [[#github-flavored-markdown][GitHub Flavored Markdown]]
+      - [[#org-youtube][Org YouTube]]
+      - [[#ox-extra][Ox Extra]]
   - [[#better-defaults][(Better) Defaults]]
     - [[#better-utilities][Better Utilities]]
       - [[#better-dired][Better Dired]]
@@ -108,11 +111,7 @@
       - [[#ivy-historian][Ivy Historian]]
       - [[#counsel][Counsel]]
       - [[#swiper][Swiper]]
-      - [[#swiper-avy][Swiper Avy]]
-      - [[#counsel-projectile][Counsel-Projectile]]
       - [[#smex][Smex]]
-      - [[#counsel-osx-app][Counsel OSX App]]
-      - [[#counsel-dash][Counsel Dash]]
     - [[#deft][Deft]]
     - [[#wakatime][Wakatime]]
   - [[#user-interface][User Interface]]
@@ -133,6 +132,8 @@
       - [[#ivy-all-the-icons][Ivy All the Icons]]
     - [[#terminal][Terminal]]
       - [[#multi-term][Multi-Term]]
+      - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
+      - [[#shell][Shell]]
     - [[#frame-font][Frame Font]]
     - [[#sunshine][Sunshine]]
     - [[#emojify][Emojify]]
@@ -154,10 +155,18 @@
     - [[#google-translate][google-translate]]
   - [[#email][Email]]
     - [[#mu][Mu]]
-  - [[#programming-languages][Programming Languages]]
-    - [[#lisp][Lisp]]
-      - [[#parens][Parens]]
+  - [[#programming-tools][Programming Tools]]
+    - [[#delimiter-pair-matching][Delimiter Pair Matching]]
+      - [[#paredit][Paredit]]
+      - [[#smartparens][Smartparens]]
+      - [[#rainbow-delimiters][Rainbow Delimiters]]
+    - [[#symbol-highlighting][Symbol Highlighting]]
       - [[#hlsexp][Hlsexp]]
+      - [[#highlight-symbol][Highlight Symbol]]
+    - [[#tagging][Tagging]]
+      - [[#ggtags][Ggtags]]
+  - [[#enabled-languages][Enabled Languages]]
+  - [[#programming-languages][Programming Languages]]
     - [[#emacs-lisp][Emacs Lisp]]
     - [[#common-lisp][Common Lisp]]
       - [[#slime][Slime]]
@@ -170,8 +179,20 @@
       - [[#linting-clojure][Linting Clojure]]
       - [[#typed-clojure][Typed Clojure]]
       - [[#flycheck-pos-tip][Flycheck-Pos-Tip]]
+    - [[#groovy][Groovy]]
     - [[#java][Java]]
       - [[#eclim][Eclim]]
+      - [[#gradle][Gradle]]
+      - [[#meghanada][Meghanada]]
+      - [[#ensime][Ensime]]
+      - [[#autodisass-java-bytecode][Autodisass Java Bytecode]]
+      - [[#google-c-style][Google C Style]]
+    - [[#scala][Scala]]
+      - [[#sbt][Sbt]]
+    - [[#c][C++]]
+      - [[#function-args][Function Args]]
+      - [[#irony-mode][Irony Mode]]
+      - [[#cmake-mode][Cmake Mode]]
     - [[#latex][LaTeX]]
       - [[#tex-config][Tex Config]]
       - [[#bibtex][Bibtex]]
@@ -694,7 +715,7 @@ Setting this variable to false forces Emacs to use internal terminfo,
 rather than the system terminfo.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq system-uses-terminfo nil)
+(setq system-uses-terminfo t)
 #+END_SRC
 
 *** Keybindings
@@ -1017,7 +1038,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package org-pdfview
-  :after pdf-tools
+  :after (pdf-tools)
   :bind (:map pdf-view-mode-map
 	    ("C-s" . isearch-forward)
 	    ("h" . pdf-annot-add-highlight-markup-annotation)
@@ -1043,12 +1064,43 @@ Now we can open pdf files with =org-pdfview=[fn:7]:
 
 *** Org Export
 
+#+NAME: org-export-enabled-backends
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defvar chaffin--org-export-enabled-backends '()
+  "alist of symbols representing enabled `org-mode' export backends")
+
+(defun chaffin/org-export-enabled-backend-p (backend)
+  (member backend chaffin--org-export-enabled-backends))
+#+END_SRC
+
+And opt-in to all back ends when on local machine.
+
+#+NAME: org-export-enabled-backends-opt-in
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-mac*
+  (mapcar (lambda (backend)
+	    (setq chaffin--org-export-enabled-backends
+		  (cons backend chaffin--org-export-enabled-backends)))
+	  '(latex gfm yt extra)))
+#+END_SRC
+
 #+NAME: org-export
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-export-latex>>
-<<org-export-gfm>>
-<<org-export-youtube>>
-<<org-export-ox-extra>>
+<<org-export-enabled-backends>>
+<<org-export-enabled-backends-opt-in>>
+
+(when (chaffin/org-export-enabled-backend-p 'latex)
+  <<org-export-latex>>)
+
+(when (chaffin/org-export-enabled-backend-p 'gfm)
+  <<org-export-gfm>>)
+
+(when (chaffin/org-export-enabled-backend-p 'yt)
+  <<org-export-youtube>>)
+
+(when (chaffin/org-export-enabled-backend-p 'extra)
+  <<org-export-ox-extra>>)
+
 #+END_SRC
 
 **** LaTeX Backend
@@ -1116,7 +1168,6 @@ The default cross-referencing and hyperlink styles provided by
 (setq org-latex-hyperref-template "\\hypersetup{\n colorlinks=true,urlcolor=black,linkcolor=black \n}")
 #+END_SRC
 
-
 ***** Custom Classes
 ****** Org Per File Class
 
@@ -1137,6 +1188,60 @@ configuration.
 	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
 	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
+
+**** GitHub Flavored Markdown
+
+#+NAME: org-export-gfm
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ox-gfm
+  :straight t
+  :init
+  (with-eval-after-load 'org-mode
+    (require 'ox-gfm)))
+#+END_SRC
+
+**** Org YouTube
+
+From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
+
+Embed YouTube Links in iframe.
+
+#+NAME: org-export-youtube
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar yt-iframe-format
+  ;; You may want to change your width and height.
+  (concat "<iframe width=\"440\""
+          " height=\"335\""
+          " src=\"https://www.youtube.com/embed/%s\""
+          " frameborder=\"0\""
+          " allowfullscreen>%s</iframe>"))
+
+(org-add-link-type
+ "yt"
+ (lambda (handle)
+   (browse-url
+    (concat "https://www.youtube.com/embed/"
+            handle)))
+ (lambda (path desc backend)
+   (cl-case backend
+     (html (format yt-iframe-format
+                   path (or desc "")))
+     (latex (format "\href{%s}{%s}"
+                    path (or desc "video"))))))
+#+END_SRC
+
+**** Ox Extra
+
+Ignores headlines tagged "ignore". Unlike "noexport", the contents and
+subtrees of the ignored headlines will be retained.
+
+#+NAME: org-export-ox-extra
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(require 'ox-extra)
+(ox-extras-activate '(ignore-headlines))
+
 #+END_SRC
 
 
@@ -1594,7 +1699,7 @@ any reason for me reconsider my choice.
   :straight t
   :defer t
   :bind (("TAB" . company-indent-or-complete-common)
-	 ("C-c /" . company-files)
+  ("C-c /" . company-files)
 	 ("M-SPC" . company-complete)
 	 (:map company-mode-map
 	       ("M-n" . company-select-next-or-abort)
@@ -1675,7 +1780,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 (use-package image+
   :straight t
   :if *is-gui*
-  :after image
+  :after (image)
   :config
   (eval-after-load 'image+
     `(when (require 'hydra nil t)
@@ -1721,7 +1826,7 @@ support with ivy]].
 #+NAME: ivy-hydra
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-hydra
-  :after hydra)
+  :after (hydra))
 #+END_SRC
 
 **** Ivy Historian
@@ -1741,7 +1846,7 @@ support with ivy]].
 #+NAME: ivy-historian-settings
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-historian
-  :after historian
+  :after (historian)
   :straight t)
 #+END_SRC
 
@@ -1775,58 +1880,12 @@ support with ivy]].
       <<swiper>>
       <<counsel-projectile-config>>
       <<counsel-osx-app-config>>
+      <<counsel-ggtags>>
       <<smex-config>>))
 #+END_SRC
 
-#+RESULTS: counsel
 
-**** Swiper
-
-#+NAME: swiper
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<swiper-avy>>
-<<swiper-settings>>
-#+END_SRC
-
-#+NAME: swiper-settings
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-(use-package swiper
-  :bind
-  (("\C-s" . swiper)))
-#+END_SRC
-
-**** Swiper Avy
-
-#+NAME: swiper-avy
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package avy
-  :straight t)
-#+END_SRC
-
-**** Counsel-Projectile
-
-[[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
-friends.
-
-#+NAME: counsel-projectile-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package counsel-projectile
-  :straight t
-  :after projectile
-  :init
-  (counsel-projectile-mode))
-#+END_SRC
-
-**** Smex
-
-#+NAME: smex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package smex
-  :straight t
-  :init (setq-default smex-history-length 32))
-#+END_SRC
-
-**** Counsel OSX App
+***** Counsel OSX App
 
  #+NAME: counsel-osx-app-config
  #+BEGIN_SRC emacs-lisp :tangle no
@@ -1836,7 +1895,7 @@ friends.
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
 
-**** Counsel Dash
+***** Counsel Dash
 
 #+NAME: counsel-dash-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1904,6 +1963,7 @@ a dependency.
 	  (lambda ()
 	    (setq-local dash-plugin-keywords '("java" "scala" "gradle"))))
 
+
 (defun dash-at-point ()
   (interactive)
   (let* ((protocol "dash-plugin://")
@@ -1922,6 +1982,66 @@ a dependency.
 	   (region-end))
 	(substring-no-properties (or (thing-at-point 'symbol) "")))))))
 #+END_SRC
+
+***** Counsel-Projectile
+
+[[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
+friends.
+
+#+NAME: counsel-projectile-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-projectile
+  :straight t
+  :after (projectile)
+  :init
+  (counsel-projectile-mode))
+#+END_SRC
+
+***** Counsel ggtags
+
+#+NAME: counsel-ggtags
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-gtags
+  :straight t
+  :after (ggtags)
+  :init
+  (progn
+    (setq counsel-gtags-ignore-case t
+          counsel-gtags-auto-update t)))
+#+END_SRC
+
+**** Swiper
+
+#+NAME: swiper
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<swiper-avy>>
+<<swiper-settings>>
+#+END_SRC
+
+#+NAME: swiper-settings
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(use-package swiper
+  :bind
+  (("\C-s" . swiper)))
+#+END_SRC
+
+***** Swiper Avy
+
+#+NAME: swiper-avy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package avy
+  :straight t)
+#+END_SRC
+
+**** Smex
+
+#+NAME: smex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package smex
+  :straight t
+  :init (setq-default smex-history-length 32))
+#+END_SRC
+
 
 *** Deft
 
@@ -2050,7 +2170,7 @@ Show the time in the modeline.
 #+NAME: all-the-icons-spaceline
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package spaceline-all-the-icons
-  :after spaceline
+  :after (spaceline)
   :straight t
   :config
   (setq spaceline-all-the-icons-separator-type 'arrow)
@@ -2282,7 +2402,7 @@ is on.
 (use-package mode-icons
   :straight t
   :if *is-gui*
-  :after smart-mode-line
+  :after (smart-mode-line)
   :config
   (mode-icons-mode))
 #+END_SRC
@@ -2336,7 +2456,31 @@ is on.
     (setq multi-term-program
 	  (if (string= shell-file-name "/bin/sh")
 	      "/bin/bash"
-	    shell-file-name))))
+	    "/bin/zsh"))))
+#+END_SRC
+
+**** Run Bash On Windows/PC
+- [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][Mastering Emacs - Running Shells in Emacs]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-windows*
+  (progn
+    (setq explicit-shell-file-name "C:/path/to/bash.exe"
+          shell-file-name "bash"
+          explicit-bash.exe-args '("--noediting" "--login" "-i"))
+    (setenv "SHELL" shell-file-name)
+    (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
+#+END_SRC
+
+**** Shell 
+
+Zsh is whack when running the emacs =shell= function. This fixes that problem.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-mac*
+  (setq explicit-shell-file-name "/bin/sh"
+	shell-file-name "sh")
+  (setenv "SHELL" shell-file-name))
 #+END_SRC
 
 *** Frame Font
@@ -2461,7 +2605,7 @@ yunmodified magit buffers will be killed without confirming."
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package magithub
-  :after magit
+  :after (magit)
   :straight t
   :commands magithub-dispatch-popup
   :bind (:map magit-status-mode-map
@@ -2610,13 +2754,9 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 #+END_SRC
 
-** Programming Languages
-*** Lisp
-**** Parens
-
-- [[https://github.com/Fuco1/smartparens/wiki/Paredit-and-smartparens][Paredit and Smartparens]]
-
-***** Paredit
+** Programming Tools
+*** Delimiter Pair Matching
+**** Paredit
 
 We could use ~:init~ key to hook the ~enable-paredit-mode~
 function to each of the implementing languages like is
@@ -2641,7 +2781,7 @@ offers more meaningful semantics.
     (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)))
    #+END_SRC
 
-***** Smartparens
+**** Smartparens
 
 Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-mode for managing parens
 pairs. However, it also offers support for curly brackets in
@@ -2659,6 +2799,14 @@ haystack, smartparens are a great productivity tool.
   (require 'smartparens-config))
 #+END_SRC
 
+**** Rainbow Delimiters
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package rainbow-delimiters
+  :straight t)
+#+END_SRC
+
+*** Symbol Highlighting
 **** Hlsexp
 
 Minor mode to highlight s-expresion.
@@ -2668,6 +2816,59 @@ Minor mode to highlight s-expresion.
   :straight t)
 #+END_SRC
 
+**** Highlight Symbol
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package highlight-symbol
+  :straight t)
+#+END_SRC
+
+*** Tagging
+**** Ggtags
+
+#+NAME: ggtags
+#+BEGIN_SRC emacs-lisp :tangle yes
+(if (getenv "GTAGSLABEL")
+    (use-package ggtags
+      :straight t
+      :init
+      (add-hook 'c-mode-common-hook
+		(lambda ()
+		  (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+		    (ggtags-mode 1))))))
+#+END_SRC
+
+** Enabled Languages
+
+Opt-in to programming languages. A very simplified version of
+Spacemacs =dotspacemacs-configuration-layers=.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defvar chaffin-enabled-langs '(java
+                                c-c++
+                                emacs-lisp
+                                web)
+  "List of languages for which straight should install respective tooling, 
+   syntax-highlighting, and peripherals.")
+
+
+(defun chaffin-enabled-lang-p (lang)
+  (member lang chaffin-enabled-langs))
+
+(defun chaffin-enable-langs (&rest langs)
+  (mapcar (lambda (lang)
+	    (setq chaffin-enabled-langs (cons lang chaffin-enabled-langs)))
+	  langs))
+
+(when *is-mac*
+  (chaffin-enable-langs 'common-lisp
+                        'clojure
+                        'groovy
+                        'scala
+                        'latex))
+#+END_SRC
+
+** Programming Languages
 *** Emacs Lisp
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -2679,8 +2880,17 @@ Minor mode to highlight s-expresion.
 
 *** Common Lisp
 
+#+NAME: common-lisp-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'common-lisp)
+  <<common-lisp-hooks>>
+  <<common-lisp-slime>>
+)
+#+END_SRC
+
 Configuration for common-lisp
 
+#+NAME: common-lisp-hooks
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
 (with-eval-after-load 'paredit
   (add-hook 'lisp-mode-hook #'paredit-mode)
@@ -2691,12 +2901,12 @@ Configuration for common-lisp
 
 [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: common-lisp-slime
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package slime
   :commands slime
   :defines (slime-complete-symbol*-fancy slime-completion-at-point-functions)
   :straight t
-  :if *is-mac*
   :init
   (progn
     (setq slime-contribs
@@ -2828,7 +3038,7 @@ Provides integration with a Clojure repl.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package cider
   :straight t
-  :after company
+  :after (company)
   :config
   (setq cider-repl-history-file "~/.emacs.d/cider-history"
 	cider-repl-use-clojure-font-lock t
@@ -2882,7 +3092,7 @@ It uses [[https://github.com/jonase/eastwood][eastwood]], [[http://typedclojure.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package flycheck-clojure
   :straight t
-  :after cider flycheck
+  :after (cider flycheck)
   :config
   (flycheck-clojure-setup))
 #+END_SRC
@@ -2924,7 +3134,7 @@ Let's give this [[https://github.com/typedclojure/typed-clojure-mode][guy]] a tr
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package typed-clojure-mode
   :straight t
-  :after clojure-mode
+  :after (clojure-mode)
   :init
   (add-hook 'clojure-mode-hook 'typed-clojure-mode))
 #+END_SRC
@@ -2955,7 +3165,7 @@ CIDER eldoc information.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package flycheck-pos-tip
   :straight t
-  :after flycheck
+  :after (flycheck)
   :init
   (flycheck-pos-tip-mode)
   :config
@@ -2963,9 +3173,53 @@ CIDER eldoc information.
 	#'flycheck-pos-tip-error-messages))
 #+END_SRC
 
-*** Java
-**** Eclim
+*** Groovy
 
+#+NAME: java-groovy
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package groovy-mode
+  :straight t
+  :mode ("\\.gradle\\'" . groovy-mode)
+  :config
+  (progn
+    (add-hook 'groovy-mode-hook
+              (lambda ()
+                (setq groovy-indent-offset 2
+                      tab-width 4
+                      indent-tabs-mode nil
+                      c-indent-comments-syntactically-p t)))))
+#+END_SRC
+
+*** Java
+
+#+NAME: chaffin-java-backend
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defcustom chaffin--java-backend 'meghanada
+  "Select a backend to use when opening a *.java file."
+  :type '(symbol)
+  :options '(meghanada ensime eclim)
+  :group 'programming)
+#+END_SRC
+
+#+NAME: java-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'java)
+  <<chaffin-java-backend>>
+  <<java-autodisass-java-bytecode>>
+  <<java-gradle>>
+  <<java-google-c-style>>
+  (cond ((eq chaffin--java-backend 'meghanada)
+	 (progn
+	   <<java-meghanada>>
+	   <<java-realgud>>))
+	((eq chaffin--java-backend 'ensime)
+	 <<java-ensime>>)
+	((eq chaffin--java-backend 'eclim)
+	 <<java-eclim>>)))
+#+END_SRC
+
+**** Eclim
+#+NAME: java-eclim
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package eclim
   :straight t
@@ -2973,13 +3227,298 @@ CIDER eldoc information.
   ;; load my forked version
   ;; :load-path "site-lisp/emacs-eclim/"
   :config
-  (setq eclim-eclipse-dirs '("/Applications/Eclipse.app/Contents/Eclipse")
+  (setq eclim-eclipse-dirs
+	'("/Applications/Eclipse.app/Contents/Eclipse")
 	eclim-executable "/Applications/Eclipse.app/Contents/Eclipse/eclim"
 	eclimd-executable "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
 	eclimd-default-workspace "~/Developer/Projects/Java/Workspace"
 	eclimd-autostart-with-default-workspace t
 	eclim-autostart nil
 	eclim-wait-for-process t))
+#+END_SRC
+
+**** Gradle
+
+Gradle is a build tool for Java. It's awesome.
+
+#+NAME: java-gradle
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package gradle-mode
+  :straight t
+  :if (executable-find "gradle")
+  :init
+  (add-hook 'java-mode-hook
+	    (lambda ()
+	      (gradle-mode 1))))
+#+END_SRC
+
+**** Meghanada
+
+#+NAME: java-meghanada
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(use-package meghanada
+  :straight t
+  :commands (meghanada-mode meghanada-code-beautify-before-save)
+  :init
+  (add-hook 'java-mode-hook
+	    (lambda ()
+	      (google-set-c-style)
+	      (google-make-newline-indent)
+	      ;; enable meghanada mode
+	      (meghanada-mode t)
+	      (smartparens-mode t)
+	      (rainbow-delimiters-mode t)
+	      (highlight-symbol-mode t)
+	      ;; use code format
+	      (add-hook 'before-save-hook
+			'meghanada-code-beautify-before-save)))
+  :config
+  (progn
+    (setq meghanada-server-remote-debug t
+          meghanada-javac-xlint "-Xlint:all,-processing"))
+  :bind
+  (:map meghanada-mode-map
+	("C-S-t" . meghanada-switch-testcase)
+	("M-RET" . meghanada-local-variable)
+	("M-r"   . meghanada-reference)
+	("M-t"   . meghanada-typeinfo)
+	("C-z"   . hydra-meghanada/body)))
+
+(defhydra hydra-meghanada (:hint nil :exit t)
+  "
+  ^Edit^                          ^Tast or Task^
+  ^^^^^^---------------------------------------------
+  _f_: meghanada-compile-file     _m_: meghanada-restart
+  _c_: meghanada-compile-project  _t_: meghanada-run-task
+  _o_: meghanada-optimize-import  _j_: meghanada-run-junit-test-case
+  _s_: meghanada-switch-test-case _J_: meghanada-run-junit-class
+  _v_: meghanada-local-variable   _R_: meghanada-run-junit-recent
+  _i_: meghanada-import-all       _r_: meghanada-reference
+  _q_: exit                       _T_: meghanada-typeinfo
+  "
+  ("f" meghanada-compile-file)
+  ("m" meghanada-restart)
+
+  ("c"  meghanada-compile-project)
+  ("o"  meghanada-optimize-import)
+  ("s"  meghanada-switch-test-case)
+  ("v"  meghanada-local-variable)
+  ("i"  meghanada-import-all)
+
+
+  ("t"  meghanada-run-task)
+  ("T"  meghanada-typeinfo)
+  ("j"  meghanada-run-junit-test-case)
+  ("J"  meghanada-run-junit-class)
+  ("R"  meghanada-run-junit-recent)
+  ("r"  meghanada-reference)
+
+  ("q" exit)
+  ("z" nil "leave"))
+#+END_SRC
+
+***** RealGUD
+
+A front-end for interacting with external debuggers in Emacs.
+
+#+NAME: java-realgud
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package realgud
+  :straight t
+  :after (meghanada))
+#+END_SRC
+
+**** Ensime
+
+#+NAME: java-ensime
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package ensime
+  :straight
+  (ensime
+   :host github
+   :repo "ensime/ensime-emacs"
+   :branch "2.0"))
+#+END_SRC
+
+**** Autodisass Java Bytecode
+
+The [[https://github.com/gbalats/autodisass-java-bytecode][autodisass-java-bytecode]] package enables automatic disassembly of
+Java bytecode inside Emacs buffers.
+
+#+NAME: java-autodisass-java-bytecode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package autodisass-java-bytecode
+  :straight t
+  :defer t)
+#+END_SRC
+
+**** Google C Style
+
+Use Google's Java [[https://google.github.io/styleguide/javaguide.html][styleguide]].
+
+#+NAME: java-google-c-style
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package google-c-style
+  :straight t)
+#+END_SRC
+
+*** Scala
+
+#+NAME: scala-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'scala)
+  <<scala-mode>>
+  <<scala-sbt-mode>>)
+#+END_SRC
+
+#+NAME: scala-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package scala-mode
+  :straight t
+  :interpreter
+  ("scala" . scala-mode))
+#+END_SRC
+
+**** Sbt
+
+#+NAME: scala-sbt-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package sbt-mode
+  :commands (sbt-start sbt-command)
+  :config
+  ;; WORKAROUND: https://github.com/ensime/emacs-sbt-mode/issues/31
+  ;; allows using SPACE when in the minibuffer
+  (substitute-key-definition
+   'minibuffer-complete-word
+   'self-insert-command
+   minibuffer-local-completion-map))
+#+END_SRC
+
+*** C++
+
+#+NAME: c-cxx-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'c-c++)
+  <<cc-function-args>>
+  <<cc-irony-mode>>
+  <<cc-cmake-mode>>
+  (defun chaffin-c-c++-mode-hook ()
+    (smartparens-mode t))
+
+  (add-to-hooks #'chaffin-c-c++-mode-hook '(c-mode-hook
+					    c++-mode-hook)))
+#+END_SRC
+
+**** Function Args
+
+CDET enhancements for showing inline function arguments.
+
+#+NAME: cc-function-args
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package function-args
+  :straight t
+  :init
+  (fa-config-default)
+  :commands (fa-config-default)
+  :mode ("\\.h\\'" . c++-mode)
+  :config
+  (add-hook 'c++-mode-hook
+	    (lambda ()
+	      (setq semantic-case-fold t))))
+#+END_SRC
+
+**** Irony Mode
+
+#+NAME: cc-irony-mode
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<cc-irony-mode-config>>
+<<cc-irony-company-irony>>
+<<cc-irony-flycheck-irony>>
+#+END_SRC
+
+
+- [[https://oremacs.com/2017/03/28/emacs-cpp-ide/][oremacs.com - Using Emacs as a C++ IDE]]
+
+#+NAME: cc-irony-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package irony
+  :straight t
+  :init
+  (progn
+    (add-hook 'c++-mode-hook 'irony-mode)
+    (add-hook 'c-mode-hook 'irony-mode))
+  :commands (irony-cdb-autosetup-compile-options irony-install-server)
+  :config
+  (progn
+    (defun chaffin-irony-mode-hook ()
+      (define-key irony-mode-map
+	[remap completion-at-point] 'counsel-irony)
+      (define-key irony-mode-map
+	[remap complete-symbol] 'counsel-irony))
+
+    (add-hook 'irony-mode-hook 'chaffin-irony-mode-hook)
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)))
+#+END_SRC
+
+***** Company Irony
+
+Company backend for C/C++ files using irony mode.
+
+#+NAME: cc-irony-company-irony
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<cc-irony-company-irony-c-cxx>>
+<<cc-irony-company-irony-c-headers>>
+#+END_SRC
+
+#+NAME: cc-irony-company-irony-c-cxx
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-irony
+  :straight t
+  :after (company)
+  :defines (company-irony)
+  :init
+  (add-to-list 'company-backends 'company-irony))
+#+END_SRC
+
+****** Company Irony C Headers
+
+#+NAME: cc-irony-company-irony-c-headers
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-irony-c-headers
+  :straight t
+  :after (company)
+  :defines (company-irony-c-headers)
+  :init
+  (add-to-list 'company-backends 'company-irony-c-headers))
+#+END_SRC
+
+***** Flycheck Irony
+
+#+NAME: cc-irony-flycheck-irony
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-irony
+  :straight t
+  :after (flycheck)
+  :init
+  (flycheck-irony-setup))
+#+END_SRC
+
+**** Cmake Mode
+
+#+NAME: cc-cmake-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cmake-mode
+  :straight t
+  :mode (("CMakeLists\\.txt\\'" . cmake-mode)
+	 ("\\.cmake\\'" . cmake-mode))
+
+  :config
+  (add-hook 'cmake-mode-hook
+	    (lambda ()
+	      (smartparens-mode t))))
+
+
+
 #+END_SRC
 
 *** LaTeX
@@ -3204,7 +3743,7 @@ Real jsx support.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tern
   :straight t
-  :after js2-mode
+  :after (js2-mode)
   :init (add-hook 'js2-mode-hook 'tern-mode))
 #+END_SRC
 
@@ -3257,10 +3796,9 @@ React layer.
 (use-package tide
   :defer t
   :straight t
-  :after flycheck
+  :after (flycheck)
   :config
   (progn
-
     (defun setup-tide-mode ()
       (interactive)
       (tide-setup)
@@ -3311,7 +3849,6 @@ React layer.
   (dolist (mode '(coffee-mode js2-mode json-mode))
     (push mode flycheck-global-modes))
 #+END_SRC
-
 
 *** Web
 **** Web Mode
