@@ -170,36 +170,25 @@
       - [[#prettify-symbols][Prettify Symbols]]
     - [[#tagging][Tagging]]
       - [[#ggtags][Ggtags]]
-  - [[#enabled-languages][Enabled Languages]]
+    - [[#devops][DevOps]]
+      - [[#docker][Docker]]
+  - [[#enable-languages][Enable Languages]]
   - [[#programming-languages][Programming Languages]]
-    - [[#emacs-lisp][Emacs Lisp]]
-    - [[#common-lisp][Common Lisp]]
-      - [[#slime][Slime]]
-    - [[#clojure][Clojure]]
-      - [[#clojure-mode-repository][Clojure Mode (repository)]]
-      - [[#clojurescript][ClojureScript]]
-      - [[#clojure-mode-extra-font-locking][Clojure Mode Extra Font Locking]]
-      - [[#cider-repository][Cider (repository)]]
-      - [[#inf-clojure][inf-clojure]]
-      - [[#linting-clojure][Linting Clojure]]
-      - [[#typed-clojure][Typed Clojure]]
-      - [[#flycheck-pos-tip][Flycheck-Pos-Tip]]
-    - [[#groovy][Groovy]]
-    - [[#java][Java]]
-      - [[#eclim][Eclim]]
-      - [[#gradle-mode][Gradle Mode]]
-      - [[#meghanada][Meghanada]]
-      - [[#ensime][Ensime]]
-      - [[#autodisass-java-bytecode][Autodisass Java Bytecode]]
-      - [[#google-c-style][Google C Style]]
-    - [[#scala][Scala]]
-      - [[#sbt][Sbt]]
     - [[#c][C++]]
       - [[#function-args][Function Args]]
       - [[#irony-mode][Irony Mode]]
       - [[#cmake-mode][Cmake Mode]]
+    - [[#common-lisp][Common Lisp]]
+      - [[#slime][Slime]]
+    - [[#clojurescript][Clojure(Script)]]
+      - [[#clojure-mode][Clojure Mode]]
+      - [[#clojure-interactive-development-environments][Clojure Interactive Development Environments]]
+      - [[#leiningen][Leiningen]]
+      - [[#clojure-syntax-checking][Clojure Syntax Checking]]
+    - [[#emacs-lisp][Emacs Lisp]]
+    - [[#groovy][Groovy]]
     - [[#latex][LaTeX]]
-      - [[#tex-config][Tex Config]]
+      - [[#tex][Tex]]
       - [[#bibtex][Bibtex]]
       - [[#latex-extra][LaTeX Extra]]
       - [[#latex-preview-pane][LaTeX Preview Pane]]
@@ -209,33 +198,40 @@
       - [[#auctex-latexmk][Auctex Latexmk]]
       - [[#reftex][RefTeX]]
       - [[#texinfo][Texinfo]]
-    - [[#javascript][Javascript]]
-      - [[#javascript-preamble][JavaScript Preamble]]
+    - [[#java][Java]]
+      - [[#eclim][Eclim]]
+      - [[#gradle-mode][Gradle Mode]]
+      - [[#meghanada][Meghanada]]
+      - [[#ensime][Ensime]]
+      - [[#autodisass-java-bytecode][Autodisass Java Bytecode]]
+      - [[#google-c-style][Google C Style]]
+    - [[#javascript][JavaScript]]
       - [[#js2-mode][js2-mode]]
       - [[#rjsx-mode][rjsx-mode]]
       - [[#tern][Tern]]
       - [[#json][JSON]]
-      - [[#react][React]]
       - [[#typescript][TypeScript]]
       - [[#coffee][Coffee]]
       - [[#add-node-modules-path-repository][Add Node Modules Path (repository)]]
       - [[#npm-mode][Npm Mode]]
-      - [[#enable-syntax-checking-in-js-mode-and-related-mode-buffers][Enable syntax checking in ~js-mode~ and related mode buffers.]]
+      - [[#flycheck-javascript][Flycheck JavaScript]]
+    - [[#markdown][Markdown]]
+      - [[#markdown-mode][Markdown Mode]]
+      - [[#markdown-mode-1][markdown-mode+]]
+      - [[#markdown-toc][markdown-toc]]
+      - [[#markdownfmt][markdownfmt]]
+    - [[#ruby][Ruby]]
+      - [[#ruby-mode][ruby-mode]]
+      - [[#rvm][rvm]]
+    - [[#scala][Scala]]
+      - [[#scala-mode][Scala Mode]]
+      - [[#sbt][Sbt]]
     - [[#web][Web]]
       - [[#web-mode][Web Mode]]
       - [[#emmet][Emmet]]
       - [[#html][HTML]]
       - [[#css][CSS]]
-      - [[#syntax-checking-and-code-completion][Syntax Checking and Code Completion]]
-    - [[#markdown][Markdown]]
-      - [[#markdown-mode][Markdown Mode]]
-      - [[#markdown-mode-1][markdown-mode+]]
-      - [[#markdown-tocontents][markdown-tocontents]]
-      - [[#markdownfmt][markdownfmt]]
-    - [[#ruby][Ruby]]
-      - [[#ruby-mode][ruby-mode]]
-      - [[#rvm][rvm]]
-    - [[#docker][Docker]]
+      - [[#company-web][Company Web]]
   - [[#footnotes][Footnotes]]
 
 * Configuration
@@ -1618,7 +1614,16 @@ Set GPG program to 'gpg2'.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (when *is-mac*
-(setq epg-gpg-program "gpg2"))
+  (let* ((has-brew (not (string-empty-p
+			 (shell-command-to-string
+			  "which brew"))))
+	 (gpg-path (if has-brew
+		       (shell-command-to-string "brew --prefix gpg2")))
+	 (has-gpg2 (if gpg-path
+		       (file-exists-p (replace-regexp-in-string
+				       "\n" ""
+				       gpg-path)))))
+    (setq epg-gpg-program (if has-gpg2 "gpg2" "gpg"))))
 #+END_SRC
 
 **** Disable External Pin Entry
@@ -1652,6 +1657,7 @@ brew install pinentry-mac
 echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 killall gpg-agent
 #+END_EXAMPLE
+
 
 *** Better Commands
 **** Alias Yes Or No
@@ -1735,7 +1741,7 @@ snippets corresponding to the major mode of the current buffer mode.
 (use-package flycheck
   :straight t
   :init
-  (setq flycheck-global-modes nil)
+  (setq flycheck-global-modes '())
   :config
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
                 flycheck-emacs-lisp-load-path 'inherit))
@@ -3086,15 +3092,24 @@ Minor mode to highlight s-expresion.
 		    (ggtags-mode 1))))))
 #+END_SRC
 
-** Enabled Languages
+*** DevOps
+**** Docker
+
+#+NAME: dockerfile-mode-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package dockerfile-mode
+  :straight t
+  :mode ( "Dockerfile\\'" .  dockerfile-mode))
+#+END_SRC
+
+
+** Enable Languages
 
 Opt-in to programming languages. A very simplified version of
 Spacemacs =dotspacemacs-configuration-layers=.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defvar chaffin-enabled-langs '(c-c++
-                                emacs-lisp
-                                web)
+(defvar chaffin-enabled-langs '()
   "List of languages for which straight should install respective tooling, 
    syntax-highlighting, and peripherals.")
 
@@ -3108,28 +3123,144 @@ Spacemacs =dotspacemacs-configuration-layers=.
 	  langs))
 
 (when *is-mac*
-  (chaffin-enable-langs 'common-lisp
-                        'clojure
-                        'groovy
-                        'java
-                        'markdown
-                        'scala
-                        'python))
+  (chaffin-enable-langs 'c-c++ 'common-lisp 'clojure 'groovy 'java
+                        'javascript 'markdown 'scala 'python 'ruby
+                        'web))
 #+END_SRC
 
 ** Programming Languages
-*** Emacs Lisp
+*** C++
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-(add-hook 'emacs-lisp-mode-hook
-	  (lambda ()
-	    (paredit-mode 1)
-	    (hl-sexp-mode 1)))
+#+NAME: c-cxx-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'c-c++)
+  <<cc-function-args>>
+  (when (executable-find "cmake")
+    <<cc-irony-mode>>
+    <<cc-cmake-mode>>)
+  (defun chaffin-c-c++-mode-hook ()
+    (smartparens-mode t)
+    (unless (file-exists-p "makefile")
+      (set (make-local-variable 'compile-command)
+	   (let ((file (file-name-sans-extension buffer-file-name)))
+	     (format "g++ %s -o %s" buffer-file-name file)))))
+
+  (add-to-hooks #'chaffin-c-c++-mode-hook '(c-mode-hook
+					    c++-mode-hook)))
+#+END_SRC
+
+**** Function Args
+
+CDET enhancements for showing inline function arguments.
+
+#+NAME: cc-function-args
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package function-args
+  :straight t
+  :init
+  (fa-config-default)
+  :commands (fa-config-default)
+  :mode ("\\.h\\'" . c++-mode)
+  :config
+  (add-hook 'c++-mode-hook
+	    (lambda ()
+	      (setq semantic-case-fold t))))
+#+END_SRC
+
+**** Irony Mode
+
+#+NAME: cc-irony-mode
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<cc-irony-mode-config>>
+<<cc-irony-company-irony>>
+<<cc-irony-flycheck-irony>>
+#+END_SRC
+
+
+- [[https://oremacs.com/2017/03/28/emacs-cpp-ide/][oremacs.com - Using Emacs as a C++ IDE]]
+
+#+NAME: cc-irony-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package irony
+  :straight t
+  :init
+  (progn
+    (add-hook 'c++-mode-hook 'irony-mode)
+    (add-hook 'c-mode-hook 'irony-mode))
+  :commands (irony-cdb-autosetup-compile-options irony-install-server)
+  :config
+  (progn
+    (defun chaffin-irony-mode-hook ()
+      (define-key irony-mode-map
+	[remap completion-at-point] 'counsel-irony)
+      (define-key irony-mode-map
+	[remap complete-symbol] 'counsel-irony))
+
+    (add-hook 'irony-mode-hook 'chaffin-irony-mode-hook)
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)))
+#+END_SRC
+
+***** Company Irony
+
+Company backend for C/C++ files using irony mode.
+
+#+NAME: cc-irony-company-irony
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<cc-irony-company-irony-c-cxx>>
+<<cc-irony-company-irony-c-headers>>
+#+END_SRC
+
+#+NAME: cc-irony-company-irony-c-cxx
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-irony
+  :straight t
+  :after (company)
+  :defines (company-irony)
+  :init
+  (add-to-list 'company-backends 'company-irony))
+#+END_SRC
+
+****** Company Irony C Headers
+
+#+NAME: cc-irony-company-irony-c-headers
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-irony-c-headers
+  :straight t
+  :after (company)
+  :defines (company-irony-c-headers)
+  :init
+  (add-to-list 'company-backends 'company-irony-c-headers))
+#+END_SRC
+
+***** Flycheck Irony
+
+#+NAME: cc-irony-flycheck-irony
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-irony
+  :straight t
+  :after (flycheck)
+  :init
+  (flycheck-irony-setup))
+#+END_SRC
+
+**** Cmake Mode
+
+#+NAME: cc-cmake-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cmake-mode
+  :straight t
+  :mode (("CMakeLists\\.txt\\'" . cmake-mode)
+	 ("\\.cmake\\'" . cmake-mode))
+
+  :config
+  (add-hook 'cmake-mode-hook
+	    (lambda ()
+	      (smartparens-mode t))))
 #+END_SRC
 
 *** Common Lisp
 
-#+NAME: common-lisp-config
+#+NAME: common-lisp
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (when (chaffin-enabled-lang-p 'common-lisp)
   <<common-lisp-hooks>>
@@ -3177,19 +3308,26 @@ Configuration for common-lisp
 #+END_SRC
 
 ***** TODO Slime Company
-*** Clojure
+*** Clojure(Script)
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<clojure-mode-config>>
-<<cljsbuild-config>>
-<<elein-config>>
+(when (chaffin-enabled-lang-p 'clojure)
+  <<clojure-mode>>
+  <<clojure-leiningen>>
+  <<clojure-interactive>>)
 #+END_SRC
 
-**** Clojure Mode ([[https://gihub.com/clojure-emacs/clojure-mode][repository]])
+**** Clojure Mode 
 
-#+NAME: clojure-mode-config
+Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
+before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
+
+[INSERT GIF HERE]
+
+#+NAME: clojure-mode
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 <<clojure-mode-config-base>>
+<<clojure-mode-extra-font-locking>>
 
 (with-eval-after-load 'clojure-mode
   <<clojure-mode-config-compojure>>
@@ -3210,11 +3348,20 @@ Provides key bindings and font-locking for Clojure.
   :config
   (progn
     (setq clojure-indent-style :always-indent)
-    (add-hook 'clojure-mode-hook #'enable-paredit-mode)
-    (add-hook 'clojure-mode-hook #'prettify-symbols-mode)))
+    (add-hook 'clojure-mode-hook #'enable-paredit-mode)))
 #+END_SRC
 
-***** Emacs Indentation for Clojure(Script) Libraries
+***** Clojure Mode Extra Font Locking
+
+Additional syntax highlighting for ~clojure-mode~.
+
+#+NAME: clojure-mode-extra-font-locking
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package clojure-mode-extra-font-locking
+  :straight t)
+#+END_SRC
+
+***** Emacs Indentation for Popular Libraries
 ****** Compojure
 
 [[https://github.com/weavejester/compojure][Compojure]] is a web framework for Clojure and Clojurescript
@@ -3246,12 +3393,124 @@ the repository wiki to provide better indentation for compojure macros.
 (put-clojure-indent 'dom/div 1)
 #+END_SRC
 
-**** ClojureScript
+**** Clojure Interactive Development Environments
+
+#+NAME: clojure-interactive
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<clojure-interactive-ide>>
+(cond ((eq clojure-ide 'cider)
+       <<clojure-interactive-cider>>)
+      ((eq clojure-ide 'inf-clojure)
+       <<clojure-interactive-inf-clojure>>)
+      (t (message (concat "Clojure IDE not set. "
+			  "Set `clojure-ide' to an appropriate value "
+			  "to activate"))))
+#+END_SRC
+
+*****  Select Clojure IDE
+
+Two options:
+- [[#cider][CIDER]]
+- [[#inf-clojure][inf-clojure]]
+
+#+NAME: clojure-interactive-ide
+#+BEGIN_SRC emacs-lisp :tangle no
+(defcustom clojure-ide 'cider
+  "Select the interactive development environment to use 
+   in clojure mode. Note that Emacs must be restarted when
+   the value of this variable is modified for the change 
+   to take effect."
+  :type '(symbol)
+  :options '(cider inf-clojure)
+  :group 'clojure)
+#+END_SRC
+
+***** CIDER
+:PROPERTIES:
+:ID:       324C7B10-8B92-4C49-8FAC-702C65C7A2EE
+:CUSTOM_ID: cider
+:END:
+
+[[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]] 
+
+#+NAME: clojure-interactive-cider
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cider
+  :straight t
+  :after (company)
+  :config
+  (progn 
+    (setq cider-repl-history-file "~/.emacs.d/cider-history"
+	  cider-repl-use-clojure-font-lock t
+	  cider-repl-result-prefix ";; => "
+	  cider-repl-wrap-history t
+	  cider-repl-history-size 3000
+	  cider-show-error-buffer t
+	  nrepl-hide-special-buffers t)
+    (add-hook 'cider-mode-hook #'eldoc-mode)
+    (add-hook 'cider-mode-hook #'company-mode)
+    (add-hook 'cider-repl-mode-hook #'company-mode)
+    (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
+    (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
+    (add-hook 'cider-repl-mode-hook #'subword-mode)
+    (add-hook 'cider-repl-mode-hook #'enable-paredit-mode)
+    (add-to-hooks (lambda () (run-hooks 'prog-mode-hook))
+		  '(cider-mode-hook cider-repl-mode-hook))))
+#+END_SRC
+
+***** Inf Clojure
+:PROPERTIES:
+:ID:       D1642BA7-3A2F-40CA-8B80-D28927627A91
+:CUSTOM_ID: inf-clojure
+:END:
+
+#+NAME: clojure-interactive-inf-clojure
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<inf-clojure-config>>
+(with-eval-after-load 'inf-clojure
+  <<inf-clojure-figwheel>>)
+#+END_SRC
+
+
+ [[https://github.com/clojure-emacs/inf-clojure][inf-clojure]] is a drop-in replacement for CIDER that provides basic
+ integration with a running Clojure subprocess. This package is
+ necessary for running an inferior Figwheel process with Emacs.
+ It's not as feature-rich as CIDER, but still offers the ability
+ to load files, switch namespaces, evaluate expressions, show
+ documentation, and do macro-expansion.
+
+
+#+NAME: inf-clojure-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package inf-clojure
+  :straight t
+  :init
+  (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
+#+END_SRC
+
+ Now lets write a simple function to run Figwheel as a Clojure
+ subprocess.
+
+ #+NAME: inf-clojure-figwheel
+ #+BEGIN_SRC emacs-lisp :tangle no
+(defun figwheel-repl ()
+  (interactive)
+  (inf-clojure "lein figwheel"))
+ #+END_SRC
+
+**** Leiningen
+
+#+NAME: clojure-leiningen
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<lein-cljsbuild-config>>
+<<elein-config>>
+#+END_SRC
+
 ***** Lein Cljsbuild
 
 Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
 
-#+NAME: cljsbuild-config
+#+NAME: lein-cljsbuild-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cljsbuild-mode
   :straight t
@@ -3270,74 +3529,18 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   :straight t)
 #+END_SRC
 
-**** Clojure Mode Extra Font Locking
+**** Clojure Syntax Checking
 
-Additional syntax highlighting for ~clojure-mode~.
-
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package clojure-mode-extra-font-locking
-  :straight t)
+#+NAME: clojure-syntax-checking
+#+BEGIN_SRC emacs-lisp :tangle no :exports none
+<<flycheck-pos-tip>>
 #+END_SRC
 
-**** Cider ([[https://github.com/clojure-emacs/cider][repository]])
-
-Provides integration with a Clojure repl.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package cider
-  :straight t
-  :after (company)
-  :config
-  (setq cider-repl-history-file "~/.emacs.d/cider-history"
-	cider-repl-use-clojure-font-lock t
-	cider-repl-result-prefix ";; => "
-	cider-repl-wrap-history t
-	cider-repl-history-size 3000
-	cider-show-error-buffer nil
-	nrepl-hide-special-buffers t)
-  (add-hook 'cider-mode-hook #'eldoc-mode)
-  (add-hook 'cider-mode-hook #'company-mode)
-  (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
-  (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
-  (add-hook 'cider-repl-mode-hook #'company-mode)
-  (add-hook 'cider-repl-mode-hook #'subword-mode)
-  (add-hook 'cider-repl-mode-hook #'enable-paredit-mode))
-#+END_SRC
-
-**** inf-clojure
-
- ~inf-clojure~ is a third-party package offering basic integration
- with a running Clojure subprocess. This package is necessary for
- running a Figwheel process with Emacs.
- It's not as feature-rich as CIDER, but still offers the ability
- to load files, switch namespaces, evaluate expressions, show documentation,
- and do macro-expansion.
-
- /Currently disabled due to conflicts with ~cider~/
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package inf-clojure
-  :straight t
-  :init
-  (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
-#+END_SRC
-
- Now lets write a simple function to run Figwheel as a Clojure
- subprocess.
-
- #+BEGIN_SRC emacs-lisp :tangle no
-(defun figwheel-repl ()
-  (interactive)
-  (inf-clojure "lein figwheel"))
- #+END_SRC
-
-**** Linting Clojure
-
+***** Flycheck Clojure
 The [[https://github.com/clojure-emacs/squiggly-clojure][flycheck-clojure]] package allows syntax checking for Clojure(Script).
 It uses [[https://github.com/jonase/eastwood][eastwood]], [[http://typedclojure.org/][core.typed]] and [[https://github.com/jonase/kibit][kibit]] to lint Clojure(Script) through CIDER.
 
-
+#+NAME: flycheck-clojure
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package flycheck-clojure
   :straight t
@@ -3376,10 +3579,11 @@ I'm guessing I need to actually include the linters in my project's
 ~project.clj~, but it's weird this package worked at all for bits and
 stretches if the dependencies need to be installed manually.
 
-**** Typed Clojure
+***** Typed Clojure
 
 Let's give this [[https://github.com/typedclojure/typed-clojure-mode][guy]] a try.
 
+#+NAME: typed-clojure-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package typed-clojure-mode
   :straight t
@@ -3405,13 +3609,14 @@ Let's give this [[https://github.com/typedclojure/typed-clojure-mode][guy]] a tr
 The above strikethrough denotes the point in time where I officially
 said [[https://www.si.com/nba/2017/05/16/steve-kerr-sneakers-message][FI]].
 
-**** Flycheck-Pos-Tip
+***** Flycheck-Pos-Tip
 
 The ~flycheck-clojure~ repository recommendeds to install
 [[https://github.com/flycheck/flycheck-pos-tip][flycheck-pos-tip]] to keep linting and type errors from clashing with
 CIDER eldoc information.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: flycheck-pos-tip
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package flycheck-pos-tip
   :straight t
   :after (flycheck)
@@ -3420,6 +3625,15 @@ CIDER eldoc information.
   :config
   (setq flycheck-display-errors-function
 	#'flycheck-pos-tip-error-messages))
+#+END_SRC
+
+*** Emacs Lisp
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(add-hook 'emacs-lisp-mode-hook
+	  (lambda ()
+	    (paredit-mode 1)
+	    (hl-sexp-mode 1)))
 #+END_SRC
 
 *** Groovy
@@ -3437,6 +3651,190 @@ CIDER eldoc information.
                       tab-width 4
                       indent-tabs-mode nil
                       c-indent-comments-syntactically-p t)))))
+#+END_SRC
+
+*** LaTeX
+**** Tex
+
+#+NAME: tex-config
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+(use-package tex
+  :straight (auctex
+	     :host github
+	     :repo "emacsmirror/auctex"
+	     :files (:defaults (:exclude "*.el.in")))
+  :defines latex-nofill-env
+  :functions chaffin/tex-auto-fill-mode
+  :init
+  (progn
+    (setq TeX-command-default "LaTeX"
+	  TeX-engine 'xetex
+	  TeX-auto-save t
+	  TeX-parse-self t
+	  TeX-syntactic-comment t
+	  TeX-source-correlate-start-server nil
+	  LaTeX-fill-break-at-separators nil)
+    (defvar latex-nofill-env '("equation"
+			       "equation*"
+			       "align"
+			       "align*"
+			       "tabular"
+			       "tikzpicture"))
+    (defun chaffin--tex-autofill ()
+      "Check whether the pointer is currently inside one of
+       the environments in `latex-nofill-env` and inhibits auto-filling
+       of the current paragraph."
+      (let ((do-auto-fill t)
+	    (current-environment "")
+	    (level 0))
+	(while (and do-auto-fill (not (string- current-environment "document")))
+	  (setq level (1+ level)
+		current-environment (LaTeX-current-environment level)
+		do-auto-fill (not (member current-environment latex-nofill-env)))))
+      (when do-auto-fill
+	(do-auto-fill)))
+
+    (defun tex-auto-fill-mode ()
+      (interactive)
+      (auto-fill-mode)
+      (setq auto-fill-mode 'chaffin--tex-autofill))
+
+    (add-hook 'LaTeX-mode-hook 'tex-auto-fill-mode)
+    (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+    (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+    (add-hook 'LaTeX-mode-hook 'smartparens-mode)
+    ;; Company AucTeX
+    <<company-auctex-config>>
+    ;; RefTeX
+    <<reftex-config>>
+    (init-reftex)
+    ;; Bibtex Config
+    <<bibtex-config>>
+    ;; Magic Latex Buffer
+    <<magic-latex-buffer-config>>
+
+    ;; Latex Preview Pange
+    ;; Not tangling 
+
+    ;; Org Edit Latex Buffer
+    <<org-edit-latex-config>>
+    ;; Latex Extra
+    <<latex-extra-config>>
+    ;; Auctex latexmk
+    <<auctex-latexmk-config>>))
+#+END_SRC
+
+**** Bibtex
+
+#+NAME: bibtex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq bibtex-autokey-year-length 2
+      bibtex-autokey-name-year-separator "-"
+      bibtex-autokey-year-title-separator "-"
+      bibtex-autokey-titleword-separator "-"
+      bibtex-autokey-titlewords 2
+      bibtex-autokey-titlewords-stretch 1
+      bibtex-autokey-titleword-length 5)
+#+END_SRC
+
+**** LaTeX Extra
+
+#+NAME: latex-extra-config
+#+BEGIN_SRC emacs-lisp :tangle no
+;; See [1] https://github/Malabarba/latex-extra/issues/23
+(let ((byte-compile-warnings '(not free-vars)))
+  (use-package latex-extra
+    :straight t
+    :config
+    (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
+#+END_SRC
+
+**** LaTeX Preview Pane
+
+Not tangling right now because it's creating a new buffer after every
+save. 
+
+#+NAME: latex-preview-pane-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package latex-preview-pane
+  :straight t
+  :config (latex-preview-pane-enable))
+#+END_SRC
+
+**** Company AucTeX
+
+#+NAME: company-auctex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-auctex
+  :after (company)
+  :straight t
+  :init
+  (company-auctex-init))
+#+END_SRC
+
+**** Org Edit Latex
+
+#+NAME: org-edit-latex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-edit-latex
+  :straight t)
+#+END_SRC
+
+**** Magic Latex Buffer
+
+Prettify dedicated org-mode latex buffers.
+
+#+NAME: magic-latex-buffer-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package magic-latex-buffer
+  :straight t
+  :init
+  (progn
+    (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
+    (setq magic-latex-enable-block-highlight t
+	  magic-latex-enable-suscript t
+	  magic-latex-enable-pretty-symbols t
+	  magic-latex-enable-block-align nil
+	  magic-latex-enable-inline-image t)))
+#+END_SRC
+
+**** Auctex Latexmk
+
+#+NAME: auctex-latexmk-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package auctex-latexmk
+  :straight t
+  :config
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
+#+END_SRC
+
+**** RefTeX
+
+
+RefTeX is a citation and reference tool maintained by the
+AucTeX team.
+
+Since Emacs 24.3, its built in with the Emacs distribution.
+
+#+NAME: reftex-config
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defun init-reftex ()
+    (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+    (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+          reftex-use-fonts t
+          reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
+#+END_SRC
+
+**** Texinfo
+
+#+texinfo-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package texinfo
+  :straight t
+  :defines texinfo-section-list
+  :commands texinfo-mode
+  :init
+  (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
 #+END_SRC
 
 *** Java
@@ -3620,356 +4018,19 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
    :branch "gh-pages"))
 #+END_SRC
 
-*** Scala
-
-#+NAME: scala-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'scala)
-  <<scala-mode>>
-  <<scala-sbt-mode>>)
-#+END_SRC
-
-#+NAME: scala-mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package scala-mode
-  :straight t
-  :interpreter
-  ("scala" . scala-mode))
-#+END_SRC
-
-**** Sbt
-
-#+NAME: scala-sbt-mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package sbt-mode
-  :commands (sbt-start sbt-command)
-  :config
-  ;; WORKAROUND: https://github.com/ensime/emacs-sbt-mode/issues/31
-  ;; allows using SPACE when in the minibuffer
-  (substitute-key-definition
-   'minibuffer-complete-word
-   'self-insert-command
-   minibuffer-local-completion-map))
-#+END_SRC
-
-*** C++
-
-#+NAME: c-cxx-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'c-c++)
-  <<cc-function-args>>
-  (when (executable-find "cmake")
-    <<cc-irony-mode>>
-    <<cc-cmake-mode>>)
-  (defun chaffin-c-c++-mode-hook ()
-    (smartparens-mode t)
-    (unless (file-exists-p "makefile")
-      (set (make-local-variable 'compile-command)
-	   (let ((file (file-name-sans-extension buffer-file-name)))
-	     (format "g++ %s -o %s" buffer-file-name file)))))
-
-  (add-to-hooks #'chaffin-c-c++-mode-hook '(c-mode-hook
-					    c++-mode-hook)))
-#+END_SRC
-
-**** Function Args
-
-CDET enhancements for showing inline function arguments.
-
-#+NAME: cc-function-args
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package function-args
-  :straight t
-  :init
-  (fa-config-default)
-  :commands (fa-config-default)
-  :mode ("\\.h\\'" . c++-mode)
-  :config
-  (add-hook 'c++-mode-hook
-	    (lambda ()
-	      (setq semantic-case-fold t))))
-#+END_SRC
-
-**** Irony Mode
-
-#+NAME: cc-irony-mode
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<cc-irony-mode-config>>
-<<cc-irony-company-irony>>
-<<cc-irony-flycheck-irony>>
-#+END_SRC
-
-
-- [[https://oremacs.com/2017/03/28/emacs-cpp-ide/][oremacs.com - Using Emacs as a C++ IDE]]
-
-#+NAME: cc-irony-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package irony
-  :straight t
-  :init
-  (progn
-    (add-hook 'c++-mode-hook 'irony-mode)
-    (add-hook 'c-mode-hook 'irony-mode))
-  :commands (irony-cdb-autosetup-compile-options irony-install-server)
-  :config
-  (progn
-    (defun chaffin-irony-mode-hook ()
-      (define-key irony-mode-map
-	[remap completion-at-point] 'counsel-irony)
-      (define-key irony-mode-map
-	[remap complete-symbol] 'counsel-irony))
-
-    (add-hook 'irony-mode-hook 'chaffin-irony-mode-hook)
-    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)))
-#+END_SRC
-
-***** Company Irony
-
-Company backend for C/C++ files using irony mode.
-
-#+NAME: cc-irony-company-irony
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<cc-irony-company-irony-c-cxx>>
-<<cc-irony-company-irony-c-headers>>
-#+END_SRC
-
-#+NAME: cc-irony-company-irony-c-cxx
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-irony
-  :straight t
-  :after (company)
-  :defines (company-irony)
-  :init
-  (add-to-list 'company-backends 'company-irony))
-#+END_SRC
-
-****** Company Irony C Headers
-
-#+NAME: cc-irony-company-irony-c-headers
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-irony-c-headers
-  :straight t
-  :after (company)
-  :defines (company-irony-c-headers)
-  :init
-  (add-to-list 'company-backends 'company-irony-c-headers))
-#+END_SRC
-
-***** Flycheck Irony
-
-#+NAME: cc-irony-flycheck-irony
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-irony
-  :straight t
-  :after (flycheck)
-  :init
-  (flycheck-irony-setup))
-#+END_SRC
-
-**** Cmake Mode
-
-#+NAME: cc-cmake-mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package cmake-mode
-  :straight t
-  :mode (("CMakeLists\\.txt\\'" . cmake-mode)
-	 ("\\.cmake\\'" . cmake-mode))
-
-  :config
-  (add-hook 'cmake-mode-hook
-	    (lambda ()
-	      (smartparens-mode t))))
-#+END_SRC
-
-*** LaTeX
-**** Tex Config
-
-#+NAME: tex-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
-(use-package tex
-  :straight (auctex
-	     :host github
-	     :repo "emacsmirror/auctex"
-	     :files (:defaults (:exclude "*.el.in")))
-  :defines latex-nofill-env
-  :functions chaffin/tex-auto-fill-mode
-  :init
-  (progn
-    (setq TeX-command-default "LaTeX"
-	  TeX-engine 'xetex
-	  TeX-auto-save t
-	  TeX-parse-self t
-	  TeX-syntactic-comment t
-	  TeX-source-correlate-start-server nil
-	  LaTeX-fill-break-at-separators nil)
-    (defvar latex-nofill-env '("equation"
-			       "equation*"
-			       "align"
-			       "align*"
-			       "tabular"
-			       "tikzpicture"))
-    (defun chaffin//tex-autofill ()
-      "Check whether the pointer is currently inside one of
-the environments in `latex-nofill-env` and inhibits auto-filling
-of the current paragraph."
-      (let ((do-auto-fill t)
-	    (current-environment "")
-	    (level 0))
-	(while (and do-auto-fill (not (string- current-environment "document")))
-	  (setq level (1+ level)
-		current-environment (LaTeX-current-environment level)
-		do-auto-fill (not (member current-environment latex-nofill-env)))))
-      (when do-auto-fill
-	(do-auto-fill)))
-
-    (defun chaffin/tex-auto-fill-mode ()
-      (interactive)
-      (auto-fill-mode)
-      (setq auto-fill-mode 'chaffin/tex-autofill))
-
-    (add-hook 'LaTeX-mode-hook 'chaffin/tex-auto-fill-mode)
-    (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-    (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
-    (add-hook 'LaTeX-mode-hook 'smartparens-mode)
-    ;; Company AucTeX
-    <<company-auctex-config>>
-    ;; RefTeX
-    <<reftex-config>>
-    (jchaffin/init-reftex)
-    ;; Bibtex Config
-    <<bibtex-config>>
-    ;; Magic Latex Buffer
-    <<magic-latex-buffer-config>>
-    ;; Latex Preview Pane
-    ;; buggy
-    ;; <<latex-preview-pane-config>>
-
-    ;; Org Edit Latex Buffer
-    <<org-edit-latex-config>>
-    ;; Latex Extra
-    <<latex-extra-config>>
-    ;; Auctex latexmk
-    <<auctex-latexmk-config>>))
-#+END_SRC
-
-**** Bibtex
-
-#+NAME: bibtex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq bibtex-autokey-year-length 2
-      bibtex-autokey-name-year-separator "-"
-      bibtex-autokey-year-title-separator "-"
-      bibtex-autokey-titleword-separator "-"
-      bibtex-autokey-titlewords 2
-      bibtex-autokey-titlewords-stretch 1
-      bibtex-autokey-titleword-length 5)
-#+END_SRC
-
-**** LaTeX Extra
-
-#+NAME: latex-extra-config
-#+BEGIN_SRC emacs-lisp :tangle no
-;; See [1] https://github/Malabarba/latex-extra/issues/23
-(let ((byte-compile-warnings '(not free-vars)))
-  (use-package latex-extra
-    :straight t
-    :config
-    (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
-#+END_SRC
-
-**** LaTeX Preview Pane
-
-#+NAME: latex-preview-pane-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package latex-preview-pane
-  :straight t
-  :config (latex-preview-pane-enable))
-#+END_SRC
-
-**** Company AucTeX
-
-#+NAME: company-auctex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-auctex
-  :straight t
-  :init
-  (company-auctex-init))
-#+END_SRC
-
-**** Org Edit Latex
-
-#+NAME: org-edit-latex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-edit-latex
-  :straight t)
-#+END_SRC
-
-**** Magic Latex Buffer
-
-Prettify dedicated org-mode latex buffers.
-
-#+NAME: magic-latex-buffer-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package magic-latex-buffer
-  :straight t
-  :init
-  (progn
-    (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
-    (setq magic-latex-enable-block-highlight t
-	  magic-latex-enable-suscript t
-	  magic-latex-enable-pretty-symbols t
-	  magic-latex-enable-block-align nil
-	  magic-latex-enable-inline-image t)))
-#+END_SRC
-
-**** Auctex Latexmk
-
-#+NAME: auctex-latexmk-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package auctex-latexmk
-  :straight t
-  :config
-  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
-#+END_SRC
-
-**** RefTeX
-
-
-RefTeX is a citation and reference tool maintained by the
-AucTeX team.
-
-Since Emacs 24.3, its built in with the Emacs distribution.
-
-#+NAME: reftex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-  (defun jchaffin/init-reftex ()
-    (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
-    (setq reftex-plug-into-AUCTeX '(nil nil t t t)
-          reftex-use-fonts t
-          reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
-#+END_SRC
-
-**** Texinfo
-
-#+texinfo-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package texinfo
-  :straight t
-  :defines texinfo-section-list
-  :commands texinfo-mode
-  :init
-  (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
-#+END_SRC
-
-*** Javascript
-**** JavaScript Preamble
+*** JavaScript
 
 #+NAME: js-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+(when (chaffin-enabled-lang-p 'javascript)
   <<js2-mode-config>>
+  <<flycheck-js-config>>
+  <<npm-mode-config>>
   <<coffee-mode-config>>
+  <<typescript-config>>
   <<json-mode-config>>
-  <<tern-mode-config>>
+  <<tern-mode-config>>  
+)  
 #+END_SRC
 
 **** js2-mode
@@ -4007,9 +4068,9 @@ Real jsx support.
   :init (add-hook 'js2-mode-hook 'tern-mode))
 #+END_SRC
 
-***** Company Tern ([[https://github.com/proofit404/company-tern][repository]])
+***** Company Tern
 
-Tern backend using company.
+[[https://github.com/proofit404/company-tern][Company Tern]] provides code completion using tern company backned.
 
 #+NAME: company-tern-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4031,22 +4092,6 @@ Tern backend using company.
   :defer t
   :straight t
   :mode (("\\.json\\'" . json-mode)))
-#+END_SRC
-
-**** React                                                        :ignore:
-
-Based off/shamelessly copied and pasted from Spacemacs
-React layer.
-
-#+NAME: react-config
-#+BEGIN_SRC emacs-lisp :tangle no
-  (progn
-    (define-derived-mode react-mode web-mode "react")
-    (add-to-list 'auto-mode-alist '("\\.jsx\\'" . react-mode))
-    (add-to-list 'auto-mode-alist '("\\.react.js\\'" . react-mode))
-    (add-to-list 'auto-mode-alist '("\\.index.android.js\\'" . react-mode))
-    (add-to-list 'auto-mode-alist '("\\.index.ios.js\\'" . react-mode))
-    (add-to-list 'auto-mode-alist '("\\/\\*\\* @jsx .*\\*/\\'" . react-mode)))
 #+END_SRC
 
 **** TypeScript
@@ -4099,15 +4144,156 @@ React layer.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
   :straight t
-  :defer t)
+  :defer t
+  :init
+  (add-hook 'js2-mode-hook #'npm-mode))
 #+END_SRC
 
-**** Enable syntax checking in ~js-mode~ and related mode buffers.
+**** Flycheck JavaScript
 
 #+NAME: flycheck-js-config
 #+BEGIN_SRC emacs-lisp :tangle no
+(with-eval-after-load 'flycheck
   (dolist (mode '(coffee-mode js2-mode json-mode))
-    (push mode flycheck-global-modes))
+    (push mode flycheck-global-modes)))
+
+#+END_SRC
+
+*** Markdown
+
+#+NAME: markdown-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'markdown)
+  <<markdown-mode-config>>
+  <<markdown-mode+-config>>
+  <<markdown-toc-config>>
+  <<markdownfmt-config>>
+)
+#+END_SRC
+
+**** Markdown Mode
+
+- See https://jblevins.org/projects/markdown-mode/
+
+#+NAME markdown-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdown-mode
+  :straight t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+	 ("\\.md\\'" . markdown-mode)
+	 ("\\.markdown\\'" . markdown-mode))
+  :init
+  (progn
+    (setq markdown-command "multimarkdown")
+    (if (and *is-mac*
+	     (straight-check-package "macos-dev-utils"))
+	(setq markdown-open-command #'macos-open-with-default-app)))
+  :config
+  (add-to-hooks  (lambda ()
+		   (visual-line-mode)
+		   (auto-fill-mode))
+		 '(markdown-mode-hook gfm-mode-hook)))
+#+END_SRC
+
+**** markdown-mode+
+
+#+NAME: markdown-mode+-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdown-mode+
+  :straight t)
+#+END_SRC
+
+**** markdown-toc
+
+#+NAME: markdown-toc-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdown-toc
+  :straight t
+  :defer t)
+#+END_SRC
+
+**** markdownfmt
+
+#+NAME: markdownfmt-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdownfmt
+  :straight t
+  :defer t
+  :commands (markdown-format-buffer markdownfmt-enable-on-save)
+  :bind (:map markdown-mode-map
+	      ("C-c C-f" . markdown-format-buffer))
+  :config
+  (add-hook 'markdown-mode-hook #'markdownfmt-enable-on-save))
+#+END_SRC
+
+*** Ruby
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'ruby)
+  <<ruby-mode-config>>
+  <<rvm-config>>)
+#+END_SRC
+
+**** ruby-mode
+
+#+NAME: ruby-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ruby-mode
+  :mode "\\.rb\\'"
+  :interpreter "ruby"
+  :functions inf-ruby-keys
+  :config
+  (progn
+    (defun chaffin/ruby-mode-hook ()
+      (require 'inf-ruby)
+      (inf-ruby-keys))
+
+    (add-hook #'ruby-mode-hook #'chaffin/ruby-mode-hook)))
+#+END_SRC
+
+**** rvm
+
+#+NAME: rvm-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package rvm
+  :straight t
+  :commands (rvm-use-default)
+  :config
+  (rvm-use-default))
+#+END_SRC
+
+*** Scala
+
+#+NAME: scala-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'scala)
+  <<scala-mode-config>>
+  <<scala-sbt-mode-config>>)
+#+END_SRC
+
+**** Scala Mode
+#+NAME: scala-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package scala-mode
+  :straight t
+  :interpreter
+  ("scala" . scala-mode))
+#+END_SRC
+
+**** Sbt
+
+#+NAME: scala-sbt-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package sbt-mode
+  :commands (sbt-start sbt-command)
+  :config
+  ;; WORKAROUND: https://github.com/ensime/emacs-sbt-mode/issues/31
+  ;; allows using SPACE when in the minibuffer
+  (substitute-key-definition
+   'minibuffer-complete-word
+   'self-insert-command
+   minibuffer-local-completion-map))
 #+END_SRC
 
 *** Web
@@ -4115,60 +4301,64 @@ React layer.
 
 #+NAME: web-mode-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-(use-package web-mode
-  :straight t
-  :bind (:map web-mode-map
-	      ("M-n" . web-mode-tag-match))
-  :mode
-  (("\\.phtml\\'"      . web-mode)
-   ("\\.tpl\\.php\\'"  . web-mode)
-   ("\\.twig\\'"       . web-mode)
-   ("\\.html\\'"       . web-mode)
-   ("\\.htm\\'"        . web-mode)
-   ("\\.[gj]sp\\'"     . web-mode)
-   ("\\.as[cp]x?\\'"   . web-mode)
-   ("\\.eex\\'"        . web-mode)
-   ("\\.erb\\'"        . web-mode)
-   ("\\.mustache\\'"   . web-mode)
-   ("\\.handlebars\\'" . web-mode)
-   ("\\.hbs\\'"        . web-mode)
-   ("\\.eco\\'"        . web-mode)
-   ("\\.ejs\\'"        . web-mode)
-   ("\\.djhtml\\'"     . web-mode))
+(when (chaffin-enabled-lang-p 'web)
+  (use-package web-mode
+    :straight t
+    :bind (:map web-mode-map
+		;; I should rebind this because it conficts
+		;; with `company-select-next-or-abort'
+		("M-n" . web-mode-tag-match))
+    :mode
+    (("\\.phtml\\'"      . web-mode)
+     ("\\.tpl\\.php\\'"  . web-mode)
+     ("\\.twig\\'"       . web-mode)
+     ("\\.html\\'"       . web-mode)
+     ("\\.htm\\'"        . web-mode)
+     ("\\.[gj]sp\\'"     . web-mode)
+     ("\\.as[cp]x?\\'"   . web-mode)
+     ("\\.eex\\'"        . web-mode)
+     ("\\.erb\\'"        . web-mode)
+     ("\\.mustache\\'"   . web-mode)
+     ("\\.handlebars\\'" . web-mode)
+     ("\\.hbs\\'"        . web-mode)
+     ("\\.eco\\'"        . web-mode)
+     ("\\.ejs\\'"        . web-mode)
+     ("\\.djhtml\\'"     . web-mode))
 
-  :config
-  (progn
-    (setq web-mode-engines-alist
-	'(("php" . "\\.phtml\\'")
-	  ("blade" . "\\.blade\\'")))
+    :config
+    (progn
+      (setq web-mode-engines-alist
+	  '(("php" . "\\.phtml\\'")
+	    ("blade" . "\\.blade\\'")))
 
-    (defun jchaffin/web-mode-enable ()
-      (setq web-mode-enable-auto-pairing t
-	    web-mode-enable-css-colorization t
-	    web-mode-enable-block-face t
-	    web-mode-enable-part-face t
-	    web-mode-enable-comment-keywords t
-	    web-mode-enable-heredoc-fontification t
-	    web-mode-enable-current-element-highlight t
-	    web-mode-enable-current-column-highlight t))
+      (defun chaffin--web-mode-enable ()
+	(setq web-mode-enable-auto-pairing t
+	      web-mode-enable-css-colorization t
+	      web-mode-enable-block-face t
+	      web-mode-enable-part-face t
+	      web-mode-enable-comment-keywords t
+	      web-mode-enable-heredoc-fontification t
+	      web-mode-enable-current-element-highlight t
+	      web-mode-enable-current-column-highlight t))
 
-    (add-hook 'web-mode-hook #'jchaffin/web-mode-enable)
+      (add-hook 'web-mode-hook #'chaffin--web-mode-enable)
 
 
-    (defun jchaffin/web-mode-indent ()
-      (setq web-mode-markup-indent-offset 2
-	    web-mode-code-indent-offset 2
-	    web-mode-style-padding 1
-	    web-mode-script-padding 1
-	    web-mode-block-padding 0
-	    web-mode-comment-style 2))
+      (defun chaffin--web-mode-indent ()
+	(setq web-mode-markup-indent-offset 2
+	      web-mode-code-indent-offset 2
+	      web-mode-style-padding 1
+	      web-mode-script-padding 1
+	      web-mode-block-padding 0
+	      web-mode-comment-style 2))
 
-    (add-hook 'web-mode-hook #'jchaffin/web-mode-indent)
+      (add-hook 'web-mode-hook #'chaffin--web-mode-indent)
 
-    <<tagedit-mode-config>>
-    <<css-mode-config>>
-    <<emmet-mode-config>>
-    <<company-web-config>>))
+      <<tagedit-mode-config>>
+      <<css-mode-config>>
+      <<emmet-mode-config>>
+      <<company-web-config>>)))
+
 #+END_SRC
 
 **** Emmet
@@ -4265,10 +4455,9 @@ React layer.
   :mode ("\\.scss\\'" . scss-mode))
 #+END_SRC
 
-**** Syntax Checking and Code Completion
-***** Company Web ([[https://github.com/osv/company-web][repository]])
+**** Company Web
 
-Code completion for html-mode, web-mode, jade-mode,
+[[https://github.com/osv/company-web][Company Web]] provides code completion for html-mode, web-mode, jade-mode,
 and slim-mode using company.
 
 #+NAME: company-web-config
@@ -4278,12 +4467,12 @@ and slim-mode using company.
   :init
   (progn
     <<company-tern-config>>
-    (defun chaffin/company-web-mode-hook ()
+    (defun chaffin--company-web-mode-hook ()
       "Autocompletion hook for web-mode"
       (set (make-local-variable 'company-backends)
 	   '(company-tern company-web-html company-yasnippet company-files)))
 
-    (add-hook 'web-mode-hook #'chaffin/company-web-mode-hook)
+    (add-hook 'web-mode-hook #'chaffin--company-web-mode-hook)
 
     ;; Enable JavaScript completion between <script>...</script> etc.
     (defadvice company-tern (before web-mode-set-up-ac-sources activate)
@@ -4295,73 +4484,6 @@ and slim-mode using company.
 		    (string= web-mode-cur-language "jsx"))
 		(unless tern-mode (tern-mode))
 	      (if tern-mode (tern-mode -1))))))))
-#+END_SRC
-
-*** Markdown
-**** Markdown Mode
-
-- See https://jblevins.org/projects/markdown-mode/
-
-#+NAME markdown-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-
-(use-package markdown-mode
-  :straight t
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-	 ("\\.md\\'" . markdown-mode)
-	 ("\\.markdown\\'" . markdown-mode))
-  :init
-  (progn
-    (setq markdown-command "multimarkdown")
-    (when *is-mac*
-      ;; FIX ME
-      (setq markdown-open-command
-	    #'chaffin/open-with-default-app)))
-  :config
-  (add-to-hooks  (lambda ()
-		   (visual-line-mode)
-		   (auto-fill-mode))
-		 '(markdown-mode-hook gfm-mode-hook)))
-
-#+END_SRC
-
-**** markdown-mode+
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package markdown-mode+
-  :if *is-mac*
-  :straight t)
-#+END_SRC
-
-**** TODO markdown-tocontents
-**** TODO markdownfmt
-*** Ruby
-**** ruby-mode
-
-#+NAME: ruby-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package ruby-mode
-  :mode "\\.rb\\'"
-  :interpreter "ruby"
-  :functions inf-ruby-keys
-  :config
-  (progn
-    (defun chaffin/ruby-mode-hook ()
-      (require 'inf-ruby)
-      (inf-ruby-keys))
-
-    (add-hook #'ruby-mode-hook #'chaffin/ruby-mode-hook)))
-#+END_SRC
-
-**** TODO rvm
-*** Docker
-
-#+NAME: dockerfile-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package dockerfile-mode
-  :straight t
-  :mode ( "Dockerfile\\'" .  dockerfile-mode))
 #+END_SRC
 
 ** Footnotes
