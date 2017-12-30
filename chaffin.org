@@ -85,6 +85,8 @@
       - [[#initial-startup-display][Initial Startup Display]]
       - [[#menu-bar-tool-bar-scroll-bar][Menu Bar, Tool Bar, Scroll Bar]]
       - [[#truncate-lines][Truncate Lines]]
+    - [[#better-completion][Better Completion]]
+      - [[#ignore-executable-cache-directions-and-version-control-files][Ignore executable, cache directions, and version control files.]]
     - [[#better-garbage-collection][Better Garbage Collection]]
     - [[#better-encryption][Better Encryption]]
       - [[#gnutls][GnuTLS]]
@@ -119,22 +121,24 @@
       - [[#vertical-bar][Vertical Bar]]
       - [[#disable-blink][Disable Blink]]
       - [[#smart-cursor-color][Smart Cursor Color]]
-    - [[#theme][Theme]]
-      - [[#enable-custom-themes][Enable Custom Themes]]
-      - [[#zenburn-theme][Zenburn Theme]]
-      - [[#contrasting-theme-for-use-with-sunshineel][Contrasting theme for use with =sunshine.el=.]]
-      - [[#load-themes][Load Themes]]
+    - [[#font][Font]]
+      - [[#font-list][Font List]]
+      - [[#default-font][Default Font]]
     - [[#modeline][Modeline]]
       - [[#display-time][Display Time]]
       - [[#spaceline][Spaceline]]
       - [[#mode-icons][Mode Icons]]
+    - [[#theme][Theme]]
+      - [[#enable-custom-themes][Enable Custom Themes]]
+      - [[#zenburn-theme][Zenburn Theme]]
+      - [[#atom-one-dark-theme][Atom One Dark Theme]]
+      - [[#load-themes][Load Themes]]
     - [[#all-the-icons][All The Icons]]
       - [[#ivy-all-the-icons][Ivy All the Icons]]
     - [[#terminal][Terminal]]
       - [[#multi-term][Multi-Term]]
       - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
       - [[#shell][Shell]]
-    - [[#frame-font][Frame Font]]
     - [[#sunshine][Sunshine]]
     - [[#emojify][Emojify]]
   - [[#version-control][Version Control]]
@@ -163,6 +167,7 @@
     - [[#symbol-highlighting][Symbol Highlighting]]
       - [[#hlsexp][Hlsexp]]
       - [[#highlight-symbol][Highlight Symbol]]
+      - [[#prettify-symbols][Prettify Symbols]]
     - [[#tagging][Tagging]]
       - [[#ggtags][Ggtags]]
   - [[#enabled-languages][Enabled Languages]]
@@ -1558,6 +1563,15 @@ Not sure this is doing anything...
 (setq-default truncate-lines nil)
 #+END_SRC
 
+*** Better Completion
+
+**** Ignore executable, cache directions, and version control files.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq completion-ignored-extensions '("o" "~" ".lbin" ".so" ".a"
+				      ".git/" ".hg/" ".svn" ".svn-base"))
+#+END_SRC
+
 *** Better Garbage Collection
 
 Consider the following from the documentation:
@@ -2182,6 +2196,10 @@ Too much "cider" for this programmer to parse that rn.
 #+END_SRC
 
 ** User Interface
+
+Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes
+really fantastic Emacs UI libraries and enhancements. 
+
 *** Cursor
 **** Vertical Bar
 
@@ -2189,7 +2207,7 @@ Set the cursor to a bar. The default is too thin for my liking.
 Set the width to 4px. Also remove the cursor in inactive windows.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq-default cursor-type '(bar . 4)
+(setq-default cursor-type '(bar . 1)
 	      cursor-in-non-selected-windows 'nil
 	      x-stretch-cursor t
 	      line-spacing 2)
@@ -2213,43 +2231,77 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   (smart-cursor-color-mode +1))
 #+END_SRC
 
-*** Theme
-**** Enable Custom Themes
-
-This disables Emacs asking questions about loading a new theme.
+*** Font
+**** Font List
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq custom-safe-themes t)
+(defvar font-list
+  '()
+  "An alist of fonts which can be interactively chosen
+   using the `set-font' function.
+
+   Each font entry is a cons cell composed of the font-family as a string and
+   the associated font weight as an unquoted symbol.
+
+   See `font-weight-table' for a list of available options. 
+
+   e.g (\"FONT-FAMILY\" . WEIGHT)"
+  )
+
+(when *is-mac*
+  (let ((font-weight-xs '(("Andale Mono" . extralight)
+			  ("Droid Sans Mono" . normal)
+			  ("Fira Code" . light)
+			  ("Hack" . normal)
+			  ("Inconsolata" . medium)
+			  ("Operator Mono" . extralight)
+			  ("SF Mono" . normal)
+			  ("Programma" . normal))))
+  (mapcar (lambda (font-weight-x)
+	    (add-to-list 'font-list font-weight-x))
+	  font-weight-xs)))
+
+
+(defun set-font (&optional font)
+  "Set the custom FONT with completion"
+  (interactive)
+  (let* ((font (or font (assoc
+			 (completing-read "Font: " font-list nil nil)
+			 font-list)))
+	 (family (car font))
+	 (weight (cdr font)))
+    (run-at-time "0.2 sec" nil
+		 `(lambda () (when (not (eq (face-attribute 'default :family)
+				       ,family))
+			  (set-face-attribute 'default nil :family ,family
+					      :weight (quote ,weight)
+					      :height 120))))))
 #+END_SRC
 
-**** Zenburn Theme
+**** Default Font
+Use the default monospaced font for each operating system.
 
-#+NAME: zenburn-theme-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package zenburn-theme
-  :straight t
-  :config (load-theme 'zenburn))
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defvar macos-default-font
+  "SF Mono 12"
+  "A fontspec string of the default font to use on macOS.
+
+  To get the fontspec string, use the command 'M-x x-select-font RET' 
+  to choose the desired font, then 'M-x describe-font RET' and copy-and-paste.")
+
+(if *is-hal*
+    (setq macos-default-font
+	  "Operator Mono:pixelsize=12:weight=light:slant=normal:width=normal:spacing=100:scalable=true"))
+
+(cond (*is-linux*
+       (set-frame-font "Ubuntu Mono 12" nil t))
+      (*is-windows*
+       (set-frame-font "Lucida Sans Typewriter 12" nil t))
+      (*is-mac*
+       (set-frame-font macos-default-font nil t))
+      (t
+       (set-frame-font "Menlo 12" nil t)))
 #+END_SRC
-
-**** TODO Contrasting theme for use with =sunshine.el=.           :ignore:
-
-***** Anti Zenburn Theme
-
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package anti-zenburn-theme
-    :straight t)
-#+END_SRC
-
-**** Load Themes
-
-Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
-
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<zenburn-theme-config>>
-(when (and (display-graphic-p) *is-mac*)
-  <<org-prettify-ob-theme>>)
- #+END_SRC
 
 *** Modeline
 **** Display Time
@@ -2509,6 +2561,84 @@ is on.
   (mode-icons-mode))
 #+END_SRC
 
+*** Theme
+**** Enable Custom Themes
+
+This disables Emacs asking questions about loading a new theme.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq custom-safe-themes t)
+#+END_SRC
+
+**** Zenburn Theme
+
+#+NAME: zenburn-theme
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package zenburn-theme
+  :straight t
+  :config
+  (load-theme 'zenburn))
+#+END_SRC
+
+**** Atom One Dark Theme
+
+#+NAME: atom-one-dark-theme
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package atom-one-dark-theme
+  :straight t
+  :config
+  (load-theme 'atom-one-dark))
+#+END_SRC
+
+**** Load Themes
+
+Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(if *is-hal*
+    <<atom-one-dark-theme>>
+  <<zenburn-theme>>)
+
+(when (and (display-graphic-p) *is-mac*)
+  <<org-prettify-ob-theme>>)
+ #+END_SRC
+
+*****  Atom One Dark Modifications
+
+I will go to great lengths to avoid using the customization interface.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when (member 'atom-one-dark custom-enabled-themes)
+  (set-face-attribute 'org-block-begin-line nil :foreground "#ABB2BF"
+		      :background "#35373E")
+  (set-face-attribute 'org-block-end-line nil :foreground "#ABB2BF"
+		      :background "#35373E")
+  (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+  (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
+  (set-face-attribute 'font-lock-string-face nil :slant 'italic)
+  (set-face-attribute 'vertical-border nil :foreground "#5C6370")
+  (set-face-attribute 'diredp-compressed-file-name nil :inherit 'dired-warning)
+  (set-face-attribute 'diredp-dir-heading nil :inherit 'dired-header)
+  (set-face-attribute 'diredp-symlink nil :inherit 'dired-symlink)
+  (set-face-attribute 'diredp-dir-name nil :inherit 'dired-directory
+                      :background "#2C2C2C")
+  (set-face-attribute 'diredp-dir-priv nil :inherit 'dired-directory
+                      :background "#2C2C2C")
+  (setq highlight-symbol-foreground-color "#E0E0E0"
+	highlight-symbol-colors '("#FFEE58" "#C5E1A5" "#80DEEA"
+				  "#64B5F6" "#E1BEE7" "#FFCC80")
+	highlight-tail-colors '(("#F8BBD0" . 0) ("#FF80AB" . 10)
+				("#9575CD" . 30) ("#494949" . 60)
+				("#424242" . 80))
+	hl-bg-colors '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
+		       "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
+	hl-fg-colors '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
+		       "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
+	hl-paren-colors '("#B9F" "#B8D" "#B7B" "#B69"
+			  "#B57" "#B45" "#B33" "#B11")
+	nrepl-message-colors '("#dc322f" "#cb4b16" "#b58900")))
+#+END_SRC
+
 *** All The Icons
 
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
@@ -2583,21 +2713,6 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
   (setq explicit-shell-file-name "/bin/sh"
 	shell-file-name "sh")
   (setenv "SHELL" shell-file-name))
-#+END_SRC
-
-*** Frame Font
-
-Use the default monospaced font for each operating system.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(cond (*is-linux*
-       (set-frame-font "Ubuntu Mono 12" nil t))
-      (*is-windows*
-       (set-frame-font "Lucida Sans Typewriter 12" nil t))
-      ((eq system-type 'darwin)
-       (set-frame-font "SF Mono 12" nil t))
-      (t
-       (set-frame-font "Menlo 12" nil t)))
 #+END_SRC
 
 *** Sunshine
@@ -2948,6 +3063,12 @@ Minor mode to highlight s-expresion.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package highlight-symbol
   :straight t)
+#+END_SRC
+
+**** Prettify Symbols
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(add-hook 'prog-mode-hook 'prettify-symbols-mode)
 #+END_SRC
 
 *** Tagging
