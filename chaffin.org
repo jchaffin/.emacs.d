@@ -800,10 +800,33 @@ that depend on resources outside of this repository, such as
 org-agenda files, will impact portability and potentially break on
 other machines.
 
+
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq custom-file "~/.emacs.d/custom/custom.el")
-(load custom-file)
+(let ((custom-file-directory (file-name-as-directory
+			      (concat
+			       (file-name-as-directory user-emacs-directory)
+			       "custom"))))
+  (cond (*is-mac*
+	 (setq custom-file (concat custom-file-directory "custom-macos.el")))
+	(*is-linux*
+	 (setq custom-file (concat custom-file-directory "custom-linux.el")))
+	(*is-windows*
+	 (setq custom-file (concat custom-file-directory "custom-windows.el")))
+	(t
+	 (setq custom-file (concat custom-file-directory "custom.el"))))
+
+  ;; Create custom file if it does not exist.
+  (if-not (file-exists-p custom-file)
+      (with-temp-buffer
+	(find-file custom-file)
+	(save-buffer)
+	(kill-buffer)))
+
+  (load custom-file))
 #+END_SRC
+
+#+RESULTS:
+: t
 
 *** Backup Files
 
@@ -1511,7 +1534,8 @@ know you're around.
 
 #+NAME: enable-emojify
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-<<emojify-mode-config>>
+(when (display-graphic-p)
+  <<emojify-mode-config>>)
 #+END_SRC
 
 ***** Emacs Dashboard
