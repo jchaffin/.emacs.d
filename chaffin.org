@@ -816,12 +816,13 @@ This might come back to bite me one day but I never use them.
 *** Load Secrets
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(if-not (string-empty-p
-	 (shell-command-to-string
-	  (concat "gpg --list keys | grep " user-mail-address)))
-    (load-library (concat user-emacs-directory "secrets/secrets.el.gpg"))
-  (print (format "GPG key(s) for %s not found"
-		 (or user-full-name user-mail-address))))
+(when (executable-find "gpg")
+  (if-not (string-empty-p
+	   (shell-command-to-string
+	    (concat "gpg --list-keys | grep " user-mail-address)))
+      (load-library (concat user-emacs-directory "secrets/secrets.el.gpg"))
+    (print (format "GPG key(s) for %s not found"
+		   (or user-full-name user-mail-address)))))
 #+END_SRC
 
 *** Use Emacs Terminfo
