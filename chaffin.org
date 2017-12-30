@@ -35,13 +35,15 @@
       - [[#resolve-path-relative-to-user-emacs-directory][Resolve Path Relative to user-emacs-directory]]
       - [[#explore-a-local-repository][Explore a local repository]]
   - [[#environment][Environment]]
+    - [[#keybindings][Keybindings]]
     - [[#macos][macOS]]
-      - [[#computer-name][Computer Name]]
+      - [[#macos-terminal-encoding][MacOS Terminal Encoding]]
       - [[#macos-keybindings][MacOS Keybindings]]
+      - [[#computer-name][Computer Name]]
+      - [[#dev-utils][Dev Utils]]
       - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
       - [[#osx-dictionary][OSX Dictionary]]
       - [[#exec-path-from-shell][Exec Path From Shell]]
-      - [[#open-with][Open With]]
     - [[#other-operating-systems][Other Operating Systems]]
       - [[#windowspc][Windows/PC]]
       - [[#linux][Linux]]
@@ -49,7 +51,6 @@
     - [[#backup-files][Backup Files]]
     - [[#load-secrets][Load Secrets]]
     - [[#use-emacs-terminfo][Use Emacs Terminfo]]
-    - [[#keybindings][Keybindings]]
   - [[#org-mode][Org Mode]]
     - [[#org-prettify][Org Prettify]]
       - [[#improve-legibility][Improve Legibility]]
@@ -181,7 +182,7 @@
     - [[#groovy][Groovy]]
     - [[#java][Java]]
       - [[#eclim][Eclim]]
-      - [[#gradle][Gradle]]
+      - [[#gradle-mode][Gradle Mode]]
       - [[#meghanada][Meghanada]]
       - [[#ensime][Ensime]]
       - [[#autodisass-java-bytecode][Autodisass Java Bytecode]]
@@ -561,6 +562,23 @@ buffer.
 #+END_SRC
 
 ** Environment
+*** Keybindings
+
+#+NAME: user-emacs-keybindings
+#+BEGIN_SRC emacs-lisp :tangle yes
+;; Make personal keymap
+(define-prefix-command 'chaffin-keymap)
+(global-set-key "\M-m" 'chaffin-keymap)
+
+;; Make `chaffin-reload-eval-keymap'
+(define-prefix-command 'chaffin-reload-eval-keymap)
+(define-key 'chaffin-keymap "r" 'chaffin-reload-eval-keymap)
+(define-key 'chaffin-reload-eval-keymap "i"  #'chaffin-reload-init)
+(define-key 'chaffin-reload-eval-keymap "b"  #'chaffin-eval-buffer)
+(define-key 'chaffin-reload-eval-keymap "r"  #'eval-region)
+(define-key 'chaffin-reload-eval-keymap "f"  #'eval-defun)
+#+END_SRC
+
 *** macOS
 
 I work on a macbook, so this block is where I'm loading all of my settings that rely on local
@@ -575,10 +593,51 @@ filepaths, macOS applications, and external programs.
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports results :results output
   (when *is-mac*
      (progn
-       <<macos-default-settings>>
+       <<macos-terminal-encoding>>
+       <<macos-keybindings>>
        <<macos-finder-config>>
        <<macos-dictionary-config>>
-       <<macos-open-with>>))
+       <<macos-dev-utils>>))
+#+END_SRC
+
+
+**** MacOS Terminal Encoding
+
+#+NAME: macos-terminal-encoding
+#+BEGIN_SRC emacs-lisp :tangle no
+(set-terminal-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+#+END_SRC
+
+**** MacOS Keybindings
+
+#+NAME: macos-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
+<<macos-modifier-keymap>>
+<<macos-prefix-command>>
+#+END_SRC
+
+***** Modifier Keymappings
+
+macOS specific settings[fn:4].
+
+Maps the modifier keys based on personal preferences.
+Also sets terminal coding system to "utf-8".
+
+#+NAME: macos-modifier-keymap
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq mac-command-modifier 'super
+      mac-option-modifier  'meta
+      ns-control-modifier  'control
+      ns-function-modifier 'hyper)
+#+END_SRC
+
+***** MacOS Prefix Command
+
+#+NAME: macos-prefix-command
+#+BEGIN_SRC emacs-lisp :tangle no
+(define-prefix-command 'macos-keymap)
+(define-key 'chaffin-keymap "m" 'macos-keymap)
 #+END_SRC
 
 **** Computer Name
@@ -596,21 +655,35 @@ filepaths, macOS applications, and external programs.
 (defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
-**** MacOS Keybindings
-macOS specific settings[fn:4].
+**** Dev Utils
 
-Maps the modifier keys based on personal preferences.
-Also sets terminal coding system to "utf-8".
+Small library for opening files and buffers in external text
+editors and various other applications on macOS. 
 
-#+NAME: macos-default-settings
+#+NAME: macos-dev-utils
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq mac-command-modifier 'super
-      mac-option-modifier 'meta
-      ns-control-modifier 'control
-      ns-function-modifier 'hyper)
+(use-package macos-dev-utils
+  :straight
+  (macos-dev-utils
+   :host github
+   :repo "jchaffin/macos-dev-utils")
+  :config
+  (progn
+    (define-prefix-command 'macos-open-with-keymap)
+    (define-prefix-command 'macos-iterm-keymap)    
+    (define-key 'macos-keymap "o" 'macos-open-with-keymap)
+    (define-key 'macos-keymap "t" 'macos-iterm-keymap)
+    ;; macos-open-with keybindings
+    (define-key 'macos-open-with-keymap "s" 'open-with-sublime-text)
+    (define-key 'macos-open-with-keymap "a" 'open-with-atom)
+    (define-key 'macos-open-with-keymap "v" 'open-with-vscode)
+    (define-key 'macos-open-with-keymap "b" 'open-with-bbedit)
+    (define-key 'macos-open-with-keymap "c" 'open-with-coda)
 
-(set-terminal-coding-system 'utf-8)
-(prefer-coding-system 'utf-8)
+    ;; macos-iterm keymap
+    (define-key 'macos-iterm-keymap "g" 'iterm-goto-filedir-or-home)
+    (define-key 'macos-iterm-keymap "f" 'iterm-focus)
+    (define-key 'macos-iterm-keymap "s" 'iterm-shell-command)))
 #+END_SRC
 
 **** Reveal in macOS Finder
@@ -629,8 +702,12 @@ Provides an interface to /Dictionary.app/ in Emacs.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package osx-dictionary
   :straight t
-  :bind (("C-c C-d" . osx-dictionary-search-word-at-point)
-	 ("C-c i" . osx-dictionary-search-input)))
+  :config
+  (progn
+    (define-prefix-command 'osx-dictionary-keymap)
+    (define-key 'macos-keymap "d" 'osx-dictionary-keymap)
+    (define-key 'osx-dictionary-keymap "d" 'osx-dictionary-search-word-at-point)
+    (define-key 'osx-dictionary-keymap "i" 'osx-dictionary-search-input)))
 #+END_SRC
 
 **** Exec Path From Shell
@@ -661,117 +738,6 @@ conditionally loading dependencies.
   :config
   (exec-path-from-shell-initialize)
   (setq exec-path-from-shell-check-startup-files nil))
-#+END_SRC
-
-**** Open With
-
-#+NAME: macos-open-with
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin/open-with-default-app ()
-  (when buffer-file-name
-    (shell-command (concat
-                    (if (eq system-type 'darwin)
-                        "open"
-                      (read-shell-command "Open current file with: "))
-                    " "
-                    buffer-file-name))))
-
-
-
-(defun chaffin/open-with-sublime-text ()
-  "Opens current buffer or file at point in Sublime Text.app."
-  (interactive)
-  (let* ((path (buffer-file-name))
-         (filename-at-point (dired-file-name-at-point))
-         ;; Create a full path if filename-at-point is non-nil.
-         (filename-at-point (if filename-at-point
-                                (expand-file-name filename-at-point)
-                              nil))
-         dir file)
-
-    (cond (path
-           (setq dir (file-name-directory path))
-           (setq file (file-name-nondirectory path)))
-          (filename-at-point
-           ;; if filename-at-point is available from dired.
-           (setq dir (file-name-directory filename-at-point))
-           (setq file (file-name-nondirectory filename-at-point)))
-
-          (t
-           ;; Otherwise,
-           (setq dir (expand-file-name default-directory))))
-
-    (chaffin//sublime-exec dir file))) ;; end chaffin/open-with-sublime-text
-
-
-
-;; Local function for `chaffin/open-with-sublime-text' function.
-(defun chaffin//sublime-exec (dir file)
-  (interactive)
-  (let* ((revealpath (if file
-                         (concat dir file)
-                       dir)))
-    (view-mode)
-    (view-mode-enable)
-    (message (format "path from `exec-sublime-bin:' %s" revealpath))
-    (shell-command (concat
-                    "subl"
-                    " "
-                    revealpath))))
-;; end chaffin//sublime-exec
-
-(defun chaffin//get-file-dir-or-home ()
-  "If inside a file buffer, return the directory, else return home."
-  (interactive)
-  (let ((filename (buffer-file-name)))
-    (if (not (and filename (file-exists-p filename)))
-        "~/"
-      (file-name-directory filename))
-    (message filename)))
-
-(defun chaffin/iterm-goto-filedir-or-home ()
-  "Go to current working directory and focus iTerm."
-  (interactive)
-  (do-applescript
-   (concat
-    "tell application \"iTerm\"\n"
-    "  tell the current session of current window\n"
-    (format "  write text \"cd %s\"\n"
-            (replace-regexp-in-string "\\\\" "\\\\\\\\"
-                                      (shell-quote-argument (or default-directory "~"))))
-    "   end tell\n"
-    "end tell\n"
-    "do shell script \"open -a iTerm\"\n")))
-
-(defun chaffin/iterm-focus ()
-  (interactive)
-  (do-applescript
-   " do shell script \"open -a iTerm\"\n"))
-
-(defun chaffin/iterm-shell-command (command &optional prefix)
-  "cd to `default-directory' then run COMMAND in iTerm.
-With PREFIX, cd to project root."
-  (interactive (list (read-shell-command
-                      "iTerm Shell Command: ")
-                     current-prefix-arg))
-  (let* ((dir (if prefix (project-root)
-                default-directory))
-         ;; if COMMAND is empty, just change directory
-         (cmd (format "cd %s ;%s" dir command)))
-    (do-applescript
-     (format
-      (concat
-       "tell application \"iTerm\"\n"
-       "  activate\n"
-       "  set _session to current session of current window\n"
-       "  tell _session\n"
-       "    set command to get the clipboard\n"
-       "    write text \"%s\"\n"
-       "  end tell\n"
-       "end tell")
-      cmd))))
-
-
 #+END_SRC
 
 *** Other Operating Systems
@@ -825,9 +791,6 @@ other machines.
   (load custom-file))
 #+END_SRC
 
-#+RESULTS:
-: t
-
 *** Backup Files
 
 This might come back to bite me one day but I never use them.
@@ -850,28 +813,14 @@ This might come back to bite me one day but I never use them.
 
 *** Use Emacs Terminfo
 
-Setting this variable to false forces Emacs to use internal terminfo,
+Setting this variable to nil forces Emacs to use internal terminfo,
 rather than the system terminfo.
+
+I'm setting it to non-nil because setting this variable to nil causes
+issues with build commands in [[#gradle-mode][gradle-mode]]
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq system-uses-terminfo t)
-#+END_SRC
-
-*** Keybindings
-
-#+NAME: user-emacs-keybindings
-#+BEGIN_SRC emacs-lisp :tangle yes
-;; Make personal keymap
-(define-prefix-command 'chaffin-keymap)
-(global-set-key "\M-m" 'chaffin-keymap)
-
-;; Make `chaffin-reload-eval-keymap'
-(define-prefix-command 'chaffin-reload-eval-keymap)
-(define-key 'chaffin-keymap "r" 'chaffin-reload-eval-keymap)
-(define-key 'chaffin-reload-eval-keymap "i"  #'chaffin-reload-init)
-(define-key 'chaffin-reload-eval-keymap "b"  #'chaffin-eval-buffer)
-(define-key 'chaffin-reload-eval-keymap "r"  #'eval-region)
-(define-key 'chaffin-reload-eval-keymap "f"  #'eval-defun)
 #+END_SRC
 
 ** Org Mode
@@ -923,10 +872,10 @@ Use UTF-8 Bullets for Org-mode headings.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
   :straight t
-  :init
+  :config
   (add-hook 'org-mode-hook
 	    (lambda ()
-	      (org-bullets-mode 1))))
+	      (org-bullets-mode t))))
 #+END_SRC
 
 **** Org Beautify Theme
@@ -1158,7 +1107,8 @@ Add spell checking in org mode buffers using Flyspell.
 
 #+NAME: org-utils-flyspell
 #+BEGIN_SRC emacs-lisp :tangle no
-(add-hook 'org-mode-hook 'turn-on-flyspell)
+(when (executable-find "aspell")
+  (add-hook 'org-mode-hook 'turn-on-flyspell))
 #+END_SRC
 
 *** Org PDF
@@ -2839,7 +2789,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 *** Google Search at point.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun chaffin/google-search-query-at-point (&optional edit-query)
+(defun google-search-query-at-point (&optional edit-query)
   "Search for the expression at point in the default web browser.
 If the optional prefix EDIT-QUERY is specified,
 the user will be prompted to edit the search string first."
@@ -3415,7 +3365,12 @@ CIDER eldoc information.
 	eclim-wait-for-process t))
 #+END_SRC
 
-**** Gradle
+**** Gradle Mode
+:PROPERTIES:
+:ID:       0D4DEC79-5E2D-48D0-A8B1-38E2432565C8
+:CUSTOM_ID: gradle-mode
+:END:
+
 
 Gradle is a build tool for Java. It's awesome.
 
@@ -4240,7 +4195,8 @@ and slim-mode using company.
     (setq markdown-command "multimarkdown")
     (when *is-mac*
       ;; FIX ME
-      (setq markdown-open-command (lambda () (shell-command "open -a Marked" buffer-file-name)))))
+      (setq markdown-open-command
+	    #'chaffin/open-with-default-app)))
   :config
   (add-to-hooks  (lambda ()
 		   (visual-line-mode)
