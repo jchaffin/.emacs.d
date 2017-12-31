@@ -4114,7 +4114,7 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 *** JavaScript
 
 #+NAME: js-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (when (chaffin-enabled-lang-p 'javascript)
   <<js2-mode-config>>
   <<flycheck-js-config>>
