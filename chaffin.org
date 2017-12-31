@@ -97,7 +97,7 @@
       - [[#alias-yes-or-no][Alias Yes Or No]]
   - [[#editing][Editing]]
     - [[#indentation][Indentation]]
-      - [[#highlight-indent-guides][~highlight-indent-guides~]]
+      - [[#highlight-indent-guides][Highlight Indent Guides]]
     - [[#yasnippet][YASnippet]]
     - [[#flycheck][Flycheck]]
       - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
@@ -142,15 +142,15 @@
     - [[#sunshine][Sunshine]]
     - [[#emojify][Emojify]]
   - [[#version-control][Version Control]]
-    - [[#magit][Magit]]
-      - [[#magithub][Magithub]]
-    - [[#gistel][gist.el]]
-    - [[#git-timemachine][git-timemachine]]
-    - [[#git-messenger][git-messenger]]
-    - [[#git-modes][git modes]]
+    - [[#git][Git]]
+      - [[#magit][Magit]]
+      - [[#gistel][gist.el]]
+      - [[#git-timemachine][git-timemachine]]
+      - [[#git-messenger][git-messenger]]
+      - [[#git-modes][git modes]]
     - [[#mercurial][Mercurial]]
-      - [[#monky][monky]]
-      - [[#ah][ah]]
+      - [[#monky][Monky]]
+      - [[#ahg][ahg]]
   - [[#web-browsing][Web Browsing]]
     - [[#osx-browse][osx-browse]]
     - [[#google-search-at-point][Google Search at point.]]
@@ -1602,7 +1602,18 @@ contributing to the solution.
 *** Better Encryption
 **** GnuTLS
 
-- See [[https://github.com/wasamasa/dotemacs/blob/master/init.org#gnutls][wasamasa/dotfiles]]
+As GitHub user [[https://github.com/wasamasa][wasamasa]] points out in /h?(er|is)|^\S+/ dotfiles,
+[[https://gnutls.org/][GnuTLS]] throws several warnings when using the default 256 minimum
+prime bits over a TLS handshake.  
+
+#+BEGIN_QUOTE
+Minimum number of prime bits accepted by GnuTLS for key exchange.
+During a Diffie-Hellman handshake, if the server sends a prime
+number with fewer than this number of bits, the handshake is
+rejected.  (The smaller the prime number, the less secure the
+key exchange is against man-in-the-middle attacks.)
+#+END_QUOTE
+
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq gnutls-min-prime-bits 4096)
@@ -1658,7 +1669,6 @@ echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 killall gpg-agent
 #+END_EXAMPLE
 
-
 *** Better Commands
 **** Alias Yes Or No
 
@@ -1673,11 +1683,11 @@ killall gpg-agent
 Tabs are the bane of humanity[fn:9]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq tab-width 2
-      indent-tabs-mode nil)
+(setq-default tab-width 2
+              indent-tabs-mode nil)
 #+END_SRC
 
-**** ~highlight-indent-guides~
+**** Highlight Indent Guides
 [[https://github.com/darthfennec/highlight-indent-guides][
 Highlight Indent Guides]] sublime-like indentation guides.
 
@@ -2601,7 +2611,7 @@ This disables Emacs asking questions about loading a new theme.
 Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(if *is-hal*
+(if (and *is-hal* (display-graphic-p)) 
     <<atom-one-dark-theme>>
   <<zenburn-theme>>)
 
@@ -2611,38 +2621,50 @@ Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]
 
 *****  Atom One Dark Modifications
 
-I will go to great lengths to avoid using the customization interface.
+I will go to great lengths to avoid using the customization
+interface. For some reason loading this in the same =progn= block
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (when (member 'atom-one-dark custom-enabled-themes)
+  ;; Org Faces
   (set-face-attribute 'org-block-begin-line nil :foreground "#ABB2BF"
 		      :background "#35373E")
   (set-face-attribute 'org-block-end-line nil :foreground "#ABB2BF"
-		      :background "#35373E")
+                      :background "#35373E")
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch-serif))
   (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
   (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
   (set-face-attribute 'font-lock-string-face nil :slant 'italic)
   (set-face-attribute 'vertical-border nil :foreground "#5C6370")
+  ;; Dired Faces
   (set-face-attribute 'diredp-compressed-file-name nil :inherit 'dired-warning)
-  (set-face-attribute 'diredp-dir-heading nil :inherit 'dired-header)
+  (set-face-attribute 'diredp-dir-heading nil :inherit 'dired-header
+		      :background nil :foreground nil)
   (set-face-attribute 'diredp-symlink nil :inherit 'dired-symlink)
   (set-face-attribute 'diredp-dir-name nil :inherit 'dired-directory
                       :background "#2C2C2C")
   (set-face-attribute 'diredp-dir-priv nil :inherit 'dired-directory
                       :background "#2C2C2C")
-  (setq highlight-symbol-foreground-color "#E0E0E0"
-	highlight-symbol-colors '("#FFEE58" "#C5E1A5" "#80DEEA"
-				  "#64B5F6" "#E1BEE7" "#FFCC80")
-	highlight-tail-colors '(("#F8BBD0" . 0) ("#FF80AB" . 10)
-				("#9575CD" . 30) ("#494949" . 60)
-				("#424242" . 80))
-	hl-bg-colors '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
-		       "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
-	hl-fg-colors '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
-		       "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
-	hl-paren-colors '("#B9F" "#B8D" "#B7B" "#B69"
-			  "#B57" "#B45" "#B33" "#B11")
-	nrepl-message-colors '("#dc322f" "#cb4b16" "#b58900")))
+  (setq highlight-symbol-foreground-color
+        "#E0E0E0"
+        highlight-symbol-colors
+        '("#FFEE58" "#C5E1A5" "#80DEEA"
+          "#64B5F6" "#E1BEE7" "#FFCC80")
+        highlight-tail-colors
+        '(("#F8BBD0" . 0) ("#FF80AB" . 10)
+          ("#9575CD" . 30) ("#494949" . 60)
+          ("#424242" . 80))
+        hl-bg-colors
+        '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
+          "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
+        hl-fg-colors
+        '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
+          "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
+        hl-paren-colors
+        '("#B9F" "#B8D" "#B7B" "#B69"
+          "#B57" "#B45" "#B33" "#B11")
+        nrepl-message-colors
+        '("#dc322f" "#cb4b16" "#b58900")))
 #+END_SRC
 
 *** All The Icons
@@ -2740,7 +2762,51 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 #+END_SRC
 
 ** Version Control
-*** Magit
+
+#+NAME: vc-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports code
+<<vcs-svn-alist>>
+
+(when (and (member 'hg chaffin-vcs-svn-alist)
+           (executable-find "hg"))
+  <<vcs-hg>>)
+
+(when (and (member 'git chaffin-vcs-svn-alist)
+           (executable-find "git"))
+  <<vcs-git>>)
+#+END_SRC
+
+#+NAME: vcs-svn-alist
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar chaffin-vcs-svn-alist '(git)
+  "List of VCS-SVNs for which libraries and tooling should be installed.
+   Currently supports only `git' and `hg' as alist alues.")
+
+#+END_SRC
+
+*** Git
+
+#+NAME: vcs-git
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<git-magit>>
+<<git-gist>>
+<<git-git-timemachine>>
+<<git-git-messenger>>
+<<git-git-modes>>
+#+END_SRC
+
+**** Magit
+:PROPERTIES:
+:ID:       AE7AB6CA-A097-4CB0-9B13-2B131CC2F5D9
+:CUSTOM_ID: magit
+:END:
+
+#+NAME: git-magit
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<magit-extensions>>
+<<magit-src>>
+<<magit-magithub>>
+#+END_SRC 
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
 git itself.
@@ -2754,13 +2820,8 @@ Magit would not be very good at that.
 As a git client though, magit is awesome.
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<magit-done-no-prompt>>
-<<magit-done>>
-#+END_SRC
-
-#+NAME: magit-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: magit-src
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit
   :straight t
   :bind
@@ -2781,7 +2842,13 @@ As a git client though, magit is awesome.
   (setq magit-save-repository-buffers 'dontask))
 #+END_SRC
 
-***** =magit-done=
+***** Extending Magit
+
+#+NAME: magit-extensions
+#+BEGIN_SRC emacs-lisp :tangle no :exports none
+<<magit-done>>
+<<magit-done-no-prompt>>
+#+END_SRC
 
 Magit creates a lot of buffers for various git operations. This
 function cleans up these buffers upon invocation.
@@ -2821,12 +2888,12 @@ yunmodified magit buffers will be killed without confirming."
     (magit-done 1))
 #+END_SRC
 
-
-**** Magithub
+***** Magithub
 
 [[https://github.com/vermiculus/github][Magithub]] offers an interface to github to complement magit.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: magit-magithub
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package magithub
   :after (magit)
   :straight t
@@ -2838,14 +2905,15 @@ yunmodified magit buffers will be killed without confirming."
     (magithub-feature-autoinject t)))
 #+END_SRC
 
-*** gist.el
+**** gist.el
 
 Emacs integration for gist.github.com.
 
 [[https://github.com/defunkt/gist.el][Gist]] requires generating a personal access token with ~gist~ scope, and
 optionally ~user~ and ~repo~ scopes.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: git-gist
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package gist
   :straight t
   :bind
@@ -2857,11 +2925,12 @@ optionally ~user~ and ~repo~ scopes.
    ("C-c C-g P" . gist-region-or-buffer-private)))
 #+END_SRC
 
-*** git-timemachine
+**** git-timemachine
 
 Travel back in time (to your last commit).
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: git-git-timemachine
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package git-timemachine
   :straight t
   :bind
@@ -2870,29 +2939,54 @@ Travel back in time (to your last commit).
   (setq git-timemachine-abbreviation-length 7))
 #+END_SRC
 
-*** git-messenger
+**** git-messenger
 
 Pop-up feature for viewing the last git commit.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-
+#+NAME: git-git-messenger
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package git-messenger
   :straight t
   :bind
   (("C-c C-v m" . git-messenger:popup-message)))
-
 #+END_SRC
 
-*** git modes
+**** git modes
 
+#+NAME: git-git-modes
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package git-modes
   :straight t)
 #+END_SRC
 
-*** TODO Mercurial
-**** TODO monky
-**** TODO ah
+*** Mercurial
+
+#+NAME: vcs-hg
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<hg-monky>>
+<<hg-ahg>>
+#+END_SRC
+
+**** Monky
+Monky provides an interactive interface for mercurial. It's
+essentially to ~hg~ what [[#magit][magit]] is for ~git~. 
+
+#+NAME: hg-monky
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package monky
+  :straight t
+  :config
+  (setq monky-process-type 'cmdserver))
+#+END_SRC
+
+**** ahg
+
+#+NAME: hg-ahg
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ahg
+  :straight t)
+#+END_SRC
+
 ** Web Browsing
 *** osx-browse
 
@@ -3101,7 +3195,6 @@ Minor mode to highlight s-expresion.
   :straight t
   :mode ( "Dockerfile\\'" .  dockerfile-mode))
 #+END_SRC
-
 
 ** Enable Languages
 
