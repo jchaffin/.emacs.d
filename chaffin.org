@@ -872,9 +872,8 @@ Use UTF-8 Bullets for Org-mode headings.
 (use-package org-bullets
   :straight t
   :config
-  (add-hook 'org-mode-hook
-	    (lambda ()
-	      (org-bullets-mode t))))
+  (with-eval-after-load 'org-mode
+    (org-bullets-mode t)))
 #+END_SRC
 
 **** Org Beautify Theme
@@ -3164,9 +3163,13 @@ Minor mode to highlight s-expresion.
 #+END_SRC
 
 **** Prettify Symbols
+Seems to be problems rendering symbols on Debian. Not sure if this is
+because the necessary fonts are not installed or if it's because of
+the absence of a window system. I'll check for the latter for now.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(add-hook 'prog-mode-hook 'prettify-symbols-mode)
+(when (display-graphic-p)
+  (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
 
 *** Tagging
