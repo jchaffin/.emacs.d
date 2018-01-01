@@ -14,6 +14,7 @@
     - [[#influences][Influences]]
   - [[#package-management][Package Management]]
     - [[#straight][Straight]]
+      - [[#figure-out-way-to-render-relative-paths-as-absolute-on-remote-server-eg-on-github][Figure out way to render relative paths as absolute on remote server (eg on GitHub)]]
     - [[#use-package][Use Package]]
     - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
@@ -296,15 +297,24 @@ Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/a
 #+RESULTS:
 [[file:./resources/img/documentation-is-for-wimps.png]]
 
+[[/resources/img/documentation-is-for-wimps.png]]
+
+It took me a while to figure out how straight works and to
+conceptualize  the way it loads packages  - primarily because
+documentation is also for people who understand things - but now that
+I've gotten through the substantial learning curve (made substantially
+harder due to my misconception regrading the value of reading
+documentation), I've come to find it reduces a lot of the weirdness
+of the Emacs loading process and substantially improves my ability as
+a programmer to understand the way third-party packages are
+implemented and modify them as I deem necessary. 
+
+**** TODO Figure out way to render relative paths as absolute on remote server (eg on GitHub)
+- Spacemacs does this in the README.org of each layer. 
+
 *** Use Package
 
-#+NAME: use-package-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(eval-when-compile
-    (require 'use-package))
-  (require 'diminish)
-  (require 'bind-key)
-#+END_SRC
+See [[/init.el][init.el]]
 
 *** Default Packages
 
