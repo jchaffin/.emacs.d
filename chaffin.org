@@ -13,7 +13,7 @@
       -  [[#literate-programming][Literate Programming]]
     - [[#influences][Influences]]
   - [[#package-management][Package Management]]
-    - [[#straightel][straight.el]]
+    - [[#straight][Straight]]
     - [[#use-package][Use Package]]
     - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
@@ -39,8 +39,8 @@
     - [[#macos][macOS]]
       - [[#macos-terminal-encoding][MacOS Terminal Encoding]]
       - [[#macos-keybindings][MacOS Keybindings]]
-      - [[#computer-name][Computer Name]]
-      - [[#dev-utils][Dev Utils]]
+      - [[#macos-computer-name][MacOS Computer Name]]
+      - [[#macos-dev-utils][MacOS Dev Utils]]
       - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
       - [[#osx-dictionary][OSX Dictionary]]
       - [[#exec-path-from-shell][Exec Path From Shell]]
@@ -157,13 +157,13 @@
     - [[#browse-url-dwim][browse-url-dwim]]
     - [[#google-this][google-this]]
     - [[#google-translate][google-translate]]
-  - [[#email][Email]]
     - [[#mu][Mu]]
   - [[#programming-tools][Programming Tools]]
     - [[#pair-matching][Pair Matching]]
       - [[#paredit][Paredit]]
       - [[#smartparens][Smartparens]]
       - [[#rainbow-delimiters][Rainbow Delimiters]]
+      - [[#parinfer][Parinfer]]
     - [[#symbol-highlighting][Symbol Highlighting]]
       - [[#hlsexp][Hlsexp]]
       - [[#highlight-symbol][Highlight Symbol]]
@@ -214,6 +214,7 @@
       - [[#coffee][Coffee]]
       - [[#add-node-modules-path-repository][Add Node Modules Path (repository)]]
       - [[#npm-mode][Npm Mode]]
+      - [[#nvm][NVM]]
       - [[#flycheck-javascript][Flycheck JavaScript]]
     - [[#markdown][Markdown]]
       - [[#markdown-mode][Markdown Mode]]
@@ -236,6 +237,7 @@
       - [[#html][HTML]]
       - [[#css][CSS]]
       - [[#company-web][Company Web]]
+      - [[#enhanced-ruby-mode][enhanced ruby mode]]
   - [[#footnotes][Footnotes]]
 
 * Configuration
@@ -274,9 +276,25 @@ compiler.
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
 
 ** Package Management
-*** straight.el
 
-Currently we have a tumultuous relationship.
+#+BEGIN_SRC emacs-lisp :tangle yes :exports none
+(use-package ob-http
+  :straight t)
+#+END_SRC
+
+*** Straight
+
+[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading
+the repository description [fn:1], I impetuously refactored my entire
+Emacs configuration without reading any of the documentation, because
+
+#+BEGIN_SRC http :pretty :file ./documentation-is-for-wimps.png
+GET https://3.bp.blogspot.com/-b3dUlC6AJjI/WE2U_wcJvrI/AAAAAAAAA_4/lciulxFqwrUAZxLol9FVybHCpCdgXSufgCLcB/w1200-h630-p-k-no-nu/documentation-is-for-wimps.png
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+#+END_SRC
+
+#+RESULTS:
+[[file:./documentation-is-for-wimps.png]]
 
 *** Use Package
 
@@ -298,7 +316,7 @@ Currently we have a tumultuous relationship.
 ** User Information
 
 These values are initialized with the ’name’ and ’email’
-environment variables, respectively[fn:1].
+environment variables, respectively[fn:2].
 
 Emacs uses these variables to fill the mail header when sending
 emails in emacs, and various third-party packages rely on them
@@ -336,7 +354,7 @@ directory.
 
 *** Constants                                                      :ignore:
 
-Variables used throughout this file[fn:2]:
+Variables used throughout this file[fn:3]:
 
 #+NAME: define-constants
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
@@ -357,7 +375,7 @@ conditionals of the /if-then/ form or /if-else-then/ form, the
 conditional clause.
 
 In emacs-lisp, this kind of statement can be expressed with the ~when~
-macro[fn:3].
+macro[fn:4].
 
 Credits to stack overflow user [[https://stackoverflow.com/users/403018/gerstmann][gerstmann]], who provided this solution
 in the following stack overflow [[https://stackoverflow.com/a/26137517/6233622][ticket]].
@@ -578,30 +596,35 @@ buffer.
 
 #+END_SRC
 
-**** Explore a local repository 
+**** Explore a local repository
+
+Function to jump to a repository installed by =straight.  an interactive minibuffer completion menu using ivy  
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun goto-repo ()
-  (interactive)
-  (let ((repo-dir "~/.emacs.d/straight/repos/"))
+(with-eval-after-load 'ivy
+  (defun goto-repo ()
+    (interactive)
+    (let ((repo-dir "~/.emacs.d/straight/repos/"))
 
-    (ivy-read
-     "Go to Package Directory: "
-     (directory-files repo-dir)
-     :action (lambda (package)
-         (let ((default-directory (concat
-           (file-name-as-directory
-            repo-dir)
-           package)))
-     (dired default-directory))))))
+      (ivy-read
+       "Go to Package Directory: "
+       (directory-files repo-dir)
+       :action (lambda (package)
+                 (let ((default-directory (concat
+                                           (file-name-as-directory
+                                            repo-dir)
+                                           package)))
+                   (dired default-directory))))))
+  ;; Add to goto-* keymap
+  (define-key goto-map "r" #'goto-repo))
 #+END_SRC
 
 ** Environment
-
 *** macOS
 
-I work on a macbook, so this block is where I'm loading all of my settings that rely on local
-filepaths, macOS applications, and external programs.
+I work on a macbook, so this block is where I'm loading all of my
+settings that rely on local filepaths, macOS applications, and
+external programs.
 
 #+NAME: defconst-is-macos
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -610,13 +633,13 @@ filepaths, macOS applications, and external programs.
 
 #+NAME: macos-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports results :results output
-  (when *is-mac*
-     (progn
-       <<macos-terminal-encoding>>
-       <<macos-keybindings>>
-       <<macos-finder-config>>
-       <<macos-dictionary-config>>
-       <<macos-dev-utils>>))
+(when *is-mac*
+   (progn
+     <<macos-terminal-encoding>>
+     <<macos-keybindings>>
+     <<macos-finder-config>>
+     <<macos-dictionary-config>>
+     <<macos-dev-utils>>))
 #+END_SRC
 
 
@@ -638,7 +661,7 @@ filepaths, macOS applications, and external programs.
 
 ***** Modifier Keymappings
 
-macOS specific settings[fn:4].
+macOS specific settings[fn:5].
 
 Maps the modifier keys based on personal preferences.
 Also sets terminal coding system to "utf-8".
@@ -659,7 +682,7 @@ Also sets terminal coding system to "utf-8".
 (define-key 'chaffin-keymap "m" 'macos-keymap)
 #+END_SRC
 
-**** Computer Name
+**** MacOS Computer Name
 
 #+NAME: defvar-computer-name
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -674,7 +697,7 @@ Also sets terminal coding system to "utf-8".
 (defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
-**** Dev Utils
+**** MacOS Dev Utils
 
 Small library for opening files and buffers in external text
 editors and various other applications on macOS. 
@@ -710,7 +733,8 @@ editors and various other applications on macOS.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
   :straight t
-  :bind ("C-c z" . reveal-in-osx-finder))
+  :config
+  (define-key 'macos-keymap "f" #'reveal-in-osx-finder))
 #+END_SRC
 
 **** OSX Dictionary
@@ -740,7 +764,7 @@ The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] pa
 user environment variables from the shell.
 
 The ~exec-path-from-shell~ package only works with posix-compliant
-operating systems. This may or may not include Microsoft Windows[fn:5].
+operating systems. This may or may not include Microsoft Windows[fn:6].
 
 However, the ~exec-path-from-shell~ instructions recommends loading
 the package on linux and macOS operating system. I don't use Windows
@@ -777,7 +801,7 @@ conditionally loading dependencies.
 
 *** Custom File
 
-By default, Emacs customizations[fn:6] done through the =customize=
+By default, Emacs customizations[fn:7] done through the =customize=
 interface write to ~user-init-file~.
 
 While I usually prefer configuring emacs programmatically, settings
@@ -792,20 +816,20 @@ other machines.
 			       (file-name-as-directory user-emacs-directory)
 			       "custom"))))
   (cond (*is-mac*
-	 (setq custom-file (concat custom-file-directory "custom-macos.el")))
-	(*is-linux*
-	 (setq custom-file (concat custom-file-directory "custom-linux.el")))
-	(*is-windows*
-	 (setq custom-file (concat custom-file-directory "custom-windows.el")))
-	(t
-	 (setq custom-file (concat custom-file-directory "custom.el"))))
+         (setq custom-file (concat custom-file-directory "custom-macos.el")))
+        (*is-linux*
+         (setq custom-file (concat custom-file-directory "custom-linux.el")))
+        (*is-windows*
+         (setq custom-file (concat custom-file-directory "custom-windows.el")))
+        (t
+         (setq custom-file (concat custom-file-directory "custom.el"))))
 
   ;; Create custom file if it does not exist.
   (if-not (file-exists-p custom-file)
       (with-temp-buffer
-	(find-file custom-file)
-	(save-buffer)
-	(kill-buffer)))
+        (find-file custom-file)
+        (save-buffer)
+        (kill-buffer)))
 
   (load custom-file))
 #+END_SRC
@@ -1196,7 +1220,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   (setq pdf-view-resize-factor 1.1))
 #+END_SRC
 
-Now we can open pdf files with =org-pdfview=[fn:7]:
+Now we can open pdf files with =org-pdfview=[fn:8]:
 
 #+NAME: org-pdf-org-file-apps
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1228,7 +1252,7 @@ And opt-in to all back ends when on local machine.
   (mapcar (lambda (backend)
             (setq org-export-enabled-backends
                   (cons backend org-export-enabled-backends)))
-          '(latex gfm yt extra)))
+          '(latex gfm yt http extra)))
 #+END_SRC
 
 #+NAME: org-export
@@ -1383,6 +1407,7 @@ subtrees of the ignored headlines will be retained.
 (ox-extras-activate '(ignore-headlines))
 
 #+END_SRC
+
 
 ** (Better) Defaults
 *** Better Utilities
@@ -1677,7 +1702,7 @@ By default, decrypting gpg files in Emacs will result in the pin entry
 window being launched from the terminal session.
 
 By disabling the agent info, we can force Emacs to handle this
-internally[fn:8].
+internally[fn:9].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setenv "GPG_AGENT_INFO" nil)
@@ -1712,7 +1737,7 @@ killall gpg-agent
 ** Editing
 *** Indentation
 
-Tabs are the bane of humanity[fn:9]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:10]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -2804,7 +2829,7 @@ interface. For some reason loading this in the same =progn= block
 ** Version Control
 
 #+NAME: vc-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports code
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<vcs-svn-alist>>
 
 (when (and (member 'hg chaffin-vcs-svn-alist)
@@ -2821,7 +2846,6 @@ interface. For some reason loading this in the same =progn= block
 (defvar chaffin-vcs-svn-alist '(git)
   "List of VCS-SVNs for which libraries and tooling should be installed.
    Currently supports only `git' and `hg' as alist alues.")
-
 #+END_SRC
 
 *** Git
@@ -3071,7 +3095,7 @@ the user will be prompted to edit the search string first."
 *** TODO google-this
 *** TODO google-translate
 
-** Email
+**Email
 *** Mu
 
 #+NAME: mu-config
@@ -3188,10 +3212,51 @@ haystack, smartparens are a great productivity tool.
   :straight t)
 #+END_SRC
 
+**** Parinfer
+
+Disabling for now.
+#+NAME: parinfer-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<lispy-config>>
+<<parinfer-base>>
+#+END_SRC
+
+#+NAME: parinfer-base
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package parinfer
+  :straight t
+  :bind
+  (("C-," . parinfer-toggle-mode))
+  :init
+  (progn
+    (setq parinfer-extensions
+          '(defaults       ; should be included.
+             pretty-parens  ; different paren styles for different modes.
+             ;; evil           ; If you use Evil.
+             lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+             paredit        ; Introduce some paredit commands.
+             smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
+             smart-yank))   ; Yank behavior depend on mode.
+    (add-hook 'clojure-mode-hook #'parinfer-mode)
+    (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
+    (add-hook 'common-lisp-mode-hook #'parinfer-mode)
+    (add-hook 'scheme-mode-hook #'parinfer-mode)
+    (add-hook 'lisp-mode-hook #'parinfer-mode)))
+
+#+END_SRC
+
+***** Lispy
+#+NAME: lispy-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lispy
+  :straight t
+  :defer t)
+#+END_SRC
+
 *** Symbol Highlighting
 **** Hlsexp
 
-Minor mode to highlight s-expresion.
+Minor mode to highlight sexp.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package hl-sexp
@@ -3206,6 +3271,7 @@ Minor mode to highlight s-expresion.
 #+END_SRC
 
 **** Prettify Symbols
+
 Seems to be problems rendering symbols on Debian. Not sure if this is
 because the necessary fonts are not installed or if it's because of
 the absence of a window system. I'll check for the latter for now.
@@ -3791,6 +3857,7 @@ CIDER eldoc information.
 #+END_SRC
 
 *** LaTeX
+
 Note that LaTeX packages are loaded, configured, and installed when
 ='latex= is a member of =org-export-enabled-backends=.   
  
@@ -4167,11 +4234,11 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
   <<js-flycheck>>
   <<js-rjx>>
   <<js-npm-mode>>
+  <<js-nvm>>
   <<js-coffee-mode>>
   <<js-typescript>>
   <<js-json-mode>>
-  <<js-tern>>
-)  
+  <<js-tern>>)
 #+END_SRC
 
 **** js2-mode
@@ -4281,6 +4348,7 @@ Real jsx support.
 
 **** Npm Mode
 
+
 #+NAME: js-npm-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
@@ -4288,6 +4356,14 @@ Real jsx support.
   :defer t
   :init
   (add-hook 'js2-mode-hook #'npm-mode))
+#+END_SRC
+
+**** NVM
+
+#+NAME: js-nvm
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package nvm
+  :straight t)
 #+END_SRC
 
 **** Flycheck JavaScript
@@ -4701,28 +4777,32 @@ and slim-mode using company.
 	      (if tern-mode (tern-mode -1))))))))
 #+END_SRC
 
+**** TODO enhanced ruby mode
 ** Footnotes
 
-[fn:1] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
+[fn:1]  "Next-generation, purely
+functional package manager for the Emacs hacker."
 
-[fn:2] In lisp, global variables are called /top-level defintions/. By
+[fn:2] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
+
+[fn:3] In lisp, global variables are called /top-level defintions/. By
 convention, globals are wrapped in a pair of asterisks called
 /earmuffs/. Earmuffs are completely optional -- they have no effect on
 how the program is compiled -- its a best practice in all of the many
 dialects of Lisp.
 
-[fn:3] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
+[fn:4] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
 
-[fn:4] [[https://www.emacswiki.org/emacs/EmacsForMacOS][EmacsForMacOS]]
+[fn:5] [[https://www.emacswiki.org/emacs/EmacsForMacOS][EmacsForMacOS]]
 
-[fn:5] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
+[fn:6] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
 
-[fn:6] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
+[fn:7] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
 
-[fn:7] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
+[fn:8] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:8] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
+[fn:9] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
 
-[fn:9] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+[fn:10] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
-[fn:10] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:11] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
