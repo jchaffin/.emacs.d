@@ -305,8 +305,8 @@ documentation is also for people who understand things - but now that
 I've gotten through the substantial learning curve (made substantially
 harder due to my misconception regrading the value of reading
 documentation), I've come to find it reduces a lot of the weirdness
-of the Emacs loading process and substantially improves my ability as
-a programmer to understand the way third-party packages are
+of the Emacs loading process and increases the rapidity (shall I say
+agility? no..) with which I comprehend the way third-party packages are
 implemented and modify them as I deem necessary. 
 
 **** TODO Figure out way to render relative paths as absolute on remote server (eg on GitHub)
@@ -315,6 +315,12 @@ implemented and modify them as I deem necessary.
 *** Use Package
 
 See [[/init.el][init.el]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(require 'bind-key)
+(require 'diminish)
+(require 'use-package)
+#+END_SRC
 
 *** Default Packages
 
@@ -608,7 +614,8 @@ buffer.
 
 **** Explore a local repository
 
-Function to jump to a repository installed by =straight.  an interactive minibuffer completion menu using ivy  
+Function to jump to a repository installed by [[#straight][straight]].  an
+interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (with-eval-after-load 'ivy
@@ -855,7 +862,7 @@ This might come back to bite me one day but I never use them.
 *** Load Secrets
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(when (executable-find "gpg")
+(when (and (executable-find "gpg") *is-mac*)
   (if-not (string-empty-p
 	   (shell-command-to-string
 	    (concat "gpg --list-keys | grep " user-mail-address)))
@@ -1417,7 +1424,6 @@ subtrees of the ignored headlines will be retained.
 (ox-extras-activate '(ignore-headlines))
 
 #+END_SRC
-
 
 ** (Better) Defaults
 *** Better Utilities
@@ -2011,7 +2017,7 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
 *** Image+
 
-[[https://github.com/mhayashi1120/Emacs-imagex][Image+]]  provides extensions for image file manipulation in Emacs.
+[[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package image+
