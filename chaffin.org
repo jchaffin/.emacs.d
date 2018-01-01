@@ -288,13 +288,13 @@ compiler.
 the repository description [fn:1], I impetuously refactored my entire
 Emacs configuration without reading any of the documentation, because
 
-#+BEGIN_SRC http :pretty :file ./documentation-is-for-wimps.png
+#+BEGIN_SRC http :pretty :file ./resources/img/documentation-is-for-wimps.png :exports none
 GET https://3.bp.blogspot.com/-b3dUlC6AJjI/WE2U_wcJvrI/AAAAAAAAA_4/lciulxFqwrUAZxLol9FVybHCpCdgXSufgCLcB/w1200-h630-p-k-no-nu/documentation-is-for-wimps.png
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
 #+END_SRC
 
 #+RESULTS:
-[[file:./documentation-is-for-wimps.png]]
+[[file:./resources/img/documentation-is-for-wimps.png]]
 
 *** Use Package
 
@@ -1006,7 +1006,7 @@ by [[#org-pomodoro][org-pomodoro]].
 #+NAME: org-utils-pomodoro-path-helper
 #+BEGIN_SRC emacs-lisp :tangle no
 (defalias #'org-pomodoro-path
-  (apply-partially #'emacs-directory-resolve-path "resources"))
+  (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
 #+END_SRC
 
 
