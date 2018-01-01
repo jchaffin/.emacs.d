@@ -154,10 +154,8 @@
       - [[#ahg][ahg]]
   - [[#web-browsing][Web Browsing]]
     - [[#osx-browse][osx-browse]]
-    - [[#google-search-at-point][Google Search at point.]]
-    - [[#browse-url-dwim][browse-url-dwim]]
-    - [[#google-this][google-this]]
-    - [[#google-translate][google-translate]]
+    - [[#google-search-at-pointa][Google Search at point.a]]
+  - [[#email][Email]]
     - [[#mu][Mu]]
   - [[#programming-tools][Programming Tools]]
     - [[#pair-matching][Pair Matching]]
@@ -1002,8 +1000,7 @@ Use UTF-8 Bullets for Org-mode headings.
         org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
         ;; Finished Settings
         org-pomodoro-finished-sound-args "--volume 0.2"
-        org-pomodoro-finished-sound
-        org-pomodoro-start-sound (org-pomodoro-path "Waves.wav")
+        org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
         ;; Short Break Settings
         org-pomodoro-short-break-length 5
         org-pomodoro-short-break-sound-args "--volume 0.2"
@@ -1011,9 +1008,11 @@ Use UTF-8 Bullets for Org-mode headings.
         ;; Long Break Settings
         org-pomodoro-long-break-length 15
         org-pomodoro-long-break-sound-args "--volume 0.2"
-        org-pomodoro-long-break-sound
-        (org-pomdoro-path "Complete.wav")))
+        org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav")))
 #+END_SRC
+
+#+RESULTS: org-utils-pomodoro-org-pomodoro
+: org-pomodoro
 
 ***** Org Pomodoro Path Helper
 
@@ -3081,8 +3080,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
   (osx-browse-mode 1))
 #+END_SRC
 
-*** Google Search at point.
-
+*** Google Search at point.a
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun google-search-query-at-point (&optional edit-query)
   "Search for the expression at point in the default web browser.
@@ -3107,11 +3105,7 @@ the user will be prompted to edit the search string first."
     (browse-url search)))
 #+END_SRC
 
-*** TODO browse-url-dwim
-*** TODO google-this
-*** TODO google-translate
-
-**Email
+** Email
 *** Mu
 
 #+NAME: mu-config
@@ -3122,58 +3116,58 @@ the user will be prompted to edit the search string first."
   :config
   (progn
     (setq mu4e-maildir (expand-file-name "~/.mail")
-	  mu4e-context-policy 'pick-first
-	  mu4e-compose-policy nil
-	  mu4e-get-mail-command "offlineimap -q -u quiet"
-	  mu4e-show-images t
-	  mu4e-show-addresses t)
+          mu4e-context-policy 'pick-first
+          mu4e-compose-policy nil
+          mu4e-get-mail-command "offlineimap -q -u quiet"
+          mu4e-show-images t
+          mu4e-show-addresses t)
 
      ;; smtp settings
      (setq mu4e-send-mail-function 'smtp-mail-send-it
-     mu4e-default-smtp-server "smtp.gmail.com"
-     smtpmail-smtp-service 587
-     smtp-mail-smtp-stream-type 'ssl)
+           mu4e-default-smtp-server "smtp.gmail.com"
+           smtpmail-smtp-service 587
+           smtp-mail-smtp-stream-type 'ssl)
 
 
      (setq mu4e-contexts
-	   `( ,(make-mu4e-context
-		:name "private"
-		:match-func (lambda (msg)
-			      (when msg
-				mu4e-message-contact-field-matches msg
-				:to "jchaffin57@gmail.com"))
-		:leave-func (lambda ()
-			      (mu4e-message "Leaving Gmail Account"))
-		:vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
-			 ( user-mail-address . "jchaffin57@gmail.com" )
-			 ( user-full-name . "Jacob Chaffin" )
-			 ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
-			 ( mu4e-sent-folder . "/private/[Gmail].Trash" )
-			 ( mu4e-refile-folder . "/archived")
-			 ( mu4e-compose-signature .
-						  (concat
-						   "Jacob Chaffin\n"
-						   "UCLA 19\n"
-						   "Linguistics and Computer Science\n"
-						   "jchaffin@ucla.edu\n"))))
-
-	      ,(make-mu4e-context
-		:name "school"
-		:enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
-		:leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
-		:match-func  (lambda (msg)
-			       (when msg
-				 (mu4e-message-contact-field-matches msg
-								     :to (or "jchaffin@ucla.edu" "jchaffin@g.ucla.edu"))))
-		:vars '( (user-mail-address . "jchaffin@ucla.edu" )
-			 (user-full-name . "Jacob Chaffin" )
-			 (mu4e-compose-signature . (concat
-						    "Jacob Chaffin\n"
-						    "UCLA 19\n"
-						    "Linguistics and Computer Science\n"
-						    "jchaffin@ucla.edu\n"
-						    "(650)-380-3288\n"))))))))
-
+           `( ,(make-mu4e-context
+                :name "private"
+                :match-func (lambda (msg)
+                              (when msg
+                                mu4e-message-contact-field-matches msg
+                                :to "jchaffin57@gmail.com"))
+                :leave-func (lambda ()
+                              (mu4e-message "Leaving Gmail Account"))
+                :vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
+                         ( user-mail-address . "jchaffin57@gmail.com" )
+                         ( user-full-name . "Jacob Chaffin" )
+                         ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
+                         ( mu4e-sent-folder . "/private/[Gmail].Trash" )
+                         ( mu4e-refile-folder . "/archived")
+                         ( mu4e-compose-signature .
+                                                  (concat
+                                                   "Jacob Chaffin\n"
+                                                   "UCLA 19\n"
+                                                   "Linguistics and Computer Science\n"
+                                                   "jchaffin@ucla.edu\n"))))
+              
+              ,(make-mu4e-context
+                :name "school"
+                :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
+                :leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
+                :match-func  (lambda (msg)
+                               (when msg
+                                 (mu4e-message-contact-field-matches msg :to (or
+                                                                              "jchaffin@ucla.edu"
+                                                                              "jchaffin@g.ucla.edu"))))
+                :vars '( (user-mail-address . "jchaffin@ucla.edu" )
+                         (user-full-name . "Jacob Chaffin" )
+                         (mu4e-compose-signature . (concat
+                                                    "Jacob Chaffin\n"
+                                                    "UCLA 19\n"
+                                                    "Linguistics and Computer Science\n"
+                                                    "jchaffin@ucla.edu\n"
+                                                    "(650)-380-3288\n"))))))))
 #+END_SRC
 
 ** Programming Tools
@@ -3231,6 +3225,7 @@ haystack, smartparens are a great productivity tool.
 **** Parinfer
 
 Disabling for now.
+
 #+NAME: parinfer-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<lispy-config>>
