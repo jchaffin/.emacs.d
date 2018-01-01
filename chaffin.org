@@ -33,7 +33,7 @@
       - [[#count-windows][Count Windows]]
       - [[#copy-file-path][Copy File Path]]
       - [[#list-directory-contents-without-wildcards][List Directory Contents without wildcards]]
-      - [[#resolve-path-relative-to-user-emacs-directory][Resolve Path Relative to user-emacs-directory]]
+      - [[#resolve-path][Resolve Path]]
       - [[#explore-a-local-repository][Explore a local repository]]
   - [[#environment][Environment]]
     - [[#macos][macOS]]
@@ -108,6 +108,10 @@
       - [[#company-quick-help][Company Quick Help]]
       - [[#company-dict][Company Dict]]
   - [[#utilities][Utilities]]
+    - [[#terminal][Terminal]]
+      - [[#multi-term][Multi-Term]]
+      - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
+      - [[#shell][Shell]]
     - [[#image][Image+]]
     - [[#completion-framework][Completion Framework]]
       - [[#ivy][Ivy]]
@@ -121,9 +125,9 @@
       - [[#vertical-bar][Vertical Bar]]
       - [[#disable-blink][Disable Blink]]
       - [[#smart-cursor-color][Smart Cursor Color]]
-    - [[#font][Font]]
+    - [[#fonts][Fonts]]
       - [[#font-list][Font List]]
-      - [[#default-font][Default Font]]
+      - [[#load-fonts][Load Fonts]]
     - [[#modeline][Modeline]]
       - [[#display-time][Display Time]]
       - [[#spaceline][Spaceline]]
@@ -135,10 +139,6 @@
       - [[#load-themes][Load Themes]]
     - [[#all-the-icons][All The Icons]]
       - [[#ivy-all-the-icons][Ivy All the Icons]]
-    - [[#terminal][Terminal]]
-      - [[#multi-term][Multi-Term]]
-      - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
-      - [[#shell][Shell]]
     - [[#sunshine][Sunshine]]
     - [[#emojify][Emojify]]
   - [[#version-control][Version Control]]
@@ -160,7 +160,7 @@
   - [[#email][Email]]
     - [[#mu][Mu]]
   - [[#programming-tools][Programming Tools]]
-    - [[#delimiter-pair-matching][Delimiter Pair Matching]]
+    - [[#pair-matching][Pair Matching]]
       - [[#paredit][Paredit]]
       - [[#smartparens][Smartparens]]
       - [[#rainbow-delimiters][Rainbow Delimiters]]
@@ -172,7 +172,7 @@
       - [[#ggtags][Ggtags]]
     - [[#devops][DevOps]]
       - [[#docker][Docker]]
-  - [[#proglang-api][ProgLang API]]
+  - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#c][C++]]
       - [[#function-args][Function Args]]
@@ -548,14 +548,34 @@ buffer.
 	      (directory-files directory full nil nosort)))
 #+END_SRC
 
-**** Resolve Path Relative to user-emacs-directory
+**** Resolve Path
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun emacs-directory (path)
-  (let* ((user-emacs-directory* (or user-emacs-directory "~/.emacs.d/")))
-    (concat
-     (file-name-as-directory user-emacs-directory*)
-     path)))
+(defun resolve-path (&rest path)
+  (let* ((ms-file-path-separator "\\")
+         (unixy-file-path-separator "/")
+         (file-path-separator
+          (if (eq system-name 'windows)
+              ms-file-path-separator
+            unixy-file-path-separator)))
+    (mapconcat 'identity path file-path-separator)))
+#+END_SRC
+
+***** Resolve to Emacs Directory
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun emacs-directory-resolve-path (&rest path)
+  "Resolve a file path relative to the `user-emacs-directory.'
+  PATH is a destructured list of path segments. The file path 
+  separator is determined based on the current operating system
+  in `resolve-path'."
+  (let* ((separators (if (eq system-name 'windows)
+                         "\\" "/"))
+         (emacs-directory-path-segments
+          (split-string user-emacs-directory separators t))
+         (path-segments (seq-concatenate 'list emacs-directory-path-segments path)))
+    (apply #'resolve-path path-segments)))
+
 #+END_SRC
 
 **** Explore a local repository 
@@ -915,61 +935,82 @@ Use UTF-8 Bullets for Org-mode headings.
 #+END_SRC
 
 **** Org Pomodoro
+:PROPERTIES:
+:ID:       3600535E-2C20-4E33-8572-E933319E87B3
+:CUSTOM_ID: org-pomodoro
+:END:
 
 #+NAME: org-utils-pomodoro
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-utils-pomodoro-path-helper>>
+<<org-utils-pomodoro-org-pomodoro>>
+#+END_SRC
+
+#+NAME: org-utils-pomodoro-org-pomodoro
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-pomodoro
   :straight t
   :bind (:map org-mode-map
-	      ("C-c M-RET p" . org-pomodoro))
+              ("C-c M-RET p" . org-pomodoro))
   :config
   (setq org-pomodoro-audio-player "afplay"
-	org-pomodoro-tick-sound
-	(expand-file-name "~/.emacs.d/resources/clock-ticking-2.wav")
-	;; Start Settings
-	org-pomodoro-start-sound-p t ;; enable starting sound
-	org-pomodoro-start-sound-args "--volume 0.08"
-	org-pomodoro-start-sound
-	(expand-file-name "~/.emacs.d/resources/Victory.wav")
-	;; Finished Settings
-	org-pomodoro-finished-sound-args "--volume 0.2"
-	org-pomodoro-finished-sound
-	(expand-file-name "~/.emacs.d/resources/Waves.wav")
-	;; Short Break Settings
-	org-pomodoro-short-break-length 5
-	org-pomodoro-short-break-sound-args "--volume 0.2"
-	org-pomodoro-short-break-sound org-pomodoro-finished-sound
-	;; Long Break Settings
-	org-pomodoro-long-break-length 15
-	org-pomodoro-long-break-sound-args "--volume 0.2"
-	org-pomodoro-long-break-sound
-	(expand-file-name "~/.emacs.d/resources/Complete.wav")))
+        org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
+        ;; Start Settings
+        org-pomodoro-start-sound-p t ;; enable starting sound
+        org-pomodoro-start-sound-args "--volume 0.08"
+        org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
+        ;; Finished Settings
+        org-pomodoro-finished-sound-args "--volume 0.2"
+        org-pomodoro-finished-sound
+        org-pomodoro-start-sound (org-pomodoro-path "Waves.wav")
+        ;; Short Break Settings
+        org-pomodoro-short-break-length 5
+        org-pomodoro-short-break-sound-args "--volume 0.2"
+        org-pomodoro-short-break-sound org-pomodoro-finished-sound
+        ;; Long Break Settings
+        org-pomodoro-long-break-length 15
+        org-pomodoro-long-break-sound-args "--volume 0.2"
+        org-pomodoro-long-break-sound
+        (org-pomdoro-path "Complete.wav")))
 #+END_SRC
 
-**** Org Ref
+***** Org Pomodoro Path Helper
 
+Utility for simplifying the path to the given audio file path used 
+by [[#org-pomodoro][org-pomodoro]].
+
+#+NAME: org-utils-pomodoro-path-helper
+#+BEGIN_SRC emacs-lisp :tangle no
+(defalias #'org-pomodoro-path
+  (apply-partially #'emacs-directory-resolve-path "resources"))
+#+END_SRC
+
+
+**** Org Ref
 :PROPERTIES:
 :ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
+:CUSTOM_ID: org-ref
 :END:
 
 #+NAME: org-utils-ref
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-utils-ref-settings>>
-<<org-utils-ref-ivy>>
-<<org-utils-ref-open-pdf-at-point>>
+(when (display-graphic-p)
+  <<org-utils-ref-settings>>
+  <<org-utils-ref-ivy>>
+  <<org-utils-ref-open-pdf-at-point>>)
 #+END_SRC
 
 
 #+NAME: org-utils-ref-settings
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (use-package org-ref
-  :if *is-mac*
   :straight t
+  :defer t
   :config
   (progn
     (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
-	  org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
-	  org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/")
+          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
+          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/")
     (require 'org-ref-pdf)
     (require 'org-ref-latex)
     (require 'org-ref-reftex)
@@ -990,10 +1031,11 @@ Use UTF-8 Bullets for Org-mode headings.
 
 #+NAME: org-utils-ref-ivy
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-ref-completion-library 'org-ref-ivy-cite)
-(require 'org-ref)
-(require 'org-ref-ivy)
-(require 'org-ref-ivy-cite)
+(with-eval-after-load 'ivy
+  (setq org-ref-completion-library 'org-ref-ivy-cite)
+  (require 'org-ref)
+  (require 'org-ref-ivy)
+  (require 'org-ref-ivy-cite))
 #+END_SRC
 
 ***** Open Pdf at point
@@ -1002,7 +1044,7 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 
 #+NAME: org-utils-ref-open-pdf-at-point
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin/org-ref-open-pdf-at-point ()
+(defun org-ref-open-pdf-at-point ()
   "Open the pdf for bibtex key under point if it exists."
   (interactive)
   (let* ((results (org-ref-get-bibtex-key-and-file))
@@ -1012,8 +1054,7 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
         (find-file pdf-file)
       (message "No PDF found for %s" key))))
 
-(setq org-ref-open-pdf-function 'chaffin/org-ref-open-pdf-at-point)
-
+(setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
 #+END_SRC
 
 **** Org ID
@@ -1048,7 +1089,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 
 #+NAME: org-utils-id-custom-get
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin/org-custom-id-get (&optional pom create prefix)
+(defun org-custom-id-get (&optional pom create prefix)
   "Get the CUSTOM_ID property of the entry at point-or-marker POM.
    If POM is nil, refer to the entry at point. If the entry does
    not have an CUSTOM_ID, the function returns nil. However, when
@@ -1072,7 +1113,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 
 #+NAME: org-utils-id-add-ids-to-headlines
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin/org-add-ids-to-headlines-in-file ()
+(defun org-add-ids-to-headlines-in-file ()
   "Add CUSTOM_ID properties to all headlines in the current
   file which do not already have one. Only adds ids if the `auto-id' option is set a non-nil value in the file.
 
@@ -1088,15 +1129,15 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 	   t)
       (org-map-entries
        (lambda ()
-	 (chaffin/org-custom-id-get (point) 'create))))))
+         (org-custom-id-get (point) 'create))))))
 
 (add-hook 'org-mode-hook
 	  (lambda ()
 	    (add-hook 'before-save-hook
-		      (lambda ()
-			(when (and (eq major-mode 'org-mode)
-				   (eq buffer-read-only nil))
-			  (chaffin/org-add-ids-to-headlines-in-file))))))
+                (lambda ()
+                  (when (and (eq major-mode 'org-mode)
+                             (eq buffer-read-only nil))
+                    (org-add-ids-to-headlines-in-file))))))
 #+END_SRC
 
 **** Spell Check
@@ -1159,21 +1200,24 @@ Now we can open pdf files with =org-pdfview=[fn:7]:
 
 #+NAME: org-pdf-org-file-apps
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (with-eval-after-load 'org-pdfview
-  (add-to-list 'org-file-apps '("\\.pdf\\'" . (lambda (file link) (org-pdfview-open link)))))
-
+  (add-to-list 'org-file-apps '("\\.pdf\\'" .
+                                (lambda (file link)
+                                  (org-pdfview-open link)))))
 #+END_SRC
 
 *** Org Export
+:PROPERTIES:
+:ATTACH_DIR_INHERIT: t
+:END:
 
 #+NAME: org-export-enabled-backends
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defvar chaffin--org-export-enabled-backends '()
+(defvar org-export-enabled-backends '()
   "alist of symbols representing enabled `org-mode' export backends")
 
 (defun chaffin/org-export-enabled-backend-p (backend)
-  (member backend chaffin--org-export-enabled-backends))
+  (member backend org-export-enabled-backends))
 #+END_SRC
 
 And opt-in to all back ends when on local machine.
@@ -1182,9 +1226,9 @@ And opt-in to all back ends when on local machine.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (when *is-mac*
   (mapcar (lambda (backend)
-	    (setq chaffin--org-export-enabled-backends
-		  (cons backend chaffin--org-export-enabled-backends)))
-	  '(latex gfm yt extra)))
+            (setq org-export-enabled-backends
+                  (cons backend org-export-enabled-backends)))
+          '(latex gfm yt extra)))
 #+END_SRC
 
 #+NAME: org-export
@@ -1203,7 +1247,6 @@ And opt-in to all back ends when on local machine.
 
 (when (chaffin/org-export-enabled-backend-p 'extra)
   <<org-export-ox-extra>>)
-
 #+END_SRC
 
 **** LaTeX Backend
@@ -1255,12 +1298,6 @@ through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]]
 (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
 #+END_SRC
 
-****** Minted
-
-#+NAME: org-export-latex-default-packages-minted
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
-
-#+END_SRC
 
 ***** Hyperref Template
 The default cross-referencing and hyperlink styles provided by
@@ -1276,21 +1313,21 @@ The default cross-referencing and hyperlink styles provided by
 
 Adds a class for exporting to pdf using latex backend without
 importing the default =ox-latex= packages. This allows the export
-settings of a particular file to be completely insulated from most external
-configuration.
+settings of a particular file to be completely insulated from most
+external configuration.
 
 #+NAME: org-export-latex-per-file-class
 #+BEGIN_SRC emacs-lisp :tangle no
 (add-to-list 'org-latex-classes
-	     '("per-file-class"
-	       "\\documentclass{scrartcl}
-	       [NO-DEFAULT-PACKAGES]
-	       [EXTRA]"
-	       ("\\section{%s}" . "\\section*{%s}")
-	       ("\\subsection{%s}" . "\\subsection*{%s}")
-	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+             '("per-file-class"
+               "\\documentclass{scrartcl}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]" 
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
 **** GitHub Flavored Markdown
@@ -1375,7 +1412,6 @@ as the current directory.
 
 See docstring for =dired-dwim-target=.
 
-
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq dired-dwim-target t)
 #+END_SRC
@@ -1444,7 +1480,6 @@ from within Emacs.
 *** Better Help
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-
 (use-package help+
   :straight t)
 
@@ -1500,7 +1535,7 @@ list that one may use in the wacky world of Emacs.
   :init
   (with-eval-after-load 'page-break-lines
     (if (not (global-page-break-lines-mode))
-	(global-page-break-lines-mode)))
+        (global-page-break-lines-mode)))
   :config
   (dashboard-setup-startup-hook))
 
@@ -1509,10 +1544,10 @@ list that one may use in the wacky world of Emacs.
     (progn
       (add-to-list 'dashboard-items '(agenda) t)
       (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
-	    dashboard-items '(( agenda . 10)
-			      ( projects . 5)
-			      ( recents . 5)
-			      ( bookmarks . 5)))))
+            dashboard-items '(( agenda . 10)
+                              ( projects . 5)
+                              ( recents . 5)
+                              ( bookmarks . 5)))))
   (chaffin/dashboard-init))
       
 #+END_SRC
@@ -1876,7 +1911,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
   :commands (company-quickhelp-manual-begin)
   :bind
   (:map company-active-map
-	("C-c h" . company-quickhelp-manual-begin))
+        ("C-c h" . company-quickhelp-manual-begin))
   :config
   (company-quickhelp-mode 1))
 #+END_SRC
@@ -1891,10 +1926,54 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
   (add-to-list 'company-backends 'company-dict)
   :config
   (setq company-dict-enable-fuzzy t
-	company-dict-enable-yasnippet t))
+        company-dict-enable-yasnippet t))
 #+END_SRC
 
 ** Utilities
+*** Terminal
+**** Multi-Term
+
+#+NAME: multi-term-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package multi-term
+  :straight t
+  :bind
+  (("C-c M-RET t" . multi-term)
+   ("C-c M-RET b" . multi-term-prev)
+   ("C-c M-RET n" . multi-term-next)
+   ("C-c M-RET o" . multi-term-dedicated-toggle))
+  :config
+  (progn
+    (setq multi-term-program
+	  (if (string= shell-file-name "/bin/sh")
+	      "/bin/bash"
+	    "/bin/zsh"))))
+#+END_SRC
+
+**** Run Bash On Windows/PC
+- [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][Mastering Emacs - Running Shells in Emacs]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-windows*
+  (progn
+    (setq explicit-shell-file-name "C:/path/to/bash.exe"
+          shell-file-name "bash"
+          explicit-bash.exe-args '("--noediting" "--login" "-i"))
+    (setenv "SHELL" shell-file-name)
+    (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
+#+END_SRC
+
+**** Shell 
+
+Zsh is whack when running the emacs =shell= function. This fixes that problem.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-mac*
+  (setq explicit-shell-file-name "/bin/sh"
+	shell-file-name "sh")
+  (setenv "SHELL" shell-file-name))
+#+END_SRC
+
 *** Image+
 
 [[https://github.com/mhayashi1120/Emacs-imagex][Image+]]  provides extensions for image file manipulation in Emacs.
@@ -1908,20 +1987,36 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
   (eval-after-load 'image+
     `(when (require 'hydra nil t)
        (defhydra imagex-sticky-binding (global-map "C-x C-l")
-	 "Manipulating image"
-	 ("+" imagex-sticky-zoom-in "zoom in")
-	 ("-" imagex-sticky-zoom-out "zoom out")
-	 ("M" imagex-sticky-maximize "maximize")
-	 ("O" imagex-sticky-restore-original "restore orginal")
-	 ("S" imagex-sticky-save-image "save file")
-	 ("r" imagex-sticky-rotate-right "rotate right")
-	 ("l" imagex-sticky-rotate-left "rotate left")))))
+         "Manipulating image"
+         ("+" imagex-sticky-zoom-in "zoom in")
+         ("-" imagex-sticky-zoom-out "zoom out")
+         ("M" imagex-sticky-maximize "maximize")
+         ("O" imagex-sticky-restore-original "restore orginal")
+         ("S" imagex-sticky-save-image "save file")
+         ("r" imagex-sticky-rotate-right "rotate right")
+         ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
 *** Completion Framework
+
+#+NAME: completion
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<ivy-config>>
+(with-eval-after-load 'ivy
+  <<counsel-config>>
+  <<swiper-config>>
+  <<smex-config>>)
+#+END_SRC
+
 **** Ivy
 
-***** Ivy Config
+#+NAME: ivy-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<ivy-base>>
+<<ivy-hydra-config>>
+<<ivy-historian-config>>
+#+END_SRC
+
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
 as helm.
 It doesn't have the same kind of ecosystem or interopability,
@@ -1933,52 +2028,60 @@ I prefer the default regex matcher, but if you want fuzzy matching as
 a fallback or replacement checkout this article on [[https://oremacs.com/2016/01/06/ivy-flx/][better fuzzmatching
 support with ivy]].
 
-#+NAME: ivy
+#+NAME: ivy-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package ivy
   :config
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t
-	ivy-initial-inputs-alist nil
-	ivy-re-builders-alist
-	'((t . ivy--regex-plus)))
-  <<ivy-hydra>>
-  <<ivy-historian>>)
+        ivy-initial-inputs-alist nil
+        ivy-re-builders-alist
+        '((t . ivy--regex-plus))))
 #+END_SRC
 
 ***** Ivy Hydra
 
-#+NAME: ivy-hydra
+#+NAME: ivy-hydra-config>>
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-hydra
-  :after (hydra))
+  :after (hydra ivy))
 #+END_SRC
 
 ***** Ivy Historian
 
 #+NAME: ivy-historian
 #+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
-<<historian>>
-<<ivy-historian-settings>>
+<<historian-config>>
+<<ivy-historian-config>>
 #+END_SRC
 
-#+NAME: historian
+#+NAME: ivy-historian-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ivy-historian
+  :after (historian ivy)
+  :straight t)
+#+END_SRC
+
+****** Historian 
+#+NAME: historian-config
 #+BEGIN_SRC emacs-lisp :tangle no :exports none
 (use-package historian
   :straight t)
 #+END_SRC
 
-#+NAME: ivy-historian-settings
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy-historian
-  :after (historian)
-  :straight t)
-#+END_SRC
-
 **** Counsel
 
-#+NAME: counsel
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+#+NAME: counsel-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none 
+<<counsel-base>>
+<<counsel-osx-app-config>>
+<<counsel-projectile-config>>
+<<counsel-ggtags-config>>
+<<counsel-itunes-config>>
+#+END_SRC
+
+#+NAME: counsel-base
+#+BEGIN_SRC emacs-lisp :noweb no :tangle no
 (use-package counsel
   :straight t
   :bind
@@ -1998,16 +2101,7 @@ support with ivy]].
    ("C-x l" . counsel-locate)
    ("C-S-o" . counsel-rhythmbox)
    :map read-expression-map
-   ("C-r" . counsel-expression-history))
-  :init
-  (progn
-      <<ivy>>
-      <<swiper>>
-      <<counsel-projectile-config>>
-      <<counsel-osx-app-config>>
-      <<counsel-ggtags>>
-      <<counsel-itunes>>
-      <<smex-config>>))
+   ("C-r" . counsel-expression-history)))
 #+END_SRC
 
 
@@ -2020,7 +2114,7 @@ support with ivy]].
   :straight t
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
-
+ 
 ***** Counsel Dash
 
 #+NAME: counsel-dash-config
@@ -2058,13 +2152,12 @@ support with ivy]].
 
 #+END_SRC
 
-***** Counsel Dash Replacement
+****** Counsel Dash Replacement
 
 Counsel Dash is a wrapper around helm-dash. Helm-dash depends on helm,
 which defeats the purpose of using a lightweight alternative such as
 Ivy. This implementation is much simpler but does not rely on helm as
 a dependency.
-
 
 ***** Counsel-Projectile
 
@@ -2075,30 +2168,31 @@ friends.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-projectile
   :straight t
-  :after (projectile)
+  :after (projectile counsel)
   :init
   (counsel-projectile-mode))
 #+END_SRC
 
-***** Counsel ggtags
+***** Counsel Gtags
 
-#+NAME: counsel-ggtags
+#+NAME: counsel-ggtags-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-gtags
   :straight t
-  :after (ggtags)
+  :after (ggtags counsel)
   :init
   (progn
     (setq counsel-gtags-ignore-case t
           counsel-gtags-auto-update t)))
 #+END_SRC
 
-***** Counsel itunes
+***** Counsel iTunes
 
-#+NAME: counsel-itunes
+#+NAME: counsel-itunes-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (when (executable-find "osascript")
   (use-package counsel-itunes
+    :after (counsel)
     :straight
     (counsel-itunes
      :host github
@@ -2122,13 +2216,13 @@ friends.
 
 **** Swiper
 
-#+NAME: swiper
+#+NAME: swiper-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<swiper-avy>>
-<<swiper-settings>>
+<<swiper-avy-config>>
+<<swiper-base>>
 #+END_SRC
 
-#+NAME: swiper-settings
+#+NAME: swiper-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package swiper
   :bind
@@ -2137,7 +2231,7 @@ friends.
 
 ***** Swiper Avy
 
-#+NAME: swiper-avy
+#+NAME: swiper-avy-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package avy
   :straight t)
@@ -2148,17 +2242,6 @@ friends.
 #+BEGIN_QUOTE
 A smart M-x enhancement for Emacs.
 #+END_QUOTE
-
-This is disabled in the [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Bcompletion/ivy/layers.el][spacemacs ivy layer]] with the following
-commentblock:
-
-#+BEGIN_QUOTE
-;; smex is handled by the `ivy' layer and we don't want
-;; to use the ownership mechanism of layers because it is dependent
-;; on the order of layer declaration
-#+END_QUOTE
-
-Too much "cider" for this programmer to parse that rn.
 
 #+NAME: smex-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2174,6 +2257,7 @@ Too much "cider" for this programmer to parse that rn.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package deft
+  :if *is-mac*
   :straight t
   :bind ("C-x C-n" . deft)
   :config
@@ -2221,9 +2305,9 @@ Set the width to 4px. Also remove the cursor in inactive windows.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default cursor-type '(bar . 1)
-	      cursor-in-non-selected-windows 'nil
-	      x-stretch-cursor t
-	      line-spacing 2)
+              cursor-in-non-selected-windows 'nil
+              x-stretch-cursor t
+              line-spacing 2)
 #+END_SRC
 
 **** Disable Blink
@@ -2244,7 +2328,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   (smart-cursor-color-mode +1))
 #+END_SRC
 
-*** Font
+*** Fonts
 **** Font List
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -2291,8 +2375,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 					      :height 120))))))
 #+END_SRC
 
-**** Default Font
-Use the default monospaced font for each operating system.
+**** Load Fonts
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defvar macos-default-font
@@ -2315,6 +2398,8 @@ Use the default monospaced font for each operating system.
       (t
        (set-frame-font "Menlo 12" nil t)))
 #+END_SRC
+
+***** TODO Write Macro to define =-default-font= vars with templated docstring
 
 *** Modeline
 **** Display Time
@@ -2359,6 +2444,7 @@ Show the time in the modeline.
 #+END_SRC
 
 ****** Battery Segment
+
 Spaceline and the all-the-icons spaceline theme support fancy battery
 mode. However, this package is not maintained and doesn't appear to be
 working on macOS due to an underlying issue with the
@@ -2692,52 +2778,9 @@ interface. For some reason loading this in the same =progn= block
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons-ivy
   :straight t
+  :after (ivy)
   :init
   (all-the-icons-ivy-setup))
-#+END_SRC
-
-*** Terminal
-**** Multi-Term
-
-#+NAME: multi-term-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package multi-term
-  :straight t
-  :bind
-  (("C-c M-RET t" . multi-term)
-   ("C-c M-RET b" . multi-term-prev)
-   ("C-c M-RET n" . multi-term-next)
-   ("C-c M-RET o" . multi-term-dedicated-toggle))
-  :config
-  (progn
-    (setq multi-term-program
-	  (if (string= shell-file-name "/bin/sh")
-	      "/bin/bash"
-	    "/bin/zsh"))))
-#+END_SRC
-
-**** Run Bash On Windows/PC
-- [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][Mastering Emacs - Running Shells in Emacs]]
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-windows*
-  (progn
-    (setq explicit-shell-file-name "C:/path/to/bash.exe"
-          shell-file-name "bash"
-          explicit-bash.exe-args '("--noediting" "--login" "-i"))
-    (setenv "SHELL" shell-file-name)
-    (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
-#+END_SRC
-
-**** Shell 
-
-Zsh is whack when running the emacs =shell= function. This fixes that problem.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-mac*
-  (setq explicit-shell-file-name "/bin/sh"
-	shell-file-name "sh")
-  (setenv "SHELL" shell-file-name))
 #+END_SRC
 
 *** Sunshine
@@ -3094,7 +3137,7 @@ the user will be prompted to edit the search string first."
 #+END_SRC
 
 ** Programming Tools
-*** Delimiter Pair Matching
+*** Pair Matching
 **** Paredit
 
 We could use ~:init~ key to hook the ~enable-paredit-mode~
@@ -3197,29 +3240,29 @@ the absence of a window system. I'll check for the latter for now.
   :mode ( "Dockerfile\\'" .  dockerfile-mode))
 #+END_SRC
 
-** ProgLang API
+** Prog Lang API
 
 Opt-in to programming languages. A very simplified version of
 Spacemacs =dotspacemacs-configuration-layers=.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defvar chaffin-enabled-langs '()
+(defvar proglang-enabled-list '()
   "List of languages for which straight should install respective tooling, 
    syntax-highlighting, and peripherals.")
 
 
-(defun chaffin-enabled-lang-p (lang)
-  (member lang chaffin-enabled-langs))
+(defun proglang-enabled-p (lang)
+  (member lang proglang-enabled-list))
 
-(defun chaffin-enable-langs (&rest langs)
+(defun add-to-list-proglang-enabled (&rest langs)
   (mapcar (lambda (lang)
-	    (setq chaffin-enabled-langs (cons lang chaffin-enabled-langs)))
-	  langs))
+            (setq proglang-enabled-list (cons lang proglang-enabled-list)))
+          langs))
 
 (when *is-mac*
-  (chaffin-enable-langs 'c-c++ 'common-lisp 'clojure 'groovy 'java
-                        'javascript 'markdown 'scala 'python 'ruby
-                        'web))
+  (add-to-list-proglang-enabled 'c-c++ 'common-lisp 'clojure 'groovy 'java
+                                'javascript 'markdown 'scala 'python 'ruby
+                                'web))
 #+END_SRC
 
 ** Programming Languages
@@ -3227,7 +3270,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+NAME: c-cxx-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'c-c++)
+(when (proglang-enabled-p 'c-c++)
   <<cc-function-args>>
   (when (executable-find "cmake")
     <<cc-irony-mode>>
@@ -3356,7 +3399,7 @@ Company backend for C/C++ files using irony mode.
 
 #+NAME: common-lisp
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'common-lisp)
+(when (proglang-enabled-p 'common-lisp)
   <<common-lisp-hooks>>
   <<common-lisp-slime>>
 )
@@ -3405,7 +3448,7 @@ Configuration for common-lisp
 *** Clojure(Script)
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'clojure)
+(when (proglang-enabled-p 'clojure)
   <<clojure-mode>>
   <<clojure-leiningen>>
   <<clojure-interactive>>)
@@ -3748,6 +3791,9 @@ CIDER eldoc information.
 #+END_SRC
 
 *** LaTeX
+Note that LaTeX packages are loaded, configured, and installed when
+='latex= is a member of =org-export-enabled-backends=.   
+ 
 **** Tex
 
 #+NAME: tex-config
@@ -3944,7 +3990,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 #+NAME: java-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'java)
+(when (proglang-enabled-p 'java)
   <<chaffin-java-backend>>
   <<java-autodisass-java-bytecode>>
   <<java-gradle>>
@@ -4116,7 +4162,7 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 
 #+NAME: js-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-(when (chaffin-enabled-lang-p 'javascript)
+(when (proglang-enabled-p 'javascript)
   <<js-js2>>
   <<js-flycheck>>
   <<js-rjx>>
@@ -4257,7 +4303,7 @@ Real jsx support.
 
 #+NAME: markdown-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'markdown)
+(when (proglang-enabled-p 'markdown)
   <<markdown-mode-config>>
   <<markdown-mode+-config>>
   <<markdown-toc-config>>
@@ -4325,7 +4371,7 @@ Real jsx support.
 
 #+NAME: python-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'python)
+(when (proglang-enabled-p 'python)
   <<python-sh-interpreter>>
   <<python-pyenv>>
   <<python-anaconda>>)
@@ -4399,7 +4445,7 @@ Real jsx support.
 *** Ruby
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'ruby)
+(when (proglang-enabled-p 'ruby)
   <<ruby-mode-config>>
   <<rvm-config>>)
 #+END_SRC
@@ -4436,7 +4482,7 @@ Real jsx support.
 
 #+NAME: scala-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (chaffin-enabled-lang-p 'scala)
+(when (proglang-enabled-p 'scala)
   <<scala-mode-config>>
   <<scala-sbt-mode-config>>)
 #+END_SRC
@@ -4470,7 +4516,7 @@ Real jsx support.
 
 #+NAME: web-mode-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-(when (chaffin-enabled-lang-p 'web)
+(when (proglang-enabled-p 'web)
   (use-package web-mode
     :straight t
     :bind (:map web-mode-map
