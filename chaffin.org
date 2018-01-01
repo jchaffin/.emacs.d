@@ -18,6 +18,7 @@
     - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
   - [[#core][Core]]
+    - [[#keybindings][Keybindings]]
     - [[#constants][Constants]]
     - [[#macros][Macros]]
       - [[#with-system][With system]]
@@ -35,7 +36,6 @@
       - [[#resolve-path-relative-to-user-emacs-directory][Resolve Path Relative to user-emacs-directory]]
       - [[#explore-a-local-repository][Explore a local repository]]
   - [[#environment][Environment]]
-    - [[#keybindings][Keybindings]]
     - [[#macos][macOS]]
       - [[#macos-terminal-encoding][MacOS Terminal Encoding]]
       - [[#macos-keybindings][MacOS Keybindings]]
@@ -172,7 +172,7 @@
       - [[#ggtags][Ggtags]]
     - [[#devops][DevOps]]
       - [[#docker][Docker]]
-  - [[#enable-languages][Enable Languages]]
+  - [[#proglang-api][ProgLang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#c][C++]]
       - [[#function-args][Function Args]]
@@ -220,6 +220,10 @@
       - [[#markdown-mode-1][markdown-mode+]]
       - [[#markdown-toc][markdown-toc]]
       - [[#markdownfmt][markdownfmt]]
+    - [[#python][Python]]
+      - [[#python-shell-interpreter][Python Shell Interpreter]]
+      - [[#pyenv-mode][Pyenv Mode]]
+      - [[#anaconda][Anaconda]]
     - [[#ruby][Ruby]]
       - [[#ruby-mode][ruby-mode]]
       - [[#rvm][rvm]]
@@ -242,7 +246,6 @@ This document contains my entire configuration for the GNU Emacs text
 editor. It written as some combination of travelogue, technical
 notebook, personal journal, and clipboard of woefully shameless
 copy-and-pastes from various online forums.
-
 
 ****  Literate Programming
 
@@ -314,6 +317,23 @@ directory.
 #+END_SRC
 
 ** Core
+*** Keybindings
+
+#+NAME: user-emacs-keybindings
+#+BEGIN_SRC emacs-lisp :tangle yes
+;; Make personal keymap
+(define-prefix-command 'chaffin-keymap)
+(global-set-key "\M-m" 'chaffin-keymap)
+
+;; Make `chaffin-reload-eval-keymap'
+(define-prefix-command 'chaffin-reload-eval-keymap)
+(define-key 'chaffin-keymap "r" 'chaffin-reload-eval-keymap)
+(define-key 'chaffin-reload-eval-keymap "i"  #'chaffin-reload-init)
+(define-key 'chaffin-reload-eval-keymap "b"  #'chaffin-eval-buffer)
+(define-key 'chaffin-reload-eval-keymap "r"  #'eval-region)
+(define-key 'chaffin-reload-eval-keymap "f"  #'eval-defun)
+#+END_SRC
+
 *** Constants                                                      :ignore:
 
 Variables used throughout this file[fn:2]:
@@ -541,44 +561,22 @@ buffer.
 **** Explore a local repository 
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun go-to-repo--ivy ()
+(defun goto-repo ()
+  (interactive)
   (let ((repo-dir "~/.emacs.d/straight/repos/"))
 
     (ivy-read
      "Go to Package Directory: "
      (directory-files repo-dir)
      :action (lambda (package)
-	       (let ((default-directory (concat
-					 (file-name-as-directory
-					  repo-dir)
-					 package)))
-		 (dired default-directory))))))
-
-
-(defun go-to-repo ()
-  (interactive)
-  (if (eq completing-read-function 'ivy-completing-read)
-      (go-to-repo--ivy)
-    (message "Currently this operating only supports the Ivy completion framework.")))
+         (let ((default-directory (concat
+           (file-name-as-directory
+            repo-dir)
+           package)))
+     (dired default-directory))))))
 #+END_SRC
 
 ** Environment
-*** Keybindings
-
-#+NAME: user-emacs-keybindings
-#+BEGIN_SRC emacs-lisp :tangle yes
-;; Make personal keymap
-(define-prefix-command 'chaffin-keymap)
-(global-set-key "\M-m" 'chaffin-keymap)
-
-;; Make `chaffin-reload-eval-keymap'
-(define-prefix-command 'chaffin-reload-eval-keymap)
-(define-key 'chaffin-keymap "r" 'chaffin-reload-eval-keymap)
-(define-key 'chaffin-reload-eval-keymap "i"  #'chaffin-reload-init)
-(define-key 'chaffin-reload-eval-keymap "b"  #'chaffin-eval-buffer)
-(define-key 'chaffin-reload-eval-keymap "r"  #'eval-region)
-(define-key 'chaffin-reload-eval-keymap "f"  #'eval-defun)
-#+END_SRC
 
 *** macOS
 
@@ -3196,7 +3194,7 @@ Minor mode to highlight s-expresion.
   :mode ( "Dockerfile\\'" .  dockerfile-mode))
 #+END_SRC
 
-** Enable Languages
+** ProgLang API
 
 Opt-in to programming languages. A very simplified version of
 Spacemacs =dotspacemacs-configuration-layers=.
@@ -4116,19 +4114,20 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 #+NAME: js-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (when (chaffin-enabled-lang-p 'javascript)
-  <<js2-mode-config>>
-  <<flycheck-js-config>>
-  <<npm-mode-config>>
-  <<coffee-mode-config>>
-  <<typescript-config>>
-  <<json-mode-config>>
-  <<tern-mode-config>>  
+  <<js-js2>>
+  <<js-flycheck>>
+  <<js-rjx>>
+  <<js-npm-mode>>
+  <<js-coffee-mode>>
+  <<js-typescript>>
+  <<js-json-mode>>
+  <<js-tern>>
 )  
 #+END_SRC
 
 **** js2-mode
 
-#+NAME: js2-mode-config
+#+NAME: js-js2
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package js2-mode
   :straight t
@@ -4142,8 +4141,8 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 
 Real jsx support.
 
-#+NAME: rjsx-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: js-rjsx
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package rjsx-mode
   :straight t
   :mode "\\.jsx\\'")
@@ -4153,7 +4152,7 @@ Real jsx support.
 
 [[https://github.com/proofit404/company-tern][Tern]] is a code-analysis engine for JavaScript.
 
-#+NAME: tern-mode-config
+#+NAME: js-tern
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tern
   :straight t
@@ -4165,7 +4164,7 @@ Real jsx support.
 
 [[https://github.com/proofit404/company-tern][Company Tern]] provides code completion using tern company backned.
 
-#+NAME: company-tern-config
+#+NAME: js-company-tern
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-tern
   :straight t
@@ -4179,7 +4178,7 @@ Real jsx support.
 
 **** JSON
 
-#+NAME: json-mode-config
+#+NAME: js-json-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package json-mode
   :defer t
@@ -4189,7 +4188,7 @@ Real jsx support.
 
 **** TypeScript
 
-#+NAME: typescript-config
+#+NAME: js-typescript
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package tide
   :defer t
@@ -4213,7 +4212,7 @@ Real jsx support.
 
 **** Coffee
 
-#+NAME: coffee-mode-config
+#+NAME: js-coffee-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package coffee-mode
   :straight t
@@ -4222,7 +4221,7 @@ Real jsx support.
 
 **** Add Node Modules Path ([[https://github.com/codesuki/add-node-modules-path][repository]])
 
-#+NAME: add-node-modules-path-config
+#+NAME: js-add-node-modules-path
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package add-node-modules-path
   :straight t
@@ -4233,7 +4232,7 @@ Real jsx support.
 
 **** Npm Mode
 
-#+NAME: npm-mode-config
+#+NAME: js-npm-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
   :straight t
@@ -4244,12 +4243,11 @@ Real jsx support.
 
 **** Flycheck JavaScript
 
-#+NAME: flycheck-js-config
+#+NAME: js-flycheck
 #+BEGIN_SRC emacs-lisp :tangle no
 (with-eval-after-load 'flycheck
   (dolist (mode '(coffee-mode js2-mode json-mode))
     (push mode flycheck-global-modes)))
-
 #+END_SRC
 
 *** Markdown
@@ -4318,6 +4316,81 @@ Real jsx support.
 	      ("C-c C-f" . markdown-format-buffer))
   :config
   (add-hook 'markdown-mode-hook #'markdownfmt-enable-on-save))
+#+END_SRC
+
+*** Python
+
+#+NAME: python-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (chaffin-enabled-lang-p 'python)
+  <<python-sh-interpreter>>
+  <<python-pyenv>>
+  <<python-anaconda>>)
+#+END_SRC
+
+**** Python Shell Interpreter
+
+#+NAME: python-sh-interpreter
+#+BEGIN_SRC emacs-lisp :tangle no
+(when (executable-find "ipython3")
+  (setenv "IPY_TEST_SIMPLE_PROMPT" "1")
+  (setq python-shell-interpreter "ipython3"
+        python-shell-interpreter-args "-i"))
+#+END_SRC
+
+**** Pyenv Mode
+
+#+NAME: python-pyenv
+#+BEGIN_SRC emacs-lisp :tangle no
+(when (executable-find "pyenv")
+  (use-package pyenv-mode
+    :straight t
+    :init
+    (pyenv-mode)
+    :commands (pyenv-mode-set pyenv-mode-unset pyenv-mode-versions)
+    :config
+    (progn
+      (with-eval-after-load 'projectile
+        (defun projectile-pyenv-mode-set ()
+          "Set pyenv version matching project name."
+          (let ((project (projectile-project-name)))
+            (if (member project (pyenv-mode-versions))
+                (pyenv-mode-set project)
+              (pyenv-mode-unset)))))
+
+      (add-hook 'projectile-after-switch-project-hook
+                'projectile-pyenv-mode-set))))
+#+END_SRC
+
+**** Anaconda
+
+#+NAME: python-anaconda
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<python-anaconda-mode>>
+<<python-anaconda-company>>
+#+END_SRC
+
+***** Anaconda Mode
+
+#+NAME: python-anaconda-mode
+#+BEGIN_SRC emacs-lisp :tangle no 
+(use-package anaconda-mode
+  :straight t
+  :init
+  (progn
+    (add-hook 'python-mode-hook 'anaconda-mode)
+    (add-hook 'python-mode-hook 'anaconda-eldoc-mode)))
+#+END_SRC
+
+***** Company Anaconda 
+
+#+NAME: python-anaconda-company
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-anaconda
+  :straight t
+  :init
+  (with-eval-after-load 'company
+    `(add-to-list company-backends 'company-anaconda)))
 #+END_SRC
 
 *** Ruby
@@ -4559,7 +4632,7 @@ and slim-mode using company.
   :straight t
   :init
   (progn
-    <<company-tern-config>>
+    <<js-company-tern>>
     (defun chaffin--company-web-mode-hook ()
       "Autocompletion hook for web-mode"
       (set (make-local-variable 'company-backends)
@@ -4604,5 +4677,3 @@ dialects of Lisp.
 [fn:9] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
 [fn:10] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
-
-
