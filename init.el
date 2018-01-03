@@ -1,6 +1,6 @@
 ;;; init.el -- Emacs Initialization File
 ;;
-;; Copyright (c) 2012-2017 Jacob Chaffin
+;; Copyright (c) 2017 Jacob Chaffin
 ;;
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
 ;; Keywords: emacs, .emacs.d, elisp, straight-el
@@ -111,7 +111,8 @@
 
 (use-package org
   :bind
-  (("C-c a" . org-agenda))
+  (("C-c a" . org-agenda)
+   ("C-c c" . org-capture))
   :init
   ;; The follwing hacks are designed to trick the version checking
   ;; done in the loading process of org into recognizing the mirror
@@ -142,8 +143,12 @@
     (provide 'org-version))
   
   :config
-  (setq org-insert-heading-respect-content t
-        org-startup-indented t))
+  (progn
+    (when (eq system-name 'darwin)
+      (setq org-directory (expand-file-name "~/Dropbox/org/")
+            org-default-notes-file (concat org-directory "capture.org")))
+      (setq org-insert-heading-respect-content t
+            org-startup-indented t)))
 
 (defvar user-emacs-literate-config-file nil
   "The *.org file containing the source code responsible for declaration and 

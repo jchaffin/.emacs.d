@@ -42,6 +42,7 @@
       - [[#macos-keybindings][MacOS Keybindings]]
       - [[#macos-computer-name][MacOS Computer Name]]
       - [[#macos-dev-utils][MacOS Dev Utils]]
+      - [[#macos-dash][MacOS Dash]]
       - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
       - [[#osx-dictionary][OSX Dictionary]]
       - [[#exec-path-from-shell][Exec Path From Shell]]
@@ -60,10 +61,12 @@
       - [[#org-beautify-theme][Org Beautify Theme]]
       - [[#toc-org][TOC Org]]
     - [[#org-utilities][Org Utilities]]
+      - [[#org-capture][Org Capture]]
       - [[#org-pomodoro][Org Pomodoro]]
       - [[#org-ref][Org Ref]]
       - [[#org-id][Org ID]]
-      - [[#spell-check][Spell Check]]
+      - [[#spell-checking][Spell Checking]]
+      - [[#org-download][Org Download]]
     - [[#org-pdf][Org PDF]]
       - [[#pdf-tools][PDF Tools]]
       - [[#org-pdf-view][Org PDF View]]
@@ -86,6 +89,7 @@
       - [[#initial-startup-display][Initial Startup Display]]
       - [[#menu-bar-tool-bar-scroll-bar][Menu Bar, Tool Bar, Scroll Bar]]
       - [[#truncate-lines][Truncate Lines]]
+      - [[#smooth-scrolling][Smooth Scrolling]]
     - [[#better-completion][Better Completion]]
       - [[#ignore-executable-cache-directions-and-version-control-files][Ignore executable, cache directions, and version control files.]]
     - [[#better-garbage-collection][Better Garbage Collection]]
@@ -99,6 +103,8 @@
   - [[#editing][Editing]]
     - [[#indentation][Indentation]]
       - [[#highlight-indent-guides][Highlight Indent Guides]]
+    - [[#formatting][Formatting]]
+      - [[#visual-fill-column][Visual Fill Column]]
     - [[#yasnippet][YASnippet]]
     - [[#flycheck][Flycheck]]
       - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
@@ -109,7 +115,9 @@
       - [[#company-quick-help][Company Quick Help]]
       - [[#company-dict][Company Dict]]
   - [[#utilities][Utilities]]
+    - [[#asynchronous-processing][Asynchronous Processing]]
     - [[#terminal][Terminal]]
+      - [[#with-editor][With Editor]]
       - [[#multi-term][Multi-Term]]
       - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
       - [[#shell][Shell]]
@@ -119,6 +127,7 @@
       - [[#counsel][Counsel]]
       - [[#swiper][Swiper]]
       - [[#smex][Smex]]
+    - [[#nov][Nov]]
     - [[#deft][Deft]]
     - [[#wakatime][Wakatime]]
   - [[#user-interface][User Interface]]
@@ -126,6 +135,7 @@
       - [[#vertical-bar][Vertical Bar]]
       - [[#disable-blink][Disable Blink]]
       - [[#smart-cursor-color][Smart Cursor Color]]
+      - [[#multiple-cursors][Multiple Cursors]]
     - [[#fonts][Fonts]]
       - [[#font-list][Font List]]
       - [[#load-fonts][Load Fonts]]
@@ -174,6 +184,7 @@
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#c][C++]]
+      - [[#per-project-compiler-command][Per-Project Compiler Command]]
       - [[#function-args][Function Args]]
       - [[#irony-mode][Irony Mode]]
       - [[#cmake-mode][Cmake Mode]]
@@ -221,12 +232,13 @@
       - [[#markdown-toc][markdown-toc]]
       - [[#markdownfmt][markdownfmt]]
     - [[#python][Python]]
-      - [[#python-shell-interpreter][Python Shell Interpreter]]
+      - [[#python-settings][Python Settings]]
       - [[#pyenv-mode][Pyenv Mode]]
       - [[#anaconda][Anaconda]]
     - [[#ruby][Ruby]]
       - [[#ruby-mode][ruby-mode]]
       - [[#rvm][rvm]]
+      - [[#enhanced-ruby-mode][enhanced ruby mode]]
     - [[#scala][Scala]]
       - [[#scala-mode][Scala Mode]]
       - [[#sbt][Sbt]]
@@ -236,7 +248,6 @@
       - [[#html][HTML]]
       - [[#css][CSS]]
       - [[#company-web][Company Web]]
-      - [[#enhanced-ruby-mode][enhanced ruby mode]]
   - [[#footnotes][Footnotes]]
 
 * Configuration
@@ -531,11 +542,11 @@ function `copy-file-path-as-kill'."
 
   (destructuring-bind (file dir)
       (if-major-mode dired-mode
-	(list (substring-no-properties (thing-at-point 'symbol))
-	      dired-directory)
-	(mapcar (lambda (f)
-		  (funcall f buffer-file-name))
-		'(file-name-nondirectory file-name-directory )))
+        (list (substring-no-properties (thing-at-point 'symbol))
+              dired-directory)
+        (mapcar (lambda (f)
+                  (funcall f buffer-file-name))
+                '(file-name-nondirectory file-name-directory )))
     (funcall func (expand-file-name file dir))))
 #+END_SRC
 
@@ -583,14 +594,15 @@ buffer.
 **** Resolve Path
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun resolve-path (&rest path)
+(defun resolve-path (&rest paths)
   (let* ((ms-file-path-separator "\\")
          (unixy-file-path-separator "/")
          (file-path-separator
           (if (eq system-name 'windows)
               ms-file-path-separator
-            unixy-file-path-separator)))
-    (mapconcat 'identity path file-path-separator)))
+            unixy-file-path-separator))
+         (paths* (mapcar #'directory-file-name paths)))
+    (mapconcat 'identity paths* file-path-separator)))
 #+END_SRC
 
 ***** Resolve to Emacs Directory
@@ -654,6 +666,7 @@ external programs.
      <<macos-keybindings>>
      <<macos-finder-config>>
      <<macos-dictionary-config>>
+     <<macos-dash-config>>
      <<macos-dev-utils>>))
 #+END_SRC
 
@@ -687,6 +700,10 @@ Also sets terminal coding system to "utf-8".
       mac-option-modifier  'meta
       ns-control-modifier  'control
       ns-function-modifier 'hyper)
+
+(when *is-mac*
+  (global-set-key (kbd "s-+" ) 'text-scale-increase)
+  (global-set-key (kbd "s--")  'text-scale-decrease))
 #+END_SRC
 
 ***** MacOS Prefix Command
@@ -741,6 +758,51 @@ editors and various other applications on macOS.
     (define-key 'macos-iterm-keymap "g" 'iterm-goto-filedir-or-home)
     (define-key 'macos-iterm-keymap "f" 'iterm-focus)
     (define-key 'macos-iterm-keymap "s" 'iterm-shell-command)))
+#+END_SRC
+
+**** MacOS Dash
+
+Dash.app is an application for quickly searching and navigating API
+docsets for programming tools and languages. 
+There are already two Emacs plugins that utilize Dash docsets,
+helm-dash and counsel-dash, which is a simple wrapper around helm
+dash.
+
+For whatever reason, I can't figure out how to open the docset in an
+=eww= frame or in an external browser using =browse-url=. 
+
+Because of the OS/licensing restrictions of Dash.app, both these
+packages try to solve the problem of creating an interface for users
+to navigate, query, and switch between docsets. 
+
+Because I've purchased a license and run macOS locally, I'm going to
+bypass that problem and define a function that uses the
+=dash-plugin://= protocol to launch/switch to the application and
+query it with the marked region or symbol at point. 
+
+#+NAME: macos-dash-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar dash-plugin-keywords nil
+  "An `alist' of keywords representing the docsets which should 
+  searched in the query to Dash.app")
+
+(defun macos-dash-at-point ()
+  (interactive)
+  (let* ((protocol "dash-plugin://")
+         (keywords (if dash-plugin-keywords
+                       (mapconcat 'identity dash-plugin-keywords ",")
+                     "")))
+    (browse-url
+     (concat
+      protocol
+      (unless (string-empty-p keywords)
+        (concat "keys=" keywords "&"))
+      "query="
+      (if (use-region-p)
+          (buffer-substring-no-properties
+           (region-beginning)
+           (region-end))
+        (substring-no-properties (or (thing-at-point 'symbol) "")))))))
 #+END_SRC
 
 **** Reveal in macOS Finder
@@ -967,10 +1029,21 @@ Use UTF-8 Bullets for Org-mode headings.
 
 #+NAME: org-utils
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-utils-agenda>>
 <<org-utils-pomodoro>>
 <<org-utils-ref>>
 <<org-utils-id>>
+<<org-utils-download>>
+#+END_SRC
+
+**** Org Capture
+
+#+NAME: org-utils-capture
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
+         "* TODO %?\n %i\n %a")
+        ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
+         "* %?\nEntered on %U\n %i\n %a")))
 #+END_SRC
 
 **** Org Pomodoro
@@ -1024,7 +1097,6 @@ by [[#org-pomodoro][org-pomodoro]].
 (defalias #'org-pomodoro-path
   (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
 #+END_SRC
-
 
 **** Org Ref
 :PROPERTIES:
@@ -1180,7 +1252,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
                     (org-add-ids-to-headlines-in-file))))))
 #+END_SRC
 
-**** Spell Check
+**** Spell Checking
 
 Add spell checking in org mode buffers using Flyspell.
 
@@ -1188,6 +1260,18 @@ Add spell checking in org mode buffers using Flyspell.
 #+BEGIN_SRC emacs-lisp :tangle no
 (when (executable-find "aspell")
   (add-hook 'org-mode-hook 'turn-on-flyspell))
+#+END_SRC
+
+**** Org Download
+
+#+NAME: org-utils-download
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-download
+  :straight t
+  :defines (org-download-image-dir)
+  :config
+  (when *is-mac*
+    (setq-default org-download-image-dir "~/Dropbox/org/img/")))
 #+END_SRC
 
 *** Org PDF
@@ -1631,6 +1715,15 @@ Not sure this is doing anything...
 (setq-default truncate-lines nil)
 #+END_SRC
 
+**** Smooth Scrolling
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package smooth-scrolling
+  :straight t
+  :init
+  (smooth-scrolling-mode 1))
+#+END_SRC
+
 *** Better Completion
 
 **** Ignore executable, cache directions, and version control files.
@@ -1760,8 +1853,8 @@ Tabs are the bane of humanity[fn:10]. [[http://www.urbandictionary.com/define.ph
 #+END_SRC
 
 **** Highlight Indent Guides
-[[https://github.com/darthfennec/highlight-indent-guides][
-Highlight Indent Guides]] sublime-like indentation guides.
+
+[[https://github.com/darthfennec/highlight-indent-guides][Highlight Indent Guides]] sublime-like indentation guides.
 
 /Commented out because of bug that leaves a trail of solid white line marks on the indent guide overlay./
 
@@ -1772,6 +1865,19 @@ Highlight Indent Guides]] sublime-like indentation guides.
    (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
    :config
    (setq highlight-indent-guides-method 'character))
+#+END_SRC
+
+*** Formatting
+**** Visual Fill Column
+
+Mimics behavior of =fill-column= in =visual-line-mode=.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package visual-fill-column
+  :straight t
+  :config
+  (advice-add 'text-scale-adjust
+              :after #'visual-fill-column-adjust))
 #+END_SRC
 
 *** YASnippet
@@ -1970,7 +2076,32 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+END_SRC
 
 ** Utilities
+*** Asynchronous Processing
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package async
+  :straight t
+  :commands (dired-async-mode async-smtpmail-send-it)
+  :config
+  (progn
+    (dired-async-mode 1)
+    (setq message-send-mail-function 'async-smtpmail-send-it)))
+#+END_SRC
+
 *** Terminal
+**** With Editor
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package with-editor
+  :straight t
+  :config 
+  (progn
+    (add-to-hooks #'with-editor-export-editor
+                  '(shell-mode-hook
+                    term-exec-hook
+                    eshell-modehook))))
+#+END_SRC
+
 **** Multi-Term
 
 #+NAME: multi-term-config
@@ -2155,50 +2286,6 @@ support with ivy]].
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
  
-***** Counsel Dash
-
-#+NAME: counsel-dash-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package counsel-dash
-  :if *is-mac*
-  :straight t
-  :defines chaffin/dash-activate-package-docsets
-  :init
-  (defun counsel-dash-at-point ()
-    "Counsel dash with selected point."
-    (interactive)
-    (counsel-dash
-     (if (use-region-p)
-	 (buffer-substring-no-properties
-	  (region-beginning)
-	  (region-end))
-       (substring-no-properties (or (thing-at-point 'symbol) "")))))
-
-  :config
-  (progn
-    (defalias 'counsel-dash-installed-docsets 'helm-dash-installed-docsets)
-
-    (defun chaffin/dash-activate-package-docsets (path)
-      "Add dash docsets from specified PATH."
-      (setq counsel-dash-docsets-path path
-	    counsel-dash-common-docsets (counsel-dash-installed-docsets))
-      (message (format "Activated %d docsets from: %s"
-		       (length counsel-dash-common-docsets) path)))
-
-    (setq counsel-dash-docsets-path
-	  (expand-file-name "~/Library/Application\sSupport/Dash/DocSets"))
-
-    (chaffin/dash-activate-package-docsets counsel-dash-docsets-path)))
-
-#+END_SRC
-
-****** Counsel Dash Replacement
-
-Counsel Dash is a wrapper around helm-dash. Helm-dash depends on helm,
-which defeats the purpose of using a lightweight alternative such as
-Ivy. This implementation is much simpler but does not rely on helm as
-a dependency.
-
 ***** Counsel-Projectile
 
 [[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
@@ -2291,6 +2378,29 @@ A smart M-x enhancement for Emacs.
   (setq-default smex-history-length 32))
 #+END_SRC
 
+*** Nov
+[[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
+
+#+NAME: nov-mode
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package nov
+  :straight t
+  :mode ("\\.epub\\'" . nov-mode)
+  :config
+  (progn
+    (setq nov-text-width 80
+          visual-fill-column-center-text t)
+    (defun chaffin--nov-font-setup ()
+      (face-remap-add-relative 'variable-pitch
+                               :family "Bookmania"
+                               :weight 'light
+                               :height 1.0))
+    (when *is-mac*
+      (add-hook 'nov-mode-hook 'chaffin--nov-font-setup))
+    (add-hook 'nov-mode-hook 'visual-line-mode)
+    (add-hook 'nov-mode-hook 'visual-fill-column-mode)))
+#+END_SRC
+
 *** Deft
 
 [[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
@@ -2366,6 +2476,20 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   :straight t
   :config
   (smart-cursor-color-mode +1))
+#+END_SRC
+
+**** Multiple Cursors
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package multiple-cursors
+  :straight t
+  :init
+  (global-unset-key (kbd "M-<down-mouse-1>"))
+  :bind
+  (("C-S-c C-S-c" . mc/edit-lines)
+   ("C->" . mc/mark-next-like-this)
+   ("C-c C-<" . mc/mark-all-like-this)
+   ("M-<mouse-1>" . mc/add-cursor-on-click)))
 #+END_SRC
 
 *** Fonts
@@ -2514,36 +2638,40 @@ segment is a pretty good replacement:
 ;; Functions
 (defun battery-macos-shell-command ()
   (let* ((battery-status-string (shell-command-to-string "pmset -g batt"))
-	 (battery-status-format-string (replace-regexp-in-string "\n" "" battery-status-string)))
+         (battery-status-format-string (replace-regexp-in-string "\n" "" battery-status-string)))
     battery-status-format-string))
 
 (defun battery-macos-segments (battery-percent &rest battery-status-functions)
   (let* ((battery-status-string (battery-macos-shell-command))
- 	 (battery-status-segment-functions (cons battery-percent battery-status-functions))
- 	 (battery-status-segments (mapcar (lambda (f) (funcall f battery-status-string)) battery-status-segment-functions)))
+         (battery-status-segment-functions (cons battery-percent battery-status-functions))
+         (battery-status-segments (mapcar
+                                   (lambda (f)
+                                     (funcall f battery-status-string))
+                                   battery-status-segment-functions)))
     (destructuring-bind (percent &optional status remaining source)
-	battery-status-segments
+        battery-status-segments
       (list (cons ?L (or source "N/A"))
-	    (cons ?p (or (number-to-string percent) "N/A"))
-	    (cons ?B (or status "N/A"))
-	    (cons ?t (or remaining "N/A"))))))
+            (cons ?p (or (number-to-string percent) "N/A"))
+            (cons ?B (or status "N/A"))
+            (cons ?t (or remaining "N/A"))))))
 
 
 ;;;###autoload
 (defun battery-macos-pmset ()
   (let ((percent (battery-segment percent))
-	(source (battery-segment source))
-	(status (battery-segment status))
-	(remaining (battery-segment remaining)))
+        (source (battery-segment source))
+        (status (battery-segment status))
+        (remaining (battery-segment remaining)))
     (battery-macos-segments percent status remaining source)))
 
 
 ;; Battery Segment Functions
 
 (defun battery-macos-battery-percent (battery-status-string)
-  (let ((battery-percent-string (substring-no-properties battery-status-string
-							 (string-match "[0-9]+%" battery-status-string)
-							 (match-end 0))))
+  (let ((battery-percent-string (substring-no-properties
+                                 battery-status-string
+                                 (string-match "[0-9]+%" battery-status-string)
+                                 (match-end 0))))
     (string-to-number (replace-regexp-in-string "%" "" battery-percent-string))))
 
 (defun battery-macos-percent ()
@@ -2552,8 +2680,12 @@ segment is a pretty good replacement:
 
 (defun battery-macos-battery-source (battery-status-string)
   (substring-no-properties battery-status-string
-			   (+ 1 (string-match "'" battery-status-string))
-			   (string-match "'" battery-status-string (match-end 0))))
+                           (+ 1 (string-match
+                                 "'"
+                                 battery-status-string))
+                           (string-match
+                            "'"
+                            battery-status-string (match-end 0))))
 
 ;; Battery Status Point Helper Functions
 
@@ -2574,8 +2706,8 @@ segment is a pretty good replacement:
 
 (defun battery-macos-battery-status (battery-status-string)
   (let* ((pointb (battery-macos/status-point-begin battery-status-string))
-	 (pointe (battery-macos/status-point-end battery-status-string))
-	 (status (substring-no-properties battery-status-string pointb pointe)))
+         (pointe (battery-macos/status-point-end battery-status-string))
+         (status (substring-no-properties battery-status-string pointb pointe)))
     (replace-regexp-in-string "; " "" status)))
 
 (defun battery-macos-status ()
@@ -2584,8 +2716,10 @@ segment is a pretty good replacement:
 
 (defun battery-macos-battery-remaining (battery-status-string)
   (substring-no-properties battery-status-string
-			   (string-match "[0-9]\\:[0-9]\\{2\\}" battery-status-string)
-			   (match-end 0)))
+                           (string-match
+                            "[0-9]\\:[0-9]\\{2\\}"
+                            battery-status-string)
+                           (match-end 0)))
 
 (defun battery-macos-remaining ()
   (battery-macos-battery-remaining (battery-macos-shell-command)))
@@ -2597,7 +2731,7 @@ segment is a pretty good replacement:
    (lambda (str)
      (let ((char (aref str 1)))
        (if (eq char ?%) "%"
-	 (or (cdr (assoc char alist)) ""))))
+         (or (cdr (assoc char alist)) ""))))
    format t t))
 
 ;; Spaceline
@@ -2634,27 +2768,32 @@ segment is a pretty good replacement:
 
 (defun battery-macos-status-icon-propertize (battery-icon-var)
   (let* ((battery-icon-name (car battery-icon-var))
-	 (battery-icon-font-family (cdr battery-icon-var))
-	 (battery-icon-unicode (battery-macos-status-icon battery-icon-name)))
+         (battery-icon-font-family (cdr battery-icon-var))
+         (battery-icon-unicode (battery-macos-status-icon battery-icon-name)))
     (propertize battery-icon-unicode
-		'font-lock-ignore t
-		'rear-nonstick t
-		'display '(raise 0.01)
-		'height 10
-		'face
-		`(:inherit (powerline-active2) :family ,battery-icon-font-family :height 1))))
+                'font-lock-ignore t
+                'rear-nonstick t
+                'display '(raise 0.01)
+                'height 10
+                'face
+                `(:inherit (powerline-active2) :family ,battery-icon-font-family :height 1))))
 
 (defun battery-macos/add-battery-icon-to-segment-alist (battery-icon-var)
-    (let ((battery-segment-alist (battery-pmset)))
-      (add-to-list 'battery-segment-alist (cons ?i (battery-macos-status-icon-propertize battery-icon-var)))
-      battery-segment-alist))
+  (let ((battery-segment-alist (battery-pmset)))
+    (add-to-list 'battery-segment-alist
+                 (cons ?i
+                       (battery-macos-status-icon-propertize
+                        battery-icon-var)))
+    battery-segment-alist))
 
 (defun battery-macos-spaceline-format (battery-icon-var)
   (let ((alist (battery-macos/add-battery-icon-to-segment-alist battery-icon-var))
-	(space (propertize " " 'display '(space . (:width 1)))))
+        (space (propertize " " 'display '(space . (:width 1)))))
     (concat
      space
-     (replace-regexp-in-string "\\([0-9]+\\)" "\\1%%" (battery-macos-format battery-macos-mode-line-format alist)))))
+     (replace-regexp-in-string "\\([0-9]+\\)" "\\1%%"
+                               (battery-macos-format
+                                battery-macos-mode-line-format alist)))))
 
 
 
@@ -2663,12 +2802,18 @@ segment is a pretty good replacement:
 (spaceline-define-segment battery-macos
   (let ((percent (battery-macos-percent))
 	(status (battery-macos-status)))
-    (cond ((string= status "charging") (battery-macos-spaceline-format battery-macos-battery-charge))
-	  ((= percent 100) (battery-macos-spaceline-format battery-macos-battery-full))
-	  ((> percent 75)  (battery-macos-spaceline-format battery-macos-battery-high))
-	  ((> percent 50)  (battery-macos-spaceline-format battery-macos-battery-mid))
-	  ((> percent 25)  (battery-macos-spaceline-format battery-macos-battery-low))
-	  (t (battery-macos-spaceline-format battery-macos-battery-empty))))
+    (cond ((string= status "charging")
+           (battery-macos-spaceline-format battery-macos-battery-charge))
+          ((= percent 100)
+           (battery-macos-spaceline-format battery-macos-battery-full))
+          ((> percent 75)
+           (battery-macos-spaceline-format battery-macos-battery-high))
+          ((> percent 50)
+           (battery-macos-spaceline-format battery-macos-battery-mid))
+          ((> percent 25)
+           (battery-macos-spaceline-format battery-macos-battery-low))
+          (t
+           (battery-macos-spaceline-format battery-macos-battery-empty))))
   :tight t)
 
 #+END_SRC
@@ -3194,7 +3339,8 @@ offers more meaningful semantics.
        'paredit-backward-delete
        'paredit-close-round))
 
-    (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)))
+    (autoload 'enable-paredit-mode "paredit"
+      "Turn on pseudo-structural editing of Lisp code." t)))
    #+END_SRC
 
 **** Smartparens
@@ -3212,7 +3358,10 @@ haystack, smartparens are a great productivity tool.
 (use-package smartparens
   :straight t
   :init
-  (require 'smartparens-config))
+  (require 'smartparens-config)
+  (add-hook 'progmode-hook
+            (lambda ()
+              (smartparens-mode))))
 #+END_SRC
 
 **** Rainbow Delimiters
@@ -3253,10 +3402,10 @@ Disabling for now.
     (add-hook 'common-lisp-mode-hook #'parinfer-mode)
     (add-hook 'scheme-mode-hook #'parinfer-mode)
     (add-hook 'lisp-mode-hook #'parinfer-mode)))
-
 #+END_SRC
 
 ***** Lispy
+
 #+NAME: lispy-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lispy
@@ -3352,15 +3501,24 @@ Spacemacs =dotspacemacs-configuration-layers=.
   (when (executable-find "cmake")
     <<cc-irony-mode>>
     <<cc-cmake-mode>>)
-  (defun chaffin-c-c++-mode-hook ()
-    (smartparens-mode t)
-    (unless (file-exists-p "makefile")
-      (set (make-local-variable 'compile-command)
-	   (let ((file (file-name-sans-extension buffer-file-name)))
-	     (format "g++ %s -o %s" buffer-file-name file)))))
+  <<c-c++-hooks>>)
 
-  (add-to-hooks #'chaffin-c-c++-mode-hook '(c-mode-hook
-					    c++-mode-hook)))
+#+END_SRC
+
+**** Per-Project Compiler Command
+
+
+#+NAME: c-c++-hooks
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun chaffin-c-c++-mode-hook ()
+  (unless (file-exists-p "makefile")
+    (set (make-local-variable 'compile-command)
+         (let ((file (file-name-sans-extension buffer-file-name)))
+           (format "g++ %s -o %s" buffer-file-name file)))))
+
+
+(add-to-hooks #'chaffin-c-c++-mode-hook '(c-mode-hook
+                                          c++-mode-hook))
 #+END_SRC
 
 **** Function Args
@@ -3488,7 +3646,10 @@ Configuration for common-lisp
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
 (with-eval-after-load 'paredit
   (add-hook 'lisp-mode-hook #'paredit-mode)
-  (add-hook 'lisp-mode-hook #'hl-sexp-mode))
+  (add-hook 'lisp-mode-hook #'hl-sexp-mode)
+  (when *is-mac*
+    (add-hook 'lisp-mode-hook
+              (setq-local dash-plugin-keywords '("lisp")))))
 #+END_SRC
 
 **** Slime
@@ -3545,8 +3706,10 @@ before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
 
 (with-eval-after-load 'clojure-mode
   <<clojure-mode-config-compojure>>
-  <<clojure-mode-config-om-next>>)
-
+  <<clojure-mode-config-om-next>>
+  (add-hook 'clojure-mode-hook
+            (lambda ()
+              (setq-local dash-plugin-keywords '("clojure")))))
 #+END_SRC
 
 Provides key bindings and font-locking for Clojure.
@@ -3847,7 +4010,9 @@ CIDER eldoc information.
 (add-hook 'emacs-lisp-mode-hook
 	  (lambda ()
 	    (paredit-mode 1)
-	    (hl-sexp-mode 1)))
+	    (hl-sexp-mode 1)
+      (when *is-mac*
+        (setq-local dash-plugin-keywords '("elisp")))))
 #+END_SRC
 
 *** Groovy
@@ -4058,7 +4223,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 *** Java
 
 #+NAME: chaffin-java-backend
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (defcustom chaffin--java-backend 'meghanada
   "Select a backend to use when opening a *.java file."
   :type '(symbol)
@@ -4070,17 +4235,29 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (when (proglang-enabled-p 'java)
   <<chaffin-java-backend>>
+  <<java-hooks>>
   <<java-autodisass-java-bytecode>>
   <<java-gradle>>
   <<java-google-c-style>>
   (cond ((eq chaffin--java-backend 'meghanada)
-	 (progn
-	   <<java-meghanada>>
-	   <<java-realgud>>))
-	((eq chaffin--java-backend 'ensime)
-	 <<java-ensime>>)
-	((eq chaffin--java-backend 'eclim)
-	 <<java-eclim>>)))
+         (progn
+           <<java-meghanada>>
+           <<java-realgud>>))
+        ((eq chaffin--java-backend 'ensime)
+         <<java-ensime>>)
+        ((eq chaffin--java-backend 'eclim)
+         <<java-eclim>>)))
+#+END_SRC
+
+#+NAME: java-hooks
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+(add-hook 'java-mode-hooks
+          (lambda ()
+            (smartparens-mode t)
+            (rainbow-delimiters-mode t)
+            (highlight-symbol-mode t)
+            (when *is-mac*
+              (setq-local dash-plugin-keywords '("java" "gradle" "groovy")))))
 #+END_SRC
 
 **** Eclim
@@ -4132,16 +4309,11 @@ Gradle is a build tool for Java. It's awesome.
   :init
   (add-hook 'java-mode-hook
 	    (lambda ()
-	      (google-set-c-style)
-	      (google-make-newline-indent)
 	      ;; enable meghanada mode
 	      (meghanada-mode t)
-	      (smartparens-mode t)
-	      (rainbow-delimiters-mode t)
-	      (highlight-symbol-mode t)
 	      ;; use code format
 	      (add-hook 'before-save-hook
-			'meghanada-code-beautify-before-save)))
+                  'meghanada-code-beautify-before-save)))
   :config
   (progn
     (setq meghanada-server-remote-debug t
@@ -4233,7 +4405,12 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
   (google-c-style
    :host github
    :repo "google/styleguide"
-   :branch "gh-pages"))
+   :branch "gh-pages")
+  :config
+  (add-hook 'java-mode-hook
+            (lambda ()
+              (google-set-c-style)
+              (google-make-newline-indent))))
 #+END_SRC
 
 *** JavaScript
@@ -4249,7 +4426,8 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
   <<js-coffee-mode>>
   <<js-typescript>>
   <<js-json-mode>>
-  <<js-tern>>)
+  <<js-tern>>
+  <<js-company-tern>>)
 #+END_SRC
 
 **** js2-mode
@@ -4261,7 +4439,28 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
   :mode (("\\.js\\'" . js2-mode))
   :config
   (progn
-    (setq js-indent-level 2)))
+    (setq js-indent-level 2)
+    (add-hook 'js2-mode-hook
+              (lambda ()
+                (flycheck-mode +1)
+                (smartparens-mode t)))
+    (when *is-mac*
+      (add-hook 'js2-mode-hook
+                (lambda ()
+                  (setq-local dash-plugin-keywords
+                              '("javascript" "react" "jquery"
+                                "jqueryui" "jquerym" "angularjs"
+                                "backbone" "bootstrap" "moo" "prototype" 
+                                "marionette" "meteor" "sproutcore"
+                                "foundation" "lodash" "underscore"
+                                "ember" "sencha" "extjs" "titanium"
+                                "knockdown" "zepto" "yui" "d3"
+                                "svg" "dojo" "coffee" "nodejs" "express"
+                                "nodejs" "express" "grunt" "mongoos"
+                                "moment" "require" "awsjs" "jasmine"
+                                "sails" "sinon" "chai" "html" "cordova"
+                                "css" "cordova" "phonegap" "unity3d"
+                                "webpack")))))))
 #+END_SRC
 
 **** rjsx-mode
@@ -4289,7 +4488,7 @@ Real jsx support.
 
 ***** Company Tern
 
-[[https://github.com/proofit404/company-tern][Company Tern]] provides code completion using tern company backned.
+[[https://github.com/proofit404/company-tern][Company Tern]] provides code completion using tern company backed.
 
 #+NAME: js-company-tern
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4310,7 +4509,14 @@ Real jsx support.
 (use-package json-mode
   :defer t
   :straight t
-  :mode (("\\.json\\'" . json-mode)))
+  :mode (("\\.json\\'" . json-mode))
+  :config
+  (progn
+    (add-hook 'json-mode-hook 'smartparens-mode)
+    (add-hook 'json-mode-hook
+          (lambda ()
+            (make-local-variable 'js-indent-level)
+            (setq js-indent-level 2)))))
 #+END_SRC
 
 **** TypeScript
@@ -4327,9 +4533,12 @@ Real jsx support.
       (interactive)
       (tide-setup)
       (flycheck-mode +1)
-      (setq flycheck-check-syntax-automatically '(save mode-enabled))
+      (setq flycheck-check-syntax-automatically
+            '(save mode-enabled))
       (eldoc-mode +1)
-      (tide-hl-identifier-mode +1))
+      (tide-hl-identifier-mode +1)
+      (when *is-mac*
+        (setq-local dash-plugin-keywords '("typescript"))))
 
     ;; Formats buffer before saving
     (add-hook 'before-save-hook 'tide-format-before-save)
@@ -4365,8 +4574,9 @@ Real jsx support.
 (use-package npm-mode
   :straight t
   :defer t
-  :init
-  (add-hook 'js2-mode-hook #'npm-mode))
+  :config
+  (add-hook 'js2-mode-hook 'npm-mode)
+  (add-hook 'json-mode-hook 'npm-mode))
 #+END_SRC
 
 **** NVM
@@ -4456,17 +4666,33 @@ Real jsx support.
 
 *** Python
 
-#+NAME: python-config
+#+NAME: python-py
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (when (proglang-enabled-p 'python)
-  <<python-sh-interpreter>>
-  <<python-pyenv>>
-  <<python-anaconda>>)
+  <<py-python-settings>>
+  <<py-pyenv>>
+  <<py-anaconda>>)
 #+END_SRC
 
-**** Python Shell Interpreter
+**** Python Settings
 
-#+NAME: python-sh-interpreter
+#+NAME: py-python-settings
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<py-python-settings-keymap>>
+<<python-settings-sh-interpreter>>
+<<python-settings-dash>>
+#+END_SRC
+
+***** Python Prefix Command
+
+#+NAME: py-python-settings-keymap
+#+BEGIN_SRC emacs-lisp :tangle no
+(define-prefix-command 'python-keymap)
+#+END_SRC
+
+***** Python Shell Interpreter
+
+#+NAME: python-settings-sh-interpreter
 #+BEGIN_SRC emacs-lisp :tangle no
 (when (executable-find "ipython3")
   (setenv "IPY_TEST_SIMPLE_PROMPT" "1")
@@ -4474,9 +4700,23 @@ Real jsx support.
         python-shell-interpreter-args "-i"))
 #+END_SRC
 
+***** Add Dash Docsets
+
+#+NAME: python-settings-dash
+#+BEGIN_SRC emacs-lisp :tangle no
+(when *is-mac*
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (setq-local dash-plugin-keywords
+                          '("python" "django" "twisted" "sphinx"
+                            "flask" "tornado" "sqlalchemy" "numpy"
+                            "scipy" "salt" "pandas" "matplotlib"
+                            "cvp")))))
+#+END_SRC
+
 **** Pyenv Mode
 
-#+NAME: python-pyenv
+#+NAME: py-pyenv
 #+BEGIN_SRC emacs-lisp :tangle no
 (when (executable-find "pyenv")
   (use-package pyenv-mode
@@ -4500,7 +4740,7 @@ Real jsx support.
 
 **** Anaconda
 
-#+NAME: python-anaconda
+#+NAME: py-anaconda>>
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<python-anaconda-mode>>
 <<python-anaconda-company>>
@@ -4551,7 +4791,11 @@ Real jsx support.
       (require 'inf-ruby)
       (inf-ruby-keys))
 
-    (add-hook #'ruby-mode-hook #'chaffin/ruby-mode-hook)))
+    (add-hook #'ruby-mode-hook #'chaffin/ruby-mode-hook)
+    (when *is-mac*
+      (add-hook 'ruby-mode-hook
+                (setq-local dash-plugin-keywords
+                            ("ruby" "rails"))))))
 #+END_SRC
 
 **** rvm
@@ -4564,6 +4808,8 @@ Real jsx support.
   :config
   (rvm-use-default))
 #+END_SRC
+
+**** TODO enhanced ruby mode
 
 *** Scala
 
@@ -4634,33 +4880,39 @@ Real jsx support.
 	    ("blade" . "\\.blade\\'")))
 
       (defun chaffin--web-mode-enable ()
-	(setq web-mode-enable-auto-pairing t
-	      web-mode-enable-css-colorization t
-	      web-mode-enable-block-face t
-	      web-mode-enable-part-face t
-	      web-mode-enable-comment-keywords t
-	      web-mode-enable-heredoc-fontification t
-	      web-mode-enable-current-element-highlight t
-	      web-mode-enable-current-column-highlight t))
+        (setq web-mode-enable-auto-pairing t
+              web-mode-enable-css-colorization t
+              web-mode-enable-block-face t
+              web-mode-enable-part-face t
+              web-mode-enable-comment-keywords t
+              web-mode-enable-heredoc-fontification t
+              web-mode-enable-current-element-highlight t
+              web-mode-enable-current-column-highlight t))
 
       (add-hook 'web-mode-hook #'chaffin--web-mode-enable)
 
 
       (defun chaffin--web-mode-indent ()
-	(setq web-mode-markup-indent-offset 2
-	      web-mode-code-indent-offset 2
-	      web-mode-style-padding 1
-	      web-mode-script-padding 1
-	      web-mode-block-padding 0
-	      web-mode-comment-style 2))
-
+        (setq web-mode-markup-indent-offset 2
+              web-mode-code-indent-offset 2
+              web-mode-style-padding 1
+              web-mode-script-padding 1
+              web-mode-block-padding 0
+              web-mode-comment-style 2))
+      
       (add-hook 'web-mode-hook #'chaffin--web-mode-indent)
+      
+      (when *is-mac*
+        (add-hook 'web-mode-hook
+                  (lambda ()
+                    (setq-local dash-plugin-keywords
+                                '("css" "html" "javascript"
+                                  "react")))))
 
       <<tagedit-mode-config>>
       <<css-mode-config>>
       <<emmet-mode-config>>
       <<company-web-config>>)))
-
 #+END_SRC
 
 **** Emmet
@@ -4788,7 +5040,6 @@ and slim-mode using company.
 	      (if tern-mode (tern-mode -1))))))))
 #+END_SRC
 
-**** TODO enhanced ruby mode
 ** Footnotes
 
 [fn:1]  "Next-generation, purely
