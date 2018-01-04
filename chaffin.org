@@ -178,13 +178,14 @@
       - [[#highlight-symbol][Highlight Symbol]]
       - [[#prettify-symbols][Prettify Symbols]]
     - [[#tagging][Tagging]]
-      - [[#ggtags][Ggtags]]
+      - [[#gtags][Gtags]]
     - [[#devops][DevOps]]
       - [[#docker][Docker]]
+      - [[#amazon-web-services][Amazon Web Services]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#c][C++]]
-      - [[#per-project-compiler-command][Per-Project Compiler Command]]
+      - [[#cc-mode-hooks][C/C++ Mode Hooks]]
       - [[#function-args][Function Args]]
       - [[#irony-mode][Irony Mode]]
       - [[#cmake-mode][Cmake Mode]]
@@ -217,6 +218,7 @@
       - [[#google-c-style][Google C Style]]
     - [[#javascript][JavaScript]]
       - [[#js2-mode][js2-mode]]
+      - [[#js-comint][Js Comint]]
       - [[#rjsx-mode][rjsx-mode]]
       - [[#tern][Tern]]
       - [[#json][JSON]]
@@ -992,9 +994,10 @@ Use UTF-8 Bullets for Org-mode headings.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
   :straight t
+  :init
+  (org-bullets-mode)
   :config
-  (with-eval-after-load 'org-mode
-    (org-bullets-mode t)))
+  (add-hook 'org-mode-hook 'org-bullets-mode))
 #+END_SRC
 
 **** Org Beautify Theme
@@ -3442,7 +3445,7 @@ the absence of a window system. I'll check for the latter for now.
 #+END_SRC
 
 *** Tagging
-**** Ggtags
+**** Gtags
 
 #+NAME: ggtags
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -3464,6 +3467,21 @@ the absence of a window system. I'll check for the latter for now.
 (use-package dockerfile-mode
   :straight t
   :mode ( "Dockerfile\\'" .  dockerfile-mode))
+#+END_SRC
+
+**** Amazon Web Services
+
+#+NAME: aws-web-services
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package aws
+  :straight t
+  :config
+  (progn
+    (autoload 'ec2-desribe-instances "aws")
+    (autoload 'ec2-describe-volumes "aws")
+    (autoload 'ec2-describe-snapshots "aws")
+    (autoload 'ec2-describe-group "aws")
+    (autoload 'ec2-get-console "aws")))
 #+END_SRC
 
 ** Prog Lang API
@@ -3501,24 +3519,76 @@ Spacemacs =dotspacemacs-configuration-layers=.
   (when (executable-find "cmake")
     <<cc-irony-mode>>
     <<cc-cmake-mode>>)
-  <<c-c++-hooks>>)
-
+  <<cc-hooks>>)
 #+END_SRC
 
-**** Per-Project Compiler Command
+**** C/C++ Mode Hooks
 
+#+NAME: cc-hooks
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<cc-hooks-compile-command>>
+<<cc-hooks-flycheck-include-headers>>
+#+END_SRC
 
-#+NAME: c-c++-hooks
+***** Per-Project Compile Command
+
+#+NAME: cc-hooks-compile-command
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin-c-c++-mode-hook ()
+(defun chaffin-c-c++-compile-hook ()
   (unless (file-exists-p "makefile")
     (set (make-local-variable 'compile-command)
          (let ((file (file-name-sans-extension buffer-file-name)))
            (format "g++ %s -o %s" buffer-file-name file)))))
 
+(add-to-hooks #'chaffin-c-c++-compile-hook '(c-mode-hook
+                                             c++-mode-hook))
 
-(add-to-hooks #'chaffin-c-c++-mode-hook '(c-mode-hook
-                                          c++-mode-hook))
+
+#+END_SRC
+
+***** Add Project Headers to Flycheck Clang Include Path
+
+#+NAME: cc-hooks-flycheck-include-headers
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun c-cxx-project-header-files ()
+  (funcall #'c-cxx-locate-makefile #'c-cxx-makefile-include-directive))
+
+(defun c-cxx-locate-makefile (&optional func)
+  (let ((has-makefile (file-exists-p "Makefile")))
+    (if has-makefile
+        (let ((buf (or (get-buffer "Makefile")
+                       (find-file-noselect 
+                        (expand-file-name "Makefile" default-directory)))))
+          (if func
+              (funcall func buf)
+            (buffer-file-name buf))))))
+
+
+(defun c-cxx-makefile-include-directive (buffer)
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (when (re-search-forward "^INC\s-?=.*$" nil t)
+      (let* ((pointb (match-beginning 0))
+             (pointe (match-end 0))
+             (relative-file-name
+              (replace-regexp-in-string "^INC\s-?=\s-?" ""
+                                        (buffer-substring-no-properties
+                                         pointb
+                                         pointe))))
+        (expand-file-name relative-file-name default-directory)))))
+
+(defun c-cxx-flycheck-include-headers-hook ()
+  (let ((f (lambda (elt) (not (eq elt 'nil)))))
+    (set (make-local-variable 'flycheck-clang-include-path)
+         (seq-filter f `(,(c-cxx-project-header-files))))))
+
+
+(add-to-hooks #'flycheck-mode '(c-mode-hook
+                                C++-mode-hook))
+
+(add-to-hooks #'c-cxx-flycheck-include-headers-hook
+              '(c-mode-hook
+                c++-mode-hook))
 #+END_SRC
 
 **** Function Args
@@ -3540,6 +3610,17 @@ CDET enhancements for showing inline function arguments.
 #+END_SRC
 
 **** Irony Mode
+
+Using Irony Mode on macOS is a bitch, not so much because Irony Mode
+is a bitch but because macOS doesn't include clang-c header files by
+default, and successfully compiling [[http://llvm.org/][llvm]] without conflicting with the
+system compiler is non-trivial. I tried to build llvm via
+homebrew using the =--with-toolchain= compiler flag. After an hour
+with the same "make" dialog I said eff it and =^Z='d on out of there.
+
+
+/#applefanboyproblems/
+ 
 
 #+NAME: cc-irony-mode
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -3564,9 +3645,9 @@ CDET enhancements for showing inline function arguments.
   (progn
     (defun chaffin-irony-mode-hook ()
       (define-key irony-mode-map
-	[remap completion-at-point] 'counsel-irony)
+	    [remap completion-at-point] 'counsel-irony)
       (define-key irony-mode-map
-	[remap complete-symbol] 'counsel-irony))
+	    [remap complete-symbol] 'counsel-irony))
 
     (add-hook 'irony-mode-hook 'chaffin-irony-mode-hook)
     (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)))
@@ -3611,8 +3692,10 @@ Company backend for C/C++ files using irony mode.
 (use-package flycheck-irony
   :straight t
   :after (flycheck)
-  :init
-  (flycheck-irony-setup))
+  :commands (flycheck-irony-setup)
+  :config
+  (with-eval-after-load 'flycheck
+    '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
 #+END_SRC
 
 **** Cmake Mode
@@ -3622,12 +3705,13 @@ Company backend for C/C++ files using irony mode.
 (use-package cmake-mode
   :straight t
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
-	 ("\\.cmake\\'" . cmake-mode))
+         ("\\.cmake\\'" . cmake-mode))
 
   :config
-  (add-hook 'cmake-mode-hook
-	    (lambda ()
-	      (smartparens-mode t))))
+  (progn 
+    (add-hook 'cmake-mode-hook
+              (lambda ()
+                (smartparens-mode t)))))
 #+END_SRC
 
 *** Common Lisp
@@ -3748,7 +3832,7 @@ the repository wiki to provide better indentation for compojure macros.
 #+NAME: clojure-mode-config-compojure
 #+BEGIN_SRC emacs-lisp :tangle no
 (define-clojure-indent
-  (defroutes 2)
+  (defroutes 'defun)
   (GET 2)
   (POST 2)
   (PUT 2)
@@ -3822,7 +3906,7 @@ Two options:
 	  cider-repl-result-prefix ";; => "
 	  cider-repl-wrap-history t
 	  cider-repl-history-size 3000
-	  cider-show-error-buffer t
+	  cider-show-error-buffer nil
 	  nrepl-hide-special-buffers t)
     (add-hook 'cider-mode-hook #'eldoc-mode)
     (add-hook 'cider-mode-hook #'company-mode)
@@ -4423,6 +4507,7 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
   <<js-rjx>>
   <<js-npm-mode>>
   <<js-nvm>>
+  <<js-js-comint>>
   <<js-coffee-mode>>
   <<js-typescript>>
   <<js-json-mode>>
@@ -4439,6 +4524,7 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
   :mode (("\\.js\\'" . js2-mode))
   :config
   (progn
+    (define-key 'chaffin-keymap "j" 'js2-mode-map)
     (setq js-indent-level 2)
     (add-hook 'js2-mode-hook
               (lambda ()
@@ -4462,6 +4548,20 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
                                 "css" "cordova" "phonegap" "unity3d"
                                 "webpack")))))))
 #+END_SRC
+
+**** Js Comint
+Run an inferior Node process using =comint-mode=
+
+#+NAME: js-js-comint
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package js-comint
+  :straight t
+  :bind ("C-c M-j" . run-js)
+  :config
+  (progn
+    (define-key 'js2-mode-map "j" 'run-js)
+    (define-key 'js2-mode-map "b" 'js-send-buffer)))
+  #+END_SRC
 
 **** rjsx-mode
 
