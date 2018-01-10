@@ -1,4 +1,8 @@
-(setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"))
+(setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"
+                         "~/Dropbox/Documents/Courses/COMSCI_33/org/comsci33.org"
+                         "~/Dropbox/Documents/Courses/MATH_33A/org/math33a.org"
+                         "~/Dropbox/Documents/Courses/LING_120B/org/ling120b.org"
+                         "~/Dropbox/Documents/Courses/COMSCI_35L/org/comsci35L.org"))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

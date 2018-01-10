@@ -139,7 +139,7 @@
     ;; Override triggering the autoloads from the bundled org package.
     ;; Again, see [8]; raxod502 can offer better insight here than I can.
     (defalias #'org-git-version #'chaffin--org-git-version)
-    (defun org-release () "9.1.3")
+    (defun org-release () "9.1.6")
     (provide 'org-version))
   
   :config
@@ -161,12 +161,20 @@ defined in this GNU Emacs distribution")
         (target-dir (or user-emacs-directory
                         default-directory)))
         (setq org-src-fontify-natively t
-          org-confirm-babel-evaluate nil
-          org-src-preserve-indentation t)
-    (if target-file
-        (org-babel-load-file
-         (expand-file-name target-file target-dir))
-      (message "No configuration file set, not extracting source code."))))
+              org-confirm-babel-evaluate nil
+              org-src-preserve-indentation t)
+        (org-babel-do-load-languages
+         'org-babel-load-languages
+         '((C . t)
+           (latex . t)
+           (perl . t)
+           (python . t)
+           (ruby . t)
+           (shell . t)))
+        (if target-file
+            (org-babel-load-file
+             (expand-file-name target-file target-dir))
+          (message "No configuration file set, not extracting source code."))))
 
 (setq user-emacs-literate-config-file "chaffin.org")
 (user-emacs-load-config)
