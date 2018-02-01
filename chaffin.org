@@ -186,6 +186,11 @@
       - [[#amazon-web-services][Amazon Web Services]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
+    - [[#asm][ASM]]
+      - [[#asm-hook-functions][ASM Hook Functions]]
+      - [[#asm-mode][ASM Mode]]
+      - [[#nasm-mode][NASM mode]]
+      - [[#asm-init-x86-lookup][ASM Init x86 Lookup]]
     - [[#c][C++]]
       - [[#cc-mode-hooks][C/C++ Mode Hooks]]
       - [[#function-args][Function Args]]
@@ -1123,12 +1128,11 @@ by [[#org-pomodoro][org-pomodoro]].
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (use-package org-ref
   :straight t
-  :defer t
   :config
   (progn
     (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
-          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
-          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/")
+          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
+          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib"))
     (require 'org-ref-pdf)
     (require 'org-ref-latex)
     (require 'org-ref-reftex)
@@ -1404,8 +1408,40 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 #+NAME: org-export-latex-pdf-process
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-latex-pdf-process
-    '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -synctex=1 -pdf -bibtex -f %f"))
+(setq org-latex-listings 'minted
+      org-latex-packages-alist '(("" "minted")))
+
+(defvar latex-process-latex
+  '("%latex -interaction nonstopmode -output-directory %o %f" "%latex
+-interaction nonstopmode -output-directory %o %f" "%latex -interaction
+nonstopmode -output-directory %o %f")
+
+  "The default latex command for `org-latex-pdf-process'.")
+
+(defvar latex-process-pdflatex
+  '("latexmk -pdflatex='pdflatex -interaction nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+
+(defvar latex-process-xetex
+  '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
+
+(defvar latex-process-list
+  '(
+    ("latex" . latex-process-latex)
+    ("xetex" . latex-process-xetex)
+    ("pdflatex" . latex-process-pdflatex)
+    ))
+
+(setq org-latex-pdf-process latex-process-pdflatex)
+
+(defun set-org-latex-pdf-process (&optional process)
+  (interactive)
+  (let* ((process (or process (assoc (completing-read "Process: "
+                                                      latex-process-list nil nil)
+                                     latex-process-list)))
+         (command (cdr process)))
+    (setq org-latex-pdf-process (symbol-value command))))
+
+
 #+END_SRC
 
 ***** Prefer user provided labeling system
@@ -2542,13 +2578,13 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 (when *is-mac*
   (let ((font-weight-xs '(("Andale Mono" . extralight)
-			  ("Droid Sans Mono" . normal)
-			  ("Fira Code" . light)
-			  ("Hack" . normal)
-			  ("Inconsolata" . medium)
-			  ("Operator Mono" . extralight)
-			  ("SF Mono" . normal)
-			  ("Programma" . normal))))
+                          ("Droid Sans Mono" . normal)
+                          ("Fira Code" . light)
+                          ("Hack" . normal)
+                          ("Inconsolata" . medium)
+                          ("Operator Mono" . extralight)
+                          ("SF Mono" . normal)
+                          ("Programma" . normal))))
   (mapcar (lambda (font-weight-x)
 	    (add-to-list 'font-list font-weight-x))
 	  font-weight-xs)))
@@ -3539,12 +3575,94 @@ Spacemacs =dotspacemacs-configuration-layers=.
           langs))
 
 (when *is-mac*
-  (add-to-list-proglang-enabled 'c-c++ 'common-lisp 'clojure 'groovy 'java
+  (add-to-list-proglang-enabled 'asm 'c-c++ 'common-lisp 'clojure 'groovy 'java
                                 'javascript 'markdown 'scala 'python 'ruby
                                 'web))
 #+END_SRC
 
 ** Programming Languages
+*** ASM
+
+- See Spacemacs [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/asm/][ASM layer]].
+
+#+NAME: asm-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (proglang-enabled-p 'asm)
+  <<asm-asm-hooks>>
+  <<asm-asm-mode>>
+  <<asm-asm-init-x86-lookup>>)
+#+END_SRC
+
+**** ASM Hook Functions
+
+#+NAME: asm-asm-hooks
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun chaffin-asm-setup ()
+  (setq indent-tabs-mode nil)
+  (setq tab-stopp-list (number-sequence 2 60 2)))
+
+(defvar asm-colon-has-space nil)
+
+(defun chaffin-asm-colon-check-space ()
+  (setq asm-colon-has-space nil)
+  (when (and (not (null (char-after)))
+             (member (string (char-after)) '(" " "\t")))
+    (setq asm-colon-has-space t)))
+
+(defun asm-colon-delete-spaces ()
+  (unless asm-colon-has-space
+    (call-interactively 'delete-horizontal-space)))
+
+(advice-add 'asm-colon :before 'asm-colon-check-space)
+(advice-add 'asm-colon :after  'asm-colon-delete-space)
+#+END_SRC
+
+**** ASM Mode
+
+#+NAME: asm-asm-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package asm-mode
+  :straight t
+  :config
+  (progn
+    (define-key asm-mode-map (kbd "C-j") 'newline)))
+#+END_SRC
+
+
+**** NASM mode
+
+#+NAME: asm-nasm-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package nasm-mode
+  :straight t
+  :mode
+  (("\\.[n]*\\(asm\\|s\\)\\'" . nasm-mode))
+  :init
+  (progn
+    (add-hook 'nasm-mode-hook #'chaffin-asm-setup))
+  :config
+  (progn
+    (define-key nasm-mode-map (kbd "C-j") 'newline)
+    (define-key nasm-mode-map (kbd ":") 'asm-colon)))
+
+#+END_SRC
+
+**** ASM Init x86 Lookup
+
+#+NAME: asm-asm-init-x86-lookup
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package x86-lookup
+  :straight t
+  :init
+  (progn
+    (when (straight-check-package "pdf-tools")
+      (setq x86-lookup-browse-pdf-function 'x86-lookup-browse-pdf-pdf-tools)))
+  :config
+  (setq x86-lookup-pdf
+        "~/Dropbox/Documents/Books/ASM/x86-manual/325462-sdm-vol-1-2abcd-3abcd.pdf"))
+
+#+END_SRC
+
 *** C++
 
 #+NAME: c-cxx-config
@@ -3569,14 +3687,19 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+NAME: cc-hooks-compile-command
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin-c-c++-compile-hook ()
+(defun chaffin--compile-hook (compiler)
   (unless (file-exists-p "Makefile")
     (set (make-local-variable 'compile-command)
          (let ((file (file-name-sans-extension buffer-file-name)))
-           (format "g++ %s -o %s" buffer-file-name file)))))
+           (format "%s %s -o %s" compiler buffer-file-name file)))))
 
-(add-to-hooks #'chaffin-c-c++-compile-hook '(c-mode-hook
-                                             c++-mode-hook))
+
+
+(add-hook 'c-mode-hook (lambda ()
+                         (chaffin--compile-hook "gcc")))
+
+(add-hook 'c++-mode-hook (lambda ()
+                           (chaffin--compile-hook "g++")))
 #+END_SRC
 
 ***** Add Project Headers to Flycheck Clang Include Path
@@ -4219,11 +4342,11 @@ Note that LaTeX packages are loaded, configured, and installed when
 
     ;; Org Edit Latex Buffer
     <<org-edit-latex-config>>
+    <<org-highlight-related-tex>>
 
     ;; cdlatex
-    <<org-cdlatex-mode>>
+    <<cdlatex-mode>>
     
-
     ;; Latex Extra
     <<latex-extra-config>>
     ;; Auctex latexmk
@@ -4297,8 +4420,6 @@ save.
     ;; Disable auto label insertion in expanded template.
     ;; Labels conflict when used in conjunction with `org-ref'
     (setq cdlatex-insert-auto-labels-in-env-templates nil)
-    (add-hook 'org-mode-hook
-              'turn-on-cdlatex)
     ;; with AucTeX LaTeX mode
     (add-hook 'LaTeX-mode-hook
               'turn-on-cdlatex)
