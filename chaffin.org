@@ -3623,11 +3623,14 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package asm-mode
   :straight t
+  :mode (("\\.64sa\\'" . asm-mode)
+         ("\\.64da\\'" . asm-mode)
+         ("\\.32sa\\'" . asm-mode)
+         ("\\.32da\\'" . asm-mode))
   :config
   (progn
     (define-key asm-mode-map (kbd "C-j") 'newline)))
 #+END_SRC
-
 
 **** NASM mode
 
@@ -3959,9 +3962,9 @@ Provides key bindings and font-locking for Clojure.
 (use-package clojure-mode
   :straight t
   :mode (("\\.edn$"   . clojure-mode)
-	 ("\\.cljs$"  . clojurescript-mode)
-	 ("\\.cljx$"  . clojurex-mode)
-	 ("\\.cljsc$" . clojurec-mode))
+         ("\\.cljs$"  . clojurescript-mode)
+         ("\\.cljx$"  . clojurex-mode)
+         ("\\.cljsc$" . clojurec-mode))
   :config
   (progn
     (setq clojure-indent-style :always-indent)
