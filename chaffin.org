@@ -37,16 +37,9 @@
       - [[#resolve-path][Resolve Path]]
       - [[#explore-a-local-repository][Explore a local repository]]
   - [[#environment][Environment]]
-    - [[#macos][macOS]]
-      - [[#macos-terminal-encoding][MacOS Terminal Encoding]]
-      - [[#macos-keybindings][MacOS Keybindings]]
-      - [[#macos-computer-name][MacOS Computer Name]]
-      - [[#macos-dev-utils][MacOS Dev Utils]]
-      - [[#macos-dash][MacOS Dash]]
-      - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
-      - [[#osx-dictionary][OSX Dictionary]]
-      - [[#exec-path-from-shell][Exec Path From Shell]]
-    - [[#other-operating-systems][Other Operating Systems]]
+    - [[#os][OS]]
+      - [[#system-packages][System Packages]]
+      - [[#macos][macOS]]
       - [[#windowspc][Windows/PC]]
       - [[#linux][Linux]]
     - [[#custom-file][Custom File]]
@@ -657,11 +650,27 @@ interactive minibuffer completion menu using ivy.
 #+END_SRC
 
 ** Environment
-*** macOS
+*** OS
+**** System Packages
 
-I work on a macbook, so this block is where I'm loading all of my
-settings that rely on local filepaths, macOS applications, and
+Utilities for managing system packages in Emacs using an external
+package manager.
+
+#+NAME: os-sys-packages
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package system-packages
+  :straight t
+  :config
+  (when *is-mac*
+    (setq system-packages-package-manager "brew")))
+#+END_SRC
+
+**** macOS
+
+I work on a macbook, so this section is where I'm loading all of my
+settings that rely on local file paths, macOS applications, and
 external programs.
+
 
 #+NAME: defconst-is-macos
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -669,7 +678,7 @@ external programs.
 #+END_SRC
 
 #+NAME: macos-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports results :results output
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (when *is-mac*
    (progn
      <<macos-terminal-encoding>>
@@ -680,8 +689,7 @@ external programs.
      <<macos-dev-utils>>))
 #+END_SRC
 
-
-**** MacOS Terminal Encoding
+***** MacOS Terminal Encoding
 
 #+NAME: macos-terminal-encoding
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -689,7 +697,7 @@ external programs.
 (prefer-coding-system 'utf-8)
 #+END_SRC
 
-**** MacOS Keybindings
+***** MacOS Keybindings
 
 #+NAME: macos-keybindings
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -724,7 +732,7 @@ Also sets terminal coding system to "utf-8".
 (define-key 'chaffin-keymap "m" 'macos-keymap)
 #+END_SRC
 
-**** MacOS Computer Name
+***** MacOS Computer Name
 
 #+NAME: defvar-computer-name
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -739,7 +747,7 @@ Also sets terminal coding system to "utf-8".
 (defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
-**** MacOS Dev Utils
+***** MacOS Dev Utils
 
 Small library for opening files and buffers in external text
 editors and various other applications on macOS. 
@@ -770,7 +778,7 @@ editors and various other applications on macOS.
     (define-key 'macos-iterm-keymap "s" 'iterm-shell-command)))
 #+END_SRC
 
-**** MacOS Dash
+***** MacOS Dash
 
 Dash.app is an application for quickly searching and navigating API
 docsets for programming tools and languages. 
@@ -815,7 +823,7 @@ query it with the marked region or symbol at point.
         (substring-no-properties (or (thing-at-point 'symbol) "")))))))
 #+END_SRC
 
-**** Reveal in macOS Finder
+***** Reveal in macOS Finder
 #+NAME: macos-finder-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
@@ -824,7 +832,7 @@ query it with the marked region or symbol at point.
   (define-key 'macos-keymap "f" #'reveal-in-osx-finder))
 #+END_SRC
 
-**** OSX Dictionary
+***** OSX Dictionary
 
 Provides an interface to /Dictionary.app/ in Emacs.
 
@@ -840,7 +848,7 @@ Provides an interface to /Dictionary.app/ in Emacs.
     (define-key 'osx-dictionary-keymap "i" 'osx-dictionary-search-input)))
 #+END_SRC
 
-**** Exec Path From Shell
+***** Exec Path From Shell
 
 Emacs relies heavily on shell environment variables.
 
@@ -869,8 +877,6 @@ conditionally loading dependencies.
   (exec-path-from-shell-initialize)
   (setq exec-path-from-shell-check-startup-files nil))
 #+END_SRC
-
-*** Other Operating Systems
 
 **** Windows/PC
 
