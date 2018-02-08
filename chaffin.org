@@ -60,6 +60,7 @@
       - [[#org-id][Org ID]]
       - [[#spell-checking][Spell Checking]]
       - [[#org-download][Org Download]]
+      - [[#org-hyperlinks][Org Hyperlinks]]
     - [[#org-pdf][Org PDF]]
       - [[#pdf-tools][PDF Tools]]
     - [[#org-export][Org Export]]
@@ -160,6 +161,9 @@
     - [[#osx-browse][osx-browse]]
     - [[#google-search-at-point][Google Search at point]]
     - [[#browse-at-remote][Browse At Remote]]
+    - [[#when-no-external-web-browser-is-available][When no external web browser is available]]
+      - [[#set-the-default-browser-eww][Set the default browser =eww=]]
+      - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
   - [[#email][Email]]
     - [[#mu][Mu]]
   - [[#programming-tools][Programming Tools]]
@@ -389,6 +393,7 @@ Variables used throughout this file[fn:3]:
 <<defconst-is-macos>>
 <<defconst-is-windows>>
 <<defconst-is-linux>>
+<<defconst-is-lnxsrv>>
 #+END_SRC
 
 *** Macros
@@ -581,10 +586,6 @@ buffer.
 **** List Directory Contents without wildcards
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-;; (defun directory-files-no-wildcards (directory &optional full nosort)
-;;   (let ((match "^\\([^\s]\\|[^.]\\|\\.[^.]\\|\\.\\..\\)"))
-;;     (directory-files directory full match nosort)))
-
 (defun directory-files-no-wildcards (directory &optional full nosort)
   (seq-filter (lambda (x)
 		(not
@@ -874,8 +875,9 @@ conditionally loading dependencies.
   :if (memq window-system '(mac ns))
   :straight t
   :config
-  (exec-path-from-shell-initialize)
-  (setq exec-path-from-shell-check-startup-files nil))
+  (progn
+    (exec-path-from-shell-initialize)
+    (setq exec-path-from-shell-check-startup-files nil)))
 #+END_SRC
 
 **** Windows/PC
@@ -890,6 +892,16 @@ conditionally loading dependencies.
 #+NAME: defconst-is-linux
 #+BEGIN_SRC emacs-lisp :tangle no
 (defconst *is-linux* (eq system-type 'linux))
+#+END_SRC
+
+
+◉ SEAS Linux
+
+Determine if =system-name= is UCLA SEAS lnxsrv cluster.
+
+#+NAME: defconst-is-lnxsrv
+#+BEGIN_SRC emacs-lisp :tangle no
+(defconst *is-lnxsrv* (string-prefix-p "lnxsrv" system-name))
 #+END_SRC
 
 *** Custom File
@@ -910,7 +922,7 @@ other machines.
 			       "custom"))))
   (cond (*is-mac*
          (setq custom-file (concat custom-file-directory "custom-macos.el")))
-        (*is-linux*
+        ((or *is-linux* *is-lnxsrv*)
          (setq custom-file (concat custom-file-directory "custom-linux.el")))
         (*is-windows*
          (setq custom-file (concat custom-file-directory "custom-windows.el")))
@@ -1288,6 +1300,50 @@ Add spell checking in org mode buffers using Flyspell.
   :config
   (when *is-mac*
     (setq-default org-download-image-dir "~/Dropbox/org/img/")))
+#+END_SRC
+
+**** Org Hyperlinks
+
+#+NAME: org-utils-hlink
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-utils-hlink-org-man>>
+#+END_SRC
+
+***** Org Man
+
+#+NAME: org-utils-hlink-org-man
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(org-add-link-type "man" 'org-man-open)
+(add-hook 'org-store-link-functions 'org-man-store-link)
+
+(defcustom org-man-command 'man
+  "The Emacs command to be used to display a man page."
+  :group 'org-link
+  :type '(choice (const man) (const woman)))
+
+(defun org-man-open (path)
+  "Visit the manpage on PATH.
+PATH should be a topic that can be thrown at the man command."
+  (funcall org-man-command path))
+
+(defun org-man-store-link ()
+  "Store a link to a manpage."
+  (when (memq major-mode '(Man-mode woman-mode))
+    ;; This is a man page, we do make this link
+    (let* ((page (org-man-get-page-name))
+           (link (concat "man:" page))
+           (description (format "Manpage for %s" page)))
+      (org-store-link-props
+       :type "man"
+       :link link
+       :description description))))
+
+(defun org-man-get-page-name ()
+  "Extract the page name from the buffer name."
+  ;; This works for both `Man-mode' and `woman-mode'.
+  (if (string-match " \\(\\S-+\\)\\*" (buffer-name))
+      (match-string 1 (buffer-name))
+    (error "Cannot create link to this man page")))
 #+END_SRC
 
 *** Org PDF
@@ -3329,6 +3385,40 @@ the user will be prompted to edit the search string first."
 (use-package browse-at-remote
   :straight t)
 #+END_SRC
+*** When no external web browser is available
+**** Set the default browser =eww=
+
+- [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-lnxsrv*
+  (setq browse-url-browser-function 'eww-browse-url))
+#+END_SRC
+
+**** Choose browser when using Org-mode's =org-open-at-point=
+:PROPERTIES:
+:ID:       69b03145-629e-4593-ae4c-6cbd5404ff3e
+:CUSTOM_ID: org-open-at-point-browser
+:END:
+
+This function from [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][emacswiki.org]] advises =org-opt-at-point= to allow
+choosing different browsers. The original snippet uses =w3m=, I'm
+using =eww= as a matter of personal preference.
+
+#+NAME: lnxsrv-browser-org-open-at-point-advise
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
+  (let ((browse-url-browser-function
+         (cond ((equal (ad-get-arg 0) '(4))
+                'browse-url-generic)
+               ((equal (ad-get-arg 0) '(16))
+                'choose-browser)
+               (t
+                (lambda (url &optional new)
+                  (eww-browse-url url t))))))
+    ad-do-it))
+#+END_SRC
+
 
 ** Email
 *** Mu
@@ -3692,7 +3782,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 <<cc-hooks-flycheck-include-headers>>
 #+END_SRC
 
-***** Per-Project Compile Command
+***** Per-File Compile Command
 
 #+NAME: cc-hooks-compile-command
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3710,6 +3800,21 @@ Spacemacs =dotspacemacs-configuration-layers=.
 (add-hook 'c++-mode-hook (lambda ()
                            (chaffin--compile-hook "g++")))
 #+END_SRC
+
+****** Use  on UCLA Servers
+
+The UCLA servers don't have llvm or libclang, so [[#irony-mode][irony-mode]] provided
+by adding 'c-c++ to =[[#proglang-api][proglang-enabled]]= won't compile.
+
+That blows but loading this this hook regardless corrects the per-file
+=compile-command= at least.
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes 
+(when (and (not (proglang-enabled-p 'c-c++))
+           ,*is-lnxsrv*)
+  <<cc-hooks-compile-command>>)
+#+END_SRC
+
 
 ***** Add Project Headers to Flycheck Clang Include Path
 
