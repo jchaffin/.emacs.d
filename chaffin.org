@@ -3801,7 +3801,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
                            (chaffin--compile-hook "g++")))
 #+END_SRC
 
-****** Use  on UCLA Servers
+****** Use on UCLA Servers
 
 The UCLA servers don't have llvm or libclang, so [[#irony-mode][irony-mode]] provided
 by adding 'c-c++ to =[[#proglang-api][proglang-enabled]]= won't compile.
