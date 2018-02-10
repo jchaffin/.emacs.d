@@ -4529,6 +4529,7 @@ save.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cdlatex
   :straight t
+  :if *is-hal*
   :config
   (progn
     ;; Disable auto label insertion in expanded template.
