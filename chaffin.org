@@ -3198,7 +3198,7 @@ As a git client though, magit is awesome.
 ***** Extending Magit
 
 #+NAME: magit-extensions
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<magit-done>>
 <<magit-done-no-prompt>>
 #+END_SRC
