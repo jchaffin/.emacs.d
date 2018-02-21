@@ -64,10 +64,13 @@
 (straight-use-package 'bind-key)
 ;; Now clone the `use-package' librariy
 (straight-use-package 'use-package)
+(setq use-package-always-defer t)
 ;; Use straight integration of `use-package'
 (setq straight-use-package-version 'straight)
  ;; And enable by default.
 (setq straight-use-package-by-default t)
+
+
 ;; Ensure that the `use-package' library and dependencies
 ;; are avaible at compile-time.
 (eval-when-compile

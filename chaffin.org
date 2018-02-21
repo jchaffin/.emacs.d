@@ -1462,7 +1462,7 @@ And opt-in to all back ends when on local machine.
 <<org-export-latex-per-file-class>>
 #+END_SRC
 
-***** Latexmk
+***** Set pdf process dynamically
 
 [[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
 
@@ -3001,7 +3001,8 @@ This disables Emacs asking questions about loading a new theme.
 (use-package atom-one-dark-theme
   :straight t
   :config
-  (load-theme 'atom-one-dark))
+  (add-hook 'after-init-hook
+            (load-theme 'atom-one-dark t)))
 #+END_SRC
 
 **** Load Themes
@@ -3009,7 +3010,7 @@ This disables Emacs asking questions about loading a new theme.
 Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(if (and *is-hal* (display-graphic-p))
+(if (display-graphic-p)
     <<atom-one-dark-theme>>
   <<zenburn-theme>>)
 
@@ -4390,41 +4391,39 @@ Note that LaTeX packages are loaded, configured, and installed when
 ='latex= is a member of =org-export-enabled-backends=.
 
 
-#+NAME: latex-tex-config
+#+NAME: latex-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<tex-config>>
-(with-eval-after-load "tex-site"
-    ;; Company AucTeX
-  <<company-auctex-config>>
-  ;; RefTeX
-  <<reftex-config>>
-  (init-reftex)
-  ;; Bibtex Config
-  <<bibtex-config>>
-  ;; Magic Latex Buffer
-  <<magic-latex-buffer-config>>
+<<latex-tex-config>>
+;; Company AucTeX
+<<company-auctex-config>>
+;; RefTeX
+<<reftex-config>>
+(init-reftex)
+;; Bibtex Config
+<<bibtex-config>>
+;; Magic Latex Buffer
+<<magic-latex-buffer-config>>
 
-  ;; Org Edit Latex Buffer
-  <<org-edit-latex-config>>
-  <<org-highlight-related-tex>>
+;; Org Edit Latex Buffer
+<<org-edit-latex-config>>
+<<org-highlight-related-tex>>
 
-  ;; cdlatex
-  <<cdlatex-mode>>
+;; cdlatex
+<<cdlatex-mode>>
 
-  ;; Latex Extra
-  <<latex-extra-config>>
-  ;; Auctex latexmk
-  <<auctex-latexmk-config>>
+;; Latex Extra
+<<latex-extra-config>>
+;; Auctex latexmk
+<<auctex-latexmk-config>>
 
-  <<texinfo-config>>)
+<<texinfo-config>>
 #+END_SRC
 
 **** Tex
 
-
 #+NAME: latex-tex-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
-(use-package tex-site
+(use-package tex
   :straight (auctex
              :host github
              :repo "emacsmirror/auctex"
@@ -4515,9 +4514,8 @@ save.
 #+NAME: company-auctex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-auctex
-  :after (company)
-  :straight t
-  :init
+  :demand t
+  :after (auctex)
   (company-auctex-init))
 #+END_SRC
 
@@ -4903,6 +4901,8 @@ Real jsx support.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-tern
   :straight t
+  :demand t
+  :after (:all tern company)
   :init
   (add-to-list 'company-backends 'company-tern)
   :config
