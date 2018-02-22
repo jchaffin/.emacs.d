@@ -16,7 +16,6 @@
     - [[#straight][Straight]]
       - [[#figure-out-way-to-render-relative-paths-as-absolute-on-remote-server-eg-on-github][Figure out way to render relative paths as absolute on remote server (eg on GitHub)]]
     - [[#use-package][Use Package]]
-    - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
   - [[#core][Core]]
     - [[#keybindings][Keybindings]]
@@ -203,7 +202,6 @@
     - [[#emacs-lisp][Emacs Lisp]]
     - [[#groovy][Groovy]]
     - [[#latex][LaTeX]]
-      - [[#tex][Tex]]
       - [[#bibtex][Bibtex]]
       - [[#latex-extra][LaTeX Extra]]
       - [[#latex-preview-pane][LaTeX Preview Pane]]
@@ -259,7 +257,7 @@
 
 * Configuration
 ** Preface
-*** About 
+*** About
 
 This document contains my entire configuration for the GNU Emacs text
 editor. It written as some combination of travelogue, technical
@@ -323,10 +321,10 @@ harder due to my misconception regrading the value of reading
 documentation), I've come to find it reduces a lot of the weirdness
 of the Emacs loading process and increases the rapidity (shall I say
 agility? no..) with which I comprehend the way third-party packages are
-implemented and modify them as I deem necessary. 
+implemented and modify them as I deem necessary.
 
 **** TODO Figure out way to render relative paths as absolute on remote server (eg on GitHub)
-- Spacemacs does this in the README.org of each layer. 
+- Spacemacs does this in the README.org of each layer.
 
 *** Use Package
 
@@ -338,12 +336,7 @@ See [[/init.el][init.el]]
 (require 'use-package)
 #+END_SRC
 
-*** Default Packages
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-(require 'cl)
-(require 'dash)
-#+END_SRC
 
 ** User Information
 
@@ -476,7 +469,7 @@ Clojure-like =if-not= macro in elisp.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun chaffin-eval-buffer ()
-  "Evaluate current buffer using the `straight' 
+  "Evaluate current buffer using the `straight'
    transaction system."
   (interactive)
   (message "Evaluating %s..." (buffer-name))
@@ -614,7 +607,7 @@ buffer.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun emacs-directory-resolve-path (&rest path)
   "Resolve a file path relative to the `user-emacs-directory.'
-  PATH is a destructured list of path segments. The file path 
+  PATH is a destructured list of path segments. The file path
   separator is determined based on the current operating system
   in `resolve-path'."
   (let* ((separators (if (eq system-name 'windows)
@@ -701,7 +694,7 @@ external programs.
 ***** MacOS Keybindings
 
 #+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<macos-modifier-keymap>>
 <<macos-prefix-command>>
 #+END_SRC
@@ -751,7 +744,7 @@ Also sets terminal coding system to "utf-8".
 ***** MacOS Dev Utils
 
 Small library for opening files and buffers in external text
-editors and various other applications on macOS. 
+editors and various other applications on macOS.
 
 #+NAME: macos-dev-utils
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -763,7 +756,7 @@ editors and various other applications on macOS.
   :config
   (progn
     (define-prefix-command 'macos-open-with-keymap)
-    (define-prefix-command 'macos-iterm-keymap)    
+    (define-prefix-command 'macos-iterm-keymap)
     (define-key 'macos-keymap "o" 'macos-open-with-keymap)
     (define-key 'macos-keymap "t" 'macos-iterm-keymap)
     ;; macos-open-with keybindings
@@ -782,27 +775,27 @@ editors and various other applications on macOS.
 ***** MacOS Dash
 
 Dash.app is an application for quickly searching and navigating API
-docsets for programming tools and languages. 
+docsets for programming tools and languages.
 There are already two Emacs plugins that utilize Dash docsets,
 helm-dash and counsel-dash, which is a simple wrapper around helm
 dash.
 
 For whatever reason, I can't figure out how to open the docset in an
-=eww= frame or in an external browser using =browse-url=. 
+=eww= frame or in an external browser using =browse-url=.
 
 Because of the OS/licensing restrictions of Dash.app, both these
 packages try to solve the problem of creating an interface for users
-to navigate, query, and switch between docsets. 
+to navigate, query, and switch between docsets.
 
 Because I've purchased a license and run macOS locally, I'm going to
 bypass that problem and define a function that uses the
 =dash-plugin://= protocol to launch/switch to the application and
-query it with the marked region or symbol at point. 
+query it with the marked region or symbol at point.
 
 #+NAME: macos-dash-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (defvar dash-plugin-keywords nil
-  "An `alist' of keywords representing the docsets which should 
+  "An `alist' of keywords representing the docsets which should
   searched in the query to Dash.app")
 
 (defun macos-dash-at-point ()
@@ -1118,7 +1111,7 @@ Use UTF-8 Bullets for Org-mode headings.
 
 ***** Org Pomodoro Path Helper
 
-Utility for simplifying the path to the given audio file path used 
+Utility for simplifying the path to the given audio file path used
 by [[#org-pomodoro][org-pomodoro]].
 
 #+NAME: org-utils-pomodoro-path-helper
@@ -1554,7 +1547,7 @@ external configuration.
              '("per-file-class"
                "\\documentclass{scrartcl}
                 [NO-DEFAULT-PACKAGES]
-                [EXTRA]" 
+                [EXTRA]"
                ("\\section{%s}" . "\\section*{%s}")
                ("\\subsection{%s}" . "\\subsection*{%s}")
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -1787,7 +1780,7 @@ list that one may use in the wacky world of Emacs.
                               ( recents . 5)
                               ( bookmarks . 5)))))
   (chaffin/dashboard-init))
-      
+
 #+END_SRC
 
 **** Initial Startup Display
@@ -1883,7 +1876,7 @@ contributing to the solution.
 
 As GitHub user [[https://github.com/wasamasa][wasamasa]] points out in /h?(er|is)|^\S+/ dotfiles,
 [[https://gnutls.org/][GnuTLS]] throws several warnings when using the default 256 minimum
-prime bits over a TLS handshake.  
+prime bits over a TLS handshake.
 
 #+BEGIN_QUOTE
 Minimum number of prime bits accepted by GnuTLS for key exchange.
@@ -2206,7 +2199,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package with-editor
   :straight t
-  :config 
+  :config
   (progn
     (add-to-hooks #'with-editor-export-editor
                   '(shell-mode-hook
@@ -2246,7 +2239,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
     (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
 #+END_SRC
 
-**** Shell 
+**** Shell
 
 Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
@@ -2352,7 +2345,7 @@ support with ivy]].
   :straight t)
 #+END_SRC
 
-****** Historian 
+****** Historian
 #+NAME: historian-config
 #+BEGIN_SRC emacs-lisp :tangle no :exports none
 (use-package historian
@@ -2362,7 +2355,7 @@ support with ivy]].
 **** Counsel
 
 #+NAME: counsel-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none 
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<counsel-base>>
 <<counsel-osx-app-config>>
 <<counsel-projectile-config>>
@@ -2404,7 +2397,7 @@ support with ivy]].
   :straight t
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
- 
+
 ***** Counsel-Projectile
 
 [[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
@@ -2573,7 +2566,7 @@ Interface for controlling external processes in Emacs.
 ** User Interface
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes
-really fantastic Emacs UI libraries and enhancements. 
+really fantastic Emacs UI libraries and enhancements.
 
 *** Cursor
 **** Vertical Bar
@@ -2633,7 +2626,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
    Each font entry is a cons cell composed of the font-family as a string and
    the associated font weight as an unquoted symbol.
 
-   See `font-weight-table' for a list of available options. 
+   See `font-weight-table' for a list of available options.
 
    e.g (\"FONT-FAMILY\" . WEIGHT)"
   )
@@ -2675,7 +2668,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   "SF Mono 12"
   "A fontspec string of the default font to use on macOS.
 
-  To get the fontspec string, use the command 'M-x x-select-font RET' 
+  To get the fontspec string, use the command 'M-x x-select-font RET'
   to choose the desired font, then 'M-x describe-font RET' and copy-and-paste.")
 
 (if *is-hal*
@@ -3008,7 +3001,7 @@ This disables Emacs asking questions about loading a new theme.
 Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(if (and *is-hal* (display-graphic-p)) 
+(if (and *is-hal* (display-graphic-p))
     <<atom-one-dark-theme>>
   <<zenburn-theme>>)
 
@@ -3080,10 +3073,7 @@ interface. For some reason loading this in the same =progn= block
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package all-the-icons
   :if (display-graphic-p)
-  :straight t
-  :init
-  (unless (straight-check-package "all-the-icons")
-    (all-the-icons-install-fonts)))
+  :straight t)
 #+END_SRC
 
 **** Ivy All the Icons
@@ -3159,7 +3149,7 @@ interface. For some reason loading this in the same =progn= block
 <<magit-extensions>>
 <<magit-src>>
 <<magit-magithub>>
-#+END_SRC 
+#+END_SRC
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
 git itself.
@@ -3198,7 +3188,7 @@ As a git client though, magit is awesome.
 ***** Extending Magit
 
 #+NAME: magit-extensions
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
+#+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
 <<magit-done>>
 <<magit-done-no-prompt>>
 #+END_SRC
@@ -3322,7 +3312,7 @@ Pop-up feature for viewing the last git commit.
 
 **** Monky
 Monky provides an interactive interface for mercurial. It's
-essentially to ~hg~ what [[#magit][magit]] is for ~git~. 
+essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 #+NAME: hg-monky
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3419,7 +3409,6 @@ using =eww= as a matter of personal preference.
     ad-do-it))
 #+END_SRC
 
-
 ** Email
 *** Mu
 
@@ -3465,7 +3454,7 @@ using =eww= as a matter of personal preference.
                                                    "UCLA 19\n"
                                                    "Linguistics and Computer Science\n"
                                                    "jchaffin@ucla.edu\n"))))
-              
+
               ,(make-mu4e-context
                 :name "school"
                 :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
@@ -3658,7 +3647,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defvar proglang-enabled-list '()
-  "List of languages for which straight should install respective tooling, 
+  "List of languages for which straight should install respective tooling,
    syntax-highlighting, and peripherals.")
 
 
@@ -3809,7 +3798,7 @@ by adding 'c-c++ to =[[#proglang-api][proglang-enabled]]= won't compile.
 That blows but loading this this hook regardless corrects the per-file
 =compile-command= at least.
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes 
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 (when (and (not (proglang-enabled-p 'c-c++))
            ,*is-lnxsrv*)
   <<cc-hooks-compile-command>>)
@@ -3827,7 +3816,7 @@ That blows but loading this this hook regardless corrects the per-file
   (let ((has-makefile (file-exists-p "Makefile")))
     (if has-makefile
         (let ((buf (or (get-buffer "Makefile")
-                       (find-file-noselect 
+                       (find-file-noselect
                         (expand-file-name "Makefile" default-directory)))))
           (if func
               (funcall func buf)
@@ -3890,7 +3879,7 @@ with the same "make" dialog I said eff it and =^Z='d on out of there.
 
 
 /#applefanboyproblems/
- 
+
 
 #+NAME: cc-irony-mode
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -3978,7 +3967,7 @@ Company backend for C/C++ files using irony mode.
          ("\\.cmake\\'" . cmake-mode))
 
   :config
-  (progn 
+  (progn
     (add-hook 'cmake-mode-hook
               (lambda ()
                 (smartparens-mode t)))))
@@ -4046,7 +4035,7 @@ Configuration for common-lisp
   <<clojure-interactive>>)
 #+END_SRC
 
-**** Clojure Mode 
+**** Clojure Mode
 
 Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
 before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
@@ -4147,9 +4136,9 @@ Two options:
 #+NAME: clojure-interactive-ide
 #+BEGIN_SRC emacs-lisp :tangle no
 (defcustom clojure-ide 'cider
-  "Select the interactive development environment to use 
+  "Select the interactive development environment to use
    in clojure mode. Note that Emacs must be restarted when
-   the value of this variable is modified for the change 
+   the value of this variable is modified for the change
    to take effect."
   :type '(symbol)
   :options '(cider inf-clojure)
@@ -4162,7 +4151,7 @@ Two options:
 :CUSTOM_ID: cider
 :END:
 
-[[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]] 
+[[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
 
 #+NAME: clojure-interactive-cider
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4170,7 +4159,7 @@ Two options:
   :straight t
   :after (company)
   :config
-  (progn 
+  (progn
     (setq cider-repl-history-file "~/.emacs.d/cider-history"
           cider-repl-use-clojure-font-lock t
           cider-repl-result-prefix ";; => "
@@ -4390,47 +4379,47 @@ CIDER eldoc information.
 *** LaTeX
 
 Note that LaTeX packages are loaded, configured, and installed when
-='latex= is a member of =org-export-enabled-backends=.   
- 
-**** Tex
+='latex= is a member of =org-export-enabled-backends=.
+
+**** COMMENT Tex
 
 #+NAME: tex-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (use-package tex
   :straight (auctex
-	     :host github
-	     :repo "emacsmirror/auctex"
-	     :files (:defaults (:exclude "*.el.in")))
+	           :host github
+	           :repo "emacsmirror/auctex"
+	           :files (:defaults (:exclude "*.el.in")))
   :defines latex-nofill-env
-  :functions chaffin/tex-auto-fill-mode
+  :functions chaffin--tex-autofill
   :init
   (progn
     (setq TeX-command-default "LaTeX"
-	  TeX-engine 'xetex
-	  TeX-auto-save t
-	  TeX-parse-self t
-	  TeX-syntactic-comment t
-	  TeX-source-correlate-start-server nil
-	  LaTeX-fill-break-at-separators nil)
+	        TeX-engine 'xetex
+	        TeX-auto-save t
+	        TeX-parse-self t
+	        TeX-syntactic-comment t
+	        TeX-source-correlate-start-server nil
+	        LaTeX-fill-break-at-separators nil)
     (defvar latex-nofill-env '("equation"
-			       "equation*"
-			       "align"
-			       "align*"
-			       "tabular"
-			       "tikzpicture"))
+			                         "equation*"
+			                         "align"
+			                         "align*"
+			                         "tabular"
+			                         "tikzpicture"))
     (defun chaffin--tex-autofill ()
       "Check whether the pointer is currently inside one of
        the environments in `latex-nofill-env` and inhibits auto-filling
        of the current paragraph."
       (let ((do-auto-fill t)
-	    (current-environment "")
-	    (level 0))
-	(while (and do-auto-fill (not (string- current-environment "document")))
-	  (setq level (1+ level)
-		current-environment (LaTeX-current-environment level)
-		do-auto-fill (not (member current-environment latex-nofill-env)))))
+	          (current-environment "")
+	          (level 0))
+	      (while (and do-auto-fill (not (string- current-environment "document")))
+	        (setq level (1+ level)
+		            current-environment (LaTeX-current-environment level)
+		            do-auto-fill (not (member current-environment latex-nofill-env)))))
       (when do-auto-fill
-	(do-auto-fill)))
+	      (do-auto-fill)))
 
     (defun tex-auto-fill-mode ()
       (interactive)
@@ -4452,7 +4441,7 @@ Note that LaTeX packages are loaded, configured, and installed when
     <<magic-latex-buffer-config>>
 
     ;; Latex Preview Pange
-    ;; Not tangling 
+    ;; Not tangling
 
     ;; Org Edit Latex Buffer
     <<org-edit-latex-config>>
@@ -4460,7 +4449,7 @@ Note that LaTeX packages are loaded, configured, and installed when
 
     ;; cdlatex
     <<cdlatex-mode>>
-    
+
     ;; Latex Extra
     <<latex-extra-config>>
     ;; Auctex latexmk
@@ -4495,7 +4484,7 @@ Note that LaTeX packages are loaded, configured, and installed when
 **** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
-save. 
+save.
 
 #+NAME: latex-preview-pane-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4596,7 +4585,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 **** Texinfo
 
-#+texinfo-config
+#+NAME: texinfo-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package texinfo
   :straight t
@@ -4842,7 +4831,7 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
                   (setq-local dash-plugin-keywords
                               '("javascript" "react" "jquery"
                                 "jqueryui" "jquerym" "angularjs"
-                                "backbone" "bootstrap" "moo" "prototype" 
+                                "backbone" "bootstrap" "moo" "prototype"
                                 "marionette" "meteor" "sproutcore"
                                 "foundation" "lodash" "underscore"
                                 "ember" "sencha" "extjs" "titanium"
@@ -5142,7 +5131,7 @@ Real jsx support.
 ***** Anaconda Mode
 
 #+NAME: python-anaconda-mode
-#+BEGIN_SRC emacs-lisp :tangle no 
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package anaconda-mode
   :straight t
   :init
@@ -5151,7 +5140,7 @@ Real jsx support.
     (add-hook 'python-mode-hook 'anaconda-eldoc-mode)))
 #+END_SRC
 
-***** Company Anaconda 
+***** Company Anaconda
 
 #+NAME: python-anaconda-company
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -5292,9 +5281,9 @@ Real jsx support.
               web-mode-script-padding 1
               web-mode-block-padding 0
               web-mode-comment-style 2))
-      
+
       (add-hook 'web-mode-hook #'chaffin--web-mode-indent)
-      
+
       (when *is-mac*
         (add-hook 'web-mode-hook
                   (lambda ()

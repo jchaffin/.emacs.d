@@ -114,13 +114,7 @@
   (("C-c a" . org-agenda)
    ("C-c c" . org-capture))
   :init
-  ;; The follwing hacks are designed to trick the version checking
-  ;; done in the loading process of org into recognizing the mirror
-  ;; as the correct org package [8]. Unfortunately, `org-version' still
-  ;; throws a warning upon initial package installation, but it appears
-  ;; the hack corrects the version checking in all subsequent startups.
-  ;; See [6] for a discussion on issue at hand, and [8] for what how
-  ;; this implementation addresses the problem. 
+
   (progn
     (defun chaffin--org-git-version ()
       (let ((default-directory
@@ -135,9 +129,7 @@
               (if (> (buffer-size) 0)
                   (string-trim (buffer-string))
                 "revision unknown"))
-          "Git not installed!")))
-    ;; Override triggering the autoloads from the bundled org package.
-    ;; Again, see [8]; raxod502 can offer better insight here than I can.
+          "How do you git through life...")))
     (defalias #'org-git-version #'chaffin--org-git-version)
     (defun org-release () "9.1.6")
     (provide 'org-version))
