@@ -3044,19 +3044,23 @@ I find that zenburn looks better when Emacs is
 started from the terminal.
 
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-(load-theme 'org-beautify)
-(load-theme 'atom-one-dark)
-(add-hook 'after-init-hook
-          (lambda ()
-            (load-theme 'atom-one-dark)
-            (load-theme 'org-beautify)
-            <<atom-one-dark-mods>>))
+(if (display-graphic-p)
+    (progn
+      (load-theme 'org-beautify)
+      (load-theme 'atom-one-dark)
+      (add-hook 'after-init-hook
+                (lambda ()
+                  (load-theme 'atom-one-dark)
+                  (load-theme 'org-beautify)
+                  <<atom-one-dark-mods>>)))
+  (progn
+    <<zenburn-theme-cfg>>))
 #+END_SRC
 
 *****  Atom One Dark Modifications
 
 I will go to great lengths to avoid using the customization
-interface. For some reason loading this in the same =progn= block
+interface. 
 
 #+NAME: atom-one-dark-mods
 #+BEGIN_SRC emacs-lisp :tangle no
