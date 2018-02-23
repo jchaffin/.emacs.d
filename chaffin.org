@@ -15,6 +15,8 @@
   - [[#package-management][Package Management]]
     - [[#straight][Straight]]
       - [[#figure-out-way-to-render-relative-paths-as-absolute-on-remote-server-eg-on-github][Figure out way to render relative paths as absolute on remote server (eg on GitHub)]]
+    - [[#use-package][Use Package]]
+    - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
   - [[#core][Core]]
     - [[#keybindings][Keybindings]]
@@ -38,10 +40,6 @@
   - [[#environment][Environment]]
     - [[#os][OS]]
       - [[#system-packages][System Packages]]
-      - [[#macos-keybindings][MacOS Keybindings]]
-      - [[#macos-computer-name][MacOS Computer Name]]
-      - [[#macos-dev-utils][MacOS Dev Utils]]
-      - [[#macos-dash][MacOS Dash]]
       - [[#macos][macOS]]
       - [[#windowspc][Windows/PC]]
       - [[#linux][Linux]]
@@ -183,6 +181,7 @@
     - [[#browse-at-remote][Browse At Remote]]
     - [[#when-no-external-web-browser-is-available][When no external web browser is available]]
       - [[#set-the-default-browser-eww][Set the default browser =eww=]]
+    - [[#when-no-external-web-browser-is-availablefn12][When no external web browser is available[fn:12]]]
       - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
   - [[#email][Email]]
     - [[#mu][Mu]]
@@ -222,19 +221,18 @@
       - [[#clojure-syntax-checking][Clojure Syntax Checking]]
     - [[#emacs-lisp][Emacs Lisp]]
     - [[#groovy][Groovy]]
-    - [[#latex][LaTeX]]
-      - [[#tex][Tex]]
-      - [[#bibtex][Bibtex]]
-      - [[#latex-extra][LaTeX Extra]]
-      - [[#latex-preview-pane][LaTeX Preview Pane]]
-      - [[#company-auctex][Company AucTeX]]
+    - [[#latex-1][LaTeX]]
+      - [[#tex-1][Tex]]
+      - [[#latex-extra-1][LaTeX Extra]]
+      - [[#latex-preview-pane-1][LaTeX Preview Pane]]
+      - [[#company-auctex-1][Company AucTeX]]
       - [[#org-edit-latex][Org Edit Latex]]
-      - [[#cdlatex][cdlatex]]
-      - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
-      - [[#magic-latex-buffer][Magic Latex Buffer]]
-      - [[#auctex-latexmk][Auctex Latexmk]]
-      - [[#reftex][RefTeX]]
-      - [[#texinfo][Texinfo]]
+      - [[#cdlatex-1][cdlatex]]
+      - [[#highlight-inline-latex-fragments-1][Highlight Inline LaTeX fragments]]
+      - [[#magic-latex-buffer-1][Magic Latex Buffer]]
+      - [[#auctex-latexmk-1][Auctex Latexmk]]
+      - [[#reftex-1][RefTeX]]
+      - [[#texinfo-1][Texinfo]]
     - [[#java][Java]]
       - [[#eclim][Eclim]]
       - [[#gradle-mode][Gradle Mode]]
@@ -253,6 +251,7 @@
       - [[#add-node-modules-path-repository][Add Node Modules Path (repository)]]
       - [[#npm-mode][Npm Mode]]
       - [[#nvm][NVM]]
+      - [[#flycheck-javascript][Flycheck JavaScript]]
     - [[#markdown][Markdown]]
       - [[#markdown-mode][Markdown Mode]]
       - [[#markdown-mode-1][markdown-mode+]]
@@ -2559,7 +2558,7 @@ Set shell script indentation to 2.
 Connect Remotely.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq sh-basic-offset 2
+(setq sh-basic-offset 2)
 (setq tramp-default-method "ssh")
 #+END_SRC
 
@@ -3325,18 +3324,22 @@ This disables Emacs asking questions about loading a new theme.
 
 Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 I find that zenburn looks better when Emacs is
 started from the terminal.
 
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-(load-theme 'org-beautify)
-(load-theme 'atom-one-dark)
-(add-hook 'after-init-hook
-          (lambda ()
-            (load-theme 'atom-one-dark)
-            (load-theme 'org-beautify)
-            <<atom-one-dark-mods>>))
+(if (display-graphic-p)
+    (progn
+      (load-theme 'org-beautify)
+      (load-theme 'atom-one-dark)
+      (add-hook 'after-init-hook
+                (lambda ()
+                  (load-theme 'atom-one-dark)
+                  (load-theme 'org-beautify)
+                  <<atom-one-dark-mods>>)))
+  (progn
+    <<zenburn-theme-cfg>>))
+
 #+END_SRC
 
 *****  Atom One Dark Modifications
