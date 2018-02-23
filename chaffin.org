@@ -15,8 +15,6 @@
   - [[#package-management][Package Management]]
     - [[#straight][Straight]]
       - [[#figure-out-way-to-render-relative-paths-as-absolute-on-remote-server-eg-on-github][Figure out way to render relative paths as absolute on remote server (eg on GitHub)]]
-    - [[#use-package][Use Package]]
-    - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
   - [[#core][Core]]
     - [[#keybindings][Keybindings]]
@@ -36,6 +34,7 @@
       - [[#list-directory-contents-without-wildcards][List Directory Contents without wildcards]]
       - [[#resolve-path][Resolve Path]]
       - [[#explore-a-local-repository][Explore a local repository]]
+    - [[#default-libraries][Default Libraries]]
   - [[#environment][Environment]]
     - [[#os][OS]]
       - [[#system-packages][System Packages]]
@@ -56,13 +55,29 @@
     - [[#org-utilities][Org Utilities]]
       - [[#org-capture][Org Capture]]
       - [[#org-pomodoro][Org Pomodoro]]
-      - [[#org-ref][Org Ref]]
       - [[#org-id][Org ID]]
       - [[#spell-checking][Spell Checking]]
       - [[#org-download][Org Download]]
       - [[#org-hyperlinks][Org Hyperlinks]]
+  - [[#latex][LaTeX]]
+    - [[#tex][Tex]]
+    - [[#reftex][RefTeX]]
+    - [[#bibtex][Bibtex]]
+    - [[#latex-extra][LaTeX Extra]]
+    - [[#latex-preview-pane][LaTeX Preview Pane]]
+    - [[#company-auctex][Company AucTeX]]
+    - [[#cdlatex][cdlatex]]
+    - [[#magic-latex-buffer][Magic Latex Buffer]]
+    - [[#auctex-latexmk][Auctex Latexmk]]
+    - [[#texinfo][Texinfo]]
+  - [[#org-latex][Org LaTeX]]
+    - [[#latex-in-org-mode][LaTeX in Org Mode]]
+      - [[#edit-latex][Edit Latex]]
+      - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
+    - [[#org-ref][Org Ref]]
     - [[#org-pdf][Org PDF]]
       - [[#pdf-tools][PDF Tools]]
+      - [[#org-pdf-view][Org PDF View]]
     - [[#org-export][Org Export]]
       - [[#latex-backend][LaTeX Backend]]
       - [[#github-flavored-markdown][GitHub Flavored Markdown]]
@@ -142,6 +157,7 @@
       - [[#enable-custom-themes][Enable Custom Themes]]
       - [[#zenburn-theme][Zenburn Theme]]
       - [[#atom-one-dark-theme][Atom One Dark Theme]]
+      - [[#install-themes][Install Themes]]
       - [[#load-themes][Load Themes]]
     - [[#all-the-icons][All The Icons]]
       - [[#ivy-all-the-icons][Ivy All the Icons]]
@@ -202,19 +218,6 @@
       - [[#clojure-syntax-checking][Clojure Syntax Checking]]
     - [[#emacs-lisp][Emacs Lisp]]
     - [[#groovy][Groovy]]
-    - [[#latex][LaTeX]]
-      - [[#tex][Tex]]
-      - [[#bibtex][Bibtex]]
-      - [[#latex-extra][LaTeX Extra]]
-      - [[#latex-preview-pane][LaTeX Preview Pane]]
-      - [[#company-auctex][Company AucTeX]]
-      - [[#org-edit-latex][Org Edit Latex]]
-      - [[#cdlatex][cdlatex]]
-      - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
-      - [[#magic-latex-buffer][Magic Latex Buffer]]
-      - [[#auctex-latexmk][Auctex Latexmk]]
-      - [[#reftex][RefTeX]]
-      - [[#texinfo][Texinfo]]
     - [[#java][Java]]
       - [[#eclim][Eclim]]
       - [[#gradle-mode][Gradle Mode]]
@@ -327,23 +330,6 @@ implemented and modify them as I deem necessary.
 
 **** TODO Figure out way to render relative paths as absolute on remote server (eg on GitHub)
 - Spacemacs does this in the README.org of each layer.
-
-*** Use Package
-
-See [[/init.el][init.el]]
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(require 'bind-key)
-(require 'diminish)
-(require 'use-package)
-#+END_SRC
-
-*** Default Packages
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(require 'cl)
-(require 'dash)
-#+END_SRC
 
 ** User Information
 
@@ -648,6 +634,17 @@ interactive minibuffer completion menu using ivy.
                    (dired default-directory))))))
   ;; Add to goto-* keymap
   (define-key goto-map "r" #'goto-repo))
+#+END_SRC
+
+*** Default Libraries
+
+#+NAME: core-default-libs
+#+BEGIN_SRC emacs-lisp :tangle yes
+(eval-when-compile
+  (require 'subr-x)
+  (require 'cl)
+  (require 'seq)
+  (require 'dash))
 #+END_SRC
 
 ** Environment
@@ -975,28 +972,27 @@ issues with build commands in [[#gradle-mode][gradle-mode]]
 
 #+NAME: org-mode-settings
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<org-prettify>>
-<<org-utils>>
-<<org-pdf>>
-<<org-export>>
+<<org-mode-ui>>
+<<org-mode-utilities>>
 #+END_SRC
+
 
 *** Org Prettify
 
 These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
 
-#+NAME: org-prettify
+#+NAME: org-mode-ui
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-prettify-text>>
-<<org-prettify-image>>
-<<org-prettify-bullets>>
-<<org-prettify-toc-org>>
+<<org-mode-ui-text>>
+<<org-mode-ui-image>>
+<<org-mode-ui-bullets>>
+<<org-mode-ui-toc-org>>
 #+END_SRC
 
 **** Improve Legibility
 
-#+NAME: org-prettify-text
+#+NAME: org-mode-ui-text
 #+BEGIN_SRC emacs-lisp :tangle no
   (add-hook #'org-mode-hook (lambda ()
                               (auto-fill-mode)
@@ -1007,7 +1003,7 @@ org-mode buffers.
 
 Make images compact.
 
-#+NAME: org-prettify-image
+#+NAME: org-mode-ui-image
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-image-actual-width 400)
 #+END_SRC
@@ -1016,7 +1012,7 @@ Make images compact.
 
 Use UTF-8 Bullets for Org-mode headings.
 
-#+NAME: org-prettify-bullets
+#+NAME: org-mode-ui-bullets
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
   :straight t
@@ -1033,20 +1029,19 @@ Use UTF-8 Bullets for Org-mode headings.
 :END:
 
 
-#+NAME: org-prettify-ob-theme
+#+NAME: org-mode-ui-ob-theme
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-beautify-theme
   :straight t
   :config
   (progn
     (setq org-beautify-theme-use-box-hack nil)
-    (add-to-list 'custom-enabled-themes 'org-beautify)
-    (load-theme 'org-beautify t)))
+    (add-to-list 'custom-enabled-themes 'org-beautify)))
 #+END_SRC
 
 **** TOC Org
 
-#+NAME: org-prettify-toc-org
+#+NAME: org-mode-ui-toc-org
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package toc-org
   :straight t
@@ -1056,12 +1051,12 @@ Use UTF-8 Bullets for Org-mode headings.
 
 *** Org Utilities
 
-#+NAME: org-utils
+#+NAME: org-mode-utilities
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-utils-pomodoro>>
-<<org-utils-ref>>
 <<org-utils-id>>
 <<org-utils-download>>
+<<org-utils-hlink>>
 #+END_SRC
 
 **** Org Capture
@@ -1113,8 +1108,6 @@ Use UTF-8 Bullets for Org-mode headings.
         org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav")))
 #+END_SRC
 
-#+RESULTS: org-utils-pomodoro-org-pomodoro
-: org-pomodoro
 
 ***** Org Pomodoro Path Helper
 
@@ -1127,75 +1120,6 @@ by [[#org-pomodoro][org-pomodoro]].
   (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
 #+END_SRC
 
-**** Org Ref
-:PROPERTIES:
-:ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
-:CUSTOM_ID: org-ref
-:END:
-
-#+NAME: org-utils-ref
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-(when (display-graphic-p)
-  <<org-utils-ref-settings>>
-  <<org-utils-ref-ivy>>
-  <<org-utils-ref-open-pdf-at-point>>)
-#+END_SRC
-
-
-#+NAME: org-utils-ref-settings
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
-(use-package org-ref
-  :straight t
-  :config
-  (progn
-    (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
-          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
-          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib"))
-    (require 'org-ref-pdf)
-    (require 'org-ref-latex)
-    (require 'org-ref-reftex)
-    (require 'org-ref-utils)
-    (require 'org-ref-url-utils)
-    (require 'org-ref-pubmed)
-    (require 'org-ref-scopus)
-    (require 'org-ref-scifinder)
-    (require 'org-ref-citeproc)
-    (require 'org-ref-sci-id)
-    (require 'org-ref-isbn)
-    (require 'org-ref-wos)
-    (require 'org-ref-worldcat)
-    (require 'x2bib)))
-#+END_SRC
-
-***** Org Ref Ivy
-
-#+NAME: org-utils-ref-ivy
-#+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'ivy
-  (setq org-ref-completion-library 'org-ref-ivy-cite)
-  (require 'org-ref)
-  (require 'org-ref-ivy)
-  (require 'org-ref-ivy-cite))
-#+END_SRC
-
-***** Open Pdf at point
-
-See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view-or-pdf-tools][Using Doc View or PDF Tools]] section of =org-ref= documentation.
-
-#+NAME: org-utils-ref-open-pdf-at-point
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-ref-open-pdf-at-point ()
-  "Open the pdf for bibtex key under point if it exists."
-  (interactive)
-  (let* ((results (org-ref-get-bibtex-key-and-file))
-         (key (car results))
-         (pdf-file (funcall org-ref-get-pdf-filename-function key)))
-    (if (file-exists-p pdf-file)
-        (find-file pdf-file)
-      (message "No PDF found for %s" key))))
-
-(setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
-#+END_SRC
 
 **** Org ID
 
@@ -1247,7 +1171,6 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
         (org-entry-put pom "CUSTOM_ID" id)
         (org-id-add-location id (buffer-file-name (buffer-base id))))))))
 #+END_SRC
-
 
 ***** Add IDs to Headlines in file
 
@@ -1346,9 +1269,320 @@ PATH should be a topic that can be thrown at the man command."
     (error "Cannot create link to this man page")))
 #+END_SRC
 
+** LaTeX
+
+#+NAME: latex-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<latex-tex>>
+
+;; Reftex
+<<latex-reftex>>
+(init-reftex)
+
+;; Bibtex
+<<latex-bibtex>>
+
+;; Company backend for latex completion
+<<latex-company-auctex>>
+
+;; Prettify latex buffers
+<<latex-magic-latex-buffer>>
+
+;; Extra latex utilities
+<<latex-latex-extra>>
+
+;; Cdlatex
+<<latex-cdlatex>>
+
+;; Auctex Latexmk
+<<latex-auctex-latexmk>>
+
+;; Texinfo mode
+<<latex-texinfo>>
+#+END_SRC
+
+Note that LaTeX packages are loaded, configured, and installed when
+='latex= is a member of =org-export-enabled-backends=.
+
+*** Tex
+#+NAME: latex-tex
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+  (use-package tex
+    :straight auctex
+    :defines latex-nofill-env
+    :functions chaffin--tex-autofill
+    :config
+    (progn
+      (setq LaTeX-fill-break-at-separators nil)
+      (defvar latex-nofill-env '("equation"
+                                 "equation*"
+                                 "align"
+                                 "align*"
+                                 "tabular"
+                                 "tikzpicture"))
+      (defun chaffin--tex-autofill ()
+        "Check whether the pointer is currently inside one of
+         the environments in `latex-nofill-env` and inhibits auto-filling
+         of the current paragraph."
+        (let ((do-auto-fill t)
+              (current-environment "")
+              (level 0))
+          (while (and do-auto-fill (not (string- current-environment "document")))
+            (setq level (1+ level)
+                  current-environment (LaTeX-current-environment level)
+                  do-auto-fill (not (member current-environment latex-nofill-env)))))
+        (when do-auto-fill
+          (do-auto-fill)))
+
+      (defun tex-auto-fill-mode ()
+        (interactive)
+        (auto-fill-mode)
+        (setq auto-fill-mode 'chaffin--tex-autofill))
+
+      (add-hook 'LaTeX-mode-hook 'tex-auto-fill-mode)
+      (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+      (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+      (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
+#+END_SRC
+
+*** RefTeX
+
+
+RefTeX is a citation and reference tool maintained by the
+AucTeX team.
+
+Since Emacs 24.3, its built in with the Emacs distribution.
+
+#+NAME: latex-reftex
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defun init-reftex ()
+    (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+    (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+          reftex-use-fonts t
+          reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
+#+END_SRC
+
+*** Bibtex
+
+#+NAME: latex-bibtex
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq bibtex-autokey-year-length 2
+      bibtex-autokey-name-year-separator "-"
+      bibtex-autokey-year-title-separator "-"
+      bibtex-autokey-titleword-separator "-"
+      bibtex-autokey-titlewords 2
+      bibtex-autokey-titlewords-stretch 1
+      bibtex-autokey-titleword-length 5)
+#+END_SRC
+
+*** LaTeX Extra
+
+#+NAME: latex-latex-extra
+#+BEGIN_SRC emacs-lisp :tangle no
+;; See [1] https://github/Malabarba/latex-extra/issues/23
+(let ((byte-compile-warnings '(not free-vars)))
+  (use-package latex-extra
+    :straight t
+    :config
+    (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
+#+END_SRC
+
+*** LaTeX Preview Pane
+
+Not tangling right now because it's creating a new buffer after every
+save.
+
+#+NAME: latex-latex-preview-pane
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package latex-preview-pane
+  :straight t
+  :config (latex-preview-pane-enable))
+#+END_SRC
+
+*** Company AucTeX
+
+#+NAME: latex-company-auctex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-auctex
+  :demand t
+  :after (:all company tex)
+  :straight t
+  :init
+  (company-auctex-init))
+#+END_SRC
+
+*** cdlatex
+
+#+NAME: latex-cdlatex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cdlatex
+  :straight t
+  :config
+  (progn
+    ;; Disable auto label insertion in expanded template.
+    ;; Labels conflict when used in conjunction with `org-ref'
+    (setq cdlatex-insert-auto-labels-in-env-templates nil)
+    ;; with AucTeX LaTeX mode
+    (add-hook 'LaTeX-mode-hook
+              'turn-on-cdlatex)
+    ;; with Emacs latex mode
+    (add-hook 'latex-mode-hook
+              'turn-on-cdlatex)))
+#+END_SRC
+
+*** Magic Latex Buffer
+
+Prettify dedicated org-mode latex buffers.
+
+#+NAME: latex-magic-latex-buffer
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package magic-latex-buffer
+  :straight t
+  :init
+  (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
+  :config
+  (setq magic-latex-enable-block-highlight t
+        magic-latex-enable-suscript t
+        magic-latex-enable-pretty-symbols t
+        magic-latex-enable-block-align nil
+        magic-latex-enable-inline-image t))
+#+END_SRC
+
+*** Auctex Latexmk
+
+#+NAME: latex-auctex-latexmk
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package auctex-latexmk
+  :after (:all pdf-tools tex)
+  :straight t
+  :config
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
+#+END_SRC
+
+*** Texinfo
+
+#+NAME: latex-texinfo
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package texinfo
+  :straight t
+  :defines texinfo-section-list
+  :commands texinfo-mode
+  :init
+  (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
+#+END_SRC
+
+** Org LaTeX
+
+#+NAME: org-latex-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-latex-editing>>
+<<org-latex-org-ref>>
+<<org-latex-pdf>>
+#+END_SRC
+
+*** LaTeX in Org Mode
+
+#+NAME: org-latex-editing
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<org-latex-edit-latex>>
+<<org-latex-highlight-tex>>
+#+END_SRC
+
+**** Edit Latex
+
+#+NAME: org-latex-edit-latex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-edit-latex
+  :straight t)
+#+END_SRC
+
+**** Highlight Inline LaTeX fragments
+
+#+NAME: org-latex-highlight-tex
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-highlight-latex-and-related '(latex))
+#+END_SRC
+
+
+*** Org Ref
+:PROPERTIES:
+:ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
+:CUSTOM_ID: org-ref
+:END:
+
+#+NAME: org-latex-org-ref
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+
+;; Org Ref
+<<org-utils-ref-settings>>
+
+;; Org Ref Ivy
+ <<org-utils-ref-ivy>>
+
+;; Org ref pdf
+<<org-utils-ref-open-pdf-at-point>>
+
+#+END_SRC
+
+
+#+NAME: org-utils-ref-settings
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+(use-package org-ref
+  :straight t
+  :config
+  (progn
+    (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
+          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
+          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib"))
+    (require 'org-ref-pdf)
+    (require 'org-ref-latex)
+    (require 'org-ref-reftex)
+    (require 'org-ref-utils)
+    (require 'org-ref-url-utils)
+    (require 'org-ref-pubmed)
+    (require 'org-ref-scopus)
+    (require 'org-ref-scifinder)
+    (require 'org-ref-citeproc)
+    (require 'org-ref-sci-id)
+    (require 'org-ref-isbn)
+    (require 'org-ref-wos)
+    (require 'org-ref-worldcat)
+    (require 'x2bib)))
+#+END_SRC
+
+***** Org Ref Ivy
+
+#+NAME: org-utils-ref-ivy
+#+BEGIN_SRC emacs-lisp :tangle no
+(with-eval-after-load 'ivy
+  (setq org-ref-completion-library 'org-ref-ivy-cite)
+  (require 'org-ref)
+  (require 'org-ref-ivy)
+  (require 'org-ref-ivy-cite))
+#+END_SRC
+
+***** Open Pdf at point
+
+See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view-or-pdf-tools][Using Doc View or PDF Tools]] section of =org-ref= documentation.
+
+#+NAME: org-utils-ref-open-pdf-at-point
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-ref-open-pdf-at-point ()
+  "Open the pdf for bibtex key under point if it exists."
+  (interactive)
+  (let* ((results (org-ref-get-bibtex-key-and-file))
+         (key (car results))
+         (pdf-file (funcall org-ref-get-pdf-filename-function key)))
+    (if (file-exists-p pdf-file)
+        (find-file pdf-file)
+      (message "No PDF found for %s" key))))
+
+(setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
+#+END_SRC
+
 *** Org PDF
 
-#+NAME: org-pdf
+#+NAME: org-latex-pdf
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (when (display-graphic-p)
   <<org-pdf-pdftools>>
@@ -1374,7 +1608,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   (pdf-tools-install))
 #+END_SRC
 
-**** COMMENT Org PDF View
+**** Org PDF View
 
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
@@ -1400,19 +1634,16 @@ Now we can open pdf files with =org-pdfview=[fn:8]:
 (require 'org-pdfview)
 (add-hook 'org-mode-hook
           (lambda ()
-            (add-to-list 'org-file-apps '("\\.pdf\\'" .
+          (add-to-list 'org-file-apps '("\\.pdf\\'" .
                                           (lambda (file link)
                                             (org-pdfview-open link))))))
-
 #+END_SRC
 
+
 *** Org Export
-:PROPERTIES:
-:ATTACH_DIR_INHERIT: t
-:END:
 
 #+NAME: org-export-enabled-backends
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (defvar org-export-enabled-backends '()
   "alist of symbols representing enabled `org-mode' export backends")
 
@@ -1423,7 +1654,7 @@ Now we can open pdf files with =org-pdfview=[fn:8]:
 And opt-in to all back ends when on local machine.
 
 #+NAME: org-export-enabled-backends-opt-in
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (when *is-mac*
   (mapcar (lambda (backend)
             (setq org-export-enabled-backends
@@ -1432,12 +1663,25 @@ And opt-in to all back ends when on local machine.
 #+END_SRC
 
 #+NAME: org-export
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<org-export-enabled-backends>>
 <<org-export-enabled-backends-opt-in>>
 
+;; Begin latex backend
 (when (chaffin/org-export-enabled-backend-p 'latex)
-  <<org-export-latex>>)
+  ;; Expanding LaTeX Configuration Here
+  <<latex-config>>
+  ;; End LaTeX Config
+  
+  ;; Begin Org LaTeX Expansion
+  <<org-latex-config>>
+  ;; End Org Latex Expansion
+   
+  ;; begin org-export-latex expansion
+  <<org-export-latex>>
+  ;; End org-export-latex expansion
+
+) ;; End LaTeX Backend 
 
 (when (chaffin/org-export-enabled-backend-p 'gfm)
   <<org-export-gfm>>)
@@ -1453,16 +1697,14 @@ And opt-in to all back ends when on local machine.
 
 #+NAME: org-export-latex
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<latex-config>>
+  (require 'ox-latex)
 
-(require 'ox-latex)
-
-<<org-export-latex-user-labels>>
-<<org-export-latex-pdf-process>>
-<<org-export-latex-per-file-class>>
+  <<org-export-latex-user-labels>>
+  <<org-export-latex-pdf-process>>
+  <<org-export-latex-per-file-class>>
 #+END_SRC
 
-***** Set pdf process dynamically
+***** Set latex pdf process
 
 [[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
 
@@ -1529,7 +1771,6 @@ through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]]
 #+BEGIN_SRC emacs-lisp :tangle no
 (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
 #+END_SRC
-
 
 ***** Hyperref Template
 The default cross-referencing and hyperlink styles provided by
@@ -1655,7 +1896,9 @@ Adds extensions and functionality to dired mode.
 #+NAME: dired-plus-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dired+
-  :straight t)
+  :straight t
+  :config
+  (add-hook #'dired-mode-hook #'dired-hide-details-mode-hook))
 #+END_SRC
 
 ***** Dired Icons
@@ -1665,8 +1908,7 @@ Adds extensions and functionality to dired mode.
 (use-package all-the-icons-dired
   :straight t
   :config
-  ;; (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
-  )
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
 **** Undo Tree
@@ -1753,7 +1995,6 @@ but it's more so an annoyance than anything else once you
 know you're around.
 
 ***** Enable Emojis for org tags in dashboard agenda widget
-
 #+NAME: enable-emojify
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (when (display-graphic-p)
@@ -1771,23 +2012,19 @@ list that one may use in the wacky world of Emacs.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dashboard
   :straight t
+  :demand t
   :init
-  (with-eval-after-load 'page-break-lines
-    (if (not (global-page-break-lines-mode))
-        (global-page-break-lines-mode)))
+  (if (not (global-page-break-lines-mode))
+      (global-page-break-lines-mode))
   :config
   (dashboard-setup-startup-hook))
 
-(with-eval-after-load 'dashboard
-  (defun chaffin/dashboard-init ()
-    (progn
-      (add-to-list 'dashboard-items '(agenda) t)
-      (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
-            dashboard-items '(( agenda . 10)
-                              ( projects . 5)
-                              ( recents . 5)
-                              ( bookmarks . 5)))))
-  (chaffin/dashboard-init))
+(add-to-list 'dashboard-items '(agenda) t)
+(setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
+      dashboard-items '(( agenda . 10)
+                        ( projects . 5)
+                        ( recents . 5)
+                        ( bookmarks . 5)))
 
 #+END_SRC
 
@@ -2230,8 +2467,8 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
   (progn
     (setq multi-term-program
 	  (if (string= shell-file-name "/bin/sh")
-	     "/bin/bash"
-	     "/bin/zsh"))))
+	      "/bin/bash"
+	    "/bin/zsh"))))
 #+END_SRC
 
 **** Run Bash On Windows/PC
@@ -2708,7 +2945,8 @@ Show the time in the modeline.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package spaceline
-  :straight t)
+  :straight t
+ )
 #+END_SRC
 
 ***** Spaceline All the Icons
@@ -2716,238 +2954,21 @@ Show the time in the modeline.
 #+NAME: all-the-icons-spaceline
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package spaceline-all-the-icons
-  :after (spaceline)
   :straight t
+  :demand t
   :config
-  (setq spaceline-all-the-icons-separator-type 'arrow)
-  <<spaceline-segment>>
-  (spaceline-all-the-icons-theme 'org-pomodoro))
+  (progn
+      (setq spaceline-all-the-icons-separator-type 'arrow)
+      (require 'spaceline)
+      (require 'spaceline-segments)
+      (require 'spaceline-config)
+      (require 'all-the-icons)
+      (require 'spaceline-all-the-icons)
+      (spaceline-all-the-icons-theme 'org-pomodoro)))
+
 #+END_SRC
 
 ***** Spaceline Segments
-
-#+NAME: spaceline-segment
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-(require 'spaceline)
-(require 'spaceline-segments)
-(require 'spaceline-config)
-(require 'all-the-icons)
-(require 'spaceline-all-the-icons)
-<<spaceline-segment-flycheck>>
-<<spaceline-segment-battery>>
-#+END_SRC
-
-****** Battery Segment
-
-Spaceline and the all-the-icons spaceline theme support fancy battery
-mode. However, this package is not maintained and doesn't appear to be
-working on macOS due to an underlying issue with the
-=battery-status-function=. Thought it only will work with
-=all-the-icons= and =spaceline-all-the-icons-theme=, the following
-segment is a pretty good replacement:
-
-#+NAME: spaceline-segment-battery
-#+BEGIN_SRC emacs-lisp :tangle no
-(eval-when-compile
-  (require 'battery))
-
-;; Variables
-(defvar battery-macos-echo-area-format "Source %L, Battery: %B (%p% load, remaining time %t)")
-(defvar battery-macos-mode-line-format "%p %i")
-
-;; Aliases
-(defalias 'battery-pmset 'battery-macos-pmset)
-(defalias 'battery-echo-area-format 'battery-macos-echo-area-format)
-
-;; Macros
-
-(defmacro battery-segment (segment)
-  `(intern (concat "battery-macos-battery-" `,@(symbol-name (quote ,segment)))))
-
-
-;; Functions
-(defun battery-macos-shell-command ()
-  (let* ((battery-status-string (shell-command-to-string "pmset -g batt"))
-         (battery-status-format-string (replace-regexp-in-string "\n" "" battery-status-string)))
-    battery-status-format-string))
-
-(defun battery-macos-segments (battery-percent &rest battery-status-functions)
-  (let* ((battery-status-string (battery-macos-shell-command))
-         (battery-status-segment-functions (cons battery-percent battery-status-functions))
-         (battery-status-segments (mapcar
-                                   (lambda (f)
-                                     (funcall f battery-status-string))
-                                   battery-status-segment-functions)))
-    (destructuring-bind (percent &optional status remaining source)
-        battery-status-segments
-      (list (cons ?L (or source "N/A"))
-            (cons ?p (or (number-to-string percent) "N/A"))
-            (cons ?B (or status "N/A"))
-            (cons ?t (or remaining "N/A"))))))
-
-
-;;;###autoload
-(defun battery-macos-pmset ()
-  (let ((percent (battery-segment percent))
-        (source (battery-segment source))
-        (status (battery-segment status))
-        (remaining (battery-segment remaining)))
-    (battery-macos-segments percent status remaining source)))
-
-
-;; Battery Segment Functions
-
-(defun battery-macos-battery-percent (battery-status-string)
-  (let ((battery-percent-string (substring-no-properties
-                                 battery-status-string
-                                 (string-match "[0-9]+%" battery-status-string)
-                                 (match-end 0))))
-    (string-to-number (replace-regexp-in-string "%" "" battery-percent-string))))
-
-(defun battery-macos-percent ()
-  (battery-macos-battery-percent (battery-macos-shell-command)))
-
-
-(defun battery-macos-battery-source (battery-status-string)
-  (substring-no-properties battery-status-string
-                           (+ 1 (string-match
-                                 "'"
-                                 battery-status-string))
-                           (string-match
-                            "'"
-                            battery-status-string (match-end 0))))
-
-;; Battery Status Point Helper Functions
-
-(defun battery-macos/status-point-begin (battery-status-string)
-  (with-temp-buffer
-    (insert battery-status-string)
-    (goto-char (point-min))
-    (re-search-forward ";")
-    (point)))
-
-(defun battery-macos/status-point-end (battery-status-string)
-  (with-temp-buffer
-    (insert battery-status-string)
-    (goto-char (point-min))
-    (re-search-forward ";" nil nil 2)
-    (point)))
-
-
-(defun battery-macos-battery-status (battery-status-string)
-  (let* ((pointb (battery-macos/status-point-begin battery-status-string))
-         (pointe (battery-macos/status-point-end battery-status-string))
-         (status (substring-no-properties battery-status-string pointb pointe)))
-    (replace-regexp-in-string "; " "" status)))
-
-(defun battery-macos-status ()
-  (battery-macos-battery-status (battery-macos-shell-command)))
-
-
-(defun battery-macos-battery-remaining (battery-status-string)
-  (substring-no-properties battery-status-string
-                           (string-match
-                            "[0-9]\\:[0-9]\\{2\\}"
-                            battery-status-string)
-                           (match-end 0)))
-
-(defun battery-macos-remaining ()
-  (battery-macos-battery-remaining (battery-macos-shell-command)))
-
-(defun battery-macos-format (format alist)
-  "Substitute %-sequences in FORMAT."
-  (replace-regexp-in-string
-   "%\\w"
-   (lambda (str)
-     (let ((char (aref str 1)))
-       (if (eq char ?%) "%"
-         (or (cdr (assoc char alist)) ""))))
-   format t t))
-
-;; Spaceline
-(defvar battery-macos-battery-charge '("battery-charging" . "all-the-icons"))
-(defvar battery-macos-battery-full   '("battery-full" . "FontAwesome"))
-(defvar battery-macos-battery-high   '("battery-three-quarters" . "FontAwesome"))
-(defvar battery-macos-battery-mid    '("battery-half" . "FontAwesome"))
-(defvar battery-macos-battery-low    '("battery-quarter" . "FontAwesome"))
-(defvar battery-macos-battery-empty  '("battery-empty" . "FontAwesome"))
-
-(defvar battery-macos-battery-status-icons-alist
-  '(
-    'battery-macos-battery-charge
-    'battery-macos-battery-full
-    'battery-macos-battery-high
-    'battery-macos-battery-mid
-    'battery-macos-battery-low
-    'battery-macos-battery-empty
-    ))
-
-(defvar battery-macos-battery-icon-data-alist
-  '(
-    ("battery-charging"   . "\xe939" )
-    ("battery-empty" . "\xf244")
-    ("battery-full" . "\xf240")
-    ("battery-three-quarters" . "\xf241")
-    ("battery-half" . "\xf242")
-    ("battery-quarter" . "\xf243")
-    ))
-
-(defun battery-macos-status-icon (battery-icon-name &optional data-alist)
-  (let ((alist (or data-alist battery-macos-battery-icon-data-alist)))
-    (cdar (seq-filter (lambda (x) (string= battery-icon-name (car x))) alist))))
-
-(defun battery-macos-status-icon-propertize (battery-icon-var)
-  (let* ((battery-icon-name (car battery-icon-var))
-         (battery-icon-font-family (cdr battery-icon-var))
-         (battery-icon-unicode (battery-macos-status-icon battery-icon-name)))
-    (propertize battery-icon-unicode
-                'font-lock-ignore t
-                'rear-nonstick t
-                'display '(raise 0.01)
-                'height 10
-                'face
-                `(:inherit (powerline-active2) :family ,battery-icon-font-family :height 1))))
-
-(defun battery-macos/add-battery-icon-to-segment-alist (battery-icon-var)
-  (let ((battery-segment-alist (battery-pmset)))
-    (add-to-list 'battery-segment-alist
-                 (cons ?i
-                       (battery-macos-status-icon-propertize
-                        battery-icon-var)))
-    battery-segment-alist))
-
-(defun battery-macos-spaceline-format (battery-icon-var)
-  (let ((alist (battery-macos/add-battery-icon-to-segment-alist battery-icon-var))
-        (space (propertize " " 'display '(space . (:width 1)))))
-    (concat
-     space
-     (replace-regexp-in-string "\\([0-9]+\\)" "\\1%%"
-                               (battery-macos-format
-                                battery-macos-mode-line-format alist)))))
-
-
-
-
-;; Spaceline Segment
-(spaceline-define-segment battery-macos
-  (let ((percent (battery-macos-percent))
-	(status (battery-macos-status)))
-    (cond ((string= status "charging")
-           (battery-macos-spaceline-format battery-macos-battery-charge))
-          ((= percent 100)
-           (battery-macos-spaceline-format battery-macos-battery-full))
-          ((> percent 75)
-           (battery-macos-spaceline-format battery-macos-battery-high))
-          ((> percent 50)
-           (battery-macos-spaceline-format battery-macos-battery-mid))
-          ((> percent 25)
-           (battery-macos-spaceline-format battery-macos-battery-low))
-          (t
-           (battery-macos-spaceline-format battery-macos-battery-empty))))
-  :tight t)
-
-#+END_SRC
-
 ****** Flycheck Segment
 
 By default, =spacleine-all-the-icons= theme displays the flycheck
@@ -2986,84 +3007,90 @@ This disables Emacs asking questions about loading a new theme.
 
 **** Zenburn Theme
 
-#+NAME: zenburn-theme
+#+NAME: zenburn-theme-cfg
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package zenburn-theme
   :straight t
   :config
-  (load-theme 'zenburn))
+  (progn
+    (add-to-list 'custom-enabled-themes 'zenburn-theme)))
+
 #+END_SRC
 
 **** Atom One Dark Theme
 
-#+NAME: atom-one-dark-theme
+#+NAME: atom-theme-cfg
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package atom-one-dark-theme
   :straight t
   :config
-  (add-hook 'after-init-hook
-            (load-theme 'atom-one-dark t)))
+  (progn
+    (add-to-list 'custom-enabled-themes 'atom-one-dark)))
+#+END_SRC
+
+**** Install Themes
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+<<atom-theme-cfg>>
+<<org-mode-ui-ob-theme>>
+<<zenburn-theme-cfg>>
 #+END_SRC
 
 **** Load Themes
 
-Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
+Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(if (display-graphic-p)
-    <<atom-one-dark-theme>>
-  <<zenburn-theme>>)
+I find that zenburn looks better when Emacs is
+started from the terminal.
 
-(when (and (display-graphic-p) *is-mac*)
-  <<org-prettify-ob-theme>>)
- #+END_SRC
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+(load-theme 'org-beautify)
+(load-theme 'atom-one-dark)
+(add-hook 'after-init-hook
+          (lambda ()
+            (load-theme 'atom-one-dark)
+            (load-theme 'org-beautify)
+            <<atom-one-dark-mods>>))
+#+END_SRC
 
 *****  Atom One Dark Modifications
 
 I will go to great lengths to avoid using the customization
 interface. For some reason loading this in the same =progn= block
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: atom-one-dark-mods
+#+BEGIN_SRC emacs-lisp :tangle no
 (when (member 'atom-one-dark custom-enabled-themes)
-  ;; Org Faces
-  (set-face-attribute 'org-block-begin-line nil :foreground "#ABB2BF"
-		      :background "#35373E")
-  (set-face-attribute 'org-block-end-line nil :foreground "#ABB2BF"
-                      :background "#35373E")
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch-serif))
-  (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-  (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
-  (set-face-attribute 'font-lock-string-face nil :slant 'italic)
-  (set-face-attribute 'vertical-border nil :foreground "#5C6370")
-  ;; Dired Faces
-  (set-face-attribute 'diredp-compressed-file-name nil :inherit 'dired-warning)
-  (set-face-attribute 'diredp-dir-heading nil :inherit 'dired-header
-		      :background nil :foreground nil)
-  (set-face-attribute 'diredp-symlink nil :inherit 'dired-symlink)
-  (set-face-attribute 'diredp-dir-name nil :inherit 'dired-directory
-                      :background "#2C2C2C")
-  (set-face-attribute 'diredp-dir-priv nil :inherit 'dired-directory
-                      :background "#2C2C2C")
-  (setq highlight-symbol-foreground-color
-        "#E0E0E0"
-        highlight-symbol-colors
-        '("#FFEE58" "#C5E1A5" "#80DEEA"
-          "#64B5F6" "#E1BEE7" "#FFCC80")
-        highlight-tail-colors
-        '(("#F8BBD0" . 0) ("#FF80AB" . 10)
-          ("#9575CD" . 30) ("#494949" . 60)
-          ("#424242" . 80))
-        hl-bg-colors
-        '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
-          "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
-        hl-fg-colors
-        '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
-          "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
-        hl-paren-colors
-        '("#B9F" "#B8D" "#B7B" "#B69"
-          "#B57" "#B45" "#B33" "#B11")
-        nrepl-message-colors
-        '("#dc322f" "#cb4b16" "#b58900")))
+   ;; Org Faces
+   (set-face-attribute 'org-block-begin-line nil :foreground "#ABB2BF"
+           :background "#35373E")
+   (set-face-attribute 'org-block-end-line nil :foreground "#ABB2BF"
+                       :background "#35373E")
+   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch-serif))
+   (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+   (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
+   (set-face-attribute 'font-lock-string-face nil :slant 'italic)
+   (set-face-attribute 'vertical-border nil :foreground "#5C6370")
+   (setq highlight-symbol-foreground-color
+         "#E0E0E0"
+         highlight-symbol-colors
+         '("#FFEE58" "#C5E1A5" "#80DEEA"
+           "#64B5F6" "#E1BEE7" "#FFCC80")
+         highlight-tail-colors
+         '(("#F8BBD0" . 0) ("#FF80AB" . 10)
+           ("#9575CD" . 30) ("#494949" . 60)
+           ("#424242" . 80))
+         hl-bg-colors
+         '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
+           "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
+         hl-fg-colors
+         '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
+           "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
+         hl-paren-colors
+         '("#B9F" "#B8D" "#B7B" "#B69"
+           "#B57" "#B45" "#B33" "#B11")
+         nrepl-message-colors
+         '("#dc322f" "#cb4b16" "#b58900")))
 #+END_SRC
 
 *** All The Icons
@@ -3073,7 +3100,7 @@ interface. For some reason loading this in the same =progn= block
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (when (display-graphic-p)
   <<all-the-icons-setup>>
-  ;; <<all-the-icons-dired>>
+  <<all-the-icons-dired>>
   <<all-the-icons-ivy>>
   <<all-the-icons-spaceline>>)
 #+END_SRC
@@ -3082,7 +3109,13 @@ interface. For some reason loading this in the same =progn= block
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package all-the-icons
   :if (display-graphic-p)
-  :straight t)
+  :straight t
+  :config
+  (progn
+    (setq macos-font-directory "~/Library/Fonts")
+    (if-not (member "all-the-icons.ttf" (directory-files macos-font-directory))
+        (all-the-icons-install-fonts))))
+
 #+END_SRC
 
 **** Ivy All the Icons
@@ -3197,7 +3230,7 @@ As a git client though, magit is awesome.
 ***** Extending Magit
 
 #+NAME: magit-extensions
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
 <<magit-done>>
 <<magit-done-no-prompt>>
 #+END_SRC
@@ -3384,6 +3417,7 @@ the user will be prompted to edit the search string first."
 (use-package browse-at-remote
   :straight t)
 #+END_SRC
+
 *** When no external web browser is available
 **** Set the default browser =eww=
 
@@ -3422,7 +3456,7 @@ using =eww= as a matter of personal preference.
 *** Mu
 
 #+NAME: mu-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package mu4e
   :if *is-mac*
   :load-path "/usr/local/Cellar/mu/0.9.18_1/share/emacs/site-lisp/mu/mu4e"
@@ -4385,232 +4419,6 @@ CIDER eldoc information.
                       c-indent-comments-syntactically-p t)))))
 #+END_SRC
 
-*** LaTeX
-
-Note that LaTeX packages are loaded, configured, and installed when
-='latex= is a member of =org-export-enabled-backends=.
-
-
-#+NAME: latex-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<latex-tex-config>>
-;; Company AucTeX
-<<company-auctex-config>>
-;; RefTeX
-<<reftex-config>>
-(init-reftex)
-;; Bibtex Config
-<<bibtex-config>>
-;; Magic Latex Buffer
-<<magic-latex-buffer-config>>
-
-;; Org Edit Latex Buffer
-<<org-edit-latex-config>>
-<<org-highlight-related-tex>>
-
-;; cdlatex
-<<cdlatex-mode>>
-
-;; Latex Extra
-<<latex-extra-config>>
-;; Auctex latexmk
-<<auctex-latexmk-config>>
-
-<<texinfo-config>>
-#+END_SRC
-
-**** Tex
-
-#+NAME: latex-tex-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
-(use-package tex
-  :straight (auctex
-             :host github
-             :repo "emacsmirror/auctex"
-             :files (:defaults (:exclude "*.el.in")))
-  :defer t
-  :defines latex-nofill-env
-  :functions chaffin--tex-auto-fill-mode
-  :init
-  (progn
-    (setq TeX-command-default "LaTeX"
-          TeX-engine 'xetex
-          TeX-auto-save t
-          TeX-parse-self t
-          TeX-syntactic-comment t
-          TeX-source-correlate-start-server nil
-          LaTeX-fill-break-at-separators nil)
-    (defvar latex-nofill-env '("equation"
-                               "equation*"
-                               "align"
-                               "align*"
-                               "tabular"
-                               "forest"
-                               "tikzpicture"))
-    (defun chaffin--tex-autofill ()
-      "Check whether the pointer is currently inside one of
-       the environments in `latex-nofill-env` and inhibits auto-filling
-       of the current paragraph."
-      (let ((do-auto-fill t)
-            (current-environment "")
-            (level 0))
-        (while (and do-auto-fill (not (string= current-environment "document")))
-          (setq level (1+ level)
-                current-environment (LaTeX-current-environment level)
-                do-auto-fill (not (member current-environment latex-nofill-env)))))
-      (when do-auto-fill
-        (do-auto-fill)))
-
-    (defun tex-auto-fill-mode ()
-      (interactive)
-      (auto-fill-mode)
-      (setq auto-fill-mode 'chaffin--tex-autofill))
-
-    (add-hook 'LaTeX-mode-hook 'tex-auto-fill-mode)
-    (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-    (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
-    (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
-#+END_SRC
-
-**** Bibtex
-
-#+NAME: bibtex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq bibtex-autokey-year-length 2
-      bibtex-autokey-name-year-separator "-"
-      bibtex-autokey-year-title-separator "-"
-      bibtex-autokey-titleword-separator "-"
-      bibtex-autokey-titlewords 2
-      bibtex-autokey-titlewords-stretch 1
-      bibtex-autokey-titleword-length 5)
-#+END_SRC
-
-**** LaTeX Extra
-
-#+NAME: latex-extra-config
-#+BEGIN_SRC emacs-lisp :tangle no
-;; See [1] https://github/Malabarba/latex-extra/issues/23
-(let ((byte-compile-warnings '(not free-vars)))
-  (use-package latex-extra
-    :straight t
-    :config
-    (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
-#+END_SRC
-
-**** LaTeX Preview Pane
-
-Not tangling right now because it's creating a new buffer after every
-save.
-
-#+NAME: latex-preview-pane-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package latex-preview-pane
-  :straight t
-  :config (latex-preview-pane-enable))
-#+END_SRC
-
-**** Company AucTeX
-
-#+NAME: company-auctex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-auctex
-  :demand t
-  :after (auctex)
-  (company-auctex-init))
-#+END_SRC
-
-**** Org Edit Latex
-
-#+NAME: org-edit-latex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-edit-latex
-  :straight t)
-#+END_SRC
-
-**** cdlatex
-
-#+NAME: cdlatex-mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package cdlatex
-  :straight t
-  :if *is-hal*
-  :config
-  (progn
-    ;; Disable auto label insertion in expanded template.
-    ;; Labels conflict when used in conjunction with `org-ref'
-    (setq cdlatex-insert-auto-labels-in-env-templates nil)
-    ;; with AucTeX LaTeX mode
-    (add-hook 'LaTeX-mode-hook
-              'turn-on-cdlatex)
-    ;; with Emacs latex mode
-    (add-hook 'latex-mode-hook
-              'turn-on-cdlatex)))
-#+END_SRC
-
-**** Highlight Inline LaTeX fragments
-
-#+NAME: org-highlight-related-tex
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-highlight-latex-and-related '(latex))
-#+END_SRC
-
-**** Magic Latex Buffer
-
-Prettify dedicated org-mode latex buffers.
-
-#+NAME: magic-latex-buffer-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package magic-latex-buffer
-  :straight t
-  :init
-  (progn
-    (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
-    (setq magic-latex-enable-block-highlight t
-	  magic-latex-enable-suscript t
-	  magic-latex-enable-pretty-symbols t
-	  magic-latex-enable-block-align nil
-	  magic-latex-enable-inline-image t)))
-#+END_SRC
-
-**** Auctex Latexmk
-
-#+NAME: auctex-latexmk-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package auctex-latexmk
-  :straight t
-  :config
-  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
-#+END_SRC
-
-**** RefTeX
-
-
-RefTeX is a citation and reference tool maintained by the
-AucTeX team.
-
-Since Emacs 24.3, its built in with the Emacs distribution.
-
-#+NAME: reftex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-  (defun init-reftex ()
-    (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
-    (setq reftex-plug-into-AUCTeX '(nil nil t t t)
-          reftex-use-fonts t
-          reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
-#+END_SRC
-
-**** Texinfo
-
-#+NAME: texinfo-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package texinfo
-  :straight t
-  :defines texinfo-section-list
-  :commands texinfo-mode
-  :init
-  (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
-#+END_SRC
-
 *** Java
 
 #+NAME: chaffin-java-backend
@@ -4900,9 +4708,9 @@ Real jsx support.
 #+NAME: js-company-tern
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-tern
-  :straight t
   :demand t
   :after (:all tern company)
+  :straight t
   :init
   (add-to-list 'company-backends 'company-tern)
   :config
@@ -5163,6 +4971,8 @@ Real jsx support.
 #+NAME: python-anaconda-company
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-anaconda
+  :demand t
+  :after (:all anaconda-mode company)
   :straight t
   :init
   (with-eval-after-load 'company
@@ -5253,9 +5063,9 @@ Real jsx support.
   (use-package web-mode
     :straight t
     :bind (:map web-mode-map
-		;; I should rebind this because it conficts
-		;; with `company-select-next-or-abort'
-		("M-n" . web-mode-tag-match))
+        		;; I should rebind this because it conficts
+        		;; with `company-select-next-or-abort'
+        		("M-n" . web-mode-tag-match))
     :mode
     (("\\.phtml\\'"      . web-mode)
      ("\\.tpl\\.php\\'"  . web-mode)
@@ -5323,9 +5133,10 @@ Real jsx support.
   :straight t
   :defer t
   :init
-  (add-to-hooks 'emmet-mode '(css-mode-hook
-			     html-mode-hook
-			     web-mode-hook)))
+  (add-to-hooks 'emmet-mode
+   '(css-mode-hook
+     html-mode-hook
+     web-mode-hook)))
 #+END_SRC
 
 **** HTML
@@ -5417,6 +5228,8 @@ and slim-mode using company.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package company-web
   :straight t
+  :demand t
+  :after (:all company web-mode)
   :init
   (progn
     <<js-company-tern>>
