@@ -15,8 +15,6 @@
   - [[#package-management][Package Management]]
     - [[#straight][Straight]]
       - [[#figure-out-way-to-render-relative-paths-as-absolute-on-remote-server-eg-on-github][Figure out way to render relative paths as absolute on remote server (eg on GitHub)]]
-    - [[#use-package][Use Package]]
-    - [[#default-packages][Default Packages]]
   - [[#user-information][User Information]]
   - [[#core][Core]]
     - [[#keybindings][Keybindings]]
@@ -36,17 +34,15 @@
       - [[#list-directory-contents-without-wildcards][List Directory Contents without wildcards]]
       - [[#resolve-path][Resolve Path]]
       - [[#explore-a-local-repository][Explore a local repository]]
+    - [[#default-libraries][Default Libraries]]
   - [[#environment][Environment]]
-    - [[#macos][macOS]]
-      - [[#macos-terminal-encoding][MacOS Terminal Encoding]]
+    - [[#os][OS]]
+      - [[#system-packages][System Packages]]
       - [[#macos-keybindings][MacOS Keybindings]]
       - [[#macos-computer-name][MacOS Computer Name]]
       - [[#macos-dev-utils][MacOS Dev Utils]]
       - [[#macos-dash][MacOS Dash]]
-      - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
-      - [[#osx-dictionary][OSX Dictionary]]
-      - [[#exec-path-from-shell][Exec Path From Shell]]
-    - [[#other-operating-systems][Other Operating Systems]]
+      - [[#macos][macOS]]
       - [[#windowspc][Windows/PC]]
       - [[#linux][Linux]]
     - [[#custom-file][Custom File]]
@@ -63,11 +59,26 @@
     - [[#org-utilities][Org Utilities]]
       - [[#org-capture][Org Capture]]
       - [[#org-pomodoro][Org Pomodoro]]
-      - [[#org-ref][Org Ref]]
       - [[#org-id][Org ID]]
       - [[#spell-checking][Spell Checking]]
       - [[#org-download][Org Download]]
-      - [[#org-hyperlinksfn15][Org Hyperlinks[fn:15]]]
+      - [[#org-hyperlinks][Org Hyperlinks]]
+  - [[#latex][LaTeX]]
+    - [[#tex][Tex]]
+    - [[#reftex][RefTeX]]
+    - [[#bibtex][Bibtex]]
+    - [[#latex-extra][LaTeX Extra]]
+    - [[#latex-preview-pane][LaTeX Preview Pane]]
+    - [[#company-auctex][Company AucTeX]]
+    - [[#cdlatex][cdlatex]]
+    - [[#magic-latex-buffer][Magic Latex Buffer]]
+    - [[#auctex-latexmk][Auctex Latexmk]]
+    - [[#texinfo][Texinfo]]
+  - [[#org-latex][Org LaTeX]]
+    - [[#latex-in-org-mode][LaTeX in Org Mode]]
+      - [[#edit-latex][Edit Latex]]
+      - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
+    - [[#org-ref][Org Ref]]
     - [[#org-pdf][Org PDF]]
       - [[#pdf-tools][PDF Tools]]
       - [[#org-pdf-view][Org PDF View]]
@@ -150,6 +161,7 @@
       - [[#enable-custom-themes][Enable Custom Themes]]
       - [[#zenburn-theme][Zenburn Theme]]
       - [[#atom-one-dark-theme][Atom One Dark Theme]]
+      - [[#install-themes][Install Themes]]
       - [[#load-themes][Load Themes]]
     - [[#all-the-icons][All The Icons]]
       - [[#ivy-all-the-icons][Ivy All the Icons]]
@@ -169,8 +181,8 @@
     - [[#osx-browse][osx-browse]]
     - [[#google-search-at-point][Google Search at point]]
     - [[#browse-at-remote][Browse At Remote]]
-    - [[#when-no-external-web-browser-is-availablefn12][When no external web browser is available[fn:12]]]
-      - [[#set-the-default-browser-ewwfn14][Set the default browser =eww=[fn:14]]]
+    - [[#when-no-external-web-browser-is-available][When no external web browser is available]]
+      - [[#set-the-default-browser-eww][Set the default browser =eww=]]
       - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
   - [[#email][Email]]
     - [[#mu][Mu]]
@@ -241,7 +253,6 @@
       - [[#add-node-modules-path-repository][Add Node Modules Path (repository)]]
       - [[#npm-mode][Npm Mode]]
       - [[#nvm][NVM]]
-      - [[#flycheck-javascript][Flycheck JavaScript]]
     - [[#markdown][Markdown]]
       - [[#markdown-mode][Markdown Mode]]
       - [[#markdown-mode-1][markdown-mode+]]
@@ -333,10 +344,10 @@ harder due to my misconception regrading the value of reading
 documentation), I've come to find it reduces a lot of the weirdness
 of the Emacs loading process and increases the rapidity (shall I say
 agility? no..) with which I comprehend the way third-party packages are
-implemented and modify them as I deem necessary. 
+implemented and modify them as I deem necessary.
 
 **** TODO Figure out way to render relative paths as absolute on remote server (eg on GitHub)
-- Spacemacs does this in the README.org of each layer. 
+- Spacemacs does this in the README.org of each layer.
 
 *** Use Package
 
@@ -486,7 +497,7 @@ Clojure-like =if-not= macro in elisp.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun chaffin-eval-buffer ()
-  "Evaluate current buffer using the `straight' 
+  "Evaluate current buffer using the `straight'
    transaction system."
   (interactive)
   (message "Evaluating %s..." (buffer-name))
@@ -628,7 +639,7 @@ buffer.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun emacs-directory-resolve-path (&rest path)
   "Resolve a file path relative to the `user-emacs-directory.'
-  PATH is a destructured list of path segments. The file path 
+  PATH is a destructured list of path segments. The file path
   separator is determined based on the current operating system
   in `resolve-path'."
   (let* ((separators (if (eq system-name 'windows)
@@ -664,12 +675,39 @@ interactive minibuffer completion menu using ivy.
   (define-key goto-map "r" #'goto-repo))
 #+END_SRC
 
-** Environment
-*** macOS
+*** Default Libraries
 
-I work on a macbook, so this block is where I'm loading all of my
-settings that rely on local filepaths, macOS applications, and
+#+NAME: core-default-libs
+#+BEGIN_SRC emacs-lisp :tangle yes
+(eval-when-compile
+  (require 'subr-x)
+  (require 'cl)
+  (require 'seq)
+  (require 'dash))
+#+END_SRC
+
+** Environment
+*** OS
+**** System Packages
+
+Utilities for managing system packages in Emacs using an external
+package manager.
+
+#+NAME: os-sys-packages
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package system-packages
+  :straight t
+  :config
+  (when *is-mac*
+    (setq system-packages-package-manager "brew")))
+#+END_SRC
+
+**** macOS
+
+I work on a macbook, so this section is where I'm loading all of my
+settings that rely on local file paths, macOS applications, and
 external programs.
+
 
 #+NAME: defconst-is-macos
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -677,7 +715,7 @@ external programs.
 #+END_SRC
 
 #+NAME: macos-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports results :results output
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (when *is-mac*
    (progn
      <<macos-terminal-encoding>>
@@ -689,7 +727,7 @@ external programs.
 #+END_SRC
 
 
-**** MacOS Terminal Encoding
+***** MacOS Terminal Encoding
 
 #+NAME: macos-terminal-encoding
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -697,10 +735,10 @@ external programs.
 (prefer-coding-system 'utf-8)
 #+END_SRC
 
-**** MacOS Keybindings
+***** MacOS Keybindings
 
 #+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<macos-modifier-keymap>>
 <<macos-prefix-command>>
 #+END_SRC
@@ -732,7 +770,7 @@ Also sets terminal coding system to "utf-8".
 (define-key 'chaffin-keymap "m" 'macos-keymap)
 #+END_SRC
 
-**** MacOS Computer Name
+***** MacOS Computer Name
 
 #+NAME: defvar-computer-name
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -747,10 +785,10 @@ Also sets terminal coding system to "utf-8".
 (defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
-**** MacOS Dev Utils
+***** MacOS Dev Utils
 
 Small library for opening files and buffers in external text
-editors and various other applications on macOS. 
+editors and various other applications on macOS.
 
 #+NAME: macos-dev-utils
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -762,7 +800,7 @@ editors and various other applications on macOS.
   :config
   (progn
     (define-prefix-command 'macos-open-with-keymap)
-    (define-prefix-command 'macos-iterm-keymap)    
+    (define-prefix-command 'macos-iterm-keymap)
     (define-key 'macos-keymap "o" 'macos-open-with-keymap)
     (define-key 'macos-keymap "t" 'macos-iterm-keymap)
     ;; macos-open-with keybindings
@@ -778,30 +816,30 @@ editors and various other applications on macOS.
     (define-key 'macos-iterm-keymap "s" 'iterm-shell-command)))
 #+END_SRC
 
-**** MacOS Dash
+***** MacOS Dash
 
 Dash.app is an application for quickly searching and navigating API
-docsets for programming tools and languages. 
+docsets for programming tools and languages.
 There are already two Emacs plugins that utilize Dash docsets,
 helm-dash and counsel-dash, which is a simple wrapper around helm
 dash.
 
 For whatever reason, I can't figure out how to open the docset in an
-=eww= frame or in an external browser using =browse-url=. 
+=eww= frame or in an external browser using =browse-url=.
 
 Because of the OS/licensing restrictions of Dash.app, both these
 packages try to solve the problem of creating an interface for users
-to navigate, query, and switch between docsets. 
+to navigate, query, and switch between docsets.
 
 Because I've purchased a license and run macOS locally, I'm going to
 bypass that problem and define a function that uses the
 =dash-plugin://= protocol to launch/switch to the application and
-query it with the marked region or symbol at point. 
+query it with the marked region or symbol at point.
 
 #+NAME: macos-dash-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (defvar dash-plugin-keywords nil
-  "An `alist' of keywords representing the docsets which should 
+  "An `alist' of keywords representing the docsets which should
   searched in the query to Dash.app")
 
 (defun macos-dash-at-point ()
@@ -823,7 +861,7 @@ query it with the marked region or symbol at point.
         (substring-no-properties (or (thing-at-point 'symbol) "")))))))
 #+END_SRC
 
-**** Reveal in macOS Finder
+***** Reveal in macOS Finder
 #+NAME: macos-finder-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
@@ -832,7 +870,7 @@ query it with the marked region or symbol at point.
   (define-key 'macos-keymap "f" #'reveal-in-osx-finder))
 #+END_SRC
 
-**** OSX Dictionary
+***** OSX Dictionary
 
 Provides an interface to /Dictionary.app/ in Emacs.
 
@@ -848,7 +886,7 @@ Provides an interface to /Dictionary.app/ in Emacs.
     (define-key 'osx-dictionary-keymap "i" 'osx-dictionary-search-input)))
 #+END_SRC
 
-**** Exec Path From Shell
+***** Exec Path From Shell
 
 Emacs relies heavily on shell environment variables.
 
@@ -874,11 +912,10 @@ conditionally loading dependencies.
   :if (memq window-system '(mac ns))
   :straight t
   :config
-  (exec-path-from-shell-initialize)
-  (setq exec-path-from-shell-check-startup-files nil))
+  (progn
+    (exec-path-from-shell-initialize)
+    (setq exec-path-from-shell-check-startup-files nil)))
 #+END_SRC
-
-*** Other Operating Systems
 
 **** Windows/PC
 
@@ -893,6 +930,7 @@ conditionally loading dependencies.
 #+BEGIN_SRC emacs-lisp :tangle no
 (defconst *is-linux* (eq system-type 'gnu/linux))
 #+END_SRC
+
 
 ***** SEAS Linux
 Determine if =system-name= is UCLA SEAS lnxsrv cluster.
@@ -972,28 +1010,27 @@ issues with build commands in [[#gradle-mode][gradle-mode]]
 
 #+NAME: org-mode-settings
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<org-prettify>>
-<<org-utils>>
-<<org-pdf>>
-<<org-export>>
+<<org-mode-ui>>
+<<org-mode-utilities>>
 #+END_SRC
+
 
 *** Org Prettify
 
 These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
 
-#+NAME: org-prettify
+#+NAME: org-mode-ui
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-prettify-text>>
-<<org-prettify-image>>
-<<org-prettify-bullets>>
-<<org-prettify-toc-org>>
+<<org-mode-ui-text>>
+<<org-mode-ui-image>>
+<<org-mode-ui-bullets>>
+<<org-mode-ui-toc-org>>
 #+END_SRC
 
 **** Improve Legibility
 
-#+NAME: org-prettify-text
+#+NAME: org-mode-ui-text
 #+BEGIN_SRC emacs-lisp :tangle no
   (add-hook #'org-mode-hook (lambda ()
                               (auto-fill-mode)
@@ -1004,7 +1041,7 @@ org-mode buffers.
 
 Make images compact.
 
-#+NAME: org-prettify-image
+#+NAME: org-mode-ui-image
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-image-actual-width 400)
 #+END_SRC
@@ -1013,7 +1050,7 @@ Make images compact.
 
 Use UTF-8 Bullets for Org-mode headings.
 
-#+NAME: org-prettify-bullets
+#+NAME: org-mode-ui-bullets
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
   :straight t
@@ -1030,20 +1067,19 @@ Use UTF-8 Bullets for Org-mode headings.
 :END:
 
 
-#+NAME: org-prettify-ob-theme
+#+NAME: org-mode-ui-ob-theme
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-beautify-theme
   :straight t
   :config
   (progn
     (setq org-beautify-theme-use-box-hack nil)
-    (add-to-list 'custom-enabled-themes 'org-beautify)
-    (load-theme 'org-beautify t)))
+    (add-to-list 'custom-enabled-themes 'org-beautify)))
 #+END_SRC
 
 **** TOC Org
 
-#+NAME: org-prettify-toc-org
+#+NAME: org-mode-ui-toc-org
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package toc-org
   :straight t
@@ -1053,10 +1089,9 @@ Use UTF-8 Bullets for Org-mode headings.
 
 *** Org Utilities
 
-#+NAME: org-utils
+#+NAME: org-mode-utilities
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-utils-pomodoro>>
-<<org-utils-ref>>
 <<org-utils-id>>
 <<org-utils-download>>
 <<org-utils-hlink>>
@@ -1111,72 +1146,16 @@ Use UTF-8 Bullets for Org-mode headings.
         org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav")))
 #+END_SRC
 
-#+RESULTS: org-utils-pomodoro-org-pomodoro
-: org-pomodoro
 
 ***** Org Pomodoro Path Helper
 
-Utility for simplifying the path to the given audio file path used 
+Utility for simplifying the path to the given audio file path used
 by [[#org-pomodoro][org-pomodoro]].
 
 #+NAME: org-utils-pomodoro-path-helper
 #+BEGIN_SRC emacs-lisp :tangle no
 (defalias #'org-pomodoro-path
   (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
-#+END_SRC
-
-**** Org Ref
-:PROPERTIES:
-:ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
-:CUSTOM_ID: org-ref
-:END:
-
-#+NAME: org-utils-ref
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-(when (display-graphic-p)
-  <<org-utils-ref-settings>>
-  <<org-utils-ref-ivy>>
-  <<org-utils-ref-open-pdf-at-point>>)
-#+END_SRC
-
-
-#+NAME: org-utils-ref-settings
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
-(use-package org-ref
-  :straight t
-  :defer t
-  :config
-  (progn
-    (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
-          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
-          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/")
-          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
-          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib"))
-    (require 'org-ref-pdf)
-    (require 'org-ref-latex)
-    (require 'org-ref-reftex)
-    (require 'org-ref-utils)
-    (require 'org-ref-url-utils)
-    (require 'org-ref-pubmed)
-    (require 'org-ref-scopus)
-    (require 'org-ref-scifinder)
-    (require 'org-ref-citeproc)
-    (require 'org-ref-sci-id)
-    (require 'org-ref-isbn)
-    (require 'org-ref-wos)
-    (require 'org-ref-worldcat)
-    (require 'x2bib)))
-#+END_SRC
-
-***** Org Ref Ivy
-
-#+NAME: org-utils-ref-ivy
-#+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'ivy
-  (setq org-ref-completion-library 'org-ref-ivy-cite)
-  (require 'org-ref)
-  (require 'org-ref-ivy)
-  (require 'org-ref-ivy-cite))
 #+END_SRC
 
 ***** Open Pdf at point
@@ -1195,8 +1174,6 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
         (find-file pdf-file)
       (message "No PDF found for %s" key))))
 
-(setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
-#+END_SRC
 
 **** Org ID
 
@@ -1248,7 +1225,6 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
         (org-entry-put pom "CUSTOM_ID" id)
         (org-id-add-location id (buffer-file-name (buffer-base id))))))))
 #+END_SRC
-
 
 ***** Add IDs to Headlines in file
 
@@ -1303,16 +1279,16 @@ Add spell checking in org mode buffers using Flyspell.
     (setq-default org-download-image-dir "~/Dropbox/org/img/")))
 #+END_SRC
 
-**** Org Hyperlinks[fn:15]
+**** Org Hyperlinks
 
 #+NAME: org-utils-hlink
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-utils-hlink-org-man>>
 #+END_SRC
 
 ***** Org Man
 
-#+NAME: <<org-utils-hlink-org-man>>
+#+NAME: org-utils-hlink-org-man
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (org-add-link-type "man" 'org-man-open)
 (add-hook 'org-store-link-functions 'org-man-store-link)
@@ -1347,14 +1323,326 @@ PATH should be a topic that can be thrown at the man command."
     (error "Cannot create link to this man page")))
 #+END_SRC
 
+** LaTeX
+
+#+NAME: latex-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<latex-tex>>
+
+;; Reftex
+<<latex-reftex>>
+(init-reftex)
+
+;; Bibtex
+<<latex-bibtex>>
+
+;; Company backend for latex completion
+<<latex-company-auctex>>
+
+;; Prettify latex buffers
+<<latex-magic-latex-buffer>>
+
+;; Extra latex utilities
+<<latex-latex-extra>>
+
+;; Cdlatex
+<<latex-cdlatex>>
+
+;; Auctex Latexmk
+<<latex-auctex-latexmk>>
+
+;; Texinfo mode
+<<latex-texinfo>>
+#+END_SRC
+
+Note that LaTeX packages are loaded, configured, and installed when
+='latex= is a member of =org-export-enabled-backends=.
+
+*** Tex
+#+NAME: latex-tex
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+  (use-package tex
+    :straight auctex
+    :defines latex-nofill-env
+    :functions chaffin--tex-autofill
+    :config
+    (progn
+      (setq LaTeX-fill-break-at-separators nil)
+      (defvar latex-nofill-env '("equation"
+                                 "equation*"
+                                 "align"
+                                 "align*"
+                                 "tabular"
+                                 "tikzpicture"))
+      (defun chaffin--tex-autofill ()
+        "Check whether the pointer is currently inside one of
+         the environments in `latex-nofill-env` and inhibits auto-filling
+         of the current paragraph."
+        (let ((do-auto-fill t)
+              (current-environment "")
+              (level 0))
+          (while (and do-auto-fill (not (string- current-environment "document")))
+            (setq level (1+ level)
+                  current-environment (LaTeX-current-environment level)
+                  do-auto-fill (not (member current-environment latex-nofill-env)))))
+        (when do-auto-fill
+          (do-auto-fill)))
+
+      (defun tex-auto-fill-mode ()
+        (interactive)
+        (auto-fill-mode)
+        (setq auto-fill-mode 'chaffin--tex-autofill))
+
+      (add-hook 'LaTeX-mode-hook 'tex-auto-fill-mode)
+      (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+      (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+      (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
+#+END_SRC
+
+*** RefTeX
+
+
+RefTeX is a citation and reference tool maintained by the
+AucTeX team.
+
+Since Emacs 24.3, its built in with the Emacs distribution.
+
+#+NAME: latex-reftex
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defun init-reftex ()
+    (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+    (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+          reftex-use-fonts t
+          reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
+#+END_SRC
+
+*** Bibtex
+
+#+NAME: latex-bibtex
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq bibtex-autokey-year-length 2
+      bibtex-autokey-name-year-separator "-"
+      bibtex-autokey-year-title-separator "-"
+      bibtex-autokey-titleword-separator "-"
+      bibtex-autokey-titlewords 2
+      bibtex-autokey-titlewords-stretch 1
+      bibtex-autokey-titleword-length 5)
+#+END_SRC
+
+*** LaTeX Extra
+
+#+NAME: latex-latex-extra
+#+BEGIN_SRC emacs-lisp :tangle no
+;; See [1] https://github/Malabarba/latex-extra/issues/23
+(let ((byte-compile-warnings '(not free-vars)))
+  (use-package latex-extra
+    :straight t
+    :config
+    (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
+#+END_SRC
+
+*** LaTeX Preview Pane
+
+Not tangling right now because it's creating a new buffer after every
+save.
+
+#+NAME: latex-latex-preview-pane
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package latex-preview-pane
+  :straight t
+  :config (latex-preview-pane-enable))
+#+END_SRC
+
+*** Company AucTeX
+
+#+NAME: latex-company-auctex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-auctex
+  :demand t
+  :after (:all company tex)
+  :straight t
+  :init
+  (company-auctex-init))
+#+END_SRC
+
+*** cdlatex
+
+#+NAME: latex-cdlatex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cdlatex
+  :straight t
+  :config
+  (progn
+    ;; Disable auto label insertion in expanded template.
+    ;; Labels conflict when used in conjunction with `org-ref'
+    (setq cdlatex-insert-auto-labels-in-env-templates nil)
+    ;; with AucTeX LaTeX mode
+    (add-hook 'LaTeX-mode-hook
+              'turn-on-cdlatex)
+    ;; with Emacs latex mode
+    (add-hook 'latex-mode-hook
+              'turn-on-cdlatex)))
+#+END_SRC
+
+*** Magic Latex Buffer
+
+Prettify dedicated org-mode latex buffers.
+
+#+NAME: latex-magic-latex-buffer
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package magic-latex-buffer
+  :straight t
+  :init
+  (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
+  :config
+  (setq magic-latex-enable-block-highlight t
+        magic-latex-enable-suscript t
+        magic-latex-enable-pretty-symbols t
+        magic-latex-enable-block-align nil
+        magic-latex-enable-inline-image t))
+#+END_SRC
+
+*** Auctex Latexmk
+
+#+NAME: latex-auctex-latexmk
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package auctex-latexmk
+  :after (:all pdf-tools tex)
+  :straight t
+  :config
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
+#+END_SRC
+
+*** Texinfo
+
+#+NAME: latex-texinfo
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package texinfo
+  :straight t
+  :defines texinfo-section-list
+  :commands texinfo-mode
+  :init
+  (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
+#+END_SRC
+
+** Org LaTeX
+
+#+NAME: org-latex-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-latex-editing>>
+<<org-latex-org-ref>>
+<<org-latex-pdf>>
+#+END_SRC
+
+*** LaTeX in Org Mode
+
+#+NAME: org-latex-editing
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<org-latex-edit-latex>>
+<<org-latex-highlight-tex>>
+#+END_SRC
+
+**** Edit Latex
+
+#+NAME: org-latex-edit-latex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-edit-latex
+  :straight t)
+#+END_SRC
+
+**** Highlight Inline LaTeX fragments
+
+#+NAME: org-latex-highlight-tex
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-highlight-latex-and-related '(latex))
+#+END_SRC
+
+
+*** Org Ref
+:PROPERTIES:
+:ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
+:CUSTOM_ID: org-ref
+:END:
+
+#+NAME: org-latex-org-ref
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+
+;; Org Ref
+<<org-utils-ref-settings>>
+
+;; Org Ref Ivy
+ <<org-utils-ref-ivy>>
+
+;; Org ref pdf
+<<org-utils-ref-open-pdf-at-point>>
+
+#+END_SRC
+
+
+#+NAME: org-utils-ref-settings
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+(use-package org-ref
+  :straight t
+  :config
+  (progn
+    (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
+          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
+          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib"))
+    (require 'org-ref-pdf)
+    (require 'org-ref-latex)
+    (require 'org-ref-reftex)
+    (require 'org-ref-utils)
+    (require 'org-ref-url-utils)
+    (require 'org-ref-pubmed)
+    (require 'org-ref-scopus)
+    (require 'org-ref-scifinder)
+    (require 'org-ref-citeproc)
+    (require 'org-ref-sci-id)
+    (require 'org-ref-isbn)
+    (require 'org-ref-wos)
+    (require 'org-ref-worldcat)
+    (require 'x2bib)))
+#+END_SRC
+
+***** Org Ref Ivy
+
+#+NAME: org-utils-ref-ivy
+#+BEGIN_SRC emacs-lisp :tangle no
+(with-eval-after-load 'ivy
+  (setq org-ref-completion-library 'org-ref-ivy-cite)
+  (require 'org-ref)
+  (require 'org-ref-ivy)
+  (require 'org-ref-ivy-cite))
+#+END_SRC
+
+***** Open Pdf at point
+
+See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view-or-pdf-tools][Using Doc View or PDF Tools]] section of =org-ref= documentation.
+
+#+NAME: org-utils-ref-open-pdf-at-point
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-ref-open-pdf-at-point ()
+  "Open the pdf for bibtex key under point if it exists."
+  (interactive)
+  (let* ((results (org-ref-get-bibtex-key-and-file))
+         (key (car results))
+         (pdf-file (funcall org-ref-get-pdf-filename-function key)))
+    (if (file-exists-p pdf-file)
+        (find-file pdf-file)
+      (message "No PDF found for %s" key))))
+
+(setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
+#+END_SRC
+
 *** Org PDF
 
-#+NAME: org-pdf
+#+NAME: org-latex-pdf
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (when (display-graphic-p)
   <<org-pdf-pdftools>>
   <<org-pdf-pdfview>>
-  <<org-pdf-org-file-apps>>)
+  <<org-pdf-org-file-apps>>
+)
 #+END_SRC
 
 **** PDF Tools
@@ -1400,9 +1688,10 @@ Now we can open pdf files with =org-pdfview=[fn:8]:
 (require 'org-pdfview)
 (add-hook 'org-mode-hook
           (lambda ()
-            (add-to-list 'org-file-apps '("\\.pdf\\'" .
+          (add-to-list 'org-file-apps '("\\.pdf\\'" .
                                           (lambda (file link)
                                             (org-pdfview-open link))))))
+#+END_SRC
 
 #+END_SRC
 
@@ -1412,7 +1701,7 @@ Now we can open pdf files with =org-pdfview=[fn:8]:
 :END:
 
 #+NAME: org-export-enabled-backends
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (defvar org-export-enabled-backends '()
   "alist of symbols representing enabled `org-mode' export backends")
 
@@ -1423,7 +1712,7 @@ Now we can open pdf files with =org-pdfview=[fn:8]:
 And opt-in to all back ends when on local machine.
 
 #+NAME: org-export-enabled-backends-opt-in
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (when *is-mac*
   (mapcar (lambda (backend)
             (setq org-export-enabled-backends
@@ -1432,12 +1721,25 @@ And opt-in to all back ends when on local machine.
 #+END_SRC
 
 #+NAME: org-export
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<org-export-enabled-backends>>
 <<org-export-enabled-backends-opt-in>>
 
+;; Begin latex backend
 (when (chaffin/org-export-enabled-backend-p 'latex)
-  <<org-export-latex>>)
+  ;; Expanding LaTeX Configuration Here
+  <<latex-config>>
+  ;; End LaTeX Config
+  
+  ;; Begin Org LaTeX Expansion
+  <<org-latex-config>>
+  ;; End Org Latex Expansion
+   
+  ;; begin org-export-latex expansion
+  <<org-export-latex>>
+  ;; End org-export-latex expansion
+
+) ;; End LaTeX Backend 
 
 (when (chaffin/org-export-enabled-backend-p 'gfm)
   <<org-export-gfm>>)
@@ -1453,16 +1755,14 @@ And opt-in to all back ends when on local machine.
 
 #+NAME: org-export-latex
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<tex-config>>
+  (require 'ox-latex)
 
-(require 'ox-latex)
-
-<<org-export-latex-user-labels>>
-<<org-export-latex-pdf-process>>
-<<org-export-latex-per-file-class>>
+  <<org-export-latex-user-labels>>
+  <<org-export-latex-pdf-process>>
+  <<org-export-latex-per-file-class>>
 #+END_SRC
 
-***** Latexmk
+***** Set latex pdf process
 
 [[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
 
@@ -1529,7 +1829,6 @@ through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]]
 #+BEGIN_SRC emacs-lisp :tangle no
 (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
 #+END_SRC
-
 
 ***** Hyperref Template
 The default cross-referencing and hyperlink styles provided by
@@ -1655,7 +1954,9 @@ Adds extensions and functionality to dired mode.
 #+NAME: dired-plus-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dired+
-  :straight t)
+  :straight t
+  :config
+  (add-hook #'dired-mode-hook #'dired-hide-details-mode-hook))
 #+END_SRC
 
 ***** Dired Icons
@@ -1752,7 +2053,6 @@ but it's more so an annoyance than anything else once you
 know you're around.
 
 ***** Enable Emojis for org tags in dashboard agenda widget
-
 #+NAME: enable-emojify
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (when (display-graphic-p)
@@ -1770,24 +2070,20 @@ list that one may use in the wacky world of Emacs.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dashboard
   :straight t
+  :demand t
   :init
-  (with-eval-after-load 'page-break-lines
-    (if (not (global-page-break-lines-mode))
-        (global-page-break-lines-mode)))
+  (if (not (global-page-break-lines-mode))
+      (global-page-break-lines-mode))
   :config
   (dashboard-setup-startup-hook))
 
-(with-eval-after-load 'dashboard
-  (defun chaffin/dashboard-init ()
-    (progn
-      (add-to-list 'dashboard-items '(agenda) t)
-      (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
-            dashboard-items '(( agenda . 10)
-                              ( projects . 5)
-                              ( recents . 5)
-                              ( bookmarks . 5)))))
-  (chaffin/dashboard-init))
-      
+(add-to-list 'dashboard-items '(agenda) t)
+(setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
+      dashboard-items '(( agenda . 10)
+                        ( projects . 5)
+                        ( recents . 5)
+                        ( bookmarks . 5)))
+
 #+END_SRC
 
 **** Initial Startup Display
@@ -1883,7 +2179,7 @@ contributing to the solution.
 
 As GitHub user [[https://github.com/wasamasa][wasamasa]] points out in /h?(er|is)|^\S+/ dotfiles,
 [[https://gnutls.org/][GnuTLS]] throws several warnings when using the default 256 minimum
-prime bits over a TLS handshake.  
+prime bits over a TLS handshake.
 
 #+BEGIN_QUOTE
 Minimum number of prime bits accepted by GnuTLS for key exchange.
@@ -2042,9 +2338,9 @@ snippets corresponding to the major mode of the current buffer mode.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
   (use-package flycheck
     :straight t
-   :config
-   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
-                flycheck-emacs-lisp-load-path 'inherit))
+    :config
+    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
+                  flycheck-emacs-lisp-load-path 'inherit))
 #+END_SRC
 
 **** Flycheck Color Mode Line
@@ -2206,7 +2502,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package with-editor
   :straight t
-  :config 
+  :config
   (progn
     (add-to-hooks #'with-editor-export-editor
                   '(shell-mode-hook
@@ -2356,7 +2652,7 @@ support with ivy]].
   :straight t)
 #+END_SRC
 
-****** Historian 
+****** Historian
 #+NAME: historian-config
 #+BEGIN_SRC emacs-lisp :tangle no :exports none
 (use-package historian
@@ -2366,7 +2662,7 @@ support with ivy]].
 **** Counsel
 
 #+NAME: counsel-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none 
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<counsel-base>>
 <<counsel-osx-app-config>>
 <<counsel-projectile-config>>
@@ -2577,7 +2873,7 @@ Interface for controlling external processes in Emacs.
 ** User Interface
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes
-really fantastic Emacs UI libraries and enhancements. 
+really fantastic Emacs UI libraries and enhancements.
 
 *** Cursor
 **** Vertical Bar
@@ -2617,7 +2913,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   :straight t
   :init
   (progn
-    (global-unset-key (kbd "M-<down-mouse-1>"))
+    (global-unset-key (kbd "M-<down-mouse-1>")))
   :bind
   (("C-S-c C-S-c" . mc/edit-lines)
    ("C->" . mc/mark-next-like-this)
@@ -2637,7 +2933,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
    Each font entry is a cons cell composed of the font-family as a string and
    the associated font weight as an unquoted symbol.
 
-   See `font-weight-table' for a list of available options. 
+   See `font-weight-table' for a list of available options.
 
    e.g (\"FONT-FAMILY\" . WEIGHT)"
   )
@@ -2679,7 +2975,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   "SF Mono 12"
   "A fontspec string of the default font to use on macOS.
 
-  To get the fontspec string, use the command 'M-x x-select-font RET' 
+  To get the fontspec string, use the command 'M-x x-select-font RET'
   to choose the desired font, then 'M-x describe-font RET' and copy-and-paste.")
 
 (if *is-hal*
@@ -2711,7 +3007,8 @@ Show the time in the modeline.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package spaceline
-  :straight t)
+  :straight t
+ )
 #+END_SRC
 
 ***** Spaceline All the Icons
@@ -2719,12 +3016,18 @@ Show the time in the modeline.
 #+NAME: all-the-icons-spaceline
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package spaceline-all-the-icons
-  :after (spaceline)
   :straight t
+  :demand t
   :config
-  (setq spaceline-all-the-icons-separator-type 'arrow)
-  <<spaceline-segment>>
-  (spaceline-all-the-icons-theme 'org-pomodoro))
+  (progn
+      (setq spaceline-all-the-icons-separator-type 'arrow)
+      (require 'spaceline)
+      (require 'spaceline-segments)
+      (require 'spaceline-config)
+      (require 'all-the-icons)
+      (require 'spaceline-all-the-icons)
+      (spaceline-all-the-icons-theme 'org-pomodoro)))
+
 #+END_SRC
 
 ***** Spaceline Segments
@@ -2989,54 +3292,71 @@ This disables Emacs asking questions about loading a new theme.
 
 **** Zenburn Theme
 
-#+NAME: zenburn-theme
+#+NAME: zenburn-theme-cfg
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package zenburn-theme
   :straight t
   :config
-  (load-theme 'zenburn))
+  (progn
+    (add-to-list 'custom-enabled-themes 'zenburn-theme)))
+
 #+END_SRC
 
 **** Atom One Dark Theme
 
-#+NAME: atom-one-dark-theme
+#+NAME: atom-theme-cfg
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package atom-one-dark-theme
   :straight t
   :config
-  (load-theme 'atom-one-dark))
+  (progn
+    (add-to-list 'custom-enabled-themes 'atom-one-dark)))
+#+END_SRC
+
+**** Install Themes
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+<<atom-theme-cfg>>
+<<org-mode-ui-ob-theme>>
+<<zenburn-theme-cfg>>
 #+END_SRC
 
 **** Load Themes
 
-Zenburn theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
+Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(if (and *is-hal* (display-graphic-p)) 
-    <<atom-one-dark-theme>>
-  <<zenburn-theme>>)
+I find that zenburn looks better when Emacs is
+started from the terminal.
 
-(when (and (display-graphic-p) *is-mac*)
-  <<org-prettify-ob-theme>>)
- #+END_SRC
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+(load-theme 'org-beautify)
+(load-theme 'atom-one-dark)
+(add-hook 'after-init-hook
+          (lambda ()
+            (load-theme 'atom-one-dark)
+            (load-theme 'org-beautify)
+            <<atom-one-dark-mods>>))
+#+END_SRC
 
 *****  Atom One Dark Modifications
 
 I will go to great lengths to avoid using the customization
 interface. For some reason loading this in the same =progn= block
 
+#+NAME: atom-one-dark-mods
 #+BEGIN_SRC emacs-lisp :tangle yes
 (when (member 'atom-one-dark custom-enabled-themes)
-  ;; Org Faces
-  (set-face-attribute 'org-block-begin-line nil :foreground "#ABB2BF"
-		      :background "#35373E")
-  (set-face-attribute 'org-block-end-line nil :foreground "#ABB2BF"
-                      :background "#35373E")
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch-serif))
-  (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-  (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
-  (set-face-attribute 'font-lock-string-face nil :slant 'italic)
-  (set-face-attribute 'vertical-border nil :foreground "#5C6370")
+   ;; Org Faces
+   (set-face-attribute 'org-block-begin-line nil :foreground "#ABB2BF"
+           :background "#35373E")
+   (set-face-attribute 'org-block-end-line nil :foreground "#ABB2BF"
+                       :background "#35373E")
+   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch-serif))
+   (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+   (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
+   (set-face-attribute 'font-lock-string-face nil :slant 'italic)
+   (set-face-attribute 'vertical-border nil :foreground "#5C6370")
   ;; Dired Faces
   (set-face-attribute 'diredp-compressed-file-name nil :inherit 'dired-warning)
   (set-face-attribute 'diredp-dir-heading nil :inherit 'dired-header
@@ -3046,26 +3366,26 @@ interface. For some reason loading this in the same =progn= block
                       :background "#2C2C2C")
   (set-face-attribute 'diredp-dir-priv nil :inherit 'dired-directory
                       :background "#2C2C2C")
-  (setq highlight-symbol-foreground-color
-        "#E0E0E0"
-        highlight-symbol-colors
-        '("#FFEE58" "#C5E1A5" "#80DEEA"
-          "#64B5F6" "#E1BEE7" "#FFCC80")
-        highlight-tail-colors
-        '(("#F8BBD0" . 0) ("#FF80AB" . 10)
-          ("#9575CD" . 30) ("#494949" . 60)
-          ("#424242" . 80))
-        hl-bg-colors
-        '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
-          "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
-        hl-fg-colors
-        '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
-          "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
-        hl-paren-colors
-        '("#B9F" "#B8D" "#B7B" "#B69"
-          "#B57" "#B45" "#B33" "#B11")
-        nrepl-message-colors
-        '("#dc322f" "#cb4b16" "#b58900")))
+   (setq highlight-symbol-foreground-color
+         "#E0E0E0"
+         highlight-symbol-colors
+         '("#FFEE58" "#C5E1A5" "#80DEEA"
+           "#64B5F6" "#E1BEE7" "#FFCC80")
+         highlight-tail-colors
+         '(("#F8BBD0" . 0) ("#FF80AB" . 10)
+           ("#9575CD" . 30) ("#494949" . 60)
+           ("#424242" . 80))
+         hl-bg-colors
+         '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
+           "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
+         hl-fg-colors
+         '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
+           "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
+         hl-paren-colors
+         '("#B9F" "#B8D" "#B7B" "#B69"
+           "#B57" "#B45" "#B33" "#B11")
+         nrepl-message-colors
+         '("#dc322f" "#cb4b16" "#b58900")))
 #+END_SRC
 
 *** All The Icons
@@ -3085,9 +3405,12 @@ interface. For some reason loading this in the same =progn= block
 (use-package all-the-icons
   :if (display-graphic-p)
   :straight t
-  :init
-  (unless (straight-check-package "all-the-icons")
-    (all-the-icons-install-fonts)))
+  :config
+  (progn
+    (setq macos-font-directory "~/Library/Fonts")
+    (if-not (member "all-the-icons.ttf" (directory-files macos-font-directory))
+        (all-the-icons-install-fonts))))
+
 #+END_SRC
 
 **** Ivy All the Icons
@@ -3202,7 +3525,7 @@ As a git client though, magit is awesome.
 ***** Extending Magit
 
 #+NAME: magit-extensions
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
 <<magit-done>>
 <<magit-done-no-prompt>>
 #+END_SRC
@@ -3326,7 +3649,7 @@ Pop-up feature for viewing the last git commit.
 
 **** Monky
 Monky provides an interactive interface for mercurial. It's
-essentially to ~hg~ what [[#magit][magit]] is for ~git~. 
+essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 #+NAME: hg-monky
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3384,8 +3707,18 @@ the user will be prompted to edit the search string first."
     (browse-url search)))
 #+END_SRC
 
+*** Browse At Remote
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package browse-at-remote
+  :straight t)
+#+END_SRC
+
+*** When no external web browser is available
+**** Set the default browser =eww=
+
 *** When no external web browser is available[fn:12]
-**** Set the default browser =eww=[fn:14]
+- [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (when *is-lnxsrv*
@@ -3658,7 +3991,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defvar proglang-enabled-list '()
-  "List of languages for which straight should install respective tooling, 
+  "List of languages for which straight should install respective tooling,
    syntax-highlighting, and peripherals.")
 
 
@@ -3722,6 +4055,10 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package asm-mode
   :straight t
+  :mode (("\\.64sa\\'" . asm-mode)
+         ("\\.64da\\'" . asm-mode)
+         ("\\.32sa\\'" . asm-mode)
+         ("\\.32da\\'" . asm-mode))
   :config
   (progn
     (define-key asm-mode-map (kbd "C-j") 'newline)))
@@ -3781,6 +4118,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 <<cc-hooks-compile-command>>
 <<cc-hooks-flycheck-include-headers>>
 #+END_SRC
+***** Per-File Compile Command
 
 ***** Per-file Compile Command
 
@@ -3803,7 +4141,11 @@ Spacemacs =dotspacemacs-configuration-layers=.
 (add-hook 'c-mode-hook (lambda ()
                          (chaffin--compile-hook "gcc")))
 
-****** Use  on UCLA Servers
+(add-hook 'c++-mode-hook (lambda ()
+                           (chaffin--compile-hook "g++")))
+#+END_SRC
+
+****** Use on UCLA Servers
 
 The UCLA servers don't have llvm or libclang, so [[#irony-mode][irony-mode]] provided
 by adding 'c-c++ to =[[#proglang-api][proglang-enabled]]= won't compile.
@@ -3811,7 +4153,7 @@ by adding 'c-c++ to =[[#proglang-api][proglang-enabled]]= won't compile.
 That blows but loading this this hook regardless corrects the per-file
 =compile-command= at least.
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes 
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 (when (and (not (proglang-enabled-p 'c-c++))
            *is-lnxsrv*)
   <<cc-hooks-compile-command>>)
@@ -3829,7 +4171,7 @@ That blows but loading this this hook regardless corrects the per-file
   (let ((has-makefile (file-exists-p "Makefile")))
     (if has-makefile
         (let ((buf (or (get-buffer "Makefile")
-                       (find-file-noselect 
+                       (find-file-noselect
                         (expand-file-name "Makefile" default-directory)))))
           (if func
               (funcall func buf)
@@ -3896,7 +4238,7 @@ with the same "make" dialog I said eff it and =^Z='d on out of there.
 
 
 /#applefanboyproblems/
- 
+
 
 #+NAME: cc-irony-mode
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -3984,7 +4326,7 @@ Company backend for C/C++ files using irony mode.
          ("\\.cmake\\'" . cmake-mode))
 
   :config
-  (progn 
+  (progn
     (add-hook 'cmake-mode-hook
               (lambda ()
                 (smartparens-mode t)))))
@@ -4052,7 +4394,7 @@ Configuration for common-lisp
   <<clojure-interactive>>)
 #+END_SRC
 
-**** Clojure Mode 
+**** Clojure Mode
 
 Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
 before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
@@ -4079,9 +4421,9 @@ Provides key bindings and font-locking for Clojure.
 (use-package clojure-mode
   :straight t
   :mode (("\\.edn$"   . clojure-mode)
-	 ("\\.cljs$"  . clojurescript-mode)
-	 ("\\.cljx$"  . clojurex-mode)
-	 ("\\.cljsc$" . clojurec-mode))
+         ("\\.cljs$"  . clojurescript-mode)
+         ("\\.cljx$"  . clojurex-mode)
+         ("\\.cljsc$" . clojurec-mode))
   :config
   (progn
     (setq clojure-indent-style :always-indent)
@@ -4153,9 +4495,9 @@ Two options:
 #+NAME: clojure-interactive-ide
 #+BEGIN_SRC emacs-lisp :tangle no
 (defcustom clojure-ide 'cider
-  "Select the interactive development environment to use 
+  "Select the interactive development environment to use
    in clojure mode. Note that Emacs must be restarted when
-   the value of this variable is modified for the change 
+   the value of this variable is modified for the change
    to take effect."
   :type '(symbol)
   :options '(cider inf-clojure)
@@ -4168,7 +4510,7 @@ Two options:
 :CUSTOM_ID: cider
 :END:
 
-[[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]] 
+[[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
 
 #+NAME: clojure-interactive-cider
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4176,7 +4518,7 @@ Two options:
   :straight t
   :after (company)
   :config
-  (progn 
+  (progn
     (setq cider-repl-history-file "~/.emacs.d/cider-history"
           cider-repl-use-clojure-font-lock t
           cider-repl-result-prefix ";; => "
@@ -4473,8 +4815,6 @@ Note that LaTeX packages are loaded, configured, and installed when
     <<auctex-latexmk-config>>))
 #+END_SRC
 
-**** Bibtex
-
 #+NAME: bibtex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq bibtex-autokey-year-length 2
@@ -4712,7 +5052,7 @@ Gradle is a build tool for Java. It's awesome.
 	      ;; enable meghanada mode
 	      (meghanada-mode t)))
 	      ;; use code format
-	      (add-hook 'before-save-hook
+  (add-hook 'java-mode-hook 'flycheck-mode)
                     'meghanada-code-beautify-before-save)))
   :config
   (progn
@@ -4852,7 +5192,7 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
                   (setq-local dash-plugin-keywords
                               '("javascript" "react" "jquery"
                                 "jqueryui" "jquerym" "angularjs"
-                                "backbone" "bootstrap" "moo" "prototype" 
+                                "backbone" "bootstrap" "moo" "prototype"
                                 "marionette" "meteor" "sproutcore"
                                 "foundation" "lodash" "underscore"
                                 "ember" "sencha" "extjs" "titanium"
@@ -4872,7 +5212,7 @@ Run an inferior Node process using =comint-mode=
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package js-comint
   :straight t
-  :bind (("C-c M-j" . run-js))
+  :bind ("C-c M-j" . run-js))
   :config
   (progn
     (define-key 'js2-mode-map "j" 'run-js)
@@ -4909,6 +5249,8 @@ Real jsx support.
 #+NAME: js-company-tern
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-tern
+  :demand t
+  :after (:all tern company)
   :straight t
   :init
   (add-to-list 'company-backends 'company-tern)
@@ -5165,7 +5507,7 @@ Real jsx support.
 ***** Anaconda Mode
 
 #+NAME: python-anaconda-mode
-#+BEGIN_SRC emacs-lisp :tangle no 
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package anaconda-mode
   :straight t
   :init
@@ -5174,11 +5516,13 @@ Real jsx support.
     (add-hook 'python-mode-hook 'anaconda-eldoc-mode)))
 #+END_SRC
 
-***** Company Anaconda 
+***** Company Anaconda
 
 #+NAME: python-anaconda-company
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-anaconda
+  :demand t
+  :after (:all anaconda-mode company)
   :straight t
   :init
   (with-eval-after-load 'company
@@ -5277,9 +5621,9 @@ Real jsx support.
   (use-package web-mode
     :straight t
     :bind (:map web-mode-map
-		;; I should rebind this because it conficts
-		;; with `company-select-next-or-abort'
-		("M-n" . web-mode-tag-match))
+        		;; I should rebind this because it conficts
+        		;; with `company-select-next-or-abort'
+        		("M-n" . web-mode-tag-match))
     :mode
     (("\\.phtml\\'"      . web-mode)
      ("\\.tpl\\.php\\'"  . web-mode)
@@ -5347,9 +5691,10 @@ Real jsx support.
   :straight t
   :defer t
   :init
-  (add-to-hooks 'emmet-mode '(css-mode-hook
-			     html-mode-hook
-			     web-mode-hook)))
+  (add-to-hooks 'emmet-mode
+   '(css-mode-hook
+     html-mode-hook
+     web-mode-hook)))
 #+END_SRC
 
 **** HTML
@@ -5441,6 +5786,8 @@ and slim-mode using company.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package company-web
   :straight t
+  :demand t
+  :after (:all company web-mode)
   :init
   (progn
     <<js-company-tern>>
@@ -5491,11 +5838,3 @@ dialects of Lisp.
 [fn:10] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
 [fn:11] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
-
-[fn:12] e.g when I'm not allowed to run a =vnc-server=[fn:13]
-
-[fn:13] e.g. when I'm on the =lnxsrv.seas.ucla.edu=
-
-[fn:14] [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
-
-[fn:15] [[https://www.gnu.org/software/emacs/manual/html_node/org/Adding-hyperlink-types.html][Adding Hyperlink types]]

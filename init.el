@@ -6,7 +6,7 @@
 ;; Keywords: emacs, .emacs.d, elisp, straight-el
 ;; Homepage: https://github.com/jchaffin/.emacs.d
 ;; Package-Requires: ((emacs "25")
-;; 
+;;
 ;; This file is not part of GNU Emacs.
 ;;
 ;;; License: GPLv3
@@ -62,13 +62,14 @@
 ;; Clone use-package dependencies
 (straight-use-package 'diminish)
 (straight-use-package 'bind-key)
-;; Now clone the `use-package' librariy
+
+;; Now clone the `use-package' library
 (straight-use-package 'use-package)
 ;; Use straight integration of `use-package'
-(setq straight-use-package-version 'straight)
- ;; And enable by default.
-(setq straight-use-package-by-default t)
-;; Ensure that the `use-package' library and dependencies
+(setq straight-use-package-version 'straight
+      ;; And enable by default.
+      straight-use-package-by-default t)
+(setq use-package-always-defer t)
 ;; are avaible at compile-time.
 (eval-when-compile
   (require 'use-package)
@@ -87,10 +88,25 @@
 (straight-use-package 'dash-functional)
 ;; And ensure these libraries are available at compile-time.
 (eval-when-compile
+  ;; String manipulated library bundled with Emacs >24.4.
   (require 'cl)
   (require 'dash)
   ;; String manipulated library bundled with Emacs >24.4.
   (require 'subr-x))
+
+;; Add org-beautify-theme fork
+(straight-use-package
+  `(org-beautify-theme
+    :host github
+    :repo "jchaffin/org-beautify-theme"
+    :local-repo-name org-beautify-theme))
+
+;; https://github.com/raxod502/straight.el/issues/240
+(straight-use-package
+ `(auctex
+   :host github
+   :repo "jchaffin/auctex"
+   :local-repo-name auctex))
 
 ;; Install org
 (straight-use-package
@@ -102,7 +118,7 @@
 
 ;; We're using org to extract the source code from
 ;; our configuration file. The Emacs loading process
-;; can be tricky when using external lisp libraries which are 
+;; can be tricky when using external lisp libraries which are
 ;; bundled in the Emacs distribution.
 ;; [5] https://github.com/raxod502/straight.el/issues/72
 ;; [6] https://github.com/raxod502/straight.el/issues/192
@@ -113,45 +129,46 @@
   :bind
   (("C-c a" . org-agenda)
    ("C-c c" . org-capture))
+
   :init
-  ;; The follwing hacks are designed to trick the version checking
-  ;; done in the loading process of org into recognizing the mirror
-  ;; as the correct org package [8]. Unfortunately, `org-version' still
-  ;; throws a warning upon initial package installation, but it appears
-  ;; the hack corrects the version checking in all subsequent startups.
-  ;; See [6] for a discussion on issue at hand, and [8] for what how
-  ;; this implementation addresses the problem. 
-  (progn
-    (defun chaffin--org-git-version ()
-      (let ((default-directory
-        (concat
-          (or user-emacs-directory
-             (expand-file-name "~/.emacs.d/"))
-          "straight/repos/org")))
-        (if (executable-find "git")
-            (with-temp-buffer
-              (call-process "git" nil '(t nil) nil
-                            "rev-parse" "--short" "HEAD")
-              (if (> (buffer-size) 0)
-                  (string-trim (buffer-string))
-                "revision unknown"))
-          "Git not installed!")))
-    ;; Override triggering the autoloads from the bundled org package.
-    ;; Again, see [8]; raxod502 can offer better insight here than I can.
-    (defalias #'org-git-version #'chaffin--org-git-version)
-    (defun org-release () "9.1.6")
-    (provide 'org-version))
-  
-  :config
-  (progn
-    (when (eq system-name 'darwin)
-      (setq org-directory (expand-file-name "~/Dropbox/org/")
-            org-default-notes-file (concat org-directory "capture.org")))
-      (setq org-insert-heading-respect-content t
-            org-startup-indented t)))
+  (defun org-git-version ()
+    (require 'git)
+     (let ((git-repo (expand-file-name
+                     "straight/repos/org/" user-emacs-directory)))
+      (string-trim
+       (git-run "describe"
+                "--match=release\*"
+                "--abbrev=6"
+                "HEAD"))))
+
+   (defun org-release ()
+    "The release version of org-mode.
+  Inserted by installing org-mode or when a release is made."
+    (require 'git)
+    (let ((git-repo (expand-file-name
+                     "straight/repos/org/" user-emacs-directory)))
+      (string-trim
+       (string-remove-prefix
+        "release_"
+        (git-run "describe"
+                 "--match=release\*"
+                 "--abbrev=0"
+                 "HEAD")))))
+   (provide 'org-version)
+
+   :config
+   (progn
+     (when (eq system-name 'darwin)
+       (setq org-directory (expand-file-name "~/Dropbox/org/")
+             org-default-notes-file (concat org-directory "capture.org")))
+     (setq org-insert-heading-respect-content t
+           org-startup-indented t)))
+
+
+
 
 (defvar user-emacs-literate-config-file nil
-  "The *.org file containing the source code responsible for declaration and 
+  "The *.org file containing the source code responsible for declaration and
 configuration of third-party packages, as well as any settings and customizations
 defined in this GNU Emacs distribution")
 
@@ -178,6 +195,7 @@ defined in this GNU Emacs distribution")
 
 (setq user-emacs-literate-config-file "chaffin.org")
 (user-emacs-load-config)
+
 
 
 
