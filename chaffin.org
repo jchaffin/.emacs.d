@@ -122,6 +122,7 @@
       - [[#multi-term][Multi-Term]]
       - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
       - [[#shell][Shell]]
+    - [[#tramp][Tramp]]
     - [[#image][Image+]]
     - [[#completion-framework][Completion Framework]]
       - [[#ivy][Ivy]]
@@ -131,6 +132,7 @@
     - [[#nov][Nov]]
     - [[#deft][Deft]]
     - [[#wakatime][Wakatime]]
+    - [[#prodigy][Prodigy]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
       - [[#vertical-bar][Vertical Bar]]
@@ -166,6 +168,7 @@
   - [[#web-browsing][Web Browsing]]
     - [[#osx-browse][osx-browse]]
     - [[#google-search-at-point][Google Search at point]]
+    - [[#browse-at-remote][Browse At Remote]]
     - [[#when-no-external-web-browser-is-availablefn12][When no external web browser is available[fn:12]]]
       - [[#set-the-default-browser-ewwfn14][Set the default browser =eww=[fn:14]]]
       - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
@@ -188,6 +191,11 @@
       - [[#amazon-web-services][Amazon Web Services]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
+    - [[#asm][ASM]]
+      - [[#asm-hook-functions][ASM Hook Functions]]
+      - [[#asm-mode][ASM Mode]]
+      - [[#nasm-mode][NASM mode]]
+      - [[#asm-init-x86-lookup][ASM Init x86 Lookup]]
     - [[#c][C++]]
       - [[#cc-mode-hooks][C/C++ Mode Hooks]]
       - [[#function-args][Function Args]]
@@ -209,6 +217,8 @@
       - [[#latex-preview-pane][LaTeX Preview Pane]]
       - [[#company-auctex][Company AucTeX]]
       - [[#org-edit-latex][Org Edit Latex]]
+      - [[#cdlatex][cdlatex]]
+      - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
       - [[#magic-latex-buffer][Magic Latex Buffer]]
       - [[#auctex-latexmk][Auctex Latexmk]]
       - [[#reftex][RefTeX]]
@@ -881,7 +891,7 @@ conditionally loading dependencies.
 
 #+NAME: defconst-is-linux
 #+BEGIN_SRC emacs-lisp :tangle no
-(defconst *is-linux* (eq system-type 'linux))
+(defconst *is-linux* (eq system-type 'gnu/linux))
 #+END_SRC
 
 ***** SEAS Linux
@@ -1140,6 +1150,8 @@ by [[#org-pomodoro][org-pomodoro]].
     (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
           org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
           org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/")
+          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
+          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib"))
     (require 'org-ref-pdf)
     (require 'org-ref-latex)
     (require 'org-ref-reftex)
@@ -1367,28 +1379,31 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package org-pdfview
-  :after (pdf-tools)
+  :straight t
   :bind (:map pdf-view-mode-map
 	    ("C-s" . isearch-forward)
 	    ("h" . pdf-annot-add-highlight-markup-annotation)
 	    ("t" . pdf-annot-add-text-annotation)
 	    ("D" . pdf-annot-delete))
-  :straight t
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :config
-  (setq-default pdf-view-display-size 'fit-page)
-  (setq pdf-annot-activate-created-annotations t)
-  (setq pdf-view-resize-factor 1.1))
+  (progn
+    (setq-default pdf-view-display-size 'fit-page)
+    (setq pdf-annot-activate-created-annotations t)
+    (setq pdf-view-resize-factor 1.1)))
 #+END_SRC
 
 Now we can open pdf files with =org-pdfview=[fn:8]:
 
 #+NAME: org-pdf-org-file-apps
 #+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'org-pdfview
-  (add-to-list 'org-file-apps '("\\.pdf\\'" .
-                                (lambda (file link)
-                                  (org-pdfview-open link)))))
+(require 'org-pdfview)
+(add-hook 'org-mode-hook
+          (lambda ()
+            (add-to-list 'org-file-apps '("\\.pdf\\'" .
+                                          (lambda (file link)
+                                            (org-pdfview-open link))))))
+
 #+END_SRC
 
 *** Org Export
@@ -1455,8 +1470,40 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 #+NAME: org-export-latex-pdf-process
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-latex-pdf-process
-    '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -synctex=1 -pdf -bibtex -f %f"))
+(setq org-latex-listings 'minted
+      org-latex-packages-alist '(("" "minted")))
+
+(defvar latex-process-latex
+  '("%latex -interaction nonstopmode -output-directory %o %f" "%latex
+-interaction nonstopmode -output-directory %o %f" "%latex -interaction
+nonstopmode -output-directory %o %f")
+
+  "The default latex command for `org-latex-pdf-process'.")
+
+(defvar latex-process-pdflatex
+  '("latexmk -pdflatex='pdflatex -interaction nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+
+(defvar latex-process-xetex
+  '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
+
+(defvar latex-process-list
+  '(
+    ("latex" . latex-process-latex)
+    ("xetex" . latex-process-xetex)
+    ("pdflatex" . latex-process-pdflatex)
+    ))
+
+(setq org-latex-pdf-process latex-process-pdflatex)
+
+(defun set-org-latex-pdf-process (&optional process)
+  (interactive)
+  (let* ((process (or process (assoc (completing-read "Process: "
+                                                      latex-process-list nil nil)
+                                     latex-process-list)))
+         (command (cdr process)))
+    (setq org-latex-pdf-process (symbol-value command))))
+
+
 #+END_SRC
 
 ***** Prefer user provided labeling system
@@ -1637,8 +1684,14 @@ Adds extensions and functionality to dired mode.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package projectile
   :straight t
+  :init
+  (projectile-mode)
   :config
-  (projectile-mode))
+  (progn
+    (mapcar
+     (lambda (elt)
+       (add-to-list 'projectile-globally-ignored-directories elt))
+     '("gradle" ".meghanada" ".gradle" "build" "bin"))))
 #+END_SRC
 
 **** Restart Emacs
@@ -1987,12 +2040,10 @@ snippets corresponding to the major mode of the current buffer mode.
 
 #+NAME: flycheck-settings
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-(use-package flycheck
-  :straight t
-  :init
-  (setq flycheck-global-modes '())
-  :config
-  (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
+  (use-package flycheck
+    :straight t
+   :config
+   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
                 flycheck-emacs-lisp-load-path 'inherit))
 #+END_SRC
 
@@ -2176,8 +2227,11 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
    ("C-c M-RET o" . multi-term-dedicated-toggle))
   :config
   (progn
-    (if *is-mac*
-        (setq multi-term-program "/bin/zsh"))))
+    (setq multi-term-program
+          (if (string= shell-file-name "/bin/sh")
+              "/bin/bash"
+            shell-file-name))))
+
 #+END_SRC
 
 **** Run Bash On Windows/PC
@@ -2193,7 +2247,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
     (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
 #+END_SRC
 
-**** Shell 
+**** Shell
 
 Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
@@ -2204,11 +2258,13 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
   (setenv "SHELL" shell-file-name))
 #+END_SRC
 
+*** Tramp
 Set shell script indentation to 2.
+Connect Remotely.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq sh-basic-offset 2
-      sh-indentation 2)
+(setq tramp-default-method "ssh")
 #+END_SRC
 
 
@@ -2509,6 +2565,15 @@ A smart M-x enhancement for Emacs.
 
 #+END_SRC
 
+*** Prodigy
+Interface for controlling external processes in Emacs.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package prodigy
+  :straight t
+  )
+#+END_SRC
+
 ** User Interface
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes
@@ -2551,7 +2616,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 (use-package multiple-cursors
   :straight t
   :init
-  (global-unset-key (kbd "M-<down-mouse-1>"))
+  (progn
+    (global-unset-key (kbd "M-<down-mouse-1>"))
   :bind
   (("C-S-c C-S-c" . mc/edit-lines)
    ("C->" . mc/mark-next-like-this)
@@ -2578,13 +2644,13 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 (when *is-mac*
   (let ((font-weight-xs '(("Andale Mono" . extralight)
-			  ("Droid Sans Mono" . normal)
-			  ("Fira Code" . light)
-			  ("Hack" . normal)
-			  ("Inconsolata" . medium)
-			  ("Operator Mono" . extralight)
-			  ("SF Mono" . normal)
-			  ("Programma" . normal))))
+                          ("Droid Sans Mono" . normal)
+                          ("Fira Code" . light)
+                          ("Hack" . normal)
+                          ("Inconsolata" . medium)
+                          ("Operator Mono" . extralight)
+                          ("SF Mono" . normal)
+                          ("Programma" . normal))))
   (mapcar (lambda (font-weight-x)
 	    (add-to-list 'font-list font-weight-x))
 	  font-weight-xs)))
@@ -3537,7 +3603,8 @@ because the necessary fonts are not installed or if it's because of
 the absence of a window system. I'll check for the latter for now.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(add-hook 'prog-mode-hook 'prettify-symbols-mode)
+(when (display-graphic-p)
+  (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
 
 *** Tagging
@@ -3604,12 +3671,97 @@ Spacemacs =dotspacemacs-configuration-layers=.
           langs))
 
 (when *is-mac*
-  (add-to-list-proglang-enabled 'c-c++ 'common-lisp 'clojure 'groovy 'java
+  (add-to-list-proglang-enabled 'asm 'c-c++ 'common-lisp 'clojure 'groovy 'java
                                 'javascript 'markdown 'scala 'python 'ruby
                                 'web))
+
+(when *is-linux*
+  (add-to-list-proglang-enabled 'asm 'c-c++))
 #+END_SRC
 
 ** Programming Languages
+*** ASM
+
+- See Spacemacs [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/asm/][ASM layer]].
+
+#+NAME: asm-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (proglang-enabled-p 'asm)
+  <<asm-asm-hooks>>
+  <<asm-asm-mode>>
+  <<asm-asm-init-x86-lookup>>)
+#+END_SRC
+
+**** ASM Hook Functions
+
+#+NAME: asm-asm-hooks
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun chaffin-asm-setup ()
+  (setq indent-tabs-mode nil)
+  (setq tab-stopp-list (number-sequence 2 60 2)))
+
+(defvar asm-colon-has-space nil)
+
+(defun chaffin-asm-colon-check-space ()
+  (setq asm-colon-has-space nil)
+  (when (and (not (null (char-after)))
+             (member (string (char-after)) '(" " "\t")))
+    (setq asm-colon-has-space t)))
+
+(defun asm-colon-delete-spaces ()
+  (unless asm-colon-has-space
+    (call-interactively 'delete-horizontal-space)))
+
+(advice-add 'asm-colon :before 'asm-colon-check-space)
+(advice-add 'asm-colon :after  'asm-colon-delete-space)
+#+END_SRC
+
+**** ASM Mode
+
+#+NAME: asm-asm-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package asm-mode
+  :straight t
+  :config
+  (progn
+    (define-key asm-mode-map (kbd "C-j") 'newline)))
+#+END_SRC
+
+
+**** NASM mode
+
+#+NAME: asm-nasm-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package nasm-mode
+  :straight t
+  :mode
+  (("\\.[n]*\\(asm\\|s\\)\\'" . nasm-mode))
+  :init
+  (progn
+    (add-hook 'nasm-mode-hook #'chaffin-asm-setup))
+  :config
+  (progn
+    (define-key nasm-mode-map (kbd "C-j") 'newline)
+    (define-key nasm-mode-map (kbd ":") 'asm-colon)))
+
+#+END_SRC
+
+**** ASM Init x86 Lookup
+
+#+NAME: asm-asm-init-x86-lookup
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package x86-lookup
+  :straight t
+  :init
+  (progn
+    (when (straight-check-package "pdf-tools")
+      (setq x86-lookup-browse-pdf-function 'x86-lookup-browse-pdf-pdf-tools)))
+  :config
+  (setq x86-lookup-pdf
+        "~/Dropbox/Documents/Books/ASM/x86-manual/325462-sdm-vol-1-2abcd-3abcd.pdf"))
+
+#+END_SRC
+
 *** C++
 
 #+NAME: c-cxx-config
@@ -3635,11 +3787,11 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+NAME: cc-hooks-compile-command
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin-compile-hook (command)
-  (unless (file-exists-p "makefile")
+(defun chaffin--compile-hook (compiler)
+  (unless (file-exists-p "Makefile")
     (set (make-local-variable 'compile-command)
          (let ((file (file-name-sans-extension buffer-file-name)))
-           (format "%s %s -o %s" command buffer-file-name file)))))
+           (format "%s %s -o %s" compiler buffer-file-name file)))))
 
 (add-hook 'c-mode-hook (lambda ()
                          (chaffin-compile-hook "gcc")))
@@ -3648,6 +3800,8 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+END_SRC
 
 
+(add-hook 'c-mode-hook (lambda ()
+                         (chaffin--compile-hook "gcc")))
 
 ****** Use  on UCLA Servers
 
@@ -3659,7 +3813,7 @@ That blows but loading this this hook regardless corrects the per-file
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes 
 (when (and (not (proglang-enabled-p 'c-c++))
-           ,*is-lnxsrv*)
+           *is-lnxsrv*)
   <<cc-hooks-compile-command>>)
 #+END_SRC
 
@@ -3720,7 +3874,7 @@ CDET enhancements for showing inline function arguments.
   :init
   (fa-config-default)
   :commands (fa-config-default)
-  :mode ("\\.h\\'" . c++-mode)
+  :mode ("\\.hpp\\'" . c++-mode)
   :config
   (add-hook 'c++-mode-hook
 	    (lambda ()
@@ -3882,7 +4036,7 @@ Configuration for common-lisp
       	  slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
 
     (defun slime-disable-smartparens ()
-      (smartparents-strict-mode -1)
+      (smartparens-strict-mode -1)
       (turn-off-smartparens-mode))
 
     (add-hook 'slime-repl-mode-hook #'slime-disable-smartparens)))
@@ -4024,12 +4178,12 @@ Two options:
   :config
   (progn 
     (setq cider-repl-history-file "~/.emacs.d/cider-history"
-	  cider-repl-use-clojure-font-lock t
-	  cider-repl-result-prefix ";; => "
-	  cider-repl-wrap-history t
-	  cider-repl-history-size 3000
-	  cider-show-error-buffer nil
-	  nrepl-hide-special-buffers t)
+          cider-repl-use-clojure-font-lock t
+          cider-repl-result-prefix ";; => "
+          cider-repl-wrap-history t
+          cider-repl-history-size 3000
+          cider-show-error-buffer nil
+          nrepl-hide-special-buffers t)
     (add-hook 'cider-mode-hook #'eldoc-mode)
     (add-hook 'cider-mode-hook #'company-mode)
     (add-hook 'cider-repl-mode-hook #'company-mode)
@@ -4038,7 +4192,7 @@ Two options:
     (add-hook 'cider-repl-mode-hook #'subword-mode)
     (add-hook 'cider-repl-mode-hook #'enable-paredit-mode)
     (add-to-hooks (lambda () (run-hooks 'prog-mode-hook))
-		  '(cider-mode-hook cider-repl-mode-hook))))
+                  '(cider-mode-hook cider-repl-mode-hook))))
 #+END_SRC
 
 ***** Inf Clojure
@@ -4232,6 +4386,7 @@ CIDER eldoc information.
   (progn
     (add-hook 'groovy-mode-hook
               (lambda ()
+                (smartparens-mode)
                 (setq groovy-indent-offset 2
                       tab-width 4
                       indent-tabs-mode nil
@@ -4307,6 +4462,11 @@ Note that LaTeX packages are loaded, configured, and installed when
 
     ;; Org Edit Latex Buffer
     <<org-edit-latex-config>>
+    <<org-highlight-related-tex>>
+
+    ;; cdlatex
+    <<cdlatex-mode>>
+    
     ;; Latex Extra
     <<latex-extra-config>>
     ;; Auctex latexmk
@@ -4367,6 +4527,32 @@ save.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-edit-latex
   :straight t)
+#+END_SRC
+
+**** cdlatex
+
+#+NAME: cdlatex-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cdlatex
+  :straight t
+  :config
+  (progn
+    ;; Disable auto label insertion in expanded template.
+    ;; Labels conflict when used in conjunction with `org-ref'
+    (setq cdlatex-insert-auto-labels-in-env-templates nil)
+    ;; with AucTeX LaTeX mode
+    (add-hook 'LaTeX-mode-hook
+              'turn-on-cdlatex)
+    ;; with Emacs latex mode
+    (add-hook 'latex-mode-hook
+              'turn-on-cdlatex)))
+#+END_SRC
+
+**** Highlight Inline LaTeX fragments
+
+#+NAME: org-highlight-related-tex
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-highlight-latex-and-related '(latex))
 #+END_SRC
 
 **** Magic Latex Buffer
@@ -4457,8 +4643,16 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 #+NAME: java-hooks
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-(add-hook 'java-mode-hooks
+(defun java-mode-indent-hook ()
+  (c-set-offset 'arglist-close '0))
+
+
+(add-hook 'java-mode-hook 'java-mode-indent-hook)
+(add-hook 'java-mode-hook
           (lambda ()
+            (setq indent-tabs-mode nil)
+            (setq tab-width 2)
+            (setq c-basic-offset 2)
             (smartparens-mode t)
             (rainbow-delimiters-mode t)
             (highlight-symbol-mode t)
@@ -4501,8 +4695,8 @@ Gradle is a build tool for Java. It's awesome.
   :if (executable-find "gradle")
   :init
   (add-hook 'java-mode-hook
-	    (lambda ()
-	      (gradle-mode 1))))
+            (lambda ()
+              (gradle-mode 1))))
 #+END_SRC
 
 **** Meghanada
@@ -4516,10 +4710,10 @@ Gradle is a build tool for Java. It's awesome.
   (add-hook 'java-mode-hook
 	    (lambda ()
 	      ;; enable meghanada mode
-	      (meghanada-mode t)
+	      (meghanada-mode t)))
 	      ;; use code format
 	      (add-hook 'before-save-hook
-                  'meghanada-code-beautify-before-save)))
+                    'meghanada-code-beautify-before-save)))
   :config
   (progn
     (setq meghanada-server-remote-debug t
@@ -4612,8 +4806,8 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
    :host github
    :repo "google/styleguide"
    :branch "gh-pages")
-  :config
-  (add-hook 'java-mode-hook
+   :config
+   (add-hook 'java-mode-hook
             (lambda ()
               (google-set-c-style)
               (google-make-newline-indent))))
@@ -4678,7 +4872,7 @@ Run an inferior Node process using =comint-mode=
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package js-comint
   :straight t
-  :bind ("C-c M-j" . run-js)
+  :bind (("C-c M-j" . run-js))
   :config
   (progn
     (define-key 'js2-mode-map "j" 'run-js)
@@ -5181,24 +5375,21 @@ Real jsx support.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package css-mode
   :straight t
-  :defer t
-  :commands css-expand-statement css-contract-statement
-  :bind (("C-c c z" . css-contract-statement)
-	 ("C-c c o" . css-expand-statement))
+  :commands (css-expand-statment css-contrac-statement)
   :init
   (progn
     (defun css-expand-statment ()
       (interactive)
       (save-excursion
-	(end-of-line)
-	(search-backward "{")
-	(forward-char 1)
-	(while (or (eobp) (not (looking-at "}")))
-	  (let ((beg (point)))
-	    (newline)
-	    (search-forward ";")
-	    (indent-region beg (point))))
-	(newline)))
+        (end-of-line)
+        (search-backward "{")
+        (forward-char 1)
+        (while (or (eobp) (not (looking-at "}")))
+          (let ((beg (point)))
+            (newline)
+            (search-forward ";")
+            (indent-region beg (point))))
+        (newline)))
 
     (defun css-contrac-statement ()
       "Contract CSS Block"
@@ -5206,10 +5397,12 @@ Real jsx support.
       (end-of-line)
       (search-backward "{")
       (while (not (looking-at "}"))
-	(join-line -1))))
+        (join-line -1))))
 
   :config
-  (setq css-indent-offset 2))
+  (progn
+    (setq css-indent-offset 2)
+    (add-hook #'css-mode-hook (lambda () (smartparens-mode +1)))))
 #+END_SRC
 
 ***** Less
