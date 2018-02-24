@@ -80,7 +80,8 @@
       - [[#org-pdf-view][Org PDF View]]
     - [[#org-export][Org Export]]
       - [[#latex-backend][LaTeX Backend]]
-      - [[#github-flavored-markdown][GitHub Flavored Markdown]]
+      - [[#pandoc-backend][Pandoc Backend]]
+      - [[#gfm-backend][GFM backend]]
       - [[#org-youtube][Org YouTube]]
       - [[#ox-extra][Ox Extra]]
   - [[#better-defaults][(Better) Defaults]]
@@ -362,12 +363,12 @@ directory.
 (global-set-key "\M-m" 'chaffin-keymap)
 
 ;; Make `chaffin-reload-eval-keymap'
-(define-prefix-command 'chaffin-reload-eval-keymap)
-(define-key 'chaffin-keymap "r" 'chaffin-reload-eval-keymap)
-(define-key 'chaffin-reload-eval-keymap "i"  #'chaffin-reload-init)
-(define-key 'chaffin-reload-eval-keymap "b"  #'chaffin-eval-buffer)
-(define-key 'chaffin-reload-eval-keymap "r"  #'eval-region)
-(define-key 'chaffin-reload-eval-keymap "f"  #'eval-defun)
+(define-prefix-command 'reload-eval-keymap)
+(define-key 'chaffin-keymap "r" 'reload-eval-keymap)
+(define-key 'reload-eval-keymap "i"  #'chaffin-reload-init)
+(define-key 'reload-eval-keymap "b"  #'chaffin-eval-buffer)
+(define-key 'reload-eval-keymap "r"  #'eval-region)
+(define-key 'reload-eval-keymap "f"  #'eval-defun)
 #+END_SRC
 
 *** Constants                                                      :ignore:
@@ -1309,17 +1310,35 @@ Note that LaTeX packages are loaded, configured, and installed when
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
   (use-package tex
     :straight auctex
-    :defines latex-nofill-env
-    :functions chaffin--tex-autofill
+    :init
+    (progn
+      
+      (defvar latex-build-command
+        (if (executable-find "latexmk")
+            "LatexMK"
+          "LaTeX"))
+
+      
+      (setq TeX-command-default latex-build-command))
     :config
     (progn
-      (setq LaTeX-fill-break-at-separators nil)
+      (setq TeX-auto-save t
+            TeX-parse-self t
+            TeX-syntactic-comment t
+            ;; Synctex support
+            TeX-source-correlate-start-server nil
+            ;; Don't insert line-break at inline math
+            LaTeX-fill-break-at-separators nil)
+
+
       (defvar latex-nofill-env '("equation"
                                  "equation*"
                                  "align"
                                  "align*"
+                                 "forest"
                                  "tabular"
                                  "tikzpicture"))
+
       (defun chaffin--tex-autofill ()
         "Check whether the pointer is currently inside one of
          the environments in `latex-nofill-env` and inhibits auto-filling
@@ -1330,7 +1349,8 @@ Note that LaTeX packages are loaded, configured, and installed when
           (while (and do-auto-fill (not (string- current-environment "document")))
             (setq level (1+ level)
                   current-environment (LaTeX-current-environment level)
-                  do-auto-fill (not (member current-environment latex-nofill-env)))))
+                  do-auto-fill
+                  (not (member current-environment latex-nofill-env)))))
         (when do-auto-fill
           (do-auto-fill)))
 
@@ -1340,10 +1360,13 @@ Note that LaTeX packages are loaded, configured, and installed when
         (setq auto-fill-mode 'chaffin--tex-autofill))
 
       (add-hook 'LaTeX-mode-hook 'tex-auto-fill-mode)
+      (add-hook 'LateX-mode-hook 'latex-mode-hook)
       (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
       (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
 #+END_SRC
+
+
 
 *** RefTeX
 
@@ -1396,7 +1419,10 @@ save.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-preview-pane
   :straight t
-  :config (latex-preview-pane-enable))
+  :config
+  (latex-preview-pane-enable))
+
+(add-hook 'doc-view-mode-hook 'auto-revert-mode)
 #+END_SRC
 
 *** Company AucTeX
@@ -1455,6 +1481,8 @@ Prettify dedicated org-mode latex buffers.
 (use-package auctex-latexmk
   :after (:all pdf-tools tex)
   :straight t
+  :init
+  (auctex-latexmk-setup)
   :config
   (setq auctex-latexmk-inherit-TeX-PDF-mode t))
 #+END_SRC
@@ -1669,6 +1697,7 @@ And opt-in to all back ends when on local machine.
 
 ;; Begin latex backend
 (when (chaffin/org-export-enabled-backend-p 'latex)
+
   ;; Expanding LaTeX Configuration Here
   <<latex-config>>
   ;; End LaTeX Config
@@ -1681,7 +1710,7 @@ And opt-in to all back ends when on local machine.
   <<org-export-latex>>
   ;; End org-export-latex expansion
 
-) ;; End LaTeX Backend 
+  ) ;; End LaTeX Backend
 
 (when (chaffin/org-export-enabled-backend-p 'gfm)
   <<org-export-gfm>>)
@@ -1691,6 +1720,7 @@ And opt-in to all back ends when on local machine.
 
 (when (chaffin/org-export-enabled-backend-p 'extra)
   <<org-export-ox-extra>>)
+
 #+END_SRC
 
 **** LaTeX Backend
@@ -1701,7 +1731,7 @@ And opt-in to all back ends when on local machine.
 
   <<org-export-latex-user-labels>>
   <<org-export-latex-pdf-process>>
-  <<org-export-latex-per-file-class>>
+  <<org-export-latex-custom-classes>>
 #+END_SRC
 
 ***** Set latex pdf process
@@ -1725,13 +1755,13 @@ nonstopmode -output-directory %o %f")
 (defvar latex-process-pdflatex
   '("latexmk -pdflatex='pdflatex -interaction nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
 
-(defvar latex-process-xetex
+(defvar latex-process-xelatex
   '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
 
 (defvar latex-process-list
   '(
     ("latex" . latex-process-latex)
-    ("xetex" . latex-process-xetex)
+    ("xelatex" . latex-process-xelatex)
     ("pdflatex" . latex-process-pdflatex)
     ))
 
@@ -1739,13 +1769,15 @@ nonstopmode -output-directory %o %f")
 
 (defun set-org-latex-pdf-process (&optional process)
   (interactive)
-  (let* ((process (or process (assoc (completing-read "Process: "
-                                                      latex-process-list nil nil)
-                                     latex-process-list)))
-         (command (cdr process)))
-    (setq org-latex-pdf-process (symbol-value command))))
+  (let* ((process (or
+                   process
+                   (assoc (completing-read "Process: " latex-process-list nil nil)
+                          latex-process-list)))
+         (cmd-string (cdr process)))
+    (setq org-latex-pdf-process (symbol-value cmd-string))))
 
 
+(add-hook 'org-mode-hook (lambda () (local-set-key (kbd "M-s l") 'set-org-latex-pdf-process)))
 #+END_SRC
 
 ***** Prefer user provided labeling system
@@ -1782,6 +1814,12 @@ The default cross-referencing and hyperlink styles provided by
 #+END_SRC
 
 ***** Custom Classes
+
+#+NAME: org-export-larex-custom-classes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-export-latex-per-file-class>>
+#+END_SRC
+
 ****** Org Per File Class
 
 Adds a class for exporting to pdf using latex backend without
@@ -1803,7 +1841,60 @@ external configuration.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-**** GitHub Flavored Markdown
+****** Lingsyn class
+
+#+NAME: org-export-latex-lingsyn-class
+#+BEGIN_SRC emacs-lisp :tangle no
+(if (and (executable-find "kpsewhich")
+         (shell-command-to-string "kpsewhich lingsyn.cls"))
+
+    (add-to-list 'org-latex-classes
+                 '("ling120b"
+                   "\\documentclass{lingsyn}
+                    [NO-DEFAULT-PACKAGES]
+                    [EXTRA]"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+#+END_SRC
+
+**** Pandoc Backend
+
+[[https://pandoc.org/][Pandoc]] is a document conversion tool that can convert pretty much
+anything. The [[https://github.com/kawabata/ox-pandoc][ox-pandoc]] package allows us to utiliize this capability
+for exporting org-mode documents to various formats.
+
+#+NAME: org-export-pandoc
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ox-pandoc
+  :if (executable-find "pandoc")
+  :straight t
+  :config
+  (progn
+    (defun ox-pandoc--pdf-engine ()
+      (let ((syms (mapcar (lambda (x) (cdr x)) latex-process-list))
+            (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
+            (sep "latex-process-"))
+        (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
+
+    (setq org-pandoc-options '((standalone . t))
+          org-pandoc-options-for-docx '((standalone . nil))
+          org-pandoc-options-for-beamer-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine)))
+          org-pandoc-options-for-latex-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine))))
+    (defun set-org-pandoc-pdf-process (&optional process)
+      (interactive)
+      (let* ((process (or process (assoc (completing-read "Pandoc Process: " latex-process-list nil nil) latex-process-list)))
+             (sym (substring-no-properties (car process))))
+        (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,sym))
+              org-pandoc-options-for-latex-pdf `((pdf-engine . ,sym)))))
+
+    (add-hook 'org-mode-hook (local-set-key (kbd "M-s p") 'set-org-pandoc-pdf-process))))
+
+#+END_SRC
+
+**** GFM backend
 
 #+NAME: org-export-gfm
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1945,7 +2036,8 @@ from within Emacs.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package restart-emacs
   :straight t
-  :bind (("C-x C-r" . restart-emacs)))
+  :bind ((:map reload-eval-keymap
+               ("q" . restart-emacs))))
 #+END_SRC
 
 **** Popwin
