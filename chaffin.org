@@ -45,20 +45,6 @@
     - [[#backup-files][Backup Files]]
     - [[#load-secrets][Load Secrets]]
     - [[#use-emacs-terminfo][Use Emacs Terminfo]]
-  - [[#org-mode][Org Mode]]
-    - [[#org-prettify][Org Prettify]]
-      - [[#improve-legibility][Improve Legibility]]
-      - [[#image-size][Image Size]]
-      - [[#org-bullets][Org Bullets]]
-      - [[#org-beautify-theme][Org Beautify Theme]]
-      - [[#toc-org][TOC Org]]
-    - [[#org-utilities][Org Utilities]]
-      - [[#org-capture][Org Capture]]
-      - [[#org-pomodoro][Org Pomodoro]]
-      - [[#org-id][Org ID]]
-      - [[#spell-checking][Spell Checking]]
-      - [[#org-download][Org Download]]
-      - [[#org-hyperlinks][Org Hyperlinks]]
   - [[#latex][LaTeX]]
     - [[#tex][Tex]]
     - [[#reftex][RefTeX]]
@@ -70,15 +56,28 @@
     - [[#magic-latex-buffer][Magic Latex Buffer]]
     - [[#auctex-latexmk][Auctex Latexmk]]
     - [[#texinfo][Texinfo]]
-  - [[#org-latex][Org LaTeX]]
-    - [[#latex-in-org-mode][LaTeX in Org Mode]]
+  - [[#org-mode][Org Mode]]
+    - [[#org-mode-ui][Org Mode UI]]
+      - [[#wrap-text][Wrap Text]]
+      - [[#display-fixed-width-images][Display Fixed Width Images]]
+      - [[#org-bullets][Org Bullets]]
+      - [[#toc-org][TOC Org]]
+    - [[#document-management][Document Management]]
+      - [[#org-id][Org ID]]
+      - [[#spell-checking][Spell Checking]]
+      - [[#org-download][Org Download]]
+      - [[#org-man][Org Man]]
+    - [[#task-management][Task Management]]
+      - [[#org-capture][Org Capture]]
+      - [[#org-pomodoro][Org Pomodoro]]
+    - [[#org-latex][Org LaTeX]]
+      - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
       - [[#edit-latex][Edit Latex]]
       - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
-    - [[#org-ref][Org Ref]]
-    - [[#org-pdf][Org PDF]]
-      - [[#pdf-tools][PDF Tools]]
-      - [[#org-pdf-view][Org PDF View]]
-    - [[#org-export][Org Export]]
+      - [[#org-ref][Org Ref]]
+      - [[#org-pdf][Org PDF]]
+    - [[#org-mode-export][Org Mode Export]]
+      - [[#user-enable-backends][User Enable Backends]]
       - [[#latex-backend][LaTeX Backend]]
       - [[#pandoc-backend][Pandoc Backend]]
       - [[#gfm-backend][GFM backend]]
@@ -156,13 +155,13 @@
       - [[#mode-icons][Mode Icons]]
     - [[#theme][Theme]]
       - [[#enable-custom-themes][Enable Custom Themes]]
+      - [[#org-beautify-theme][Org Beautify Theme]]
       - [[#zenburn-theme][Zenburn Theme]]
       - [[#atom-one-dark-theme][Atom One Dark Theme]]
       - [[#install-themes][Install Themes]]
       - [[#load-themes][Load Themes]]
     - [[#all-the-icons][All The Icons]]
       - [[#ivy-all-the-icons][Ivy All the Icons]]
-    - [[#sunshine][Sunshine]]
     - [[#emojify][Emojify]]
   - [[#version-control][Version Control]]
     - [[#git][Git]]
@@ -969,308 +968,16 @@ issues with build commands in [[#gradle-mode][gradle-mode]]
 (setq system-uses-terminfo t)
 #+END_SRC
 
-** Org Mode
-
-#+NAME: org-mode-settings
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<org-mode-ui>>
-<<org-mode-utilities>>
-#+END_SRC
-
-
-*** Org Prettify
-
-These settings subjectively improve the overall viewable-ness of
-org-mode buffers.
-
-#+NAME: org-mode-ui
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-mode-ui-text>>
-<<org-mode-ui-image>>
-<<org-mode-ui-bullets>>
-<<org-mode-ui-toc-org>>
-#+END_SRC
-
-**** Improve Legibility
-
-#+NAME: org-mode-ui-text
-#+BEGIN_SRC emacs-lisp :tangle no
-  (add-hook #'org-mode-hook (lambda ()
-                              (auto-fill-mode)
-                              (visual-line-mode)))
-#+END_SRC
-
-**** Image Size
-
-Make images compact.
-
-#+NAME: org-mode-ui-image
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-image-actual-width 400)
-#+END_SRC
-
-**** Org Bullets
-
-Use UTF-8 Bullets for Org-mode headings.
-
-#+NAME: org-mode-ui-bullets
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-bullets
-  :straight t
-  :init
-  (org-bullets-mode)
-  :config
-  (add-hook 'org-mode-hook 'org-bullets-mode))
-#+END_SRC
-
-**** Org Beautify Theme
-:PROPERTIES:
-:ID:       4612DA55-904D-44D4-9E3D-98E6D7AF72E2
-:CUSTOM_ID: org-beautify-theme
-:END:
-
-
-#+NAME: org-mode-ui-ob-theme
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-beautify-theme
-  :straight t
-  :config
-  (progn
-    (setq org-beautify-theme-use-box-hack nil)
-    (add-to-list 'custom-enabled-themes 'org-beautify)))
-#+END_SRC
-
-**** TOC Org
-
-#+NAME: org-mode-ui-toc-org
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package toc-org
-  :straight t
-  :init
-  (add-hook 'org-mode-hook 'toc-org-enable))
-#+END_SRC
-
-*** Org Utilities
-
-#+NAME: org-mode-utilities
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-utils-pomodoro>>
-<<org-utils-id>>
-<<org-utils-download>>
-<<org-utils-hlink>>
-#+END_SRC
-
-**** Org Capture
-
-#+NAME: org-utils-capture
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-capture-templates
-      '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
-         "* TODO %?\n %i\n %a")
-        ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
-         "* %?\nEntered on %U\n %i\n %a")))
-#+END_SRC
-
-**** Org Pomodoro
-:PROPERTIES:
-:ID:       3600535E-2C20-4E33-8572-E933319E87B3
-:CUSTOM_ID: org-pomodoro
-:END:
-
-#+NAME: org-utils-pomodoro
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-utils-pomodoro-path-helper>>
-<<org-utils-pomodoro-org-pomodoro>>
-#+END_SRC
-
-#+NAME: org-utils-pomodoro-org-pomodoro
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-pomodoro
-  :straight t
-  :bind (:map org-mode-map
-              ("C-c M-RET p" . org-pomodoro))
-  :config
-  (setq org-pomodoro-audio-player "afplay"
-        org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
-        ;; Start Settings
-        org-pomodoro-start-sound-p t ;; enable starting sound
-        org-pomodoro-start-sound-args "--volume 0.08"
-        org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
-        ;; Finished Settings
-        org-pomodoro-finished-sound-args "--volume 0.2"
-        org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
-        ;; Short Break Settings
-        org-pomodoro-short-break-length 5
-        org-pomodoro-short-break-sound-args "--volume 0.2"
-        org-pomodoro-short-break-sound org-pomodoro-finished-sound
-        ;; Long Break Settings
-        org-pomodoro-long-break-length 15
-        org-pomodoro-long-break-sound-args "--volume 0.2"
-        org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav")))
-#+END_SRC
-
-
-***** Org Pomodoro Path Helper
-
-Utility for simplifying the path to the given audio file path used
-by [[#org-pomodoro][org-pomodoro]].
-
-#+NAME: org-utils-pomodoro-path-helper
-#+BEGIN_SRC emacs-lisp :tangle no
-(defalias #'org-pomodoro-path
-  (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
-#+END_SRC
-
-
-**** Org ID
-
-Functions shamelessly taken from Lee Hinman's [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][blogpost]] on generating
-custom org heading ids.
-
-#+NAME: org-utils-id
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<org-utils-id-custom>>
-<<org-utils-id-add-ids-to-headlines>>
-#+END_SRC
-
-***** Custom ID
-
-#+NAME:  org-utils-id-custom
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<org-utils-id-custom-settings>>
-<<org-utils-id-custom-get>>
-#+END_SRC
-
-#+NAME: org-utils-id-custom-settings
-#+BEGIN_SRC emacs-lisp :tangle no
-(require 'org-id)
-(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-#+END_SRC
-
-
-****** Get Custom ID
-
-From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Org Mode Generate Ids]] blogpost:
-
-#+NAME: org-utils-id-custom-get
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-custom-id-get (&optional pom create prefix)
-  "Get the CUSTOM_ID property of the entry at point-or-marker POM.
-   If POM is nil, refer to the entry at point. If the entry does
-   not have an CUSTOM_ID, the function returns nil. However, when
-   CREATE is non nil, create a CUSTOM_ID if none is present
-   already. PREFIX will be passed through to `org-id-new'. In any
-   case, the CUSTOM_ID of the entry is returned."
-  (interactive)
-  (org-with-point-at pom
-    (let ((id (org-entry-get nil "CUSTOM_ID")))
-      (cond
-       ((and id (stringp id) (string-match "\\S-" id))
-        id)
-       (create
-        (setq id (org-id-new (concat prefix "h")))
-        (org-entry-put pom "CUSTOM_ID" id)
-        (org-id-add-location id (buffer-file-name (buffer-base id))))))))
-#+END_SRC
-
-***** Add IDs to Headlines in file
-
-#+NAME: org-utils-id-add-ids-to-headlines
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-add-ids-to-headlines-in-file ()
-  "Add CUSTOM_ID properties to all headlines in the current
-  file which do not already have one. Only adds ids if the `auto-id' option is set a non-nil value in the file.
-
-  i.e `#+OPTIONS: auto-id:t`"
-
-  (interactive)
-  (save-excursion
-    (widen)
-    (goto-char (point-min))
-    (when (re-search-forward
-	   "^\\#+OPTIONS:.*auto-id:t"
-	   (point-max)
-	   t)
-      (org-map-entries
-       (lambda ()
-         (org-custom-id-get (point) 'create))))))
-
-(add-hook 'org-mode-hook
-	  (lambda ()
-	    (add-hook 'before-save-hook
-                (lambda ()
-                  (when (and (eq major-mode 'org-mode)
-                             (eq buffer-read-only nil))
-                    (org-add-ids-to-headlines-in-file))))))
-#+END_SRC
-
-**** Spell Checking
-
-Add spell checking in org mode buffers using Flyspell.
-
-#+NAME: org-utils-flyspell
-#+BEGIN_SRC emacs-lisp :tangle no
-(when (executable-find "aspell")
-  (add-hook 'org-mode-hook 'turn-on-flyspell))
-#+END_SRC
-
-**** Org Download
-
-#+NAME: org-utils-download
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-download
-  :straight t
-  :defines (org-download-image-dir)
-  :config
-  (when *is-mac*
-    (setq-default org-download-image-dir "~/Dropbox/org/img/")))
-#+END_SRC
-
-**** Org Hyperlinks
-
-#+NAME: org-utils-hlink
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-utils-hlink-org-man>>
-#+END_SRC
-
-***** Org Man
-
-#+NAME: org-utils-hlink-org-man
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-(org-add-link-type "man" 'org-man-open)
-(add-hook 'org-store-link-functions 'org-man-store-link)
-
-(defcustom org-man-command 'man
-  "The Emacs command to be used to display a man page."
-  :group 'org-link
-  :type '(choice (const man) (const woman)))
-
-(defun org-man-open (path)
-  "Visit the manpage on PATH.
-PATH should be a topic that can be thrown at the man command."
-  (funcall org-man-command path))
-
-(defun org-man-store-link ()
-  "Store a link to a manpage."
-  (when (memq major-mode '(Man-mode woman-mode))
-    ;; This is a man page, we do make this link
-    (let* ((page (org-man-get-page-name))
-           (link (concat "man:" page))
-           (description (format "Manpage for %s" page)))
-      (org-store-link-props
-       :type "man"
-       :link link
-       :description description))))
-
-(defun org-man-get-page-name ()
-  "Extract the page name from the buffer name."
-  ;; This works for both `Man-mode' and `woman-mode'.
-  (if (string-match " \\(\\S-+\\)\\*" (buffer-name))
-      (match-string 1 (buffer-name))
-    (error "Cannot create link to this man page")))
-#+END_SRC
-
 ** LaTeX
+:PROPERTIES:
+:ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
+:CUSTOM_ID: latex
+:END:
+
+Note that this the code blocks in the [[#latex][LaTeX]] section are tangled in the
+[[#org-mode-export][export]] code block, at which point the described packages will be
+loaded if the =latex= symbol is an element in the
+=[[#user-enable-backends][org-export-enabled-backends]]= variable.
 
 #+NAME: latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -1365,7 +1072,6 @@ Note that LaTeX packages are loaded, configured, and installed when
       (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
 #+END_SRC
-
 
 
 *** RefTeX
@@ -1499,7 +1205,320 @@ Prettify dedicated org-mode latex buffers.
   (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
 #+END_SRC
 
-** Org LaTeX
+** Org Mode
+
+#+NAME: org-mode-settings
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<org-ui>>
+<<org-docmgr>>
+<<org-taskmgr>>
+<<org-export>>
+#+END_SRC
+
+*** Org Mode UI
+
+These settings subjectively improve the overall viewable-ness of
+org-mode buffers.
+
+#+NAME: org-ui
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-ui-wraptext>>
+<<org-ui-fixedwidth-image>>
+<<org-ui-org-bullets>>
+<<org-ui-toc-org>>
+#+END_SRC
+
+**** Wrap Text 
+
+#+NAME: org-ui-wraptext
+#+BEGIN_SRC emacs-lisp :tangle no
+  (add-hook #'org-mode-hook (lambda ()
+                              (auto-fill-mode)
+                              (visual-line-mode)))
+#+END_SRC
+
+**** Display Fixed Width Images
+
+Make images compact.
+
+#+NAME: org-ui-fixedwith-image
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-image-actual-width 400)
+#+END_SRC
+
+**** Org Bullets
+
+Inspired by this [[http://nadeausoftware.com/articles/2007/11/latency_friendly_customized_bullets_using_unicode_characters][article]] on creating latency-friendly unicode bullets,
+the [[https://github.com/sabof/org-bullets][org-bullets]] library provides support for displaying org-mode
+bullets as UTF-8 characters.
+
+- The default set ::  ◉ ○ ✸ ✿
+- Smaller set :: ► • ★ ▸
+- Alternative options :: ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
+
+The default set of bullet points can be modified via the
+=[[help:org-bullets-bullet-list][org-bullets-bullet-list]]= variable.
+
+
+#+NAME: org-ui-org-bullets
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-bullets
+  :straight t
+  :init
+  (org-bullets-mode)
+  :config
+  (add-hook 'org-mode-hook 'org-bullets-mode))
+#+END_SRC
+
+
+**** TOC Org
+
+The [[https://github.com/snosov1/toc-org][toc-org]] package automatically generates a table of contents for
+the org-mode document on save.
+
+The org header represented by a TOC entry can be visited via the
+=org-open-at-point= command, which is bound to the keystroke =C-c C-o=
+by default.
+
+Note that this functionality is provided by =toc-org= modifying the
+value of =org-link-translation-function= to the library internal
+=toc-org-unhrefify=, so it won't work if this symbol is non-nil at
+time of install.
+
+#+NAME: org-ui-toc-org
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package toc-org
+  :straight t
+  :init
+  (add-hook 'org-mode-hook 'toc-org-enable))
+#+END_SRC
+
+*** Document Management
+
+#+NAME: org-docmgr
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-docmgr-org-id>>
+<<org-docmgr-spellcheck>>
+<<org-docmgr-org-download>>
+<<org-docmgr-org-man>>
+#+END_SRC
+
+**** Org ID
+
+#+NAME: org-docmgr-org-id
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
+<<org-id-create-custom>>
+<<org-id-custom-id>>
+#+END_SRC
+
+#+NAME: org-id-create-custom
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(require 'org-id)
+(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+
+#+END_SRC
+
+***** Custom ID
+
+Functions shamelessly taken from Lee Hinman's [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][blogpost]] on generating
+custom org heading ids.
+
+
+#+NAME:  org-id-custom-id
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
+<<org-id-get-custom>>
+<<org-id-headline-ids>>
+#+END_SRC
+
+
+****** Get Custom ID
+
+From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Org Mode Generate Ids]] blogpost:
+
+#+NAME: org-id-get-custom
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-custom-id-get (&optional pom create prefix)
+  "Get the CUSTOM_ID property of the entry at point-or-marker POM.
+   If POM is nil, refer to the entry at point. If the entry does
+   not have an CUSTOM_ID, the function returns nil. However, when
+   CREATE is non nil, create a CUSTOM_ID if none is present
+   already. PREFIX will be passed through to `org-id-new'. In any
+   case, the CUSTOM_ID of the entry is returned."
+  (interactive)
+  (org-with-point-at pom
+    (let ((id (org-entry-get nil "CUSTOM_ID")))
+      (cond
+       ((and id (stringp id) (string-match "\\S-" id))
+        id)
+       (create
+        (setq id (org-id-new (concat prefix "h")))
+        (org-entry-put pom "CUSTOM_ID" id)
+        (org-id-add-location id (buffer-file-name (buffer-base id))))))))
+#+END_SRC
+
+***** Add IDs to Headlines in file
+
+#+NAME: org-id-headline-ids
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-add-ids-to-headlines-in-file ()
+  "Add CUSTOM_ID properties to all headlines in the current
+  file which do not already have one. Only adds ids if the `auto-id' option is set a non-nil value in the file.
+
+  i.e `#+OPTIONS: auto-id:t`"
+
+  (interactive)
+  (save-excursion
+    (widen)
+    (goto-char (point-min))
+    (when (re-search-forward
+	   "^\\#+OPTIONS:.*auto-id:t"
+	   (point-max)
+	   t)
+      (org-map-entries
+       (lambda ()
+         (org-custom-id-get (point) 'create))))))
+
+(add-hook 'org-mode-hook
+	  (lambda ()
+	    (add-hook 'before-save-hook
+                (lambda ()
+                  (when (and (eq major-mode 'org-mode)
+                             (eq buffer-read-only nil))
+                    (org-add-ids-to-headlines-in-file))))))
+#+END_SRC
+
+**** Spell Checking
+
+Add spell checking in org mode buffers using Flyspell.
+
+#+NAME: org-docmgr-spellcheck
+#+BEGIN_SRC emacs-lisp :tangle no
+(when (executable-find "aspell")
+  (add-hook 'org-mode-hook 'turn-on-flyspell))
+#+END_SRC
+
+**** Org Download
+
+Drag and Drop images directly from a web browser to an org-mode buffer. 
+
+#+NAME: org-docmgr-org-download
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-download
+  :straight t
+  :defines (org-download-image-dir)
+  :config
+  (when *is-mac*
+    (setq-default org-download-image-dir "~/Dropbox/org/img/")))
+#+END_SRC
+
+**** Org Man
+
+#+NAME: org-docmgr-org-man
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(org-add-link-type "man" 'org-man-open)
+(add-hook 'org-store-link-functions 'org-man-store-link)
+
+(defcustom org-man-command 'man
+  "The Emacs command to be used to display a man page."
+  :group 'org-link
+  :type '(choice (const man) (const woman)))
+
+(defun org-man-open (path)
+  "Visit the manpage on PATH.
+PATH should be a topic that can be thrown at the man command."
+  (funcall org-man-command path))
+
+(defun org-man-store-link ()
+  "Store a link to a manpage."
+  (when (memq major-mode '(Man-mode woman-mode))
+    ;; This is a man page, we do make this link
+    (let* ((page (org-man-get-page-name))
+           (link (concat "man:" page))
+           (description (format "Manpage for %s" page)))
+      (org-store-link-props
+       :type "man"
+       :link link
+       :description description))))
+
+(defun org-man-get-page-name ()
+  "Extract the page name from the buffer name."
+  ;; This works for both `Man-mode' and `woman-mode'.
+  (if (string-match " \\(\\S-+\\)\\*" (buffer-name))
+      (match-string 1 (buffer-name))
+    (error "Cannot create link to this man page")))
+#+END_SRC
+
+*** Task Management
+
+#+NAME: org-taskmgr
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-taskmgr-org-pomodoro>>
+<<org-taskmgr-org-capture>>
+#+END_SRC
+
+**** Org Capture
+
+#+NAME: org-taskmgr-org-capture
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
+         "* TODO %?\n %i\n %a")
+        ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
+         "* %?\nEntered on %U\n %i\n %a")))
+#+END_SRC
+
+**** Org Pomodoro
+:PROPERTIES:
+:ID:       3600535E-2C20-4E33-8572-E933319E87B3
+:CUSTOM_ID: org-pomodoro
+:END:
+
+#+NAME: org-taskmgr-org-pomodoro
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-pomodoro-path-helper>>
+<<org-pomodoro-config>>
+#+END_SRC
+
+#+NAME: org-pomodoro-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-pomodoro
+  :straight t
+  :bind (:map org-mode-map
+              ("C-c M-RET p" . org-pomodoro))
+  :config
+  (setq org-pomodoro-audio-player "afplay"
+        org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
+        ;; Start Settings
+        org-pomodoro-start-sound-p t ;; enable starting sound
+        org-pomodoro-start-sound-args "--volume 0.08"
+        org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
+        ;; Finished Settings
+        org-pomodoro-finished-sound-args "--volume 0.2"
+        org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
+        ;; Short Break Settings
+        org-pomodoro-short-break-length 5
+        org-pomodoro-short-break-sound-args "--volume 0.2"
+        org-pomodoro-short-break-sound org-pomodoro-finished-sound
+        ;; Long Break Settings
+        org-pomodoro-long-break-length 15
+        org-pomodoro-long-break-sound-args "--volume 0.2"
+        org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav")))
+#+END_SRC
+
+
+***** Org Pomodoro Path Helper
+
+Utility for simplifying the path to the given audio file path used
+by [[#org-pomodoro][org-pomodoro]].
+
+#+NAME: org-pomdoro-path-alias
+#+BEGIN_SRC emacs-lisp :tangle no
+(defalias #'org-pomodoro-path
+  (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
+#+END_SRC
+
+*** Org LaTeX
 
 #+NAME: org-latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -1508,7 +1527,7 @@ Prettify dedicated org-mode latex buffers.
 <<org-latex-pdf>>
 #+END_SRC
 
-*** LaTeX in Org Mode
+**** LaTeX in Org Buffers
 
 #+NAME: org-latex-editing
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
@@ -1531,8 +1550,7 @@ Prettify dedicated org-mode latex buffers.
 (setq org-highlight-latex-and-related '(latex))
 #+END_SRC
 
-
-*** Org Ref
+**** Org Ref
 :PROPERTIES:
 :ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
 :CUSTOM_ID: org-ref
@@ -1542,20 +1560,21 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 
 ;; Org Ref
-<<org-utils-ref-settings>>
+<<org-ref-config>>
 
 ;; Org Ref Ivy
- <<org-utils-ref-ivy>>
+<<org-ref-ivy>>
 
 ;; Org ref pdf
-<<org-utils-ref-open-pdf-at-point>>
+<<org-ref-pdf>>
 
 #+END_SRC
 
 
-#+NAME: org-utils-ref-settings
+#+NAME: org-ref-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (use-package org-ref
+  :if *is-mac*
   :straight t
   :config
   (progn
@@ -1580,7 +1599,7 @@ Prettify dedicated org-mode latex buffers.
 
 ***** Org Ref Ivy
 
-#+NAME: org-utils-ref-ivy
+#+NAME: org-ref-ivy
 #+BEGIN_SRC emacs-lisp :tangle no
 (with-eval-after-load 'ivy
   (setq org-ref-completion-library 'org-ref-ivy-cite)
@@ -1593,7 +1612,7 @@ Prettify dedicated org-mode latex buffers.
 
 See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view-or-pdf-tools][Using Doc View or PDF Tools]] section of =org-ref= documentation.
 
-#+NAME: org-utils-ref-open-pdf-at-point
+#+NAME: org-ref-pdf
 #+BEGIN_SRC emacs-lisp :tangle no
 (defun org-ref-open-pdf-at-point ()
   "Open the pdf for bibtex key under point if it exists."
@@ -1608,7 +1627,7 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
 #+END_SRC
 
-*** Org PDF
+**** Org PDF
 
 #+NAME: org-latex-pdf
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -1619,7 +1638,7 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 )
 #+END_SRC
 
-**** PDF Tools
+***** PDF Tools
 
 [[https://github.com/politza/pdf-tools][PDF Tools]] adds several features and enhancements for interacting with
 PDF documents in Emacs. It serves as a replacement for DocView mode.
@@ -1636,7 +1655,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   (pdf-tools-install))
 #+END_SRC
 
-**** Org PDF View
+***** Org PDF View
 
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
@@ -1667,33 +1686,19 @@ Now we can open pdf files with =org-pdfview=[fn:8]:
                                             (org-pdfview-open link))))))
 #+END_SRC
 
-
-*** Org Export
-
-#+NAME: org-export-enabled-backends
-#+BEGIN_SRC emacs-lisp :tangle no
-(defvar org-export-enabled-backends '()
-  "alist of symbols representing enabled `org-mode' export backends")
-
-(defun chaffin/org-export-enabled-backend-p (backend)
-  (member backend org-export-enabled-backends))
-#+END_SRC
-
-And opt-in to all back ends when on local machine.
-
-#+NAME: org-export-enabled-backends-opt-in
-#+BEGIN_SRC emacs-lisp :tangle no
-(when *is-mac*
-  (mapcar (lambda (backend)
-            (setq org-export-enabled-backends
-                  (cons backend org-export-enabled-backends)))
-          '(latex gfm yt http extra)))
-#+END_SRC
+*** Org Mode Export
+:PROPERTIES:
+:ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
+:CUSTOM_ID: org-mode-export
+:END:
 
 #+NAME: org-export
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<org-export-enabled-backends>>
-<<org-export-enabled-backends-opt-in>>
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Export Wrapper Block
+<<org-export-wrapper>>
+
+;; Enabled on MacOS block
+<<org-export-enable-on-mac>>
 
 ;; Begin latex backend
 (when (chaffin/org-export-enabled-backend-p 'latex)
@@ -1722,6 +1727,38 @@ And opt-in to all back ends when on local machine.
   <<org-export-ox-extra>>)
 
 #+END_SRC
+
+
+**** User Enable Backends
+:PROPERTIES:
+:ID:       59AEA962-792E-4AB7-ACDE-3EC61C45D279
+:CUSTOM_ID: user-enable-backends
+:END:
+
+It's not really an API, but its the best header I can come up with at the
+moment without causing a conflict between the section id and the code
+block name.
+
+#+NAME: org-export-wrapper
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar org-export-enabled-backends '()
+  "alist of symbols representing enabled `org-mode' export backends")
+
+(defun chaffin/org-export-enabled-backend-p (backend)
+  (member backend org-export-enabled-backends))
+#+END_SRC
+
+And opt-in to all back ends when on local machine.
+
+#+NAME: org-export-enable-on-mac
+#+BEGIN_SRC emacs-lisp :tangle no
+(when *is-mac*
+  (mapcar (lambda (backend)
+            (setq org-export-enabled-backends
+                  (cons backend org-export-enabled-backends)))
+          '(latex gfm yt http extra)))
+#+END_SRC
+
 
 **** LaTeX Backend
 
@@ -3097,6 +3134,22 @@ This disables Emacs asking questions about loading a new theme.
 (setq custom-safe-themes t)
 #+END_SRC
 
+**** Org Beautify Theme
+:PROPERTIES:
+:ID:       4612DA55-904D-44D4-9E3D-98E6D7AF72E2
+:CUSTOM_ID: org-beautify-theme
+:END:
+
+#+NAME: ob-theme
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-beautify-theme
+  :straight t
+  :config
+  (progn
+    (setq org-beautify-theme-use-box-hack nil)
+    (add-to-list 'custom-enabled-themes 'org-beautify)))
+#+END_SRC
+
 **** Zenburn Theme
 
 #+NAME: zenburn-theme-cfg
@@ -3124,7 +3177,7 @@ This disables Emacs asking questions about loading a new theme.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 <<atom-theme-cfg>>
-<<org-mode-ui-ob-theme>>
+<<ob-theme>>
 <<zenburn-theme-cfg>>
 #+END_SRC
 
@@ -3225,14 +3278,6 @@ interface.
   (all-the-icons-ivy-setup))
 #+END_SRC
 
-*** Sunshine
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package sunshine
-  :straight t
-  :config
-  (setq sunshine-location "90024,USA"))
-#+END_SRC
 
 *** Emojify
 
@@ -3240,7 +3285,12 @@ interface.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package emojify
   :straight t
-  :init (global-emojify-mode))
+  :after (:all magit org-mode markdown-mode)
+  :init
+  (progn
+      (add-hook 'org-mode-hook 'emojify-mode-hook)
+      (add-hook 'markdown-mode-hook 'emojify-mode-hook)
+      (add-hook 'magit-status-mode-hook 'emojify-mode-hook)))
 #+END_SRC
 
 ** Version Control
@@ -4547,39 +4597,47 @@ CIDER eldoc information.
 #+NAME: java-hooks
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (defun java-mode-indent-hook ()
-  (c-set-offset 'arglist-close '0))
+  (c-set-offset 'arglist-close '0)
+  (setq indent-tabs-mode nil
+        tab-width 2
+        c-basic-offset 2))
 
+(defun java-mode-minor-modes-hook ()
+  (when (symbolp 'smartparens-mode)
+    (smartparens-mode t))
+  (when (symbolp 'rainbow-delimiters-mode)
+    (raindbow-delimiters-mode t))
+  (when (symbolp 'highlight-symbol-mode)
+    (highlight-symbol-mode t)))
 
+(defun java-mode-dash-docsets-hook ()
+  (setq-local dash-plugin-keywords '("java" "gradle" "groovy")))
+
+;; Enable Hooks
 (add-hook 'java-mode-hook 'java-mode-indent-hook)
-(add-hook 'java-mode-hook
-          (lambda ()
-            (setq indent-tabs-mode nil)
-            (setq tab-width 2)
-            (setq c-basic-offset 2)
-            (smartparens-mode t)
-            (rainbow-delimiters-mode t)
-            (highlight-symbol-mode t)
-            (when *is-mac*
-              (setq-local dash-plugin-keywords '("java" "gradle" "groovy")))))
+(add-hook 'java-mode-hook 'java-mode-minor-modes-hook)
+(with-system darwin
+  (add-hook 'java-mode-hook 'java-mode-dash-docsets-hook))
 #+END_SRC
 
 **** Eclim
 #+NAME: java-eclim
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package eclim
   :straight t
-  :if (eq system-type 'darwin)
+  :if *is-mac*
   ;; load my forked version
   ;; :load-path "site-lisp/emacs-eclim/"
   :config
-  (setq eclim-eclipse-dirs
-	'("/Applications/Eclipse.app/Contents/Eclipse")
-	eclim-executable "/Applications/Eclipse.app/Contents/Eclipse/eclim"
-	eclimd-executable "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
-	eclimd-default-workspace "~/Developer/Projects/Java/Workspace"
-	eclimd-autostart-with-default-workspace t
-	eclim-autostart nil
-	eclim-wait-for-process t))
+  (setq eclim-eclipse-dirs '("/Applications/Eclipse.app/Contents/Eclipse")
+        eclim-executable "/Applications/Eclipse.app/Contents/Eclipse/eclim"
+        eclimd-executable "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
+        eclimd-default-workspace "~/Developer/Projects/Java/Workspace"
+        eclimd-autostart-with-default-workspace t
+        eclim-autostart nil
+        eclim-wait-for-process t))
+
 #+END_SRC
 
 **** Gradle Mode
@@ -4789,9 +4847,14 @@ Real jsx support.
 
 [[https://github.com/proofit404/company-tern][Tern]] is a code-analysis engine for JavaScript.
 
+Before install, make sure the =tern= executable can be found on your
+local file system.
+
+
 #+NAME: js-tern
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tern
+  :if (executable-find "tern")
   :straight t
   :after (js2-mode)
   :init (add-hook 'js2-mode-hook 'tern-mode))
@@ -4820,8 +4883,8 @@ Real jsx support.
 #+NAME: js-json-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package json-mode
-  :defer t
   :straight t
+  :demand t
   :mode (("\\.json\\'" . json-mode))
   :config
   (progn
@@ -4873,8 +4936,8 @@ Real jsx support.
 #+NAME: js-add-node-modules-path
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package add-node-modules-path
+  :if (executable-find "node")
   :straight t
-  :defer t
   :init
   (add-hook 'js2-mode-hook #'add-node-modules-path))
 #+END_SRC
@@ -4886,7 +4949,6 @@ Real jsx support.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
   :straight t
-  :defer t
   :config
   (add-hook 'js2-mode-hook 'npm-mode)
   (add-hook 'json-mode-hook 'npm-mode))
@@ -4897,7 +4959,9 @@ Real jsx support.
 #+NAME: js-nvm
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package nvm
-  :straight t)
+  :if (executable-find "nvm")
+  :straight t
+  :demand t)
 #+END_SRC
 
 *** Markdown
@@ -4906,7 +4970,7 @@ Real jsx support.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (when (proglang-enabled-p 'markdown)
   <<markdown-mode-config>>
-  <<markdown-mode+-config>>
+  <<markdown-mode-plus-config>>
   <<markdown-toc-config>>
   <<markdownfmt-config>>
 )
@@ -4939,7 +5003,7 @@ Real jsx support.
 
 **** markdown-mode+
 
-#+NAME: markdown-mode+-config
+#+NAME: markdown-mode-plus-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package markdown-mode+
   :straight t)
@@ -4970,7 +5034,7 @@ Real jsx support.
 
 *** Python
 
-#+NAME: python-py
+#+NAME: py-python
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (when (proglang-enabled-p 'python)
   <<py-python-settings>>
@@ -5151,74 +5215,79 @@ Real jsx support.
 #+END_SRC
 
 *** Web
+
+#+NAME: web-config
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+(when (proglang-enabled-p 'web)
+   <<web-mode-config>>
+   <<tagedit-mode-config>>
+   <<css-mode-config>>
+   <<emmet-mode-config>>
+   <<company-web-config>>)
+#+END_SRC
+
 **** Web Mode
 
 #+NAME: web-mode-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-(when (proglang-enabled-p 'web)
-  (use-package web-mode
-    :straight t
-    :bind (:map web-mode-map
-        		;; I should rebind this because it conficts
-        		;; with `company-select-next-or-abort'
-        		("M-n" . web-mode-tag-match))
-    :mode
-    (("\\.phtml\\'"      . web-mode)
-     ("\\.tpl\\.php\\'"  . web-mode)
-     ("\\.twig\\'"       . web-mode)
-     ("\\.html\\'"       . web-mode)
-     ("\\.htm\\'"        . web-mode)
-     ("\\.[gj]sp\\'"     . web-mode)
-     ("\\.as[cp]x?\\'"   . web-mode)
-     ("\\.eex\\'"        . web-mode)
-     ("\\.erb\\'"        . web-mode)
-     ("\\.mustache\\'"   . web-mode)
-     ("\\.handlebars\\'" . web-mode)
-     ("\\.hbs\\'"        . web-mode)
-     ("\\.eco\\'"        . web-mode)
-     ("\\.ejs\\'"        . web-mode)
-     ("\\.djhtml\\'"     . web-mode))
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package web-mode
+  :straight t
+  :bind (:map web-mode-map
+              ;; I should rebind this because it conficts
+              ;; with `company-select-next-or-abort'
+              ("M-n" . web-mode-tag-match))
+  :mode
+  (("\\.phtml\\'"      . web-mode)
+   ("\\.tpl\\.php\\'"  . web-mode)
+   ("\\.twig\\'"       . web-mode)
+   ("\\.html\\'"       . web-mode)
+   ("\\.htm\\'"        . web-mode)
+   ("\\.[gj]sp\\'"     . web-mode)
+   ("\\.as[cp]x?\\'"   . web-mode)
+   ("\\.eex\\'"        . web-mode)
+   ("\\.erb\\'"        . web-mode)
+   ("\\.mustache\\'"   . web-mode)
+   ("\\.handlebars\\'" . web-mode)
+   ("\\.hbs\\'"        . web-mode)
+   ("\\.eco\\'"        . web-mode)
+   ("\\.ejs\\'"        . web-mode)
+   ("\\.djhtml\\'"     . web-mode))
 
-    :config
-    (progn
-      (setq web-mode-engines-alist
-	  '(("php" . "\\.phtml\\'")
-	    ("blade" . "\\.blade\\'")))
+  :config
+  (progn
+    (setq web-mode-engines-alist
+          '(("php" . "\\.phtml\\'")
+            ("blade" . "\\.blade\\'")))
 
-      (defun chaffin--web-mode-enable ()
-        (setq web-mode-enable-auto-pairing t
-              web-mode-enable-css-colorization t
-              web-mode-enable-block-face t
-              web-mode-enable-part-face t
-              web-mode-enable-comment-keywords t
-              web-mode-enable-heredoc-fontification t
-              web-mode-enable-current-element-highlight t
-              web-mode-enable-current-column-highlight t))
+    (defun chaffin--web-mode-enable ()
+      (setq web-mode-enable-auto-pairing t
+            web-mode-enable-css-colorization t
+            web-mode-enable-block-face t
+            web-mode-enable-part-face t
+            web-mode-enable-comment-keywords t
+            web-mode-enable-heredoc-fontification t
+            web-mode-enable-current-element-highlight t
+            web-mode-enable-current-column-highlight t))
 
-      (add-hook 'web-mode-hook #'chaffin--web-mode-enable)
+    (add-hook 'web-mode-hook #'chaffin--web-mode-enable)
 
 
-      (defun chaffin--web-mode-indent ()
-        (setq web-mode-markup-indent-offset 2
-              web-mode-code-indent-offset 2
-              web-mode-style-padding 1
-              web-mode-script-padding 1
-              web-mode-block-padding 0
-              web-mode-comment-style 2))
+    (defun chaffin--web-mode-indent ()
+      (setq web-mode-markup-indent-offset 2
+            web-mode-code-indent-offset 2
+            web-mode-style-padding 1
+            web-mode-script-padding 1
+            web-mode-block-padding 0
+            web-mode-comment-style 2))
 
-      (add-hook 'web-mode-hook #'chaffin--web-mode-indent)
+    (add-hook 'web-mode-hook #'chaffin--web-mode-indent)
 
-      (when *is-mac*
-        (add-hook 'web-mode-hook
-                  (lambda ()
-                    (setq-local dash-plugin-keywords
-                                '("css" "html" "javascript"
-                                  "react")))))
-
-      <<tagedit-mode-config>>
-      <<css-mode-config>>
-      <<emmet-mode-config>>
-      <<company-web-config>>)))
+    (when *is-mac*
+      (add-hook 'web-mode-hook
+                (lambda ()
+                  (setq-local dash-plugin-keywords
+                              '("css" "html" "javascript"
+                                "react")))))))
 #+END_SRC
 
 **** Emmet
@@ -5257,6 +5326,7 @@ Real jsx support.
 #+NAME: css-mode-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package css-mode
+  :after (web-mode)
   :straight t
   :commands (css-expand-statment css-contrac-statement)
   :init
@@ -5280,12 +5350,15 @@ Real jsx support.
       (end-of-line)
       (search-backward "{")
       (while (not (looking-at "}"))
-        (join-line -1))))
+        (join-line -1)))
 
+    (add-hook 'css-mode-hook 'web-mode-hook))
   :config
   (progn
     (setq css-indent-offset 2)
-    (add-hook #'css-mode-hook (lambda () (smartparens-mode +1)))))
+    (add-hook 'css-mode-hook (lambda ()
+                                (smartparens-mode +1)))))
+
 #+END_SRC
 
 ***** Less
@@ -5325,27 +5398,26 @@ and slim-mode using company.
 (use-package company-web
   :straight t
   :demand t
-  :after (:all company web-mode)
+  :after (:all company web-mode tern company-tern)
   :init
   (progn
-    <<js-company-tern>>
     (defun chaffin--company-web-mode-hook ()
       "Autocompletion hook for web-mode"
       (set (make-local-variable 'company-backends)
-	   '(company-tern company-web-html company-yasnippet company-files)))
+           '(company-tern company-web-html company-yasnippet company-files)))
 
     (add-hook 'web-mode-hook #'chaffin--company-web-mode-hook)
-
+    
     ;; Enable JavaScript completion between <script>...</script> etc.
     (defadvice company-tern (before web-mode-set-up-ac-sources activate)
       "Set `tern-mode' based on current language before running company-tern."
       (if (equal major-mode 'web-mode)
-	  (let ((web-mode-cur-language
-		 (web-mode-language-at-pos)))
-	    (if (or (string= web-mode-cur-language "javascript")
-		    (string= web-mode-cur-language "jsx"))
-		(unless tern-mode (tern-mode))
-	      (if tern-mode (tern-mode -1))))))))
+          (let ((web-mode-cur-language
+                 (web-mode-language-at-pos)))
+            (if (or (string= web-mode-cur-language "javascript")
+                    (string= web-mode-cur-language "jsx"))
+                (unless tern-mode (tern-mode))
+              (if tern-mode (tern-mode -1))))))))
 #+END_SRC
 
 ** Footnotes
