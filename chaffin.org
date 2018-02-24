@@ -257,7 +257,6 @@
       - [[#html][HTML]]
       - [[#css][CSS]]
       - [[#company-web][Company Web]]
-      - [[#skewer-mode][Skewer Mode]]
   - [[#footnotes][Footnotes]]
 
 * Configuration
@@ -5232,8 +5231,7 @@ local file system.
    <<tagedit-mode-config>>
    <<css-mode-config>>
    <<emmet-mode-config>>
-   <<company-web-config>>
-   <<skewer-mode-config>>)
+   <<company-web-config>>)
 #+END_SRC
 
 **** Web Mode
@@ -5430,47 +5428,6 @@ and slim-mode using company.
               (if tern-mode (tern-mode -1))))))))
 #+END_SRC
 
-**** Skewer Mode
-
-#+NAME: skewer-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes  exports none
-<<skewer-enable-vars>>
-<<skewer-enable-defaults>>
-<<skewer-skewer-mode>>
-#+END_SRC
-
-#+NAME: skewer-enable-vars
-#+BEGIN_SRC emacs-lisp :tangle no
-(defvar skewer-mode-enable-web nil
-  "Set to non-nil to enable skewer-mode in `web-mode'")
-
-(defvar skewer-mode-enable-js nil
-  "Set to non-nil to enable skewer-mode in `js2-mode'")
-
-(defvar skewer-mode-enable-css nil
-  "Set to non-nil to enable skewer-mode in `css-mode'")
-#+END_SRC
-
-#+NAME: skewer-mode-enable-defaults
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
-(setq skewer-mode-enable-web t
-      skewer-mode-enable-js t
-      skewer-mode-enable-css t)
-#+END_SRC
-
-#+NAME: skewer-skewer-mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package skewer-mode
-  :straight t
-  :init
-  (progn
-    (when skewer-mode-enable-web
-      (add-hook 'html-mode-hook 'skewer-html-mode))
-    (when skewer-mode-enable-js
-      (add-to-hooks 'js2-mode-hook 'skewer-mode))
-    (when skewer-mode-enable-css 
-      (add-hook 'css-mode-hook 'skewer-css-mode))))
-#+END_SRC
 
 ** Footnotes
 
