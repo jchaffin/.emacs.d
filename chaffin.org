@@ -257,6 +257,7 @@
       - [[#html][HTML]]
       - [[#css][CSS]]
       - [[#company-web][Company Web]]
+      - [[#skewer-mode][Skewer Mode]]
   - [[#footnotes][Footnotes]]
 
 * Configuration
@@ -756,6 +757,7 @@ editors and various other applications on macOS.
   (macos-dev-utils
    :host github
    :repo "jchaffin/macos-dev-utils")
+  :demand t
   :config
   (progn
     (define-prefix-command 'macos-open-with-keymap)
@@ -763,6 +765,7 @@ editors and various other applications on macOS.
     (define-key 'macos-keymap "o" 'macos-open-with-keymap)
     (define-key 'macos-keymap "t" 'macos-iterm-keymap)
     ;; macos-open-with keybindings
+    (define-key 'macos-open-with-keymap "o" 'macos-open-with-default-app)
     (define-key 'macos-open-with-keymap "s" 'open-with-sublime-text)
     (define-key 'macos-open-with-keymap "a" 'open-with-atom)
     (define-key 'macos-open-with-keymap "v" 'open-with-vscode)
@@ -1071,7 +1074,6 @@ Note that LaTeX packages are loaded, configured, and installed when
       (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
 #+END_SRC
-
 
 *** RefTeX
 
@@ -4777,17 +4779,23 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 
 #+NAME: js-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+(when (or (proglang-enabled-p 'javascript)
+          (proglang-enabled-p 'web-mode))
+    <<js-js2>>
+    <<js-json-mode>>
+)
+
+
 (when (proglang-enabled-p 'javascript)
-  <<js-js2>>
   <<js-rjx>>
   <<js-npm-mode>>
   <<js-nvm>>
   <<js-js-comint>>
   <<js-coffee-mode>>
   <<js-typescript>>
-  <<js-json-mode>>
   <<js-tern>>
   <<js-company-tern>>)
+
 #+END_SRC
 
 **** js2-mode
@@ -5224,7 +5232,8 @@ local file system.
    <<tagedit-mode-config>>
    <<css-mode-config>>
    <<emmet-mode-config>>
-   <<company-web-config>>)
+   <<company-web-config>>
+   <<skewer-mode-config>>)
 #+END_SRC
 
 **** Web Mode
@@ -5419,6 +5428,48 @@ and slim-mode using company.
                     (string= web-mode-cur-language "jsx"))
                 (unless tern-mode (tern-mode))
               (if tern-mode (tern-mode -1))))))))
+#+END_SRC
+
+**** Skewer Mode
+
+#+NAME: skewer-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes  exports none
+<<skewer-enable-vars>>
+<<skewer-enable-defaults>>
+<<skewer-skewer-mode>>
+#+END_SRC
+
+#+NAME: skewer-enable-vars
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar skewer-mode-enable-web nil
+  "Set to non-nil to enable skewer-mode in `web-mode'")
+
+(defvar skewer-mode-enable-js nil
+  "Set to non-nil to enable skewer-mode in `js2-mode'")
+
+(defvar skewer-mode-enable-css nil
+  "Set to non-nil to enable skewer-mode in `css-mode'")
+#+END_SRC
+
+#+NAME: skewer-mode-enable-defaults
+#+BEGIN_SRC emacs-lisp :tangle no :exports none
+(setq skewer-mode-enable-web t
+      skewer-mode-enable-js t
+      skewer-mode-enable-css t)
+#+END_SRC
+
+#+NAME: skewer-skewer-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package skewer-mode
+  :straight t
+  :init
+  (progn
+    (when skewer-mode-enable-web
+      (add-hook 'html-mode-hook 'skewer-html-mode))
+    (when skewer-mode-enable-js
+      (add-to-hooks 'js2-mode-hook 'skewer-mode))
+    (when skewer-mode-enable-css 
+      (add-hook 'css-mode-hook 'skewer-css-mode))))
 #+END_SRC
 
 ** Footnotes
