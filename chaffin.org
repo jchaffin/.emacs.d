@@ -117,7 +117,6 @@
     - [[#flycheck][Flycheck]]
       - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
       - [[#flycheck-in-org-special-edit-buffers][Flycheck in Org Special Edit Buffers]]
-    - [[#flyspell][Flyspell]]
     - [[#company][Company]]
       - [[#company-statistics][Company Statistics]]
       - [[#company-quick-help][Company Quick Help]]
@@ -1222,9 +1221,16 @@ org-mode buffers.
 
 #+NAME: org-ui
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; UI Wrap Text Block 
 <<org-ui-wraptext>>
+
+;; UI Fixed Width Block
 <<org-ui-fixedwidth-image>>
+
+;; UI Org Bullets
 <<org-ui-org-bullets>>
+
+;; UI Toc Org
 <<org-ui-toc-org>>
 #+END_SRC
 
@@ -1264,10 +1270,10 @@ The default set of bullet points can be modified via the
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
   :straight t
-  :init
-  (org-bullets-mode)
+  :demand t
   :config
-  (add-hook 'org-mode-hook 'org-bullets-mode))
+  (progn
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode +1)))))
 #+END_SRC
 
 
@@ -1390,12 +1396,22 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 
 **** Spell Checking
 
+
 Add spell checking in org mode buffers using Flyspell.
 
 #+NAME: org-docmgr-spellcheck
-#+BEGIN_SRC emacs-lisp :tangle no
-(when (executable-find "aspell")
-  (add-hook 'org-mode-hook 'turn-on-flyspell))
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package flyspell
+    :straight t
+    :if (executable-find "aspell")
+    :demand t
+    :defines (flyspell-mode-on)
+    :init
+    (add-hook 'org-mode-hook 'flyspell-mode-on)
+    :config
+    (progn
+      (setq-default ispell-program-name (executable-find "aspell"))))
+
 #+END_SRC
 
 **** Org Download
@@ -2450,23 +2466,6 @@ Colors the modeline according to current Flycheck state of buffer.
     (setq buffer-file-name file-name)))
 #+END_SRC
 
-*** Flyspell
-
-:PROPERTIES:
-:ID:       9D04DEB5-0E76-4BCC-B840-85C9B7A262F4
-:CUSTOM_ID: flyspell
-:END:
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package flyspell
-  :straight t)
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(with-eval-after-load 'flyspell
-  <<org-utils-flyspell>>)
-#+END_SRC
-
 *** Company
 
 Emacs has two popular packages for code completion --
@@ -2810,6 +2809,7 @@ friends.
     (counsel-itunes
      :host github
      :repo "jchaffin/counsel-itunes")
+    :demand t
     :config
     (progn
       ;; make prefix command
@@ -3533,6 +3533,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 #+END_SRC
 
 *** Google Search at point
+
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun google-search-query-at-point (&optional edit-query)
   "Search for the expression at point in the default web browser.
