@@ -68,6 +68,7 @@
       - [[#org-download][Org Download]]
       - [[#org-man][Org Man]]
     - [[#task-management][Task Management]]
+      - [[#org-journal][Org Journal]]
       - [[#org-capture][Org Capture]]
       - [[#org-pomodoro][Org Pomodoro]]
     - [[#org-latex][Org LaTeX]]
@@ -1185,8 +1186,8 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: latex-auctex-latexmk
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package auctex-latexmk
-  :after (:all pdf-tools tex)
   :straight t
+  :demand t
   :init
   (auctex-latexmk-setup)
   :config
@@ -1470,8 +1471,20 @@ PATH should be a topic that can be thrown at the man command."
 
 #+NAME: org-taskmgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-taskmgr-org-journal>>
 <<org-taskmgr-org-pomodoro>>
 <<org-taskmgr-org-capture>>
+#+END_SRC
+
+**** Org Journal
+
+
+#+NAME: org-taskmgr-org-journal
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-journal
+  :straight t
+  :config
+  (setq org-journal-dir (concat (file-name-as-directory org-directory) "journal")))
 #+END_SRC
 
 **** Org Capture
@@ -1534,6 +1547,7 @@ by [[#org-pomodoro][org-pomodoro]].
 (defalias #'org-pomodoro-path
   (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
 #+END_SRC
+
 
 *** Org LaTeX
 
@@ -1743,6 +1757,8 @@ Now we can open pdf files with =org-pdfview=[fn:8]:
 (when (chaffin/org-export-enabled-backend-p 'extra)
   <<org-export-ox-extra>>)
 
+(when (chaffin/org-export-enabled-backend-p 'pandoc)
+  <<org-export-ox-pandoc>>)
 #+END_SRC
 
 
@@ -1773,7 +1789,7 @@ And opt-in to all back ends when on local machine.
   (mapcar (lambda (backend)
             (setq org-export-enabled-backends
                   (cons backend org-export-enabled-backends)))
-          '(latex gfm yt http extra)))
+          '(latex gfm yt http extra pandoc)))
 #+END_SRC
 
 
@@ -1920,7 +1936,7 @@ external configuration.
 anything. The [[https://github.com/kawabata/ox-pandoc][ox-pandoc]] package allows us to utiliize this capability
 for exporting org-mode documents to various formats.
 
-#+NAME: org-export-pandoc
+#+NAME: org-export-ox-pandoc
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-pandoc
   :if (executable-find "pandoc")
@@ -1942,9 +1958,7 @@ for exporting org-mode documents to various formats.
       (let* ((process (or process (assoc (completing-read "Pandoc Process: " latex-process-list nil nil) latex-process-list)))
              (sym (substring-no-properties (car process))))
         (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,sym))
-              org-pandoc-options-for-latex-pdf `((pdf-engine . ,sym)))))
-
-    (add-hook 'org-mode-hook (local-set-key (kbd "M-s p") 'set-org-pandoc-pdf-process))))
+              org-pandoc-options-for-latex-pdf `((pdf-engine . ,sym)))))))
 
 #+END_SRC
 
@@ -5001,11 +5015,11 @@ local file system.
     (setq markdown-command "multimarkdown")
     (if (and *is-mac*
 	     (straight-check-package "macos-dev-utils"))
-	(setq markdown-open-command #'macos-open-with-default-app)))
+        (setq markdown-open-command #'macos-open-with-default-app)))
   :config
   (add-to-hooks  (lambda ()
-		   (visual-line-mode)
-		   (auto-fill-mode))
+		   (visual-line-mode t)
+		   (auto-fill-mode t))
 		 '(markdown-mode-hook gfm-mode-hook)))
 #+END_SRC
 

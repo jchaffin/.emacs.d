@@ -1,0 +1,37 @@
+--- ox-beamer.el~	2018-02-24 21:27:42.000000000 -0800
++++ /Users/jacobchaffin/.emacs.d/straight/repos/org/lisp/ox-beamer.el	2018-02-24 21:11:04.000000000 -0800
+@@ -791,7 +791,8 @@
+ CONTENTS is the transcoded contents string.  INFO is a plist
+ holding export options."
+   (let ((title (org-export-data (plist-get info :title) info))
+-	(subtitle (org-export-data (plist-get info :subtitle) info)))
++	(subtitle (org-export-data (plist-get info :subtitle) info))
++	(spec (org-latex--format-spec info)))
+     (concat
+      ;; Time-stamp.
+      (and (plist-get info :time-stamp-file)
+@@ -851,14 +852,16 @@
+      ;; Document start.
+      "\\begin{document}\n\n"
+      ;; Title command.
+-     (org-element-normalize-string
+-      (cond ((not (plist-get info :with-title)) nil)
+-	    ((string= "" title) nil)
+-	    ((not (stringp org-latex-title-command)) nil)
+-	    ((string-match "\\(?:[^%]\\|^\\)%s"
+-			   org-latex-title-command)
+-	     (format org-latex-title-command title))
+-	    (t org-latex-title-command)))
++     (let* ((title-command (plist-get info :latex-title-command))
++            (command (and (stringp title-command)
++                          (format-spec title-command spec))))
++       (org-element-normalize-string
++	(cond ((not (plist-get info :with-title)) nil)
++	      ((string= "" title) nil)
++	      ((not (stringp command)) nil)
++	      ((string-match "\\(?:[^%]\\|^\\)%s" command)
++	       (format command title))
++	      (t command))))
+      ;; Table of contents.
+      (let ((depth (plist-get info :with-toc)))
+        (when depth
