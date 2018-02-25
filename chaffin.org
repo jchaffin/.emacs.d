@@ -1612,6 +1612,7 @@ by [[#org-pomodoro][org-pomodoro]].
   :straight t
   :config
   (progn
+    (require 'org-ref-url-utils)
     (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
           org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
           org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")

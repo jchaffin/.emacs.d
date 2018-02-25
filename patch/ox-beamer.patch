@@ -1,5 +1,5 @@
 --- ox-beamer.el~	2018-02-24 21:27:42.000000000 -0800
-+++ /Users/jacobchaffin/.emacs.d/straight/repos/org/lisp/ox-beamer.el	2018-02-24 21:11:04.000000000 -0800
++++ ox-beamer.el	2018-02-24 21:11:04.000000000 -0800
 @@ -791,7 +791,8 @@
  CONTENTS is the transcoded contents string.  INFO is a plist
  holding export options."
