@@ -144,7 +144,7 @@
 
    :config
    (progn
-     (when (eq system-name 'darwin)
+     (when (eq system-type 'darwin)
        (setq org-directory (expand-file-name "~/Dropbox/org/")
              org-default-notes-file (concat org-directory "capture.org")))
      (setq org-insert-heading-respect-content t
@@ -173,7 +173,8 @@ defined in this GNU Emacs distribution")
            (perl . t)
            (python . t)
            (ruby . t)
-           (shell . t)))
+           (shell . t)
+           (org . t)))
         (if target-file
             (org-babel-load-file
              (expand-file-name target-file target-dir))
