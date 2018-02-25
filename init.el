@@ -96,8 +96,6 @@
    :repo "jchaffin/auctex"
    :local-repo-name auctex))
 
-
-
 ;; Install org
 (straight-use-package
   `(org
