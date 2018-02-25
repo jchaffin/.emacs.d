@@ -26,3 +26,9 @@ site-lisp/*
 !/snippets/**/
 
 !/patch/
+
+!/straight/
+!/straight/versions
+/straight/*.el
+
+
