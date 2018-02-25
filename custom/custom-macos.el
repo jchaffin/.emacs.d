@@ -9,9 +9,11 @@
  ;; If there is more than one, they won't work right.
  '(safe-local-variable-values
    (quote
-    ((org-ref-default-bibliography . ~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research\.bib)
+    ((org-ref-default-bibliography quote
+                                   ("/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib"))
+     (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/pdfs/")
+     (org-ref-pdf-directory . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/pdfs/)
      (org-ref-default-bibliography . "/Users/jacobchaffin/Dropbox/Documents/Courses/LING_120B/bib/ling120b.bib")
-     (org-ref-default-bibliography . /Users/jacobchaffin/Dropbox/Documents/Courses/LING_120B/bib/ling120b\.bib)
      (org-ref-default-bibliography \`
                                    (concat default-directory "bib/ling120b.bib"))
      (org-ref-default-bibliography concat default-directory "bib/ling120b.bib")
