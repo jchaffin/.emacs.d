@@ -84,6 +84,7 @@
       - [[#gfm-backend][GFM backend]]
       - [[#org-youtube][Org YouTube]]
       - [[#ox-extra][Ox Extra]]
+      - [[#ox-publish][Ox Publish]]
   - [[#better-defaults][(Better) Defaults]]
     - [[#better-utilities][Better Utilities]]
       - [[#better-dired][Better Dired]]
@@ -1171,6 +1172,7 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magic-latex-buffer
   :straight t
+  :demand t
   :init
   (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
   :config
@@ -1187,6 +1189,7 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package auctex-latexmk
   :straight t
+  :after (auctex)
   :demand t
   :init
   (auctex-latexmk-setup)
@@ -1611,21 +1614,10 @@ by [[#org-pomodoro][org-pomodoro]].
   (progn
     (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
           org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
-          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib"))
-    (require 'org-ref-pdf)
-    (require 'org-ref-latex)
-    (require 'org-ref-reftex)
-    (require 'org-ref-utils)
-    (require 'org-ref-url-utils)
-    (require 'org-ref-pubmed)
-    (require 'org-ref-scopus)
-    (require 'org-ref-scifinder)
-    (require 'org-ref-citeproc)
-    (require 'org-ref-sci-id)
-    (require 'org-ref-isbn)
-    (require 'org-ref-wos)
-    (require 'org-ref-worldcat)
-    (require 'x2bib)))
+          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
+          org-ref-show-citation-on-enter t
+          org-ref-show-broken-links t)))
+  
 #+END_SRC
 
 ***** Org Ref Ivy
@@ -1792,7 +1784,6 @@ And opt-in to all back ends when on local machine.
           '(latex gfm yt http extra pandoc)))
 #+END_SRC
 
-
 **** LaTeX Backend
 
 #+NAME: org-export-latex
@@ -1835,9 +1826,8 @@ nonstopmode -output-directory %o %f")
     ("pdflatex" . latex-process-pdflatex)
     ))
 
-(setq org-latex-pdf-process latex-process-pdflatex)
 
-(defun set-org-latex-pdf-process (&optional process)
+(defun org-latex-pdf-process-set (&optional process)
   (interactive)
   (let* ((process (or
                    process
@@ -1847,7 +1837,7 @@ nonstopmode -output-directory %o %f")
     (setq org-latex-pdf-process (symbol-value cmd-string))))
 
 
-(add-hook 'org-mode-hook (lambda () (local-set-key (kbd "M-s l") 'set-org-latex-pdf-process)))
+(add-hook 'org-mode-hook (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
 #+END_SRC
 
 ***** Prefer user provided labeling system
@@ -1953,7 +1943,7 @@ for exporting org-mode documents to various formats.
           org-pandoc-options-for-docx '((standalone . nil))
           org-pandoc-options-for-beamer-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine)))
           org-pandoc-options-for-latex-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine))))
-    (defun set-org-pandoc-pdf-process (&optional process)
+    (defun org-pandoc-pdf-engine-set (&optional process)
       (interactive)
       (let* ((process (or process (assoc (completing-read "Pandoc Process: " latex-process-list nil nil) latex-process-list)))
              (sym (substring-no-properties (car process))))
@@ -2014,6 +2004,16 @@ subtrees of the ignored headlines will be retained.
 (require 'ox-extra)
 (ox-extras-activate '(ignore-headlines))
 
+#+END_SRC
+
+**** Ox Publish
+#+NAME: org-export-ox-publish
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ox-publish
+  :straight nil
+  :bind (:map org-mode-map
+              ("M-m r p" . org-publish-project)))
 #+END_SRC
 
 ** (Better) Defaults

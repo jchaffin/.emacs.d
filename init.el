@@ -73,12 +73,14 @@
 
 (straight-use-package 'cl)
 (straight-use-package 'dash)
+(straight-use-package 'git)
 
 (eval-when-compile
   ;; String manipulated library bundled with Emacs >24.4.
   (require 'cl)
   (require 'dash)
-  (require 'subr-x))
+  (require 'subr-x)
+  (require 'git))
 
 ;; Add org-beautify-theme fork
 (straight-use-package
@@ -119,7 +121,7 @@
   :init
   (defun org-git-version ()
     (require 'git)
-     (let ((git-repo (expand-file-name
+    (let ((git-repo (expand-file-name
                      "straight/repos/org/" user-emacs-directory)))
       (string-trim
        (git-run "describe"
@@ -127,7 +129,7 @@
                 "--abbrev=6"
                 "HEAD"))))
 
-   (defun org-release ()
+  (defun org-release ()
     "The release version of org-mode.
   Inserted by installing org-mode or when a release is made."
     (require 'git)
