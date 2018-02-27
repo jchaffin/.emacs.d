@@ -116,7 +116,10 @@
 (use-package org
   :bind
   (("C-c a" . org-agenda)
-   ("C-c c" . org-capture))
+   ("C-c c" . org-capture)
+   ("C-c M-o" . org-store-link)
+   (:map org-mode-map
+         ("C-c M-t" . org-set-tags)))
 
   :init
   (defun org-git-version ()
@@ -174,7 +177,10 @@ defined in this GNU Emacs distribution")
            (latex . t)
            (perl . t)
            (python . t)
+           (java . t)
+           (ditaa . t)
            (ruby . t)
+           (R . t)
            (shell . t)
            (org . t)))
         (if target-file
