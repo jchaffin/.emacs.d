@@ -1,10 +1,4 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
-#+LaTeX_HEADER: \usepackage[T1]{fontenc}
-#+LaTeX_HEADER: \usepackage{mathptmx}
-#+LaTeX_HEADER: \usepackage[scaled=.90]{helvet}
-#+LaTeX_HEADER: \usepackage{courier}
-
-#+OPTIONS: H:5 num:t toc:nil \n:nil d:nil tasks:nil tags:nil tex:t num:nil
 
 * Table Of Contents                                       :TOC_4_gh:noexport:
 - [[#configuration][Configuration]]
@@ -48,7 +42,7 @@
   - [[#latex][LaTeX]]
     - [[#tex][Tex]]
     - [[#reftex][RefTeX]]
-    - [[#bibtex][Bibtex]]
+    - [[#bibtex][BibTex]]
     - [[#latex-extra][LaTeX Extra]]
     - [[#latex-preview-pane][LaTeX Preview Pane]]
     - [[#company-auctex][Company AucTeX]]
@@ -139,8 +133,11 @@
       - [[#smex][Smex]]
     - [[#nov][Nov]]
     - [[#deft][Deft]]
+    - [[#dash][Dash]]
+    - [[#lorem-ipsum][Lorem Ipsum]]
     - [[#wakatime][Wakatime]]
     - [[#prodigy][Prodigy]]
+    - [[#ditaa][Ditaa]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
       - [[#vertical-bar][Vertical Bar]]
@@ -1020,14 +1017,14 @@ Note that LaTeX packages are loaded, configured, and installed when
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
   (use-package tex
     :straight auctex
+    :demand t
     :init
     (progn
       
       (defvar latex-build-command
         (if (executable-find "latexmk")
-            "LatexMK"
+            "LatexMk"
           "LaTeX"))
-
       
       (setq TeX-command-default latex-build-command))
     :config
@@ -1036,7 +1033,7 @@ Note that LaTeX packages are loaded, configured, and installed when
             TeX-parse-self t
             TeX-syntactic-comment t
             ;; Synctex support
-            TeX-source-correlate-start-server nil
+            TeX-source-correlate-start-server t
             ;; Don't insert line-break at inline math
             LaTeX-fill-break-at-separators nil)
 
@@ -1093,7 +1090,18 @@ Since Emacs 24.3, its built in with the Emacs distribution.
           reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
 #+END_SRC
 
-*** Bibtex
+*** BibTex
+
+BibTex mode is built-in with GNU Emacs. Like /super/ built in. This is
+from the author of the online BibTeX mode manual[fn:8]:
+
+#+BEGIN_QUOTE
+I am not the author of this file and am only putting it online because, to my knowledge, it is not available anywhere else anymore and I find it a very valuable reference.  I haven't been able to find out who the current maintainer of the BibTex-Mode for GNU emacs is, but am willing to withdraw this text or add any copyright notice that would be deemed relevant.
+#+END_QUOTE 
+
+That was from 2009... 
+
+These are the recommended settings in the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#bibtex-key-format][org-ref]] documentation.
 
 #+NAME: latex-bibtex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1189,12 +1197,12 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package auctex-latexmk
   :straight t
-  :after (auctex)
+  :after (tex)
   :demand t
-  :init
-  (auctex-latexmk-setup)
   :config
-  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
+  (progn
+    (auctex-latexmk-setup)))
+
 #+END_SRC
 
 *** Texinfo
@@ -1509,7 +1517,7 @@ PATH should be a topic that can be thrown at the man command."
 
 #+NAME: org-taskmgr-org-pomodoro
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-pomodoro-path-helper>>
+<<org-pomodoro-path-alias>>
 <<org-pomodoro-config>>
 #+END_SRC
 
@@ -1520,36 +1528,29 @@ PATH should be a topic that can be thrown at the man command."
   :bind (:map org-mode-map
               ("C-c M-RET p" . org-pomodoro))
   :config
-  (setq org-pomodoro-audio-player "afplay"
-        org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
-        ;; Start Settings
-        org-pomodoro-start-sound-p t ;; enable starting sound
-        org-pomodoro-start-sound-args "--volume 0.08"
-        org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
+  (progn
+    (defalias #'org-pomodoro-path
+      (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
+
+    (setq org-pomodoro-audio-player "/usr/bin/afplay"
+          org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
+          ;; Start Settings
+          org-pomodoro-start-sound-p t ;; enable starting sound
+          org-pomodoro-start-sound-args "--volume 0.08"
+          org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
         ;; Finished Settings
-        org-pomodoro-finished-sound-args "--volume 0.2"
-        org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
-        ;; Short Break Settings
-        org-pomodoro-short-break-length 5
-        org-pomodoro-short-break-sound-args "--volume 0.2"
-        org-pomodoro-short-break-sound org-pomodoro-finished-sound
-        ;; Long Break Settings
-        org-pomodoro-long-break-length 15
-        org-pomodoro-long-break-sound-args "--volume 0.2"
-        org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav")))
+          org-pomodoro-finished-sound-args "--volume 0.2"
+          org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
+          ;; Short Break Settings
+          org-pomodoro-short-break-length 5
+          org-pomodoro-short-break-sound-args "--volume 0.2"
+          org-pomodoro-short-break-sound org-pomodoro-finished-sound
+          ;; Long Break Settings
+          org-pomodoro-long-break-length 15
+          org-pomodoro-long-break-sound-args "--volume 0.2"
+          org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav"))))
 #+END_SRC
 
-
-***** Org Pomodoro Path Helper
-
-Utility for simplifying the path to the given audio file path used
-by [[#org-pomodoro][org-pomodoro]].
-
-#+NAME: org-pomdoro-path-alias
-#+BEGIN_SRC emacs-lisp :tangle no
-(defalias #'org-pomodoro-path
-  (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
-#+END_SRC
 
 
 *** Org LaTeX
@@ -1698,7 +1699,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
     (setq pdf-view-resize-factor 1.1)))
 #+END_SRC
 
-Now we can open pdf files with =org-pdfview=[fn:8]:
+Now we can open pdf files with =org-pdfview=[fn:9]:
 
 #+NAME: org-pdf-org-file-apps
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1794,6 +1795,7 @@ And opt-in to all back ends when on local machine.
   <<org-export-latex-user-labels>>
   <<org-export-latex-pdf-process>>
   <<org-export-latex-custom-classes>>
+  <<org-export-latex-numfilter>>
 #+END_SRC
 
 ***** Set latex pdf process
@@ -1806,6 +1808,7 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-latex-listings 'minted
       org-latex-packages-alist '(("" "minted")))
+
 
 (defvar latex-process-latex
   '("%latex -interaction nonstopmode -output-directory %o %f" "%latex
@@ -1827,6 +1830,8 @@ nonstopmode -output-directory %o %f")
     ("pdflatex" . latex-process-pdflatex)
     ))
 
+
+(setq org-latex-pdf-process latex-process-xelatex)
 
 (defun org-latex-pdf-process-set (&optional process)
   (interactive)
@@ -1876,9 +1881,10 @@ The default cross-referencing and hyperlink styles provided by
 
 ***** Custom Classes
 
-#+NAME: org-export-larex-custom-classes
+#+NAME: org-export-latex-custom-classes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-export-latex-per-file-class>>
+<<org-export-latex-lingsyn-class>>
 #+END_SRC
 
 ****** Org Per File Class
@@ -1910,7 +1916,7 @@ external configuration.
          (shell-command-to-string "kpsewhich lingsyn.cls"))
 
     (add-to-list 'org-latex-classes
-                 '("ling120b"
+                 '("lingsyn"
                    "\\documentclass{lingsyn}
                     [NO-DEFAULT-PACKAGES]
                     [EXTRA]"
@@ -1919,6 +1925,30 @@ external configuration.
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+#+END_SRC
+
+***** Filter Section Numbering by tag
+
+- [[http://bastibe.de/2014-12-03-org-numbering.html][Org Numbering]]
+
+#+NAME: org-export-latex-numfilter
+#+BEGIN_SRC emacs-lisp :tangle no 
+(defun headline-numbering-filter (data backend info)
+  "No numbering in headlines that have a property :numbers: no"
+  (let* ((beg (next-property-change 0 data))
+         (headline (if beg (get-text-property beg :parent data))))
+    (if (string= (org-element-property :NUMBERS headline) "no")
+        (cond ((eq backend 'latex)
+               (replace-regexp-in-string
+                "\\(part\\|chapter\\|\\(?:sub\\)*section\\|\\(?:sub\\)?paragraph\\)"
+                "\\1*" data nil nil 1))
+              ((eq backend 'html)
+               (replace-regexp-in-string
+                "\\(<h[1-6]\\)\\([^>]*>\\)"
+                "\\1 class=\"nonumber\"\\2" data nil nil)))
+      data)))
+
+(setq org-export-filter-headline-functions '(headline-numbering-filter))
 #+END_SRC
 
 **** Pandoc Backend
@@ -2323,7 +2353,7 @@ By default, decrypting gpg files in Emacs will result in the pin entry
 window being launched from the terminal session.
 
 By disabling the agent info, we can force Emacs to handle this
-internally[fn:9].
+internally[fn:10].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setenv "GPG_AGENT_INFO" nil)
@@ -2358,7 +2388,7 @@ killall gpg-agent
 ** Editing
 *** Indentation
 
-Tabs are the bane of humanity[fn:10]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:11]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -2920,6 +2950,26 @@ A smart M-x enhancement for Emacs.
           deft-default-extension "org")))
 #+END_SRC
 
+*** Dash
+
+#+NAME: dash-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-dash
+  :after (:all counsel ivy)
+  :demand t
+  :if *is-mac*)
+#+END_SRC
+
+*** Lorem Ipsum
+
+Generate dummy text.
+
+#+NAME: lorem-ipsum-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package lorem-ipsum
+  :straight t)
+#+END_SRC
+
 *** Wakatime
 
 #+NAME: wakatime-mode-config
@@ -2951,6 +3001,19 @@ Interface for controlling external processes in Emacs.
 (use-package prodigy
   :straight t
   )
+#+END_SRC
+
+*** Ditaa
+
+#+NAME: ditta config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package artist-mode
+  :straight nil
+  :bind ((:map artist-mode-map
+               ("C-c C-a p" . artist-select-op-pen-line))))
+
+
+(setq org-ditaa-jar-path "/usr/local/Cellar/ditaa/0.11.0/libexec/ditaa-0.11.0-standalone.jar")
 #+END_SRC
 
 ** User Interface
@@ -3227,10 +3290,12 @@ interface.
 #+BEGIN_SRC emacs-lisp :tangle no
 (when (member 'atom-one-dark custom-enabled-themes)
    ;; Org Faces
-   (set-face-attribute 'org-block-begin-line nil :foreground "#ABB2BF"
-           :background "#35373E")
-   (set-face-attribute 'org-block-end-line nil :foreground "#ABB2BF"
+  (set-face-attribute 'org-block-begin-line nil
+                      :foreground "#ABB2BF"
                        :background "#35373E")
+  (set-face-attribute 'org-block-end-line nil
+                      :foreground "#ABB2BF"
+                      :background "#35373E")
    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch-serif))
    (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
    (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
@@ -4010,7 +4075,6 @@ That blows but loading this this hook regardless corrects the per-file
   <<cc-hooks-compile-command>>)
 #+END_SRC
 
-
 ***** Add Project Headers to Flycheck Clang Include Path
 
 #+NAME: cc-hooks-flycheck-include-headers
@@ -4030,17 +4094,18 @@ That blows but loading this this hook regardless corrects the per-file
 
 
 (defun c-cxx-makefile-include-directive (buffer)
-  (with-current-buffer buffer
-    (goto-char (point-min))
-    (when (re-search-forward "^INC\s-?=.*$" nil t)
-      (let* ((pointb (match-beginning 0))
-             (pointe (match-end 0))
-             (relative-file-name
-              (replace-regexp-in-string "^INC\s-?=\s-?" ""
-                                        (buffer-substring-no-properties
-                                         pointb
-                                         pointe))))
-        (expand-file-name relative-file-name default-directory)))))
+  (let ((regexp "^INC\s-?=.*$"))
+    (with-current-buffer buffer
+      (goto-char (point-min))
+      (when (re-search-forward regexp nil t)
+        (let* ((pointb (match-beginning 0))
+               (pointe (match-end 0))
+               (relative-file-name
+                (replace-regexp-in-string regexp ""
+                                          (buffer-substring-no-properties
+                                           pointb
+                                           pointe))))
+          (expand-file-name relative-file-name default-directory))))))
 
 (defun c-cxx-flycheck-include-headers-hook ()
   (let ((f (lambda (elt) (not (eq elt 'nil)))))
@@ -4049,7 +4114,7 @@ That blows but loading this this hook regardless corrects the per-file
 
 
 (add-to-hooks #'flycheck-mode '(c-mode-hook
-                                C++-mode-hook))
+                                c++-mode-hook))
 
 (add-to-hooks #'c-cxx-flycheck-include-headers-hook
               '(c-mode-hook
@@ -5443,7 +5508,6 @@ and slim-mode using company.
               (if tern-mode (tern-mode -1))))))))
 #+END_SRC
 
-
 ** Footnotes
 
 [fn:1]  "Next-generation, purely
@@ -5465,10 +5529,12 @@ dialects of Lisp.
 
 [fn:7] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
 
-[fn:8] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
+[fn:8] http://www.jonathanleroux.org/bibtex-mode.html
 
-[fn:9] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
+[fn:9] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:10] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+[fn:10] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
 
-[fn:11] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:11] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+
+[fn:12] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]

@@ -104,19 +104,18 @@
     :local-repo-name org
     :files ("lisp/*.el" "contrib/lisp/*.el")))
 
-;; We're using org to extract the source code from
-;; our configuration file. The Emacs loading process
-;; can be tricky when using external lisp libraries which are
-;; bundled in the Emacs distribution.
-;; [5] https://github.com/raxod502/straight.el/issues/72
-;; [6] https://github.com/raxod502/straight.el/issues/192
-;; [7] https://github.com/raxod502/straight.el/issues/168
-;; [8] https://github.com/raxod502/radian/blob/ee92ea6cb0473bf7d20c6d381753011312ef4a52/radian-emacs/radian-org.el#L46-L112
 
+;; https://github.com/raxod502/straight.el/issues/72
+;; https://github.com/raxod502/straight.el/issues/192
+;; https://github.com/raxod502/straight.el/issues/168
 (use-package org
   :bind
   (("C-c a" . org-agenda)
-   ("C-c c" . org-capture))
+   ("C-c c" . org-capture)
+   ("C-c M-o" . org-store-link)
+   (:map org-mode-map
+         ("C-c M-t" . org-set-tags)
+         ("C-c C-," . org-priority)))
 
   :init
   (defun org-git-version ()
@@ -155,13 +154,13 @@
 
 
 
-(defvar user-emacs-literate-config-file nil
+(defvar literate-config-file "chaffin.org"
   "The *.org file containing the source code responsible for declaration and
 configuration of third-party packages, as well as any settings and customizations
 defined in this GNU Emacs distribution")
 
-(defun user-emacs-load-config (&optional user-config-file)
-  (let ((target-file (or user-emacs-literate-config-file
+(defun load-literate (&optional user-config-file)
+  (let ((target-file (or literate-config-file
                          user-config-file))
         (target-dir (or user-emacs-directory
                         default-directory)))
@@ -174,7 +173,10 @@ defined in this GNU Emacs distribution")
            (latex . t)
            (perl . t)
            (python . t)
+           (java . t)
+           (ditaa . t)
            (ruby . t)
+           (R . t)
            (shell . t)
            (org . t)))
         (if target-file
@@ -182,8 +184,7 @@ defined in this GNU Emacs distribution")
              (expand-file-name target-file target-dir))
           (message "No configuration file set, not extracting source code."))))
 
-(setq user-emacs-literate-config-file "chaffin.org")
-(user-emacs-load-config)
+(load-literate)
 
 
 
