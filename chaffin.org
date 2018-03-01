@@ -83,7 +83,6 @@
     - [[#better-utilities][Better Utilities]]
       - [[#better-dired][Better Dired]]
       - [[#undo-tree][Undo Tree]]
-      - [[#projectile][Projectile]]
       - [[#restart-emacs][Restart Emacs]]
       - [[#popwin][Popwin]]
     - [[#better-help][Better Help]]
@@ -104,19 +103,29 @@
       - [[#internal-pinentry-problem-and-solution][Internal Pinentry Problem and Solution]]
     - [[#better-commands][Better Commands]]
       - [[#alias-yes-or-no][Alias Yes Or No]]
+  - [[#project-mangement][Project Mangement]]
+    - [[#projectile][Projectile]]
+    - [[#wakatime][Wakatime]]
+  - [[#completion][Completion]]
+    - [[#company][Company]]
+      - [[#company-statistics][Company Statistics]]
+      - [[#company-quick-help][Company Quick Help]]
+      - [[#company-dict][Company Dict]]
+    - [[#ivy-framework][Ivy Framework]]
+      - [[#ivy][Ivy]]
+      - [[#counsel][Counsel]]
+      - [[#swiper][Swiper]]
+      - [[#smex][Smex]]
+    - [[#flycheck][Flycheck]]
+      - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
+      - [[#flycheck-in-org-special-edit-buffers][Flycheck in Org Special Edit Buffers]]
+    - [[#yasnippet][YASnippet]]
   - [[#editing][Editing]]
     - [[#indentation][Indentation]]
       - [[#highlight-indent-guides][Highlight Indent Guides]]
     - [[#formatting][Formatting]]
       - [[#visual-fill-column][Visual Fill Column]]
-    - [[#yasnippet][YASnippet]]
-    - [[#flycheck][Flycheck]]
-      - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
-      - [[#flycheck-in-org-special-edit-buffers][Flycheck in Org Special Edit Buffers]]
-    - [[#company][Company]]
-      - [[#company-statistics][Company Statistics]]
-      - [[#company-quick-help][Company Quick Help]]
-      - [[#company-dict][Company Dict]]
+    - [[#lorem-ipsum][Lorem Ipsum]]
   - [[#utilities][Utilities]]
     - [[#asynchronous-processing][Asynchronous Processing]]
     - [[#terminal][Terminal]]
@@ -124,18 +133,11 @@
       - [[#multi-term][Multi-Term]]
       - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
       - [[#shell][Shell]]
-    - [[#tramp][Tramp]]
+      - [[#tramp][Tramp]]
     - [[#image][Image+]]
-    - [[#completion-framework][Completion Framework]]
-      - [[#ivy][Ivy]]
-      - [[#counsel][Counsel]]
-      - [[#swiper][Swiper]]
-      - [[#smex][Smex]]
     - [[#nov][Nov]]
     - [[#deft][Deft]]
     - [[#dash][Dash]]
-    - [[#lorem-ipsum][Lorem Ipsum]]
-    - [[#wakatime][Wakatime]]
     - [[#prodigy][Prodigy]]
     - [[#ditaa][Ditaa]]
   - [[#user-interface][User Interface]]
@@ -264,8 +266,8 @@
 
 This document contains my entire configuration for the GNU Emacs text
 editor. It written as some combination of travelogue, technical
-notebook, personal journal, and clipboard of woefully shameless
-copy-and-pastes from various online forums.
+notebook, personal journal, and StackOverflow pasteboard.
+
 
 ****  Literate Programming
 
@@ -1551,8 +1553,6 @@ PATH should be a topic that can be thrown at the man command."
           org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav"))))
 #+END_SRC
 
-
-
 *** Org LaTeX
 
 #+NAME: org-latex-config
@@ -2111,22 +2111,6 @@ Adds extensions and functionality to dired mode.
   (global-undo-tree-mode))
 #+END_SRC
 
-**** Projectile
-
-#+NAME: projectile-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package projectile
-  :straight t
-  :init
-  (projectile-mode)
-  :config
-  (progn
-    (mapcar
-     (lambda (elt)
-       (add-to-list 'projectile-globally-ignored-directories elt))
-     '("gradle" ".meghanada" ".gradle" "build" "bin"))))
-#+END_SRC
-
 **** Restart Emacs
 
 The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
@@ -2385,133 +2369,48 @@ killall gpg-agent
 (defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
-** Editing
-*** Indentation
+** Project Mangement
+*** Projectile
 
-Tabs are the bane of humanity[fn:11]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
-
+#+NAME: projectile-config
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq-default tab-width 2
-              indent-tabs-mode nil)
-#+END_SRC
-
-**** Highlight Indent Guides
-
-[[https://github.com/darthfennec/highlight-indent-guides][Highlight Indent Guides]] sublime-like indentation guides.
-
-/Commented out because of bug that leaves a trail of solid white line marks on the indent guide overlay./
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package highlight-indent-guides
-   :straight t
-   :init
-   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-   :config
-   (setq highlight-indent-guides-method 'character))
-#+END_SRC
-
-*** Formatting
-**** Visual Fill Column
-
-Mimics behavior of =fill-column= in =visual-line-mode=.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package visual-fill-column
-  :straight t
-  :config
-  (advice-add 'text-scale-adjust
-              :after #'visual-fill-column-adjust))
-#+END_SRC
-
-*** YASnippet
-
-YASnippet is a template system based off the TextMate snippet syntax.
-
-Let's begin by creating a variable for our personal snippets directory.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(setq user-snippets-dir (concat user-emacs-directory "snippets"))
-#+END_SRC
-
-After installation and enabling the package, add the personal snippets
-directory to the list of directories where YASnippet should look for snippets.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package yasnippet
+(use-package projectile
   :straight t
   :init
-  (yas-global-mode 1)
+  (projectile-mode)
   :config
-  (push 'user-snippets-dir yas-snippet-dirs))
+  (progn
+    (mapcar
+     (lambda (elt)
+       (add-to-list 'projectile-globally-ignored-directories elt))
+     '("gradle" ".meghanada" ".gradle" "build" "bin"))))
 #+END_SRC
 
-YASnippet can also be used as a non-global minor mode on a per-buffer
-basis.
+*** Wakatime
 
-Invoking ~yas-reload-all~ will load the snippet tables, and then
-calling ~yas-minor-mode~ from the major mode hooks will load the
-snippets corresponding to the major mode of the current buffer mode.
-
-#+BEGIN_EXAMPLE emacs-lisp
-(yas-reload-all)
-(add-hook 'prog-mode-hook #'yas-minor-mode)
-#+END_EXAMPLE
-
-*** Flycheck
-
-#+NAME: flycheck
-#+BEGIN_SRC :tangle yes :noweb yes :exports none
-<<flycheck-settings>>
-<<flycheck-color-mode-line-config>>
-#+END_SRC
-
-[[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
-
-#+NAME: flycheck-settings
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-  (use-package flycheck
+#+NAME: wakatime-mode-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when (and *is-mac* (or (string= (downcase computer-name) "hal")
+			(string= (downcase computer-name) "junior")))
+  (use-package wakatime-mode
     :straight t
+    :init
+    (add-hook 'prog-mode-hook 'wakatime-mode)
     :config
-    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
-                  flycheck-emacs-lisp-load-path 'inherit))
+    (progn
+      (setq wakatime-cli-path
+            (expand-file-name
+            "~/.local/lib/python3.6/site-packages/wakatime/cli.py")
+            wakatime-python-bin
+            (expand-file-name "~/.pyenv/shims/python"))
+
+      (defun wakatime-dashboard ()
+        (interactive)
+        (browse-url "https://wakatime.com/dashboard")))))
+
 #+END_SRC
 
-**** Flycheck Color Mode Line
-
-Colors the modeline according to current Flycheck state of buffer.
-
-#+NAME: flycheck-color-modeline-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-color-mode-line
-  :straight t
-  :init
-  (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
-     #+END_SRC
-
-**** Flycheck Package                                           :noexport:
-
-[[https://github.com/purcell/flycheck-package][Flycheck Package]] requires ~package.el~ to be enabled, so it's incompatible with ~straight.el~.
-
-#+NAME: flycheck-package-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-package
-  :straight t
-  :init
-  (eval-after-load 'flycheck
-    '(flycheck-package-setup)))
-#+END_SRC
-
-**** Flycheck in Org Special Edit Buffers
-
-#+NAME: flycheck-org-special-edit
-#+BEGIN_SRC emacs-lisp :tangle no
-(defadvice org-edit-src-code (around set-buffer-file-name activate compile)
-  (let ((file-name (buffer-file-name))) ;; (1)
-    ad-do-it                            ;; (2)
-    ;; (3)
-    (setq buffer-file-name file-name)))
-#+END_SRC
-
+** Completion
 *** Company
 
 Emacs has two popular packages for code completion --
@@ -2599,109 +2498,8 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
         company-dict-enable-yasnippet t))
 #+END_SRC
 
-** Utilities
-*** Asynchronous Processing
+*** Ivy Framework
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package async
-  :straight t
-  :commands (dired-async-mode async-smtpmail-send-it)
-  :config
-  (progn
-    (dired-async-mode 1)
-    (setq message-send-mail-function 'async-smtpmail-send-it)))
-#+END_SRC
-
-*** Terminal
-**** With Editor
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package with-editor
-  :straight t
-  :config
-  (progn
-    (add-to-hooks #'with-editor-export-editor
-                  '(shell-mode-hook
-                    term-exec-hook
-                    eshell-modehook))))
-#+END_SRC
-
-**** Multi-Term
-
-#+NAME: multi-term-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package multi-term
-  :straight t
-  :bind
-  (("C-c M-RET t" . multi-term)
-   ("C-c M-RET b" . multi-term-prev)
-   ("C-c M-RET n" . multi-term-next)
-   ("C-c M-RET o" . multi-term-dedicated-toggle))
-  :config
-  (progn
-    (setq multi-term-program
-	  (if (string= shell-file-name "/bin/sh")
-	      "/bin/bash"
-	    "/bin/zsh"))))
-#+END_SRC
-
-**** Run Bash On Windows/PC
-- [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][Mastering Emacs - Running Shells in Emacs]]
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-windows*
-  (progn
-    (setq explicit-shell-file-name "C:/path/to/bash.exe"
-          shell-file-name "bash"
-          explicit-bash.exe-args '("--noediting" "--login" "-i"))
-    (setenv "SHELL" shell-file-name)
-    (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
-#+END_SRC
-
-**** Shell
-
-Zsh is whack when running the emacs =shell= function. This fixes that problem.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-mac*
-  (setq explicit-shell-file-name "/bin/sh"
-	shell-file-name "sh")
-  (setenv "SHELL" shell-file-name))
-#+END_SRC
-
-*** Tramp
-Connect Remotely.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(setq tramp-default-method "ssh")
-#+END_SRC
-
-*** Image+
-
-[[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package image+
-  :straight t
-  :if (display-graphic-p)
-  :after (image)
-  :config
-  (eval-after-load 'image+
-    `(when (require 'hydra nil t)
-       (defhydra imagex-sticky-binding (global-map "C-x C-l")
-         "Manipulating image"
-         ("+" imagex-sticky-zoom-in "zoom in")
-         ("-" imagex-sticky-zoom-out "zoom out")
-         ("M" imagex-sticky-maximize "maximize")
-         ("O" imagex-sticky-restore-original "restore orginal")
-         ("S" imagex-sticky-save-image "save file")
-         ("r" imagex-sticky-rotate-right "rotate right")
-         ("l" imagex-sticky-rotate-left "rotate left")))))
-#+END_SRC
-
-*** Completion Framework
-
-#+NAME: completion
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<ivy-config>>
 (with-eval-after-load 'ivy
@@ -2910,6 +2708,243 @@ A smart M-x enhancement for Emacs.
   (setq-default smex-history-length 32))
 #+END_SRC
 
+*** Flycheck
+
+#+NAME: flycheck
+#+BEGIN_SRC :tangle yes :noweb yes :exports none
+<<flycheck-settings>>
+<<flycheck-color-mode-line-config>>
+#+END_SRC
+
+[[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
+
+#+NAME: flycheck-settings
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+  (use-package flycheck
+    :straight t
+    :config
+    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
+                  flycheck-emacs-lisp-load-path 'inherit))
+#+END_SRC
+
+**** Flycheck Color Mode Line
+
+Colors the modeline according to current Flycheck state of buffer.
+
+#+NAME: flycheck-color-modeline-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-color-mode-line
+  :straight t
+  :init
+  (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
+     #+END_SRC
+
+**** Flycheck Package                                           :noexport:
+
+[[https://github.com/purcell/flycheck-package][Flycheck Package]] requires ~package.el~ to be enabled, so it's incompatible with ~straight.el~.
+
+#+NAME: flycheck-package-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-package
+  :straight t
+  :init
+  (eval-after-load 'flycheck
+    '(flycheck-package-setup)))
+#+END_SRC
+
+**** Flycheck in Org Special Edit Buffers
+
+#+NAME: flycheck-org-special-edit
+#+BEGIN_SRC emacs-lisp :tangle no
+(defadvice org-edit-src-code (around set-buffer-file-name activate compile)
+  (let ((file-name (buffer-file-name))) ;; (1)
+    ad-do-it                            ;; (2)
+    ;; (3)
+    (setq buffer-file-name file-name)))
+#+END_SRC
+
+*** YASnippet
+
+YASnippet is a template system based off the TextMate snippet syntax.
+
+Let's begin by creating a variable for our personal snippets directory.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq user-snippets-dir (concat user-emacs-directory "snippets"))
+#+END_SRC
+
+After installation and enabling the package, add the personal snippets
+directory to the list of directories where YASnippet should look for snippets.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package yasnippet
+  :straight t
+  :init
+  (yas-global-mode 1)
+  :config
+  (push 'user-snippets-dir yas-snippet-dirs))
+#+END_SRC
+
+YASnippet can also be used as a non-global minor mode on a per-buffer
+basis.
+
+Invoking ~yas-reload-all~ will load the snippet tables, and then
+calling ~yas-minor-mode~ from the major mode hooks will load the
+snippets corresponding to the major mode of the current buffer mode.
+
+#+BEGIN_EXAMPLE emacs-lisp
+(yas-reload-all)
+(add-hook 'prog-mode-hook #'yas-minor-mode)
+#+END_EXAMPLE
+
+** Editing
+*** Indentation
+
+Tabs are the bane of humanity[fn:11]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq-default tab-width 2
+              indent-tabs-mode nil)
+#+END_SRC
+
+**** Highlight Indent Guides
+
+[[https://github.com/darthfennec/highlight-indent-guides][Highlight Indent Guides]] sublime-like indentation guides.
+
+/Commented out because of bug that leaves a trail of solid white line marks on the indent guide overlay./
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package highlight-indent-guides
+   :straight t
+   :init
+   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+   :config
+   (setq highlight-indent-guides-method 'character))
+#+END_SRC
+
+*** Formatting
+**** Visual Fill Column
+
+Mimics behavior of =fill-column= in =visual-line-mode=.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package visual-fill-column
+  :straight t
+  :config
+  (advice-add 'text-scale-adjust
+              :after #'visual-fill-column-adjust))
+#+END_SRC
+
+*** Lorem Ipsum
+
+Generate dummy text.
+
+#+NAME: lorem-ipsum-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package lorem-ipsum
+  :straight t)
+#+END_SRC
+
+** Utilities
+*** Asynchronous Processing
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package async
+  :straight t
+  :commands (dired-async-mode async-smtpmail-send-it)
+  :config
+  (progn
+    (dired-async-mode 1)
+    (setq message-send-mail-function 'async-smtpmail-send-it)))
+#+END_SRC
+
+*** Terminal
+**** With Editor
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package with-editor
+  :straight t
+  :config
+  (progn
+    (add-to-hooks #'with-editor-export-editor
+                  '(shell-mode-hook
+                    term-exec-hook
+                    eshell-modehook))))
+#+END_SRC
+
+**** Multi-Term
+
+#+NAME: multi-term-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package multi-term
+  :straight t
+  :bind
+  (("C-c M-RET t" . multi-term)
+   ("C-c M-RET b" . multi-term-prev)
+   ("C-c M-RET n" . multi-term-next)
+   ("C-c M-RET o" . multi-term-dedicated-toggle))
+  :config
+  (progn
+    (setq multi-term-program
+	  (if (string= shell-file-name "/bin/sh")
+	      "/bin/bash"
+	    "/bin/zsh"))))
+#+END_SRC
+
+**** Run Bash On Windows/PC
+- [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][Mastering Emacs - Running Shells in Emacs]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-windows*
+  (progn
+    (setq explicit-shell-file-name "C:/path/to/bash.exe"
+          shell-file-name "bash"
+          explicit-bash.exe-args '("--noediting" "--login" "-i"))
+    (setenv "SHELL" shell-file-name)
+    (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
+#+END_SRC
+
+**** Shell
+
+Zsh is whack when running the emacs =shell= function. This fixes that problem.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-mac*
+  (setq explicit-shell-file-name "/bin/sh"
+	shell-file-name "sh")
+  (setenv "SHELL" shell-file-name))
+#+END_SRC
+
+**** Tramp
+Connect Remotely.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq tramp-default-method "ssh")
+#+END_SRC
+
+*** Image+
+
+[[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package image+
+  :straight t
+  :if (display-graphic-p)
+  :after (image)
+  :config
+  (eval-after-load 'image+
+    `(when (require 'hydra nil t)
+       (defhydra imagex-sticky-binding (global-map "C-x C-l")
+         "Manipulating image"
+         ("+" imagex-sticky-zoom-in "zoom in")
+         ("-" imagex-sticky-zoom-out "zoom out")
+         ("M" imagex-sticky-maximize "maximize")
+         ("O" imagex-sticky-restore-original "restore orginal")
+         ("S" imagex-sticky-save-image "save file")
+         ("r" imagex-sticky-rotate-right "rotate right")
+         ("l" imagex-sticky-rotate-left "rotate left")))))
+#+END_SRC
+
 *** Nov
 [[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
 
@@ -2958,40 +2993,6 @@ A smart M-x enhancement for Emacs.
   :after (:all counsel ivy)
   :demand t
   :if *is-mac*)
-#+END_SRC
-
-*** Lorem Ipsum
-
-Generate dummy text.
-
-#+NAME: lorem-ipsum-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package lorem-ipsum
-  :straight t)
-#+END_SRC
-
-*** Wakatime
-
-#+NAME: wakatime-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when (and *is-mac* (or (string= (downcase computer-name) "hal")
-			(string= (downcase computer-name) "junior")))
-  (use-package wakatime-mode
-    :straight t
-    :init
-    (add-hook 'prog-mode-hook 'wakatime-mode)
-    :config
-    (progn
-      (setq wakatime-cli-path
-            (expand-file-name
-            "~/.local/lib/python3.6/site-packages/wakatime/cli.py")
-            wakatime-python-bin
-            (expand-file-name "~/.pyenv/shims/python"))
-
-      (defun wakatime-dashboard ()
-        (interactive)
-        (browse-url "https://wakatime.com/dashboard")))))
-
 #+END_SRC
 
 *** Prodigy
