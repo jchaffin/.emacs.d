@@ -32,3 +32,4 @@ site-lisp/*
 /straight/*.el
 
 
+.DS_Store

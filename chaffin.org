@@ -133,6 +133,7 @@
       - [[#smex][Smex]]
     - [[#nov][Nov]]
     - [[#deft][Deft]]
+    - [[#dash][Dash]]
     - [[#lorem-ipsum][Lorem Ipsum]]
     - [[#wakatime][Wakatime]]
     - [[#prodigy][Prodigy]]
@@ -1527,36 +1528,29 @@ PATH should be a topic that can be thrown at the man command."
   :bind (:map org-mode-map
               ("C-c M-RET p" . org-pomodoro))
   :config
-  (setq org-pomodoro-audio-player "/usr/bin/afplay"
-        org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
-        ;; Start Settings
-        org-pomodoro-start-sound-p t ;; enable starting sound
-        org-pomodoro-start-sound-args "--volume 0.08"
-        org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
+  (progn
+    (defalias #'org-pomodoro-path
+      (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
+
+    (setq org-pomodoro-audio-player "/usr/bin/afplay"
+          org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
+          ;; Start Settings
+          org-pomodoro-start-sound-p t ;; enable starting sound
+          org-pomodoro-start-sound-args "--volume 0.08"
+          org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
         ;; Finished Settings
-        org-pomodoro-finished-sound-args "--volume 0.2"
-        org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
-        ;; Short Break Settings
-        org-pomodoro-short-break-length 5
-        org-pomodoro-short-break-sound-args "--volume 0.2"
-        org-pomodoro-short-break-sound org-pomodoro-finished-sound
-        ;; Long Break Settings
-        org-pomodoro-long-break-length 15
-        org-pomodoro-long-break-sound-args "--volume 0.2"
-        org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav")))
+          org-pomodoro-finished-sound-args "--volume 0.2"
+          org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
+          ;; Short Break Settings
+          org-pomodoro-short-break-length 5
+          org-pomodoro-short-break-sound-args "--volume 0.2"
+          org-pomodoro-short-break-sound org-pomodoro-finished-sound
+          ;; Long Break Settings
+          org-pomodoro-long-break-length 15
+          org-pomodoro-long-break-sound-args "--volume 0.2"
+          org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav"))))
 #+END_SRC
 
-
-***** Org Pomodoro Path Helper
-
-Utility for simplifying the path to the given audio file path used
-by [[#org-pomodoro][org-pomodoro]].
-
-#+NAME: org-pomdoro-path-alias
-#+BEGIN_SRC emacs-lisp :tangle no
-(defalias #'org-pomodoro-path
-  (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
-#+END_SRC
 
 
 *** Org LaTeX
@@ -1887,7 +1881,7 @@ The default cross-referencing and hyperlink styles provided by
 
 ***** Custom Classes
 
-#+NAME: org-export-larex-custom-classes
+#+NAME: org-export-latex-custom-classes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-export-latex-per-file-class>>
 <<org-export-latex-lingsyn-class>>
@@ -2954,6 +2948,16 @@ A smart M-x enhancement for Emacs.
           deft-directory "~/Dropbox/org/notes"
           deft-use-filename-as-title t
           deft-default-extension "org")))
+#+END_SRC
+
+*** Dash
+
+#+NAME: dash-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-dash
+  :after (:all counsel ivy)
+  :demand t
+  :if *is-mac*)
 #+END_SRC
 
 *** Lorem Ipsum
@@ -4116,7 +4120,6 @@ That blows but loading this this hook regardless corrects the per-file
               '(c-mode-hook
                 c++-mode-hook))
 #+END_SRC
-
 
 **** Function Args
 
@@ -5504,7 +5507,6 @@ and slim-mode using company.
                 (unless tern-mode (tern-mode))
               (if tern-mode (tern-mode -1))))))))
 #+END_SRC
-
 
 ** Footnotes
 
