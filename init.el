@@ -114,8 +114,7 @@
    ("C-c c" . org-capture)
    ("C-c M-o" . org-store-link)
    (:map org-mode-map
-         ("C-c M-t" . org-set-tags)
-         ("C-c C-," . org-priority)))
+         ("C-c M-t" . org-set-tags)))
 
   :init
   (defun org-git-version ()

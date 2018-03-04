@@ -51,6 +51,8 @@
     - [[#auctex-latexmk][Auctex Latexmk]]
     - [[#texinfo][Texinfo]]
   - [[#org-mode][Org Mode]]
+    - [[#org-babel][Org Babel]]
+      - [[#ob-http][OB Http]]
     - [[#org-mode-ui][Org Mode UI]]
       - [[#wrap-text][Wrap Text]]
       - [[#display-fixed-width-images][Display Fixed Width Images]]
@@ -80,12 +82,11 @@
       - [[#ox-extra][Ox Extra]]
       - [[#ox-publish][Ox Publish]]
   - [[#better-defaults][(Better) Defaults]]
-    - [[#better-utilities][Better Utilities]]
-      - [[#better-dired][Better Dired]]
-      - [[#undo-tree][Undo Tree]]
-      - [[#restart-emacs][Restart Emacs]]
-      - [[#popwin][Popwin]]
-    - [[#better-help][Better Help]]
+    - [[#better-dired][Better Dired]]
+    - [[#undo-tree][Undo Tree]]
+    - [[#restart-emacs][Restart Emacs]]
+    - [[#popwin][Popwin]]
+    - [[#help][Help+]]
     - [[#better-display][Better Display]]
       - [[#page-break-lines][Page Break Lines]]
       - [[#splash-screen-replacement][Splash Screen Replacement.]]
@@ -93,16 +94,14 @@
       - [[#menu-bar-tool-bar-scroll-bar][Menu Bar, Tool Bar, Scroll Bar]]
       - [[#truncate-lines][Truncate Lines]]
       - [[#smooth-scrolling][Smooth Scrolling]]
-    - [[#better-completion][Better Completion]]
-      - [[#ignore-executable-cache-directions-and-version-control-files][Ignore executable, cache directions, and version control files.]]
-    - [[#better-garbage-collection][Better Garbage Collection]]
-    - [[#better-encryption][Better Encryption]]
+    - [[#garbage-collection][Garbage Collection]]
+    - [[#encryption][Encryption]]
       - [[#gnutls][GnuTLS]]
       - [[#use-gpg2][Use GPG2]]
       - [[#disable-external-pin-entry][Disable External Pin Entry]]
       - [[#internal-pinentry-problem-and-solution][Internal Pinentry Problem and Solution]]
-    - [[#better-commands][Better Commands]]
-      - [[#alias-yes-or-no][Alias Yes Or No]]
+    - [[#alias-yes-or-no][Alias Yes Or No]]
+    - [[#asynchronous-processing][Asynchronous Processing]]
   - [[#project-mangement][Project Mangement]]
     - [[#projectile][Projectile]]
     - [[#wakatime][Wakatime]]
@@ -120,6 +119,7 @@
       - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
       - [[#flycheck-in-org-special-edit-buffers][Flycheck in Org Special Edit Buffers]]
     - [[#yasnippet][YASnippet]]
+    - [[#ignore-extensions][Ignore Extensions]]
   - [[#editing][Editing]]
     - [[#indentation][Indentation]]
       - [[#highlight-indent-guides][Highlight Indent Guides]]
@@ -127,7 +127,6 @@
       - [[#visual-fill-column][Visual Fill Column]]
     - [[#lorem-ipsum][Lorem Ipsum]]
   - [[#utilities][Utilities]]
-    - [[#asynchronous-processing][Asynchronous Processing]]
     - [[#terminal][Terminal]]
       - [[#with-editor][With Editor]]
       - [[#multi-term][Multi-Term]]
@@ -140,6 +139,7 @@
     - [[#dash][Dash]]
     - [[#prodigy][Prodigy]]
     - [[#ditaa][Ditaa]]
+    - [[#ack][ack]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
       - [[#vertical-bar][Vertical Bar]]
@@ -296,12 +296,6 @@ compiler.
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
 
 ** Package Management
-
-#+BEGIN_SRC emacs-lisp :tangle yes :exports none
-(use-package ob-http
-  :straight t)
-#+END_SRC
-
 *** Straight
 
 [[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading
@@ -1229,6 +1223,17 @@ Prettify dedicated org-mode latex buffers.
 <<org-export>>
 #+END_SRC
 
+*** Org Babel
+**** OB Http
+#+BEGIN_SRC emacs-lisp :tangle yes :exports none
+(use-package ob-http
+  :straight t
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((http . t))))
+#+END_SRC
+
 *** Org Mode UI
 
 These settings subjectively improve the overall viewable-ness of
@@ -1392,10 +1397,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
   (save-excursion
     (widen)
     (goto-char (point-min))
-    (when (re-search-forward
-	   "^\\#+OPTIONS:.*auto-id:t"
-	   (point-max)
-	   t)
+    (when (re-search-forward "^\\#+OPTIONS:.*auto-id:t"  (point-max)  t)
       (org-map-entries
        (lambda ()
          (org-custom-id-get (point) 'create))))))
@@ -1593,44 +1595,43 @@ PATH should be a topic that can be thrown at the man command."
 
 #+NAME: org-latex-org-ref
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-
 ;; Org Ref
 <<org-ref-config>>
-
-;; Org Ref Ivy
-<<org-ref-ivy>>
-
 ;; Org ref pdf
 <<org-ref-pdf>>
-
 #+END_SRC
-
 
 #+NAME: org-ref-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (use-package org-ref
   :if *is-mac*
+  :after (:all ivy)
   :straight t
+  :init
+  (progn
+    ;; https://github.com/jkitchin/org-ref/issues/428
+    (require 'doi-utils)
+    (require 'org-id)
+    (require 'org-ref-wos)
+    (require 'org-ref-scopus)
+    (require 'org-ref-isbn)
+    (require 'org-ref-pubmed)
+    (require 'org-ref-arxiv)
+    (require 'org-ref-sci-id)
+    (require 'x2bib)
+    (require 'org-ref-latex)
+    (require 'org-ref-pdf)
+    (require 'org-ref-pdf))
   :config
   (progn
-    (require 'org-ref-url-utils)
-    (setq org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
-          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
-          org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
+    (setq reftex-default-bibliography '("~/Dropbox/bibliography/references.bib"))
+
+    (setq org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
+          org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
+          org-ref-pdf-directory "~/Dropbox/org/papers/bibtex-pdfs/"
           org-ref-show-citation-on-enter t
           org-ref-show-broken-links t)))
   
-#+END_SRC
-
-***** Org Ref Ivy
-
-#+NAME: org-ref-ivy
-#+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'ivy
-  (setq org-ref-completion-library 'org-ref-ivy-cite)
-  (require 'org-ref)
-  (require 'org-ref-ivy)
-  (require 'org-ref-ivy-cite))
 #+END_SRC
 
 ***** Open Pdf at point
@@ -1703,12 +1704,15 @@ Now we can open pdf files with =org-pdfview=[fn:9]:
 
 #+NAME: org-pdf-org-file-apps
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (require 'org-pdfview)
 (add-hook 'org-mode-hook
           (lambda ()
-          (add-to-list 'org-file-apps '("\\.pdf\\'" .
-                                          (lambda (file link)
-                                            (org-pdfview-open link))))))
+            (add-to-list 'org-file-apps
+                         '("\\.pdf\\'" .
+                           (lambda (file link)
+                             (org-pdfview-open link))))))
+
 #+END_SRC
 
 *** Org Mode Export
@@ -2048,8 +2052,7 @@ subtrees of the ignored headlines will be retained.
 #+END_SRC
 
 ** (Better) Defaults
-*** Better Utilities
-**** Better Dired
+*** Better Dired
 ***** Reuse dired buffer when moving to parent directory
 
 From [[https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer][emacswiki.org]]
@@ -2101,7 +2104,7 @@ Adds extensions and functionality to dired mode.
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
-**** Undo Tree
+*** Undo Tree
 
 #+NAME: undo-tree-config
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -2111,7 +2114,7 @@ Adds extensions and functionality to dired mode.
   (global-undo-tree-mode))
 #+END_SRC
 
-**** Restart Emacs
+*** Restart Emacs
 
 The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
 from within Emacs.
@@ -2123,7 +2126,7 @@ from within Emacs.
                ("q" . restart-emacs))))
 #+END_SRC
 
-**** Popwin
+*** Popwin
 
 
 #+NAME: popwin
@@ -2133,7 +2136,7 @@ from within Emacs.
   :config (popwin-mode 1))
 #+END_SRC
 
-*** Better Help
+*** Help+
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package help+
@@ -2251,16 +2254,7 @@ Not sure this is doing anything...
   (smooth-scrolling-mode 1))
 #+END_SRC
 
-*** Better Completion
-
-**** Ignore executable, cache directions, and version control files.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(setq completion-ignored-extensions '("o" "~" ".lbin" ".so" ".a"
-				      ".git/" ".hg/" ".svn" ".svn-base"))
-#+END_SRC
-
-*** Better Garbage Collection
+*** Garbage Collection
 
 Consider the following from the documentation:
 
@@ -2291,7 +2285,7 @@ contributing to the solution.
 (add-hook 'minibuffer-exit-hook 'chaffin/rev-down-gc)
 #+END_SRC
 
-*** Better Encryption
+*** Encryption
 **** GnuTLS
 
 As GitHub user [[https://github.com/wasamasa][wasamasa]] points out in /h?(er|is)|^\S+/ dotfiles,
@@ -2361,12 +2355,23 @@ echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 killall gpg-agent
 #+END_EXAMPLE
 
-*** Better Commands
-**** Alias Yes Or No
+*** Alias Yes Or No
 
 #+NAME: yes-or-no-p
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+
+*** Asynchronous Processing
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package async
+  :straight t
+  :commands (dired-async-mode async-smtpmail-send-it)
+  :config
+  (progn
+    (dired-async-mode 1)
+    (setq message-send-mail-function 'async-smtpmail-send-it)))
 #+END_SRC
 
 ** Project Mangement
@@ -2515,6 +2520,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 <<ivy-base>>
 <<ivy-hydra-config>>
 <<ivy-historian-config>>
+<<ivy-org-ref>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -2531,6 +2537,7 @@ support with ivy]].
 #+NAME: ivy-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package ivy
+  :straight t
   :config
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t
@@ -2544,7 +2551,8 @@ support with ivy]].
 #+NAME: ivy-hydra-config>>
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-hydra
-  :after (hydra ivy))
+  :straight t
+  :after (:all hydra ivy))
 #+END_SRC
 
 ***** Ivy Historian
@@ -2558,15 +2566,26 @@ support with ivy]].
 #+NAME: ivy-historian-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-historian
-  :after (historian ivy)
-  :straight t)
+  :after (:all historian ivy))
 #+END_SRC
 
 ****** Historian
+
 #+NAME: historian-config
 #+BEGIN_SRC emacs-lisp :tangle no :exports none
 (use-package historian
   :straight t)
+#+END_SRC
+
+***** Use Ivy as Cite Completion Backend
+
+Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org-ref-ivy][org-ref]] completion backend.
+
+
+#+NAME: ivy-org-ref
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-ref-completion-library 'org-ref-ivy-cite)
+(require 'org-ref)
 #+END_SRC
 
 **** Counsel
@@ -2599,9 +2618,7 @@ support with ivy]].
    ("C-c j" . counsel-git-grep)
    ("C-c k" . counsel-ag)
    ("C-x l" . counsel-locate)
-   ("C-S-o" . counsel-rhythmbox)
-   :map read-expression-map
-   ("C-r" . counsel-expression-history)))
+   ("C-S-o" . counsel-rhythmbox)))
 #+END_SRC
 
 
@@ -2614,33 +2631,6 @@ support with ivy]].
   :straight t
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
-
-***** Counsel-Projectile
-
-[[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
-friends.
-
-#+NAME: counsel-projectile-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package counsel-projectile
-  :straight t
-  :after (projectile counsel)
-  :init
-  (counsel-projectile-mode))
-#+END_SRC
-
-***** Counsel Gtags
-
-#+NAME: counsel-ggtags-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package counsel-gtags
-  :straight t
-  :after (ggtags counsel)
-  :init
-  (progn
-    (setq counsel-gtags-ignore-case t
-          counsel-gtags-auto-update t)))
-#+END_SRC
 
 ***** Counsel iTunes
 
@@ -2671,6 +2661,33 @@ friends.
       (define-key 'counsel-itunes-keymap "s"    #'counsel-itunes-shuffle))))
 #+END_SRC
 
+***** Counsel-Projectile
+
+[[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
+friends.
+
+#+NAME: counsel-projectile-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-projectile
+  :straight t
+  :after (projectile counsel)
+  :init
+  (counsel-projectile-mode))
+#+END_SRC
+
+***** Counsel Gtags
+
+#+NAME: counsel-ggtags-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-gtags
+  :straight t
+  :after (ggtags counsel)
+  :init
+  (progn
+    (setq counsel-gtags-ignore-case t
+          counsel-gtags-auto-update t)))
+#+END_SRC
+
 **** Swiper
 
 #+NAME: swiper-config
@@ -2694,11 +2711,10 @@ friends.
   :straight t)
 #+END_SRC
 
+
 **** Smex
 
-#+BEGIN_QUOTE
 A smart M-x enhancement for Emacs.
-#+END_QUOTE
 
 #+NAME: smex-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2797,6 +2813,13 @@ snippets corresponding to the major mode of the current buffer mode.
 (add-hook 'prog-mode-hook #'yas-minor-mode)
 #+END_EXAMPLE
 
+*** Ignore Extensions
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq completion-ignored-extensions '("o" "~" ".lbin" ".so" ".a"
+				      ".git/" ".hg/" ".svn" ".svn-base"))
+#+END_SRC
+
 ** Editing
 *** Indentation
 
@@ -2846,18 +2869,6 @@ Generate dummy text.
 #+END_SRC
 
 ** Utilities
-*** Asynchronous Processing
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package async
-  :straight t
-  :commands (dired-async-mode async-smtpmail-send-it)
-  :config
-  (progn
-    (dired-async-mode 1)
-    (setq message-send-mail-function 'async-smtpmail-send-it)))
-#+END_SRC
-
 *** Terminal
 **** With Editor
 
@@ -3015,6 +3026,15 @@ Interface for controlling external processes in Emacs.
 
 
 (setq org-ditaa-jar-path "/usr/local/Cellar/ditaa/0.11.0/libexec/ditaa-0.11.0-standalone.jar")
+#+END_SRC
+
+*** ack
+
+#+NAME: ack-config
+#+BEGIN_SRC emacs-lisp :tangle yes 
+(use-package ack
+  :if (executable-find "ack")
+  :straight t)
 #+END_SRC
 
 ** User Interface
