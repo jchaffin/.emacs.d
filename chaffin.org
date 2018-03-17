@@ -126,18 +126,17 @@
     - [[#formatting][Formatting]]
       - [[#visual-fill-column][Visual Fill Column]]
     - [[#lorem-ipsum][Lorem Ipsum]]
-  - [[#utilities][Utilities]]
-    - [[#terminal][Terminal]]
+  - [[#terminal][Terminal]]
       - [[#with-editor][With Editor]]
       - [[#multi-term][Multi-Term]]
       - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
       - [[#shell][Shell]]
       - [[#tramp][Tramp]]
+      - [[#prodigy][Prodigy]]
+  - [[#utilities][Utilities]]
     - [[#image][Image+]]
     - [[#nov][Nov]]
     - [[#deft][Deft]]
-    - [[#dash][Dash]]
-    - [[#prodigy][Prodigy]]
     - [[#ditaa][Ditaa]]
     - [[#ack][ack]]
   - [[#user-interface][User Interface]]
@@ -773,6 +772,10 @@ editors and various other applications on macOS.
 #+END_SRC
 
 ***** MacOS Dash
+:PROPERTIES:
+:ID:       64240356-D983-4422-A359-4F773DD2E946
+:CUSTOM_ID: macos-dash
+:END:
 
 Dash.app is an application for quickly searching and navigating API
 docsets for programming tools and languages.
@@ -1269,7 +1272,7 @@ Make images compact.
 
 #+NAME: org-ui-fixedwith-image
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-image-actual-width 400)
+(setq org-image-actual-width nil)
 #+END_SRC
 
 **** Org Bullets
@@ -1811,8 +1814,14 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 #+NAME: org-export-latex-pdf-process
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-latex-listings 'minted
-      org-latex-packages-alist '(("" "minted")))
+(setq org-latex-packages-alist '(("" "minted"))
+      org-latex-listings 'minted
+      org-latex-minted-options
+      '(("mathescape" "true")
+        ("linenos" "true")
+        ("numbersep" "5pt")
+        ("frame" "lines")
+        ("framesep" "2mm")))
 
 (defvar latex-process-latex
   '("%latex -interaction nonstopmode -output-directory %o %f" "%latex
@@ -2705,6 +2714,24 @@ friends.
           counsel-gtags-auto-update t)))
 #+END_SRC
 
+***** Counsel Dash
+
+Counsel dash provides a simple wrapper around [[https://github.com/areina/helm-dash][helm-dash]] bindings to provide
+ivy integration with dash docsets. This is not great, as installing
+=helm-dash= requires installing =helm= itself. 
+
+See my [[#macos-dash][implementation]] if you are running macOS, have [[https://kapeli.com/dash][Dash]] installed on
+your system, and would like to open docsets natively in the Dash
+documentation browser.
+
+#+NAME: dash-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package counsel-dash
+  :after (:all counsel ivy)
+  :demand t
+  :if *is-mac*)
+#+END_SRC
+
 **** Swiper
 
 #+NAME: swiper-config
@@ -2884,8 +2911,7 @@ Generate dummy text.
   :straight t)
 #+END_SRC
 
-** Utilities
-*** Terminal
+** Terminal
 **** With Editor
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -2949,6 +2975,16 @@ Connect Remotely.
 (setq tramp-default-method "ssh")
 #+END_SRC
 
+**** Prodigy
+Interface for controlling external processes in Emacs.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package prodigy
+  :straight t
+  )
+#+END_SRC
+
+** Utilities
 *** Image+
 
 [[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
@@ -3010,25 +3046,6 @@ Connect Remotely.
           deft-directory "~/Dropbox/org/notes"
           deft-use-filename-as-title t
           deft-default-extension "org")))
-#+END_SRC
-
-*** Dash
-
-#+NAME: dash-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package counsel-dash
-  :after (:all counsel ivy)
-  :demand t
-  :if *is-mac*)
-#+END_SRC
-
-*** Prodigy
-Interface for controlling external processes in Emacs.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package prodigy
-  :straight t
-  )
 #+END_SRC
 
 *** Ditaa
