@@ -1,6 +1,6 @@
 (setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"
                          "~/Dropbox/Documents/Courses/COMSCI_33/org/comsci33.org"
-                         "~/Dropbox/Documents/Courses/LING_120B/org/ling120b.org"
+                         "~/Dropbox/Documents/Courses/LING_120B/org/ling120b-todos.org"
                          "~/Dropbox/Documents/Courses/COMSCI_35L/org/comsci35L.org"))
 
 (custom-set-variables
@@ -171,10 +171,11 @@
  '(bibtex-autokey-year-title-separator "-")
  '(org-agenda-files
    (quote
-    ("~/Dropbox/org/todos/TODOs.org" "~/Dropbox/Documents/Courses/COMSCI_33/org/comsci33.org" "~/Dropbox/Documents/Courses/LING_120B/org/ling120b.org" "~/Dropbox/Documents/Courses/COMSCI_35L/org/comsci35L.org")))
+    ("~/Dropbox/Documents/Courses/LING_120B/org/ling120b-todos.org" "~/Dropbox/org/todos/TODOs.org" "~/Dropbox/Documents/Courses/COMSCI_33/org/comsci33.org" "~/Dropbox/Documents/Courses/COMSCI_35L/org/comsci35L.org")))
  '(safe-local-variable-values
    (quote
-    ((bibtex-file-path . "~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
+    ((flycheck-clang-include-path . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_33/labs/lab04/perflab-handout/include)
+     (bibtex-file-path . "~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (bibtex-file-path . " ~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (org-ref-default-bibliography quote
                                    ("/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib"))

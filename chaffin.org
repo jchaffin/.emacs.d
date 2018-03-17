@@ -110,8 +110,8 @@
       - [[#company-statistics][Company Statistics]]
       - [[#company-quick-help][Company Quick Help]]
       - [[#company-dict][Company Dict]]
-    - [[#ivy-framework][Ivy Framework]]
-      - [[#ivy][Ivy]]
+    - [[#ivy][Ivy]]
+      - [[#ivy-1][Ivy]]
       - [[#counsel][Counsel]]
       - [[#swiper][Swiper]]
       - [[#smex][Smex]]
@@ -1424,7 +1424,8 @@ Add spell checking in org mode buffers using Flyspell.
     :demand t
     :defines (flyspell-mode-on)
     :init
-    (add-hook 'org-mode-hook 'flyspell-mode-on)
+    (add-hook 'org-mode-hook (lambda ()
+                               (flyspell-mode t)))
     :config
     (progn
       (setq-default ispell-program-name (executable-find "aspell"))))
@@ -1813,7 +1814,6 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 (setq org-latex-listings 'minted
       org-latex-packages-alist '(("" "minted")))
 
-
 (defvar latex-process-latex
   '("%latex -interaction nonstopmode -output-directory %o %f" "%latex
 -interaction nonstopmode -output-directory %o %f" "%latex -interaction
@@ -1880,7 +1880,7 @@ The default cross-referencing and hyperlink styles provided by
 
 #+NAME: org-export-latex-hyperref
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq org-latex-hyperref-template "\\hypersetup{\n colorlinks=true,urlcolor=black,linkcolor=black \n}")
+(setq org-latex-hyperref-template "\\hypersetup{\n colorlinks=true, urlcolor=black,linkcolor=black \n}")
 #+END_SRC
 
 ***** Custom Classes
@@ -1952,7 +1952,18 @@ external configuration.
                 "\\1 class=\"nonumber\"\\2" data nil nil)))
       data)))
 
-(setq org-export-filter-headline-functions '(headline-numbering-filter))
+
+(defun section-title-filter (data backend info)
+  "No numbering in headlines that have a property :title: no"
+  (let* ((beg (next-property-change 0 data))
+         (headline (if beg (get-text-property beg :parent data))))
+    (if (and (eq backend 'latex)
+             (string= (org-element-property :SECTITLE headline) "no"))
+        (replace-regexp-in-string
+         "\\(\\(?:\\(part\\|chapter\\|\\(?:sub\\)*section\\|\\(?:sub\\)?paragraph\\)\\[*]?{\\)\\).*"
+         "\\1}" data))))
+
+(setq org-export-filter-headline-functions '(headline-numbering-filter section-title-filter))
 #+END_SRC
 
 **** Pandoc Backend
@@ -2418,6 +2429,15 @@ killall gpg-agent
 ** Completion
 *** Company
 
+
+#+NAME: company-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<company-company>>
+<<company-quick-help>>
+<<company-statistics-config>>
+<<company-dict-config>>
+#+END_SRC
+
 Emacs has two popular packages for code completion --
 [[https://github.com/auto-complete/auto-complete][autocomplete]] and [[https://github.com/company-mode/company-mode][company]]. This reddit [[https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode_vs_companymode_which_is_better/][thread]] was enough for
 me to go with company.
@@ -2429,34 +2449,28 @@ The ticket is from the ‘company-mode‘ repository, so there's
 probably some bias there, but company-mode hasn't provided
 any reason for me reconsider my choice.
 
-#+NAME: company-prefix-setup
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+NAME: company-company
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package company
   :straight t
   :defer t
+  :commands (global-company-mode)
   :bind (("TAB" . company-indent-or-complete-common)
          ("C-c /" . company-files)
          ("M-SPC" . company-complete)
           (:map company-mode-map
                ("M-n" . company-select-next-or-abort)
                ("M-p" . company-select-previous-or-abort)))
+  :init
+  (add-hook 'after-init-hook 'global-company-mode)
   :config
   (progn
-    <<company-config>>
-    <<company-quick-help>>
-    <<company-statistics-config>>
-    <<company-dict-config>>))
+    (setq company-tooltip-limit 20
+          company-tooltip-align-annotations t
+          company-idle-delay .3
+          company-begin-commands '(self-insert-command))))
 #+END_SRC
 
-
-#+NAME: company-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(global-company-mode)
-(setq company-tooltip-limit 20
-      company-tooltip-align-annotations t
-      company-idle-delay .3
-      company-begin-commands '(self-insert-command))
-#+END_SRC
 
 **** Company Statistics
 
@@ -2467,10 +2481,9 @@ top candidates for completion.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-statistics
   :straight t
-  :config
-  ;; Alternatively,
-  ;; (company-statistics-mode)
-  (add-hook 'after-init-hook 'company-statistics-mode))
+  :after (company)
+  :init
+  (company-statistics-mode))
 #+END_SRC
 
 **** Company Quick Help
@@ -2481,7 +2494,8 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+NAME: company-quick-help-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-quickhelp
-  :defer t
+  :straight t
+  :after (company)
   :commands (company-quickhelp-manual-begin)
   :bind
   (:map company-active-map
@@ -2496,6 +2510,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-dict
   :straight t
+  :after (company)
   :init
   (add-to-list 'company-backends 'company-dict)
   :config
@@ -2503,8 +2518,10 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
         company-dict-enable-yasnippet t))
 #+END_SRC
 
-*** Ivy Framework
 
+*** Ivy
+
+#+NAME: ivy-ivy
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<ivy-config>>
 (with-eval-after-load 'ivy
@@ -2710,7 +2727,6 @@ friends.
 (use-package avy
   :straight t)
 #+END_SRC
-
 
 **** Smex
 
@@ -2999,7 +3015,7 @@ Connect Remotely.
 *** Dash
 
 #+NAME: dash-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package counsel-dash
   :after (:all counsel ivy)
   :demand t
@@ -3986,12 +4002,12 @@ Spacemacs =dotspacemacs-configuration-layers=.
              (member (string (char-after)) '(" " "\t")))
     (setq asm-colon-has-space t)))
 
-(defun asm-colon-delete-spaces ()
+(defun chaffin-asm-colon-delete-space () 
   (unless asm-colon-has-space
     (call-interactively 'delete-horizontal-space)))
 
-(advice-add 'asm-colon :before 'asm-colon-check-space)
-(advice-add 'asm-colon :after  'asm-colon-delete-space)
+(advice-add 'asm-colon :before 'chaffin-asm-colon-check-space)
+(advice-add 'asm-colon :after  'chaffin-asm-colon-delete-space)
 #+END_SRC
 
 **** ASM Mode
@@ -4061,6 +4077,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<cc-hooks-compile-command>>
 <<cc-hooks-flycheck-include-headers>>
+<<cc-hooks-smartparens>>
 #+END_SRC
 
 ***** Per-File Compile Command
@@ -4073,13 +4090,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
          (let ((file (file-name-sans-extension buffer-file-name)))
            (format "%s %s -o %s" compiler buffer-file-name file)))))
 
-
-
-(add-hook 'c-mode-hook (lambda ()
-                         (chaffin--compile-hook "gcc")))
-
-(add-hook 'c++-mode-hook (lambda ()
-                           (chaffin--compile-hook "g++")))
 #+END_SRC
 
 ****** Use on UCLA Servers
@@ -4094,6 +4104,17 @@ That blows but loading this this hook regardless corrects the per-file
 (when (and (not (proglang-enabled-p 'c-c++))
            ,*is-lnxsrv*)
   <<cc-hooks-compile-command>>)
+#+END_SRC
+
+***** Enable Smartparens 
+
+#+NAME: cc-hooks-smartparens
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-hook 'c-mode-hook (lambda ()
+                         (smartparens-mode t)))
+
+(add-hook 'c++-mode-hook (lambda ()
+                         (smartparens-mode t)))
 #+END_SRC
 
 ***** Add Project Headers to Flycheck Clang Include Path
@@ -4113,20 +4134,10 @@ That blows but loading this this hook regardless corrects the per-file
               (funcall func buf)
             (buffer-file-name buf))))))
 
-
 (defun c-cxx-makefile-include-directive (buffer)
-  (let ((regexp "^INC\s-?=.*$"))
-    (with-current-buffer buffer
-      (goto-char (point-min))
-      (when (re-search-forward regexp nil t)
-        (let* ((pointb (match-beginning 0))
-               (pointe (match-end 0))
-               (relative-file-name
-                (replace-regexp-in-string regexp ""
-                                          (buffer-substring-no-properties
-                                           pointb
-                                           pointe))))
-          (expand-file-name relative-file-name default-directory))))))
+  (expand-file-name "include" default-directory))
+
+
 
 (defun c-cxx-flycheck-include-headers-hook ()
   (let ((f (lambda (elt) (not (eq elt 'nil)))))
@@ -4137,9 +4148,12 @@ That blows but loading this this hook regardless corrects the per-file
 (add-to-hooks #'flycheck-mode '(c-mode-hook
                                 c++-mode-hook))
 
+
 (add-to-hooks #'c-cxx-flycheck-include-headers-hook
               '(c-mode-hook
                 c++-mode-hook))
+
+
 #+END_SRC
 
 **** Function Args
@@ -4190,17 +4204,23 @@ with the same "make" dialog I said eff it and =^Z='d on out of there.
   :init
   (progn
     (add-hook 'c++-mode-hook 'irony-mode)
-    (add-hook 'c-mode-hook 'irony-mode))
+    (add-hook 'c-mode-hook 'irony-mode)
+    (add-hook 'objc-mode-hook 'irony-mode))
   :commands (irony-cdb-autosetup-compile-options irony-install-server)
   :config
   (progn
-    (defun chaffin-irony-mode-hook ()
+    (setq irony-additional-clang-options
+          '("-std=c++11"
+            "-Isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/"
+            "-stdlib=libc++"))
+
+    (defun irony-mode-map-hook ()
       (define-key irony-mode-map
 	    [remap completion-at-point] 'counsel-irony)
       (define-key irony-mode-map
 	    [remap complete-symbol] 'counsel-irony))
 
-    (add-hook 'irony-mode-hook 'chaffin-irony-mode-hook)
+    (add-hook 'irony-mode-hook 'irony-mode-map-hook)
     (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)))
 #+END_SRC
 
@@ -4218,10 +4238,14 @@ Company backend for C/C++ files using irony mode.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-irony
   :straight t
-  :after (company)
+  :after (:all company irony)
   :defines (company-irony)
+  :demand t
   :init
-  (add-to-list 'company-backends 'company-irony))
+  (progn
+    (add-to-list 'company-backends 'company-irony)
+    (setq company-backends (delete 'company-semantic company-backends))
+    (set 'company-clang-arguments (list "-std=c++11"))))
 #+END_SRC
 
 ****** Company Irony C Headers
@@ -4230,8 +4254,9 @@ Company backend for C/C++ files using irony mode.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-irony-c-headers
   :straight t
-  :after (company)
+  :after (:all company irony company-irony)
   :defines (company-irony-c-headers)
+  :demand t
   :init
   (add-to-list 'company-backends 'company-irony-c-headers))
 #+END_SRC
@@ -4242,9 +4267,10 @@ Company backend for C/C++ files using irony mode.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package flycheck-irony
   :straight t
-  :after (flycheck)
+  :after (:all flycheck irony)
+  :demand t
   :commands (flycheck-irony-setup)
-  :config
+  :init
   (with-eval-after-load 'flycheck
     '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
 #+END_SRC
