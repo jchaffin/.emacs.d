@@ -169,9 +169,7 @@
  '(bibtex-autokey-titlewords 2)
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
- '(org-agenda-files
-   (quote
-    ("~/Dropbox/Documents/Courses/LING_120B/org/ling120b-todos.org" "~/Dropbox/org/todos/TODOs.org" "~/Dropbox/Documents/Courses/COMSCI_33/org/comsci33.org" "~/Dropbox/Documents/Courses/COMSCI_35L/org/comsci35L.org")))
+ '(org-agenda-files (quote ("~/Dropbox/org/todos/TODOs.org")))
  '(safe-local-variable-values
    (quote
     ((flycheck-clang-include-path . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_33/labs/lab04/perflab-handout/include)

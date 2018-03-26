@@ -81,9 +81,10 @@
       - [[#org-youtube][Org YouTube]]
       - [[#ox-extra][Ox Extra]]
       - [[#ox-publish][Ox Publish]]
-  - [[#better-defaults][(Better) Defaults]]
-    - [[#better-dired][Better Dired]]
+  - [[#file-navigation][File Navigation]]
+    - [[#dired][Dired]]
     - [[#undo-tree][Undo Tree]]
+  - [[#better-defaults][(Better) Defaults]]
     - [[#restart-emacs][Restart Emacs]]
     - [[#popwin][Popwin]]
     - [[#help][Help+]]
@@ -137,7 +138,10 @@
     - [[#image][Image+]]
     - [[#nov][Nov]]
     - [[#deft][Deft]]
-    - [[#ditaa][Ditaa]]
+    - [[#uml-diagrams][UML Diagrams]]
+      - [[#artist-mode][Artist Mode]]
+      - [[#ditaa][Ditaa]]
+      - [[#plantuml][PlantUML]]
     - [[#ack][ack]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
@@ -162,6 +166,12 @@
     - [[#all-the-icons][All The Icons]]
       - [[#ivy-all-the-icons][Ivy All the Icons]]
     - [[#emojify][Emojify]]
+  - [[#web-browsing][Web Browsing]]
+    - [[#osx-browse][=osx-browse=]]
+    - [[#google-search-at-point][Google search at point]]
+    - [[#when-no-external-web-browser-is-available][When no external web browser is available]]
+      - [[#set-the-default-browser-eww][Set the default browser =eww=]]
+      - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
   - [[#version-control][Version Control]]
     - [[#git][Git]]
       - [[#magit][Magit]]
@@ -172,13 +182,7 @@
     - [[#mercurial][Mercurial]]
       - [[#monky][Monky]]
       - [[#ahg][ahg]]
-  - [[#web-browsing][Web Browsing]]
-    - [[#osx-browse][osx-browse]]
-    - [[#google-search-at-point][Google Search at point]]
-    - [[#browse-at-remote][Browse At Remote]]
-    - [[#when-no-external-web-browser-is-available][When no external web browser is available]]
-      - [[#set-the-default-browser-eww][Set the default browser =eww=]]
-      - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
+    - [[#browse-at-remote][Browse at remote]]
   - [[#email][Email]]
     - [[#mu][Mu]]
   - [[#programming-tools][Programming Tools]]
@@ -1052,7 +1056,8 @@ Note that LaTeX packages are loaded, configured, and installed when
         (let ((do-auto-fill t)
               (current-environment "")
               (level 0))
-          (while (and do-auto-fill (not (string- current-environment "document")))
+          (while (and do-auto-fill
+                      (not (string= current-environment "document")))
             (setq level (1+ level)
                   current-environment (LaTeX-current-environment level)
                   do-auto-fill
@@ -1145,9 +1150,9 @@ save.
 #+NAME: latex-company-auctex
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-auctex
+  :straight t
   :demand t
   :after (:all company tex)
-  :straight t
   :init
   (company-auctex-init))
 #+END_SRC
@@ -2071,8 +2076,8 @@ subtrees of the ignored headlines will be retained.
               ("M-m r p" . org-publish-project)))
 #+END_SRC
 
-** (Better) Defaults
-*** Better Dired
+** File Navigation
+*** Dired
 ***** Reuse dired buffer when moving to parent directory
 
 From [[https://www.emacswiki.org/emacs/DiredReuseDirectoryBuffer][emacswiki.org]]
@@ -2134,6 +2139,7 @@ Adds extensions and functionality to dired mode.
   (global-undo-tree-mode))
 #+END_SRC
 
+** (Better) Defaults
 *** Restart Emacs
 
 The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
@@ -2148,8 +2154,7 @@ from within Emacs.
 
 *** Popwin
 
-
-#+NAME: popwin
+#+NAME: popwin-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package popwin
   :straight t
@@ -2527,7 +2532,6 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
         company-dict-enable-yasnippet t))
 #+END_SRC
 
-
 *** Ivy
 
 #+NAME: ivy-ivy
@@ -2769,7 +2773,7 @@ A smart M-x enhancement for Emacs.
 
 *** Flycheck
 
-#+NAME: flycheck
+#+NAME: flycheck-config
 #+BEGIN_SRC :tangle yes :noweb yes :exports none
 <<flycheck-settings>>
 <<flycheck-color-mode-line-config>>
@@ -2800,7 +2804,7 @@ Colors the modeline according to current Flycheck state of buffer.
 
 **** Flycheck Package                                           :noexport:
 
-[[https://github.com/purcell/flycheck-package][Flycheck Package]] requires ~package.el~ to be enabled, so it's incompatible with ~straight.el~.
+[[https://github.com/purcell/flycheck-package][Flycheck Package]] requires =package.el= to be enabled, so it's incompatible with =straight.el=.
 
 #+NAME: flycheck-package-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3048,18 +3052,53 @@ Interface for controlling external processes in Emacs.
           deft-default-extension "org")))
 #+END_SRC
 
-*** Ditaa
+*** UML Diagrams
+**** Artist Mode
 
-#+NAME: ditta config
+Artist mode is a built-in Emacs package. I'm hoping to expand this
+configuration block as I learn how to use it.
+
+#+NAME: artist-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package artist-mode
   :straight nil
   :bind ((:map artist-mode-map
                ("C-c C-a p" . artist-select-op-pen-line))))
-
-
-(setq org-ditaa-jar-path "/usr/local/Cellar/ditaa/0.11.0/libexec/ditaa-0.11.0-standalone.jar")
 #+END_SRC
+
+**** Ditaa
+
+#+NAME: ditaa-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when (and *is-mac*
+           (executable-find "brew")
+           (executable-find "ditaa"))
+  (let ((ditaa-path  (replace-regexp-in-string
+                      "\n"  ""
+                      (shell-command-to-string
+                       "realpath $(brew --prefix ditaa)/libexec/*.jar"))))
+    (setq org-ditaa-jar-path ditaa-path)))
+#+END_SRC
+
+**** PlantUML
+#+NAME: plantuml-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package plantuml-mode
+  :if (executable-find "plantuml")
+  :straight t
+  :defines (org-plantuml-jar-path plantuml-jar-path)
+  :config
+  (progn
+    (defun chaffin/plantuml-resolve-jar-path ()
+      (when (executable-find "plantuml")
+        (replace-regexp-in-string "\n" ""
+                                  (shell-command-to-string
+                                   "realpath $(brew --prefix plantuml)/libexec/plantuml.jar"))))
+      (when *is-mac*
+        (setq org-plantuml-jar-path (chaffin/plantuml-resolve-jar-path))
+        (setq plantuml-jar-path (chaffin/plantuml-resolve-jar-path)))))
+#+END_SRC
+
 
 *** ack
 
@@ -3428,6 +3467,80 @@ interface.
       (add-hook 'magit-status-mode-hook 'emojify-mode-hook)))
 #+END_SRC
 
+** Web Browsing
+*** =osx-browse=
+
+This library provides several useful commands for using the
+Google Chrome, Safari, and Firefox web browsers on macOS.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package osx-browse
+  :straight t
+  :if *is-mac*
+  :init
+  (osx-browse-mode 1))
+#+END_SRC
+
+*** Google search at point
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun google-search-query-at-point (&optional edit-query)
+  "Search for the expression at point in the default web browser.
+If the optional prefix EDIT-QUERY is specified,
+the user will be prompted to edit the search string first."
+  (interactive "P")
+  (let* ((search-prefix "https://google.com/search?q=")
+         (thing (if (thing-at-point 'url)
+                    (thing-at-point-url-at-point)
+                  (concat
+                   search-prefix
+                   (if (use-region-p)
+                       (buffer-substring-no-properties
+                        (region-beginning) (region-end))
+                     (thing-at-point 'word)))))
+         (search (if (or edit-query
+                         (and (>= (length thing) (length search-prefix))
+                              (string= (substring thing (length search-prefix)) "")))
+                     (concat search-prefix
+                             (read-from-minibuffer "Search Query: "))
+                   thing)))
+    (browse-url search)))
+#+END_SRC
+
+*** When no external web browser is available
+**** Set the default browser =eww=
+
+- [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when *is-lnxsrv*
+  (setq browse-url-browser-function 'eww-browse-url))
+#+END_SRC
+
+**** Choose browser when using Org-mode's =org-open-at-point=
+:PROPERTIES:
+:ID:       69b03145-629e-4593-ae4c-6cbd5404ff3e
+:CUSTOM_ID: org-open-at-point-browser
+:END:
+
+This function from [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][emacswiki.org]] advises =org-opt-at-point= to allow
+choosing different browsers. The original snippet uses =w3m=, I'm
+using =eww= as a matter of personal preference.
+
+#+NAME: lnxsrv-browser-org-open-at-point-advise
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
+  (let ((browse-url-browser-function
+         (cond ((equal (ad-get-arg 0) '(4))
+                'browse-url-generic)
+               ((equal (ad-get-arg 0) '(16))
+                'choose-browser)
+               (t
+                (lambda (url &optional new)
+                  (eww-browse-url url t))))))
+    ad-do-it))
+#+END_SRC
+
 ** Version Control
 
 #+NAME: vc-config
@@ -3653,85 +3766,11 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
   :straight t)
 #+END_SRC
 
-** Web Browsing
-*** osx-browse
-
-This library provides several useful commands for using the
-Google Chrome, Safari, and Firefox web browsers on macOS.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package osx-browse
-  :straight t
-  :if *is-mac*
-  :init
-  (osx-browse-mode 1))
-#+END_SRC
-
-*** Google Search at point
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(defun google-search-query-at-point (&optional edit-query)
-  "Search for the expression at point in the default web browser.
-If the optional prefix EDIT-QUERY is specified,
-the user will be prompted to edit the search string first."
-  (interactive "P")
-  (let* ((search-prefix "https://google.com/search?q=")
-         (thing (if (thing-at-point 'url)
-                    (thing-at-point-url-at-point)
-                  (concat
-                   search-prefix
-                   (if (use-region-p)
-                       (buffer-substring-no-properties
-                        (region-beginning) (region-end))
-                     (thing-at-point 'word)))))
-         (search (if (or edit-query
-                         (and (>= (length thing) (length search-prefix))
-                              (string= (substring thing (length search-prefix)) "")))
-                     (concat search-prefix
-                             (read-from-minibuffer "Search Query: "))
-                   thing)))
-    (browse-url search)))
-#+END_SRC
-
-*** Browse At Remote
+*** Browse at remote
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package browse-at-remote
   :straight t)
-#+END_SRC
-
-*** When no external web browser is available
-**** Set the default browser =eww=
-
-- [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-lnxsrv*
-  (setq browse-url-browser-function 'eww-browse-url))
-#+END_SRC
-
-**** Choose browser when using Org-mode's =org-open-at-point=
-:PROPERTIES:
-:ID:       69b03145-629e-4593-ae4c-6cbd5404ff3e
-:CUSTOM_ID: org-open-at-point-browser
-:END:
-
-This function from [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][emacswiki.org]] advises =org-opt-at-point= to allow
-choosing different browsers. The original snippet uses =w3m=, I'm
-using =eww= as a matter of personal preference.
-
-#+NAME: lnxsrv-browser-org-open-at-point-advise
-#+BEGIN_SRC emacs-lisp :tangle yes
-(defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
-  (let ((browse-url-browser-function
-         (cond ((equal (ad-get-arg 0) '(4))
-                'browse-url-generic)
-               ((equal (ad-get-arg 0) '(16))
-                'choose-browser)
-               (t
-                (lambda (url &optional new)
-                  (eww-browse-url url t))))))
-    ad-do-it))
 #+END_SRC
 
 ** Email

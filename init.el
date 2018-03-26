@@ -169,11 +169,12 @@ defined in this GNU Emacs distribution")
         (org-babel-do-load-languages
          'org-babel-load-languages
          '((C . t)
+           (ditaa . t)
            (latex . t)
            (perl . t)
            (python . t)
+           (plantuml . t)
            (java . t)
-           (ditaa . t)
            (ruby . t)
            (R . t)
            (shell . t)
