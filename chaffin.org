@@ -58,14 +58,16 @@
       - [[#display-fixed-width-images][Display Fixed Width Images]]
       - [[#org-bullets][Org Bullets]]
       - [[#toc-org][TOC Org]]
+      - [[#etcetera][etcetera]]
     - [[#document-management][Document Management]]
       - [[#org-id][Org ID]]
       - [[#spell-checking][Spell Checking]]
       - [[#org-download][Org Download]]
-      - [[#org-links][Org Links]]
       - [[#org-velocity][Org Velocity]]
+      - [[#org-links][Org Links]]
     - [[#task-management][Task Management]]
       - [[#org-capture][Org Capture]]
+      - [[#org-agenda][Org Agenda]]
       - [[#org-journal][Org Journal]]
       - [[#org-pomodoro][Org Pomodoro]]
       - [[#org-contacts][Org Contacts]]
@@ -922,7 +924,6 @@ that depend on resources outside of this repository, such as
 org-agenda files, will impact portability and potentially break on
 other machines.
 
-
 #+BEGIN_SRC emacs-lisp :tangle yes
 (let ((custom-file-directory (file-name-as-directory
 			      (concat
@@ -1314,7 +1315,6 @@ The default set of bullet points can be modified via the
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode +1)))))
 #+END_SRC
 
-
 **** TOC Org
 
 The [[https://github.com/snosov1/toc-org][toc-org]] package automatically generates a table of contents for
@@ -1337,6 +1337,13 @@ time of install.
   (add-hook 'org-mode-hook 'toc-org-enable))
 #+END_SRC
 
+**** etcetera
+
+#+NAME: org-etc
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
+#+END_SRC
+
 *** Document Management
 
 #+NAME: org-docmgr
@@ -1345,6 +1352,7 @@ time of install.
 <<org-docmgr-spellcheck>>
 <<org-docmgr-download>>
 <<org-docmgr-links>>
+<<org-docmgr-velocity>>
 #+END_SRC
 
 **** Org ID
@@ -1470,6 +1478,21 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
     (add-hook 'dired-mode-hook 'org-download-enable)))
 #+END_SRC
 
+**** Org Velocity
+
+#+NAME: org-docmgr-velocity
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-velocity
+  :straight nil
+  :after (org)
+  :bind
+  (("C-c n" . org-velocity))
+  :demand t
+  :init
+  (progn
+    (setq org-velocity-bucket (expand-file-name "bucket.org" org-directory))))
+#+END_SRC
+
 **** Org Links
 
 #+NAME: org-docmgr-links
@@ -1483,7 +1506,8 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package org-man
   :straight nil
-  :after (org))
+  :after (org)
+  :demand t)
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
@@ -1551,21 +1575,6 @@ Embed YouTube Links in iframe.
                     path (or desc "video"))))))
 #+END_SRC
 
-**** Org Velocity
-
-#+NAME: org-docmgr-velocity
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-velocity
-  :straight nil
-  :after (org)
-  :bind
-  (("C-c n" . org-velocity))
-  :demand t
-  :init
-  (progn
-    (setq org-velocity-bucket (expand-file-name "bucket.org" org-directory))))
-#+END_SRC
-
 *** Task Management
 
 #+NAME: org-taskmgr
@@ -1575,6 +1584,7 @@ Embed YouTube Links in iframe.
 <<org-taskmgr-capture>>
 <<org-taskmgr-brain>>
 <<org-taskmgr-contacts>>
+<<org-taskmgr-agenda>>
 #+END_SRC
 
 **** Org Capture
@@ -1586,15 +1596,25 @@ Embed YouTube Links in iframe.
          "* TODO %?\n %i\n %a")))
 #+END_SRC
 
+**** Org Agenda
+
+#+NAME: org-taskmgr-agenda
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "CANCELED" "DONE")))
+(setq org-agenda-skip-deadline-if-done t)
+
+#+END_SRC
+
 **** Org Journal
 
 #+NAME: org-taskmgr-journal
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-journal
   :straight t
-  :after (org)
-  :demand t
+  ; :defines (org-capture-templates)
   :if *is-mac*
+  :bind
+  (("M-m j" . org-journal-new-entry))
   :config
   (progn
     (setq org-journal-dir (concat (file-name-as-directory org-directory) "journal")
@@ -1655,8 +1675,6 @@ Embed YouTube Links in iframe.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-contacts
   :straight nil
-  :after (org)
-  :demand t
   :config
   (push '("c" "Contacts" entry (file "~/Dropbox/org/contacts.org")
            "* %(org-contacts-template-name)
@@ -1674,8 +1692,6 @@ Embed YouTube Links in iframe.
   :straight t
   :if *is-mac*
   :defines (org-brain-path)
-  :after (org)
-  :demand t
   :init
   (setq org-brain-path (concat (file-name-as-directory org-directory) "brain"))
   :config
