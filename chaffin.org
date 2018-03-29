@@ -65,8 +65,8 @@
       - [[#org-links][Org Links]]
       - [[#org-velocity][Org Velocity]]
     - [[#task-management][Task Management]]
-      - [[#org-journal][Org Journal]]
       - [[#org-capture][Org Capture]]
+      - [[#org-journal][Org Journal]]
       - [[#org-pomodoro][Org Pomodoro]]
       - [[#org-contacts][Org Contacts]]
       - [[#org-brain][Org Brain]]
@@ -1577,12 +1577,23 @@ Embed YouTube Links in iframe.
 <<org-taskmgr-contacts>>
 #+END_SRC
 
+**** Org Capture
+
+#+NAME: org-taskmgr-capture
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
+         "* TODO %?\n %i\n %a")))
+#+END_SRC
+
 **** Org Journal
 
 #+NAME: org-taskmgr-journal
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-journal
   :straight t
+  :after (org)
+  :demand t
   :if *is-mac*
   :config
   (progn
@@ -1594,15 +1605,6 @@ Embed YouTube Links in iframe.
     (push '("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
             "* %?\nEntered on %U\n %i\n %a")
           org-capture-templates)))
-#+END_SRC
-
-**** Org Capture
-
-#+NAME: org-taskmgr-capture
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-capture-templates
-      '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
-         "* TODO %?\n %i\n %a")))
 #+END_SRC
 
 **** Org Pomodoro
@@ -1653,9 +1655,14 @@ Embed YouTube Links in iframe.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-contacts
   :straight nil
+  :after (org)
+  :demand t
   :config
-  (push '(("c" "Contacts" entry (file "~/Dropbox/org/contacts.org")
-           "*" %(org-contacts-template-name)))
+  (push '("c" "Contacts" entry (file "~/Dropbox/org/contacts.org")
+           "* %(org-contacts-template-name)
+              :PROPERTIES:
+              :EMAIL: %(org-contacts-template-email)
+              :END:")
         org-capture-templates))
 #+END_SRC
 
@@ -1668,6 +1675,7 @@ Embed YouTube Links in iframe.
   :if *is-mac*
   :defines (org-brain-path)
   :after (org)
+  :demand t
   :init
   (setq org-brain-path (concat (file-name-as-directory org-directory) "brain"))
   :config
@@ -2113,6 +2121,8 @@ for exporting org-mode documents to various formats.
 (use-package ox-pandoc
   :if (executable-find "pandoc")
   :straight t
+  :after (ox)
+  :demand t
   :config
   (progn
     (defun ox-pandoc--pdf-engine ()
@@ -2158,13 +2168,16 @@ for exporting org-mode documents to various formats.
 
 **** Ox Extra
 
-Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents and
-subtrees of the ignored headlines will be retained.
+Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents
+and subtrees of the ignored headlines will be retained.
 
 #+NAME: org-export-ox-extra
 #+BEGIN_SRC emacs-lisp :tangle no
-(require 'ox-extra)
-(ox-extras-activate '(ignore-headlines))
+(use-package ox-extra
+  :straight nil
+  :after (ox)
+  :config
+  (ox-extras-activate '(ignore-headlines)))
 #+END_SRC
 
 **** Ox Publish
