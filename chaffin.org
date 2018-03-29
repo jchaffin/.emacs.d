@@ -27,10 +27,10 @@
       - [[#copy-file-path][Copy File Path]]
       - [[#list-directory-contents-without-wildcards][List Directory Contents without wildcards]]
       - [[#resolve-path][Resolve Path]]
-      - [[#explore-a-local-repository][Explore a local repository]]
+      - [[#goto-local-package-repository][Goto local package repository]]
     - [[#default-libraries][Default Libraries]]
   - [[#environment][Environment]]
-    - [[#os][OS]]
+    - [[#operating-system][Operating System]]
       - [[#system-packages][System Packages]]
       - [[#macos][macOS]]
       - [[#windowspc][Windows/PC]]
@@ -38,7 +38,7 @@
     - [[#custom-file][Custom File]]
     - [[#backup-files][Backup Files]]
     - [[#load-secrets][Load Secrets]]
-    - [[#use-emacs-terminfo][Use Emacs Terminfo]]
+    - [[#use-emacs-terminfo][Use Emacs terminfo]]
   - [[#latex][LaTeX]]
     - [[#tex][Tex]]
     - [[#reftex][RefTeX]]
@@ -52,7 +52,7 @@
     - [[#texinfo][Texinfo]]
   - [[#org-mode][Org Mode]]
     - [[#org-babel][Org Babel]]
-      - [[#ob-http][OB Http]]
+      - [[#ob-http][Ob Http]]
     - [[#org-mode-ui][Org Mode UI]]
       - [[#wrap-text][Wrap Text]]
       - [[#display-fixed-width-images][Display Fixed Width Images]]
@@ -62,11 +62,14 @@
       - [[#org-id][Org ID]]
       - [[#spell-checking][Spell Checking]]
       - [[#org-download][Org Download]]
-      - [[#org-man][Org Man]]
+      - [[#org-links][Org Links]]
+      - [[#org-velocity][Org Velocity]]
     - [[#task-management][Task Management]]
       - [[#org-journal][Org Journal]]
       - [[#org-capture][Org Capture]]
       - [[#org-pomodoro][Org Pomodoro]]
+      - [[#org-contacts][Org Contacts]]
+      - [[#org-brain][Org Brain]]
     - [[#org-latex][Org LaTeX]]
       - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
       - [[#edit-latex][Edit Latex]]
@@ -74,11 +77,11 @@
       - [[#org-ref][Org Ref]]
       - [[#org-pdf][Org PDF]]
     - [[#org-mode-export][Org Mode Export]]
-      - [[#user-enable-backends][User Enable Backends]]
-      - [[#latex-backend][LaTeX Backend]]
-      - [[#pandoc-backend][Pandoc Backend]]
-      - [[#gfm-backend][GFM backend]]
-      - [[#org-youtube][Org YouTube]]
+      - [[#enable-backends][Enable Backends]]
+      - [[#ox-latex][Ox LaTeX]]
+      - [[#ox-pandoc][Ox Pandoc]]
+      - [[#ox-gfm][Ox GFM]]
+      - [[#ox-hugo][Ox Hugo]]
       - [[#ox-extra][Ox Extra]]
       - [[#ox-publish][Ox Publish]]
   - [[#file-navigation][File Navigation]]
@@ -269,8 +272,7 @@
 
 This document contains my entire configuration for the GNU Emacs text
 editor. It written as some combination of travelogue, technical
-notebook, personal journal, and StackOverflow pasteboard.
-
+notebook, personal journal, and [[https://www.stackoverflow.com][StackOverflow]] pasteboard.
 
 ****  Literate Programming
 
@@ -300,6 +302,10 @@ compiler.
 
 ** Package Management
 *** Straight
+:PROPERTIES:
+:ID:       66FE9466-8249-4F2A-9E45-1F1ABC67E643
+:CUSTOM_ID: straight
+:END:
 
 [[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading
 the repository description [fn:1], I impetuously refactored my entire
@@ -583,11 +589,11 @@ buffer.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun resolve-path (&rest paths)
   (let* ((ms-file-path-separator "\\")
-         (unixy-file-path-separator "/")
+         (nix-file-path-separator "/")
          (file-path-separator
           (if (eq system-name 'windows)
               ms-file-path-separator
-            unixy-file-path-separator))
+            nix-file-path-separator))
          (paths* (mapcar #'directory-file-name paths)))
     (mapconcat 'identity paths* file-path-separator)))
 #+END_SRC
@@ -602,14 +608,14 @@ buffer.
   in `resolve-path'."
   (let* ((separators (if (eq system-name 'windows)
                          "\\" "/"))
-         (emacs-directory-path-segments
-          (split-string user-emacs-directory separators t))
-         (path-segments (seq-concatenate 'list emacs-directory-path-segments path)))
+        (emacs-directory-path-segments (split-string user-emacs-directory separators t))
+        (path-segments (seq-concatenate 'list emacs-directory-path-segments path)))
     (apply #'resolve-path path-segments)))
 
 #+END_SRC
 
-**** Explore a local repository
+
+**** Goto local package repository
 
 Function to jump to a repository installed by [[#straight][straight]].  an
 interactive minibuffer completion menu using ivy.
@@ -645,7 +651,7 @@ interactive minibuffer completion menu using ivy.
 #+END_SRC
 
 ** Environment
-*** OS
+*** Operating System
 **** System Packages
 
 Utilities for managing system packages in Emacs using an external
@@ -825,10 +831,12 @@ query it with the marked region or symbol at point.
 #+END_SRC
 
 ***** Reveal in macOS Finder
+
 #+NAME: macos-finder-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
   :straight t
+  :demand t
   :config
   (define-key 'macos-keymap "f" #'reveal-in-osx-finder))
 #+END_SRC
@@ -959,7 +967,7 @@ This might come back to bite me one day but I never use them.
 		   (or user-full-name user-mail-address)))))
 #+END_SRC
 
-*** Use Emacs Terminfo
+*** Use Emacs terminfo
 
 Setting this variable to nil forces Emacs to use internal terminfo,
 rather than the system terminfo.
@@ -1225,14 +1233,16 @@ Prettify dedicated org-mode latex buffers.
 
 #+NAME: org-mode-settings
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<org-ui>>
-<<org-docmgr>>
-<<org-taskmgr>>
-<<org-export>>
+(with-eval-after-load 'org
+  <<org-ui>>
+  <<org-docmgr>>
+  <<org-taskmgr>>
+  <<org-export>>
+)
 #+END_SRC
 
 *** Org Babel
-**** OB Http
+**** Ob Http
 #+BEGIN_SRC emacs-lisp :tangle yes :exports none
 (use-package ob-http
   :straight t
@@ -1275,7 +1285,7 @@ org-mode buffers.
 
 Make images compact.
 
-#+NAME: org-ui-fixedwith-image
+#+NAME: org-ui-fixedwidth-image
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-image-actual-width nil)
 #+END_SRC
@@ -1331,15 +1341,15 @@ time of install.
 
 #+NAME: org-docmgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-docmgr-org-id>>
+<<org-docmgr-id>>
 <<org-docmgr-spellcheck>>
-<<org-docmgr-org-download>>
-<<org-docmgr-org-man>>
+<<org-docmgr-download>>
+<<org-docmgr-links>>
 #+END_SRC
 
 **** Org ID
 
-#+NAME: org-docmgr-org-id
+#+NAME: org-docmgr-id
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
 <<org-id-create-custom>>
 <<org-id-custom-id>>
@@ -1444,19 +1454,38 @@ Add spell checking in org mode buffers using Flyspell.
 
 Drag and Drop images directly from a web browser to an org-mode buffer. 
 
-#+NAME: org-docmgr-org-download
+#+NAME: org-docmgr-download
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-download
   :straight t
   :defines (org-download-image-dir)
-  :config
-  (when *is-mac*
-    (setq-default org-download-image-dir "~/Dropbox/org/img/")))
+  :commands (org-download-enable
+             org-download-yank
+             org-download-screenshot)
+  :init
+  (progn
+    (when *is-mac*
+      (setq-default org-download-image-dir "~/Dropbox/org/img/"))
+    (add-hook  'org-mode-hook 'org-download-enable)
+    (add-hook 'dired-mode-hook 'org-download-enable)))
 #+END_SRC
 
-**** Org Man
+**** Org Links
 
-#+NAME: org-docmgr-org-man
+#+NAME: org-docmgr-links
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-links-youtube>>
+#+END_SRC
+
+***** Org Man
+
+#+NAME: org-links-manpage
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(use-package org-man
+  :straight nil
+  :after (org))
+#+END_SRC
+
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (org-add-link-type "man" 'org-man-open)
 (add-hook 'org-store-link-functions 'org-man-store-link)
@@ -1489,37 +1518,91 @@ PATH should be a topic that can be thrown at the man command."
   (if (string-match " \\(\\S-+\\)\\*" (buffer-name))
       (match-string 1 (buffer-name))
     (error "Cannot create link to this man page")))
+
+#+END_SRC
+
+***** Org YouTube
+
+From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
+
+Embed YouTube Links in iframe.
+
+#+NAME: org-links-youtube
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar yt-iframe-format
+  ;; You may want to change your width and height.
+  (concat "<iframe width=\"440\""
+          " height=\"335\""
+          " src=\"https://www.youtube.com/embed/%s\""
+          " frameborder=\"0\""
+          " allowfullscreen>%s</iframe>"))
+
+(org-add-link-type
+ "yt"
+ (lambda (handle)
+   (browse-url
+    (concat "https://www.youtube.com/embed/"
+            handle)))
+ (lambda (path desc backend)
+   (cl-case backend
+     (html (format yt-iframe-format
+                   path (or desc "")))
+     (latex (format "\href{%s}{%s}"
+                    path (or desc "video"))))))
+#+END_SRC
+
+**** Org Velocity
+
+#+NAME: org-docmgr-velocity
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-velocity
+  :straight nil
+  :after (org)
+  :bind
+  (("C-c n" . org-velocity))
+  :demand t
+  :init
+  (progn
+    (setq org-velocity-bucket (expand-file-name "bucket.org" org-directory))))
 #+END_SRC
 
 *** Task Management
 
 #+NAME: org-taskmgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-taskmgr-org-journal>>
-<<org-taskmgr-org-pomodoro>>
-<<org-taskmgr-org-capture>>
+<<org-taskmgr-journal>>
+<<org-taskmgr-pomodoro>>
+<<org-taskmgr-capture>>
+<<org-taskmgr-brain>>
+<<org-taskmgr-contacts>>
 #+END_SRC
 
 **** Org Journal
 
-
-#+NAME: org-taskmgr-org-journal
+#+NAME: org-taskmgr-journal
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-journal
   :straight t
+  :if *is-mac*
   :config
-  (setq org-journal-dir (concat (file-name-as-directory org-directory) "journal")))
+  (progn
+    (setq org-journal-dir (concat (file-name-as-directory org-directory) "journal")
+          org-journal-date-prefix "#+TITLE: "
+          org-journal-dat-format "%A, %B %d %Y"
+          org-journal-time-prefix "* "
+          org-journal-time-format "")
+    (push '("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
+            "* %?\nEntered on %U\n %i\n %a")
+          org-capture-templates)))
 #+END_SRC
 
 **** Org Capture
 
-#+NAME: org-taskmgr-org-capture
+#+NAME: org-taskmgr-capture
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
-         "* TODO %?\n %i\n %a")
-        ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
-         "* %?\nEntered on %U\n %i\n %a")))
+         "* TODO %?\n %i\n %a")))
 #+END_SRC
 
 **** Org Pomodoro
@@ -1528,7 +1611,7 @@ PATH should be a topic that can be thrown at the man command."
 :CUSTOM_ID: org-pomodoro
 :END:
 
-#+NAME: org-taskmgr-org-pomodoro
+#+NAME: org-taskmgr-pomodoro
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-pomodoro-path-alias>>
 <<org-pomodoro-config>>
@@ -1562,6 +1645,40 @@ PATH should be a topic that can be thrown at the man command."
           org-pomodoro-long-break-length 15
           org-pomodoro-long-break-sound-args "--volume 0.2"
           org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav"))))
+#+END_SRC
+
+**** Org Contacts
+
+#+NAME: org-taskmgr-contacts
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-contacts
+  :straight nil
+  :config
+  (push '(("c" "Contacts" entry (file "~/Dropbox/org/contacts.org")
+           "*" %(org-contacts-template-name)))
+        org-capture-templates))
+#+END_SRC
+
+**** Org Brain
+
+#+NAME: org-taskmgr-brain
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-brain
+  :straight t
+  :if *is-mac*
+  :defines (org-brain-path)
+  :after (org)
+  :init
+  (setq org-brain-path (concat (file-name-as-directory org-directory) "brain"))
+  :config
+  (progn
+    (setq org-id-track-globally t
+          org-id-locations-file "~/.emacs.d/.org-id-locations"
+          org-brain-visualize-default-choices 'all
+          org-brain-title-max-length 12)
+    (push '("b" "Brain" plain (function org-brain-goto-end)
+            "* %i%?" :empty-lines 1)
+          org-capture-templates)))
 #+END_SRC
 
 *** Org LaTeX
@@ -1738,46 +1855,48 @@ Now we can open pdf files with =org-pdfview=[fn:9]:
 ;; Enabled on MacOS block
 <<org-export-enable-on-mac>>
 
-;; Begin latex backend
+;; Enable Extras
+<<org-export-ox-extra>>
+
+<<org-export-publish>>
+
+;; LaTeX backend
+;; Only evaluate LaTeX package configurations if export dispatcher is enabled
 (when (chaffin/org-export-enabled-backend-p 'latex)
 
-  ;; Expanding LaTeX Configuration Here
+  ;; LaTeX Configuration
   <<latex-config>>
   ;; End LaTeX Config
   
-  ;; Begin Org LaTeX Expansion
+  ;; Org LaTeX 
   <<org-latex-config>>
   ;; End Org Latex Expansion
    
-  ;; begin org-export-latex expansion
+  ;; Org Expor
   <<org-export-latex>>
   ;; End org-export-latex expansion
 
   ) ;; End LaTeX Backend
 
+;; GFM backend
 (when (chaffin/org-export-enabled-backend-p 'gfm)
   <<org-export-gfm>>)
 
-(when (chaffin/org-export-enabled-backend-p 'yt)
-  <<org-export-youtube>>)
-
-(when (chaffin/org-export-enabled-backend-p 'extra)
-  <<org-export-ox-extra>>)
-
+;; Pandoc backend
 (when (chaffin/org-export-enabled-backend-p 'pandoc)
-  <<org-export-ox-pandoc>>)
+  <<org-export-pandoc>>)
+
+;; Hugo backend
+(when (chaffin/org-export-enabled-backend-p 'hugo)
+  <<org-export-hugo>>)
+
 #+END_SRC
 
-
-**** User Enable Backends
+**** Enable Backends
 :PROPERTIES:
 :ID:       59AEA962-792E-4AB7-ACDE-3EC61C45D279
 :CUSTOM_ID: user-enable-backends
 :END:
-
-It's not really an API, but its the best header I can come up with at the
-moment without causing a conflict between the section id and the code
-block name.
 
 #+NAME: org-export-wrapper
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1796,10 +1915,10 @@ And opt-in to all back ends when on local machine.
   (mapcar (lambda (backend)
             (setq org-export-enabled-backends
                   (cons backend org-export-enabled-backends)))
-          '(latex gfm yt http extra pandoc)))
+          '(latex gfm extra pandoc hugo)))
 #+END_SRC
 
-**** LaTeX Backend
+**** Ox LaTeX
 
 #+NAME: org-export-latex
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -1824,6 +1943,7 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
       org-latex-minted-options
       '(("mathescape" "true")
         ("linenos" "true")
+        ("breaklines" "true")
         ("numbersep" "5pt")
         ("frame" "lines")
         ("framesep" "2mm")))
@@ -1977,16 +2097,18 @@ external configuration.
          "\\(\\(?:\\(part\\|chapter\\|\\(?:sub\\)*section\\|\\(?:sub\\)?paragraph\\)\\[*]?{\\)\\).*"
          "\\1}" data))))
 
-(setq org-export-filter-headline-functions '(headline-numbering-filter section-title-filter))
+(setq org-export-filter-headline-functions
+      '(headline-numbering-filter
+        section-title-filter))
 #+END_SRC
 
-**** Pandoc Backend
+**** Ox Pandoc
 
 [[https://pandoc.org/][Pandoc]] is a document conversion tool that can convert pretty much
 anything. The [[https://github.com/kawabata/ox-pandoc][ox-pandoc]] package allows us to utiliize this capability
 for exporting org-mode documents to various formats.
 
-#+NAME: org-export-ox-pandoc
+#+NAME: org-export-pandoc
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-pandoc
   :if (executable-find "pandoc")
@@ -2012,63 +2134,42 @@ for exporting org-mode documents to various formats.
 
 #+END_SRC
 
-**** GFM backend
+**** Ox GFM
 
 #+NAME: org-export-gfm
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-gfm
   :straight t
-  :init
-  (with-eval-after-load 'org-mode
-    (require 'ox-gfm)))
+  :after (ox)
+  :demand t)
 #+END_SRC
 
-**** Org YouTube
+**** Ox Hugo
 
-From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
+=[[https://ox-hugo.scripter.co/][ox-hugo]]= is an org exporter for Hugo-compatible markdown.
 
-Embed YouTube Links in iframe.
-
-#+NAME: org-export-youtube
+#+NAME: org-export-hugo
 #+BEGIN_SRC emacs-lisp :tangle no
-(defvar yt-iframe-format
-  ;; You may want to change your width and height.
-  (concat "<iframe width=\"440\""
-          " height=\"335\""
-          " src=\"https://www.youtube.com/embed/%s\""
-          " frameborder=\"0\""
-          " allowfullscreen>%s</iframe>"))
-
-(org-add-link-type
- "yt"
- (lambda (handle)
-   (browse-url
-    (concat "https://www.youtube.com/embed/"
-            handle)))
- (lambda (path desc backend)
-   (cl-case backend
-     (html (format yt-iframe-format
-                   path (or desc "")))
-     (latex (format "\href{%s}{%s}"
-                    path (or desc "video"))))))
+(use-package ox-hugo
+  :straight t
+  :after (ox)
+  :demand t)
 #+END_SRC
 
 **** Ox Extra
 
-Ignores headlines tagged "ignore". Unlike "noexport", the contents and
+Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents and
 subtrees of the ignored headlines will be retained.
 
 #+NAME: org-export-ox-extra
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (require 'ox-extra)
 (ox-extras-activate '(ignore-headlines))
-
 #+END_SRC
 
 **** Ox Publish
-#+NAME: org-export-ox-publish
 
+#+NAME: org-export-publish
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-publish
   :straight nil
@@ -3069,7 +3170,7 @@ configuration block as I learn how to use it.
 **** Ditaa
 
 #+NAME: ditaa-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (when (and *is-mac*
            (executable-find "brew")
            (executable-find "ditaa"))
@@ -3078,6 +3179,7 @@ configuration block as I learn how to use it.
                       (shell-command-to-string
                        "realpath $(brew --prefix ditaa)/libexec/*.jar"))))
     (setq org-ditaa-jar-path ditaa-path)))
+
 #+END_SRC
 
 **** PlantUML
@@ -3335,6 +3437,10 @@ This disables Emacs asking questions about loading a new theme.
 #+END_SRC
 
 **** Atom One Dark Theme
+:PROPERTIES:
+:ID:       F61C9959-2A41-47D9-9D99-04D54098CA90
+:CUSTOM_ID: atom-one-dark-theme
+:END:
 
 #+NAME: atom-theme-cfg
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3369,51 +3475,83 @@ started from the terminal.
                 (lambda ()
                   (load-theme 'atom-one-dark)
                   (load-theme 'org-beautify)
-                  <<atom-one-dark-mods>>)))
+
+                  <<atom-one-dark-mods>>
+)))
+
   (progn
     <<zenburn-theme-cfg>>))
 #+END_SRC
 
 *****  Atom One Dark Modifications
 
-I will go to great lengths to avoid using the customization
-interface. 
+Minor modifications to [[#atom-one-dark-theme][atom one dark theme]] color scheme, see footnote
+for source[fn:12].
+
+- Use default foreground color instead of highlight face for org-mode
+  source lines.
+- Use italic font (when available) for strings, comments, and keywords
+- Modify vertical border foreground color 
+- Modify highlight symbol foreground face and colors
+
+
 
 #+NAME: atom-one-dark-mods
 #+BEGIN_SRC emacs-lisp :tangle no
-(when (member 'atom-one-dark custom-enabled-themes)
+(deftheme atom-one-dark-mods)
+
+(let ((class '((class color) (min-colors 257)))
+      (terminal-class '((class color) (min-colors 89))))
+
+  (custom-theme-set-faces
+   'atom-one-dark-mods
+
+   ;; Can also be set using `highlight-symbol-foreground-color' variable
+   `(highlight-symbol-face
+     ((,class :foreground "#E0E0E0")))
+
    ;; Org Faces
-  (set-face-attribute 'org-block-begin-line nil
-                      :foreground "#ABB2BF"
-                       :background "#35373E")
-  (set-face-attribute 'org-block-end-line nil
-                      :foreground "#ABB2BF"
-                      :background "#35373E")
-   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch-serif))
-   (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-   (set-face-attribute 'font-lock-keyword-face nil :slant 'italic :weight 'book)
-   (set-face-attribute 'font-lock-string-face nil :slant 'italic)
-   (set-face-attribute 'vertical-border nil :foreground "#5C6370")
-   (setq highlight-symbol-foreground-color
-         "#E0E0E0"
-         highlight-symbol-colors
-         '("#FFEE58" "#C5E1A5" "#80DEEA"
-           "#64B5F6" "#E1BEE7" "#FFCC80")
-         highlight-tail-colors
-         '(("#F8BBD0" . 0) ("#FF80AB" . 10)
-           ("#9575CD" . 30) ("#494949" . 60)
-           ("#424242" . 80))
-         hl-bg-colors
-         '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
-           "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
-         hl-fg-colors
-         '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
-           "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
-         hl-paren-colors
-         '("#B9F" "#B8D" "#B7B" "#B69"
-           "#B57" "#B45" "#B33" "#B11")
-         nrepl-message-colors
-         '("#dc322f" "#cb4b16" "#b58900")))
+   `(org-block-begin-line
+     ((t :foreground "#ABB2BF"
+         :background "#35373E")))
+
+   `(org-block-end-line
+     ((t :foreground "#ABB2BF"
+         :background "#35373E")))
+
+   `(org-verbatim
+     ((t :inherit (shadow fixed-pitch-serif))))
+
+   `(font-lock-comment-face
+     ((t :slant italic)))
+
+   `(font-lock-keyword-face
+     ((t :slant italic)))
+
+   `(font-lock-string-face
+     ((t :slant italic)))
+
+   `(vertical-border
+     ((t :foreground "#5C6370")))))
+
+ (setq highlight-symbol-colors
+       '("#FFEE58" "#C5E1A5" "#80DEEA"
+         "#64B5F6" "#E1BEE7" "#FFCC80")
+       highlight-tail-colors
+       '(("#F8BBD0" . 0) ("#FF80AB" . 10)
+         ("#9575CD" . 30) ("#494949" . 60)
+         ("#424242" . 80))
+       hl-bg-colors
+       '("#DEB542" "#F2804F" "#FF6E64" "#F771AC"
+         "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")
+       hl-fg-colors
+       '("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3"
+         "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")
+       hl-paren-colors
+       '("#B9F" "#B8D" "#B7B" "#B69"
+         "#B57" "#B45" "#B33" "#B11")
+       nrepl-message-colors
+       '("#dc322f" "#cb4b16" "#b58900"))
 #+END_SRC
 
 *** All The Icons
@@ -3891,7 +4029,9 @@ haystack, smartparens are a great productivity tool.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package rainbow-delimiters
-  :straight t)
+  :straight t
+  :init
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 #+END_SRC
 
 **** Parinfer
@@ -4231,6 +4371,10 @@ CDET enhancements for showing inline function arguments.
 #+END_SRC
 
 **** Irony Mode
+:PROPERTIES:
+:ID:       A8CD300F-F34E-4628-98F0-883109589168
+:CUSTOM_ID: irony-mode
+:END:
 
 Using Irony Mode on macOS is a bitch, not so much because Irony Mode
 is a bitch but because macOS doesn't include clang-c header files by
@@ -4442,7 +4586,8 @@ Provides key bindings and font-locking for Clojure.
   :config
   (progn
     (setq clojure-indent-style :always-indent)
-    (add-hook 'clojure-mode-hook #'enable-paredit-mode)))
+    (add-hook 'clojure-mode-hook #'enable-paredit-mode)
+    (add-hook 'clojure-mode-hook #'show-paren-mode)))
 #+END_SRC
 
 ***** Clojure Mode Extra Font Locking
@@ -5176,20 +5321,20 @@ local file system.
 (use-package markdown-mode
   :straight t
   :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
+  :mode
+  (("README\\.md\\'" . gfm-mode)
 	 ("\\.md\\'" . markdown-mode)
 	 ("\\.markdown\\'" . markdown-mode))
   :init
   (progn
     (setq markdown-command "multimarkdown")
-    (if (and *is-mac*
-	     (straight-check-package "macos-dev-utils"))
+    (if *is-mac*
         (setq markdown-open-command #'macos-open-with-default-app)))
   :config
   (add-to-hooks  (lambda ()
-		   (visual-line-mode t)
-		   (auto-fill-mode t))
-		 '(markdown-mode-hook gfm-mode-hook)))
+                   (visual-line-mode t)
+                   (auto-fill-mode t))
+                 '(markdown-mode-hook gfm-mode-hook)))
 #+END_SRC
 
 **** markdown-mode+
@@ -5640,4 +5785,7 @@ dialects of Lisp.
 
 [fn:11] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
-[fn:12] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:12] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
+Clojure Revised]]
+
+[fn:13] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
