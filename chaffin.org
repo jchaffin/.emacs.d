@@ -53,6 +53,7 @@
   - [[#org-mode][Org Mode]]
     - [[#org-babel][Org Babel]]
       - [[#ob-http][Ob Http]]
+      - [[#ob-clojurescript][OB ClojureScript]]
     - [[#org-mode-ui][Org Mode UI]]
       - [[#wrap-text][Wrap Text]]
       - [[#per-image-display-width][Per-image display width]]
@@ -1248,19 +1249,35 @@ Prettify dedicated org-mode latex buffers.
 
 #+NAME: org-ob
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-babel-http>>
+<<org-ob-http>>
+<<org-ob-cljs>>
 #+END_SRC
 
 **** Ob Http
 
-#+NAME: org-babel-http
+#+NAME: org-ob-http
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ob-http
   :straight t
+  :after (ob)
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((http . t))))
+#+END_SRC
+
+**** OB ClojureScript
+
+#+NAME: org-ob-cljs
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(use-package ob-clojurescript
+  :if (executable-find "lumo")
+  :straight t
+  :after (ob)
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((clojurescript . t))))
 #+END_SRC
 
 *** Org Mode UI
