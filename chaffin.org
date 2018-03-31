@@ -53,7 +53,7 @@
   - [[#org-mode][Org Mode]]
     - [[#org-babel][Org Babel]]
       - [[#ob-http][Ob Http]]
-      - [[#ob-clojurescript][OB ClojureScript]]
+      - [[#ob-clojurescript][Ob ClojureScript]]
     - [[#org-mode-ui][Org Mode UI]]
       - [[#wrap-text][Wrap Text]]
       - [[#per-image-display-width][Per-image display width]]
@@ -1203,7 +1203,7 @@ Prettify dedicated org-mode latex buffers.
         magic-latex-enable-suscript t
         magic-latex-enable-pretty-symbols t
         magic-latex-enable-block-align nil
-        magic-latex-enable-inline-image t))
+        magic-latex-enable-inline-image nil))
 #+END_SRC
 
 *** Auctex Latexmk
@@ -1266,7 +1266,7 @@ Prettify dedicated org-mode latex buffers.
    '((http . t))))
 #+END_SRC
 
-**** OB ClojureScript
+**** Ob ClojureScript
 
 [[https://github.com/emacsmirror/ob-clojurescript][ob-clojurescript]] uses [[https://github.com/anmonteiro/lumo][lumo]] to evaluate ClojureScript code blocks in
 =org-mode= buffers.
