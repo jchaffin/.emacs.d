@@ -110,6 +110,7 @@
     - [[#asynchronous-processing][Asynchronous Processing]]
   - [[#project-mangement][Project Mangement]]
     - [[#projectile][Projectile]]
+    - [[#neotree][Neotree]]
     - [[#wakatime][Wakatime]]
   - [[#completion][Completion]]
     - [[#company][Company]]
@@ -2546,6 +2547,38 @@ killall gpg-agent
      '("gradle" ".meghanada" ".gradle" "build" "bin"))))
 #+END_SRC
 
+*** Neotree
+
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:11] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+ 
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package neotree
+  :straight t
+  :commands (neotree-project-dir)
+  :bind
+  (([f8] . neotree-toggle))
+  :init
+  (progn
+    (setq neo-theme
+          (if (display-graphic-p)
+              'icons 'arrow)))
+  :config
+  (progn
+    ;; @source https://www.emacswiki.org/emacs/NeoTree
+    (defun neotree-project-dir ()
+      "Open NeoTree using the git root"
+      (interactive)
+      (let ((project-dir (projectile-project-root))
+            (file-name (buffer-file-name)))
+        (neotree-toggle)
+        (if project-dir
+            (if (neo-global--window-exists-p
+                 (progn
+                   (neotree-dir project-dir)
+                   (neotree-find file-name)))
+                (message "Project root not found!")))))))
+#+END_SRC
+
 *** Wakatime
 
 #+NAME: wakatime-mode-config
@@ -3000,7 +3033,7 @@ snippets corresponding to the major mode of the current buffer mode.
 ** Editing
 *** Indentation
 
-Tabs are the bane of humanity[fn:11]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:12]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -3520,7 +3553,7 @@ started from the terminal.
 *****  Atom One Dark Modifications
 
 Minor modifications to [[#atom-one-dark-theme][atom one dark theme]] color scheme, see footnote
-for source[fn:12].
+for source[fn:13].
 
 - Use default foreground color instead of highlight face for org-mode
   source lines.
@@ -5817,9 +5850,11 @@ dialects of Lisp.
 
 [fn:10] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
 
-[fn:11] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+[fn:11] https://www.emacswiki.org/emacs/NeoTree
 
-[fn:12] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
+[fn:12] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+
+[fn:13] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
 Clojure Revised]]
 
-[fn:13] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:14] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
