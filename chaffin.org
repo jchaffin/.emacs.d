@@ -55,10 +55,10 @@
       - [[#ob-http][Ob Http]]
     - [[#org-mode-ui][Org Mode UI]]
       - [[#wrap-text][Wrap Text]]
-      - [[#display-fixed-width-images][Display Fixed Width Images]]
+      - [[#per-image-display-width][Per-image display width]]
       - [[#org-bullets][Org Bullets]]
       - [[#toc-org][TOC Org]]
-      - [[#etcetera][etcetera]]
+      - [[#column-view][Column View]]
     - [[#document-management][Document Management]]
       - [[#org-id][Org ID]]
       - [[#spell-checking][Spell Checking]]
@@ -1236,6 +1236,7 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: org-mode-settings
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (with-eval-after-load 'org
+  <<org-ob>>
   <<org-ui>>
   <<org-docmgr>>
   <<org-taskmgr>>
@@ -1244,8 +1245,16 @@ Prettify dedicated org-mode latex buffers.
 #+END_SRC
 
 *** Org Babel
+
+#+NAME: org-ob
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-babel-http>>
+#+END_SRC
+
 **** Ob Http
-#+BEGIN_SRC emacs-lisp :tangle yes :exports none
+
+#+NAME: org-babel-http
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ob-http
   :straight t
   :config
@@ -1283,9 +1292,9 @@ org-mode buffers.
                               (visual-line-mode)))
 #+END_SRC
 
-**** Display Fixed Width Images
+**** Per-image display width
 
-Make images compact.
+Specify image width in org buffer on per-image basis.
 
 #+NAME: org-ui-fixedwidth-image
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1338,9 +1347,9 @@ time of install.
   (add-hook 'org-mode-hook 'toc-org-enable))
 #+END_SRC
 
-**** etcetera
+**** Column View
 
-#+NAME: org-etc
+#+NAME: org-column-view
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
 #+END_SRC
