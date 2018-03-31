@@ -2583,10 +2583,9 @@ killall gpg-agent
 
 #+NAME: wakatime-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
-(when (and *is-mac* (or (string= (downcase computer-name) "hal")
-			(string= (downcase computer-name) "junior")))
   (use-package wakatime-mode
     :straight t
+    :if (executable-find "wakatime")
     :init
     (add-hook 'prog-mode-hook 'wakatime-mode)
     :config
@@ -2596,11 +2595,10 @@ killall gpg-agent
             "~/.local/lib/python3.6/site-packages/wakatime/cli.py")
             wakatime-python-bin
             (expand-file-name "~/.pyenv/shims/python"))
-
+       ;; from spacemacs wakatime layer
       (defun wakatime-dashboard ()
         (interactive)
-        (browse-url "https://wakatime.com/dashboard")))))
-
+        (browse-url "https://wakatime.com/dashboard"))))
 #+END_SRC
 
 ** Completion
