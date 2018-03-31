@@ -1602,7 +1602,7 @@ Embed YouTube Links in iframe.
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "CANCELED" "DONE")))
 (setq org-agenda-skip-deadline-if-done t)
-
+(setq diary-file "~/Dropbox/org/diary.org")
 #+END_SRC
 
 **** Org Journal
@@ -3073,9 +3073,14 @@ Generate dummy text.
   :config
   (progn
     (setq multi-term-program
-	  (if (string= shell-file-name "/bin/sh")
-	      "/bin/bash"
-	    "/bin/zsh"))))
+          (if (string= shell-file-name "/bin/sh")
+              "/bin/bash"
+            "/bin/zsh"))
+    (add-to-list 'term-bind-key-alist
+                 '("C-x C-j" . term-line-mode))
+    (add-to-list 'term-bind-key-alist
+                 '("C-c C-k" . term-char-mode))))
+
 #+END_SRC
 
 **** Run Bash On Windows/PC
