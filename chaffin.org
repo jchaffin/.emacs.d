@@ -906,7 +906,7 @@ conditionally loading dependencies.
 #+END_SRC
 
 
-◉ SEAS Linux
+***** SEAS Linux
 
 Determine if =system-name= is UCLA SEAS lnxsrv cluster.
 
