@@ -704,7 +704,7 @@ external programs.
 ***** MacOS Keybindings
 
 #+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<macos-modifier-keymap>>
 <<macos-prefix-command>>
 #+END_SRC
@@ -724,7 +724,7 @@ Also sets terminal coding system to "utf-8".
       ns-function-modifier 'hyper)
 
 (when *is-mac*
-  (global-set-key (kbd "s-+" ) 'text-scale-increase)
+  (global-set-key (kbd "s-=" ) 'text-scale-increase)
   (global-set-key (kbd "s--")  'text-scale-decrease))
 #+END_SRC
 
