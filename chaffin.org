@@ -2556,7 +2556,7 @@ killall gpg-agent
   :straight t
   :commands (neotree-project-dir)
   :bind
-  (([f8] . neotree-toggle))
+  (([f8] . neotree-project-dir))
   :init
   (progn
     (setq neo-theme
@@ -2572,11 +2572,11 @@ killall gpg-agent
             (file-name (buffer-file-name)))
         (neotree-toggle)
         (if project-dir
-            (if (neo-global--window-exists-p
+            (if (neo-global--window-exists-p)
                  (progn
                    (neotree-dir project-dir)
                    (neotree-find file-name)))
-                (message "Project root not found!")))))))
+          (message "Project root not found."))))))
 #+END_SRC
 
 *** Wakatime
