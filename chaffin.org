@@ -1268,6 +1268,9 @@ Prettify dedicated org-mode latex buffers.
 
 **** OB ClojureScript
 
+[[https://github.com/emacsmirror/ob-clojurescript][ob-clojurescript]] uses [[https://github.com/anmonteiro/lumo][lumo]] to evaluate ClojureScript code blocks in
+=org-mode= buffers.
+
 #+NAME: org-ob-cljs
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package ob-clojurescript
