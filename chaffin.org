@@ -3594,7 +3594,7 @@ Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]
 I find that zenburn looks better when Emacs is
 started from the terminal.
 
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
 (if (display-graphic-p)
     (progn
       (load-theme 'org-beautify)
