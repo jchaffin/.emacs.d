@@ -2,6 +2,7 @@
 # name: definition
 # key: <d
 # --
-#+BEGIN_DEFINITION
-$1
-#+END_DEFINITION
+#+ATTR_LATEX: :options [$1]
+#+BEGIN_definition
+$2
+#+END_definition

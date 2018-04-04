@@ -1,0 +1,5 @@
+# -*- mode: org-mode -*-
+# name: attr-latex
+# key: <al
+# --
+#+ATTR_LATEX: $1

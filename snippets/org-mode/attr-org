@@ -1,0 +1,5 @@
+# -*- mode: org-mode -*-
+# name: attr-org
+# key: <ao
+# --
+#+ATTR_ORG: $1

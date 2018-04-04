@@ -1,7 +1,7 @@
 (setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"
-                         "~/Dropbox/Documents/Courses/COMSCI_33/org/comsci33.org"
-                         "~/Dropbox/Documents/Courses/LING_120B/org/ling120b-todos.org"
-                         "~/Dropbox/Documents/Courses/COMSCI_35L/org/comsci35L.org"))
+                         "~/Dropbox/Documents/Courses/hist109c/org/TODOS.org"
+                         "~/Dropbox/Documents/Courses/cs180/org/TODOS.org"
+                         "~/Dropbox/Documents/Courses/ling120c/org/TODOS.org"))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -169,7 +169,9 @@
  '(bibtex-autokey-titlewords 2)
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
- '(org-agenda-files (quote ("~/Dropbox/org/todos/TODOs.org")))
+ '(org-agenda-files
+   (quote
+    ("~/Dropbox/Documents/Courses/cs180/org/TODOs.org" "~/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "~/Dropbox/Documents/Courses/hist109c/org/TODOS.org" "~/Dropbox/org/todos/TODOs.org")))
  '(safe-local-variable-values
    (quote
     ((flycheck-clang-include-path . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_33/labs/lab04/perflab-handout/include)

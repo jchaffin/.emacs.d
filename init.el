@@ -5,7 +5,7 @@
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
 ;; Keywords: emacs, .emacs.d, elisp, straight-el
 ;; Homepage: https://github.com/jchaffin/.emacs.d
-;; Package-Requires: ((emacs "25")
+;; Package-Requires: ((emacs "25"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -17,7 +17,7 @@
 ;; (at your option) any later version.
 
 
-;; ;; This program is distributed in the hope that it will be useful,
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -166,19 +166,6 @@ defined in this GNU Emacs distribution")
         (setq org-src-fontify-natively t
               org-confirm-babel-evaluate nil
               org-src-preserve-indentation t)
-        (org-babel-do-load-languages
-         'org-babel-load-languages
-         '((C . t)
-           (ditaa . t)
-           (latex . t)
-           (perl . t)
-           (python . t)
-           (plantuml . t)
-           (java . t)
-           (ruby . t)
-           (R . t)
-           (shell . t)
-           (org . t)))
         (if target-file
             (org-babel-load-file
              (expand-file-name target-file target-dir))

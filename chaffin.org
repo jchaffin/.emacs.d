@@ -54,6 +54,7 @@
     - [[#org-babel][Org Babel]]
       - [[#ob-http][Ob Http]]
       - [[#ob-clojurescript][Ob ClojureScript]]
+      - [[#load-languages][Load Languages]]
     - [[#org-mode-ui][Org Mode UI]]
       - [[#wrap-text][Wrap Text]]
       - [[#per-image-display-width][Per-image display width]]
@@ -1107,7 +1108,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 *** BibTex
 
-BibTex mode is built-in with GNU Emacs. Like /super/ built in. This is
+BibTeX mode is built-in with GNU Emacs. Like /super/ built-in. This is
 from the author of the online BibTeX mode manual[fn:8]:
 
 #+BEGIN_QUOTE
@@ -1242,6 +1243,7 @@ Prettify dedicated org-mode latex buffers.
   <<org-docmgr>>
   <<org-taskmgr>>
   <<org-export>>
+  <<org-ob>>
 )
 #+END_SRC
 
@@ -1251,6 +1253,7 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-ob-http>>
 <<org-ob-cljs>>
+<<org-ob-load-langs>>
 #+END_SRC
 
 **** Ob Http
@@ -1260,29 +1263,44 @@ Prettify dedicated org-mode latex buffers.
 (use-package ob-http
   :straight t
   :after (ob)
-  :config
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((http . t))))
+  :demand t)
 #+END_SRC
 
 **** Ob ClojureScript
+
 
 [[https://github.com/emacsmirror/ob-clojurescript][ob-clojurescript]] uses [[https://github.com/anmonteiro/lumo][lumo]] to evaluate ClojureScript code blocks in
 =org-mode= buffers.
 
 #+NAME: org-ob-cljs
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ob-clojurescript
   :if (executable-find "lumo")
   :straight t
   :after (ob)
-  :config
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((clojurescript . t))))
+  :demand t)
 #+END_SRC
 
+**** Load Languages
+#+NAME: org-ob-load-langs
+#+BEGIN_SRC emacs-lisp :tangle no
+ (org-babel-do-load-languages
+  'org-babel-load-languages
+  '((C . t)
+    (clojure . t)
+    (clojurescript . t)
+    (ditaa . t)
+    (latex . t)
+    (http . t)
+    (perl . t)
+    (python . t)
+    (plantuml . t)
+    (java . t)
+    (ruby . t)
+    (R . t)
+    (shell . t)
+    (org . t)))
+#+END_SRC
 *** Org Mode UI
 
 These settings subjectively improve the overall viewable-ness of
@@ -1630,8 +1648,6 @@ Embed YouTube Links in iframe.
 
 #+NAME: org-taskmgr-agenda
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "CANCELED" "DONE")))
-(setq org-agenda-skip-deadline-if-done t)
 (setq diary-file "~/Dropbox/org/diary.org")
 #+END_SRC
 
@@ -2077,6 +2093,7 @@ The default cross-referencing and hyperlink styles provided by
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-export-latex-per-file-class>>
 <<org-export-latex-lingsyn-class>>
+<<org-export-latex-uclacs>>
 #+END_SRC
 
 ****** Org Per File Class
@@ -2118,6 +2135,24 @@ external configuration.
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
 #+END_SRC
+
+
+
+****** UCLA CS Class
+#+NAME: org-export-latex-uclacs
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-to-list 'org-latex-classes
+             '("uclacs"
+               "\\documentclass{uclacs}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
+
 
 ***** Filter Section Numbering by tag
 
@@ -2674,7 +2709,6 @@ any reason for me reconsider my choice.
           company-idle-delay .3
           company-begin-commands '(self-insert-command))))
 #+END_SRC
-
 
 **** Company Statistics
 
@@ -4786,7 +4820,7 @@ Two options:
     (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
     (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
     (add-hook 'cider-repl-mode-hook #'subword-mode)
-    (add-hook 'cider-repl-mode-hook #'enable-paredit-mode)
+    (add-hook 'cider-repl-mode-hook #'smartparens-mode)
     (add-to-hooks (lambda () (run-hooks 'prog-mode-hook))
                   '(cider-mode-hook cider-repl-mode-hook))))
 #+END_SRC
@@ -5885,3 +5919,28 @@ dialects of Lisp.
 Clojure Revised]]
 
 [fn:14] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+****** Resume
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-to-list 'org-latex-classes
+             '("resume"
+               "\\documentclass{resume}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+(add-to-list 'org-latex-classes
+             '("playground"
+               "\\documentclass{playground}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
