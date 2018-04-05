@@ -2257,6 +2257,7 @@ and subtrees of the ignored headlines will be retained.
 (use-package ox-extra
   :straight nil
   :after (ox)
+  :demand t
   :config
   (ox-extras-activate '(ignore-headlines)))
 #+END_SRC
