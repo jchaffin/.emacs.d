@@ -1,5 +1,5 @@
 (setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"
-                         "~/Dropbox/Documents/Courses/hist109c/org/TODOS.org"
+                         "~/Dropbox/Documents/Courses/hist109b/org/TODOS.org"
                          "~/Dropbox/Documents/Courses/cs180/org/TODOS.org"
                          "~/Dropbox/Documents/Courses/ling120c/org/TODOS.org"))
 
@@ -171,10 +171,12 @@
  '(bibtex-autokey-year-title-separator "-")
  '(org-agenda-files
    (quote
-    ("~/Dropbox/Documents/Courses/cs180/org/TODOs.org" "~/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "~/Dropbox/Documents/Courses/hist109c/org/TODOS.org" "~/Dropbox/org/todos/TODOs.org")))
+    ("~/Dropbox/Documents/Courses/cs180/org/TODOs.org" "~/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "~/Dropbox/org/todos/TODOs.org")))
  '(safe-local-variable-values
    (quote
-    ((flycheck-clang-include-path . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_33/labs/lab04/perflab-handout/include)
+    ((eval bibtex-set-dialect
+           (quote biblatex))
+     (flycheck-clang-include-path . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_33/labs/lab04/perflab-handout/include)
      (bibtex-file-path . "~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (bibtex-file-path . " ~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (org-ref-default-bibliography quote

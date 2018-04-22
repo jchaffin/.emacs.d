@@ -1,0 +1,5 @@
+# -*- mode: org-mode -*-
+# name: latex-class
+# key: <lc
+# --
+#+LATEX_CLASS: $1

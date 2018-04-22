@@ -114,6 +114,8 @@
     - [[#projectile][Projectile]]
     - [[#neotree][Neotree]]
     - [[#wakatime][Wakatime]]
+    - [[#projects][Projects]]
+      - [[#cs180][CS180]]
   - [[#completion][Completion]]
     - [[#company][Company]]
       - [[#company-statistics][Company Statistics]]
@@ -991,7 +993,7 @@ issues with build commands in [[#gradle-mode][gradle-mode]]
 
 Note that this the code blocks in the [[#latex][LaTeX]] section are tangled in the
 [[#org-mode-export][export]] code block, at which point the described packages will be
-loaded if the =latex= symbol is an element in the
+loaded if the =latex= symbol is an element in the =
 =[[#user-enable-backends][org-export-enabled-backends]]= variable.
 
 #+NAME: latex-config
@@ -1824,7 +1826,7 @@ Embed YouTube Links in iframe.
 
     (setq org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
           org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
-          org-ref-pdf-directory "~/Dropbox/org/papers/bibtex-pdfs/"
+          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
           org-ref-show-citation-on-enter t
           org-ref-show-broken-links t)))
   
@@ -2008,15 +2010,28 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 #+NAME: org-export-latex-pdf-process
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-latex-packages-alist '(("" "minted"))
-      org-latex-listings 'minted
-      org-latex-minted-options
-      '(("mathescape" "true")
-        ("linenos" "true")
-        ("breaklines" "true")
-        ("numbersep" "5pt")
-        ("frame" "lines")
-        ("framesep" "2mm")))
+(eval-and-compile
+  (defvar enable-default-minted nil))
+
+(setq org-latex-listings 'minted)
+
+(defun latex-toggle-default-minted ()
+  (interactive)
+  (if enable-default-minted
+      (progn
+        (setq org-latex-packages-alist '(("" "minted"))
+            org-latex-minted-options
+            '(("mathescape" "true")
+              ("linenos" "true")
+              ("breaklines" "true")
+              ("numbersep" "5pt")
+              ("frame" "lines")
+              ("framesep" "2mm")))
+        (message "%s" "Exporting with default minted."))
+    (progn
+      (setq org-latex-packages-alist '()
+            org-latex-minted-options '())
+      (message "%s" "Disabled default minted."))))
 
 (defvar latex-process-latex
   '("%latex -interaction nonstopmode -output-directory %o %f" "%latex
@@ -2031,16 +2046,17 @@ nonstopmode -output-directory %o %f")
 (defvar latex-process-xelatex
   '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
 
+(defvar latex-process-lualatex
+  '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
+
 (defvar latex-process-list
-  '(
-    ("latex" . latex-process-latex)
+  '(("latex" . latex-process-latex)
+    ("lualatex" . latex-process-lualatex)
     ("xelatex" . latex-process-xelatex)
-    ("pdflatex" . latex-process-pdflatex)
-    ))
+    ("pdflatex" . latex-process-pdflatex)))
 
 
 (setq org-latex-pdf-process latex-process-xelatex)
-
 (defun org-latex-pdf-process-set (&optional process)
   (interactive)
   (let* ((process (or
@@ -2049,7 +2065,6 @@ nonstopmode -output-directory %o %f")
                           latex-process-list)))
          (cmd-string (cdr process)))
     (setq org-latex-pdf-process (symbol-value cmd-string))))
-
 
 (add-hook 'org-mode-hook (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
 #+END_SRC
@@ -2117,6 +2132,24 @@ external configuration.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
+****** Humanities 
+
+My custom mla-style LaTeX class.
+
+#+NAME: org-export-latex-humanities-class
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-to-list 'org-latex-classes
+             '("humanities"
+               "\\documentclass{humanities}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
+
 ****** Lingsyn class
 
 #+NAME: org-export-latex-lingsyn-class
@@ -2137,7 +2170,6 @@ external configuration.
 #+END_SRC
 
 
-
 ****** UCLA CS Class
 #+NAME: org-export-latex-uclacs
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2153,6 +2185,31 @@ external configuration.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
+****** Resume
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-to-list 'org-latex-classes
+             '("resume"
+               "\\documentclass{resume}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+(add-to-list 'org-latex-classes
+             '("playground"
+               "\\documentclass{playground}
+                [NO-DEFAULT-PACKAGES]
+                [EXTRA]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
 
 ***** Filter Section Numbering by tag
 
@@ -2256,7 +2313,6 @@ and subtrees of the ignored headlines will be retained.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-extra
   :straight nil
-  :after (ox)
   :demand t
   :config
   (ox-extras-activate '(ignore-headlines)))
@@ -2268,6 +2324,8 @@ and subtrees of the ignored headlines will be retained.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-publish
   :straight nil
+  :after ox
+  :demand t
   :bind (:map org-mode-map
               ("M-m r p" . org-publish-project)))
 #+END_SRC
@@ -2609,7 +2667,7 @@ killall gpg-agent
     (mapcar
      (lambda (elt)
        (add-to-list 'projectile-globally-ignored-directories elt))
-     '("gradle" ".meghanada" ".gradle" "build" "bin"))))
+     '("gradle" "target" ".meghanada" ".gradle" "build" "bin"))))
 #+END_SRC
 
 *** Neotree
@@ -2664,6 +2722,20 @@ killall gpg-agent
       (defun wakatime-dashboard ()
         (interactive)
         (browse-url "https://wakatime.com/dashboard"))))
+#+END_SRC
+
+*** Projects
+
+#+NAME: proj
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+<<proj-cs180>>
+#+END_SRC
+
+**** CS180
+
+#+NAME: proj-cs180
+#+BEGIN_SRC emacs-lisp :tangle no
+
 #+END_SRC
 
 ** Completion
@@ -5920,28 +5992,4 @@ dialects of Lisp.
 Clojure Revised]]
 
 [fn:14] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
-****** Resume
 
-#+BEGIN_SRC emacs-lisp :tangle no
-(add-to-list 'org-latex-classes
-             '("resume"
-               "\\documentclass{resume}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-
-(add-to-list 'org-latex-classes
-             '("playground"
-               "\\documentclass{playground}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
