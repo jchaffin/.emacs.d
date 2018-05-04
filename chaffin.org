@@ -2076,7 +2076,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   :straight t
   :init
   (progn
-    (setq pdf-info-epdfinfo-program "~/.emacs.d/epdfinfo"))
+    (setq pdf-info-epdfinfo-program "~/.emacs.d/bin/epdfinfo"))
   :config
   (progn
     (pdf-tools-install)))
@@ -6226,7 +6226,6 @@ and slim-mode using company.
                 (unless tern-mode (tern-mode))
               (if tern-mode (tern-mode -1))))))))
 #+END_SRC
-
 
 
 ** Footnotes
