@@ -1,0 +1,15 @@
+# -*- mode: latex-mode -*-
+# name: algorithm
+# key: algorithm
+# --
+\begin{algorithm}
+  \SetKwInOut{Input}{Input}
+  \SetKwInOut{Output}{Output}
+  \SetAlgoLined
+  \Input{$1}
+  \Output{$2}
+  $4
+  \BlankLine
+  \caption{$3}
+\end{algorithm}
+

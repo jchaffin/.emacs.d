@@ -1,0 +1,7 @@
+# -*- mode: latex -*-
+# name: environment
+# key: begin
+# --
+\begin{$1}
+$2
+\end{$1}

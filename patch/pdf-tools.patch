@@ -1,0 +1,32 @@
+diff -u /Users/jacobchaffin/.emacs.d/straight/repos/pdf-tools/server/poppler-hack.cc\~ /Users/jacobchaffin/.emacs.d/straight/repos/pdf-tools/server/poppler-hack.cc
+--- /Users/jacobchaffin/.emacs.d/straight/repos/pdf-tools/server/poppler-hack.cc~	2018-02-25 00:04:49.000000000 -0800
++++ /Users/jacobchaffin/.emacs.d/straight/repos/pdf-tools/server/poppler-hack.cc	2018-05-02 17:38:58.000000000 -0700
+@@ -51,7 +51,7 @@
+     double y2;
+   };
+ 
+-  char *_xpoppler_goo_string_to_utf8(GooString *s)
++  char *_xpoppler_goo_string_to_utf8(const GooString *s)
+   {
+     char *result;
+ 
+@@ -85,7 +85,7 @@
+   // Set the rectangle of an annotation.  It was first added in v0.26.
+   void xpoppler_annot_set_rectangle (PopplerAnnot *a, PopplerRectangle *rectangle)
+   {
+-    GooString *state = a->annot->getAppearState ();
++    const GooString *state = a->annot->getAppearState ();
+     char *ustate = _xpoppler_goo_string_to_utf8 (state);
+ 
+     a->annot->setRect (rectangle->x1, rectangle->y1,
+@@ -100,7 +100,7 @@
+   gchar *xpoppler_annot_markup_get_created (PopplerAnnotMarkup *poppler_annot)
+   {
+     AnnotMarkup *annot;
+-    GooString *text;
++    const GooString *text;
+ 
+     g_return_val_if_fail (POPPLER_IS_ANNOT_MARKUP (poppler_annot), NULL);
+ 
+
+Diff finished.  Wed May  2 17:40:01 2018

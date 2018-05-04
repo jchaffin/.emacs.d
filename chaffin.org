@@ -74,15 +74,18 @@
       - [[#org-pomodoro][Org Pomodoro]]
       - [[#org-contacts][Org Contacts]]
       - [[#org-brain][Org Brain]]
+      - [[#org-drill][Org Drill]]
     - [[#org-latex][Org LaTeX]]
       - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
       - [[#edit-latex][Edit Latex]]
       - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
       - [[#org-ref][Org Ref]]
       - [[#org-pdf][Org PDF]]
+      - [[#org-bibtex-extras][Org BibTeX Extras]]
     - [[#org-mode-export][Org Mode Export]]
       - [[#enable-backends][Enable Backends]]
       - [[#ox-latex][Ox LaTeX]]
+      - [[#ox-bibtex][Ox Bibtex]]
       - [[#ox-pandoc][Ox Pandoc]]
       - [[#ox-gfm][Ox GFM]]
       - [[#ox-hugo][Ox Hugo]]
@@ -637,10 +640,7 @@ interactive minibuffer completion menu using ivy.
        "Go to Package Directory: "
        (directory-files repo-dir)
        :action (lambda (package)
-                 (let ((default-directory (concat
-                                           (file-name-as-directory
-                                            repo-dir)
-                                           package)))
+                 (let ((default-directory (concat  (file-name-as-directory repo-dir) package)))
                    (dired default-directory))))))
   ;; Add to goto-* keymap
   (define-key goto-map "r" #'goto-repo))
@@ -1123,7 +1123,7 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 
 #+NAME: latex-bibtex
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq bibtex-autokey-year-length 2
+(setq bibtex-autokey-year-length 4
       bibtex-autokey-name-year-separator "-"
       bibtex-autokey-year-title-separator "-"
       bibtex-autokey-titleword-separator "-"
@@ -1403,6 +1403,7 @@ time of install.
 <<org-docmgr-download>>
 <<org-docmgr-links>>
 <<org-docmgr-velocity>>
+<<org-docmgr-links>>
 #+END_SRC
 
 **** Org ID
@@ -1489,23 +1490,38 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 
 **** Spell Checking
 
+Tools for checking lexical and grammatical errors in text buffers[fn:9].
 
-Add spell checking in org mode buffers using Flyspell.
+***** Flyspell
 
 #+NAME: org-docmgr-spellcheck
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package flyspell
     :straight t
-    :if (executable-find "aspell")
-    :demand t
-    :defines (flyspell-mode-on)
-    :init
-    (add-hook 'org-mode-hook (lambda ()
-                               (flyspell-mode t)))
     :config
     (progn
-      (setq-default ispell-program-name (executable-find "aspell"))))
+      (when (executable-find "hunspell")
+        (setq-default ispell-program-name "hunspell")
+        (setq-default ispell-dictionary "en_US")
+        (setq ispell-really-hunspell t))))
+#+END_SRC
 
+***** Langtool
+
+LanguageTool is a Java plugin which provides style and grammar
+checking for natural language.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package langtool
+  :straight t
+  :if *is-mac*
+  :after (flyspell)
+  :demand t
+  :config
+  (progn
+    (setq langtool-language-tool-jar "/usr/local/Cellar/languagetool/4.1/libexec/languagetool-commandline.jar"
+          langtool-mother-tongue "en"
+          langtool-disabled-rules '("WHITESPACE_RULE"))))
 #+END_SRC
 
 **** Org Download
@@ -1548,6 +1564,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+NAME: org-docmgr-links
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-links-youtube>>
+<<org-links-manpage>>
 #+END_SRC
 
 ***** Org Man
@@ -1558,41 +1575,6 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
   :straight nil
   :after (org)
   :demand t)
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-(org-add-link-type "man" 'org-man-open)
-(add-hook 'org-store-link-functions 'org-man-store-link)
-
-(defcustom org-man-command 'man
-  "The Emacs command to be used to display a man page."
-  :group 'org-link
-  :type '(choice (const man) (const woman)))
-
-(defun org-man-open (path)
-  "Visit the manpage on PATH.
-PATH should be a topic that can be thrown at the man command."
-  (funcall org-man-command path))
-
-(defun org-man-store-link ()
-  "Store a link to a manpage."
-  (when (memq major-mode '(Man-mode woman-mode))
-    ;; This is a man page, we do make this link
-    (let* ((page (org-man-get-page-name))
-           (link (concat "man:" page))
-           (description (format "Manpage for %s" page)))
-      (org-store-link-props
-       :type "man"
-       :link link
-       :description description))))
-
-(defun org-man-get-page-name ()
-  "Extract the page name from the buffer name."
-  ;; This works for both `Man-mode' and `woman-mode'.
-  (if (string-match " \\(\\S-+\\)\\*" (buffer-name))
-      (match-string 1 (buffer-name))
-    (error "Cannot create link to this man page")))
-
 #+END_SRC
 
 ***** Org YouTube
@@ -1635,6 +1617,7 @@ Embed YouTube Links in iframe.
 <<org-taskmgr-brain>>
 <<org-taskmgr-contacts>>
 <<org-taskmgr-agenda>>
+<<org-taskmgr-drill>>
 #+END_SRC
 
 **** Org Capture
@@ -1647,11 +1630,45 @@ Embed YouTube Links in iframe.
 #+END_SRC
 
 **** Org Agenda
-
 #+NAME: org-taskmgr-agenda
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<org-agenda-diary>>
+<<org-agenda-date-hour-deadline>>
+#+END_SRC
+
+***** Diary File
+
+#+NAME: org-agenda-diary
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (setq diary-file "~/Dropbox/org/diary.org")
 #+END_SRC
+
+***** Adjust Hour of Task Deadline
+
+From [[https://emacs.stackexchange.com/a/14441][@14441]] on Emacs Stack Exchange:
+
+#+NAME: org-agenda-date-hour-deadline
+#+BEGIN_SRC emacs-lisp :tangle no
+(require 'cl-lib)
+
+(defvar org-deadline-default-time "23:59"
+  "The default time for deadlines.")
+
+(defun advise-deadline-default-time (deadline-func arg &optional time)
+  (let ((old-time (symbol-function #'org-read-date)))
+    (cl-letf (((symbol-function #'org-read-date)
+               #'(lambda (&optional a b c d default-time f g)
+                   (let ((default-time (or default-time
+                                           org-deadline-default-time)))
+                     (apply old-time a b c d f default-time g)
+                     ))))
+      (apply deadline-func arg time)
+    )))
+
+(advice-add #'org-deadline :around #'advise-deadline-default-time)
+#+END_SRC
+
 
 **** Org Journal
 
@@ -1753,6 +1770,16 @@ Embed YouTube Links in iframe.
           org-capture-templates)))
 #+END_SRC
 
+**** Org Drill
+
+#+NAME: org-taskmgr-drill
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-drill
+  :straight nil
+  :after (org)
+  :demand t)
+#+END_SRC
+
 *** Org LaTeX
 
 #+NAME: org-latex-config
@@ -1795,16 +1822,19 @@ Embed YouTube Links in iframe.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Org Ref
 <<org-ref-config>>
+;; Org Ref Extensions
+<<org-ref-extend>>
 ;; Org ref pdf
 <<org-ref-pdf>>
 #+END_SRC
 
 #+NAME: org-ref-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-ref
   :if *is-mac*
-  :after (:all ivy)
+  :after (:all ivy bibtex)
   :straight t
+  :demand t
   :init
   (progn
     ;; https://github.com/jkitchin/org-ref/issues/428
@@ -1818,18 +1848,136 @@ Embed YouTube Links in iframe.
     (require 'org-ref-sci-id)
     (require 'x2bib)
     (require 'org-ref-latex)
-    (require 'org-ref-pdf)
     (require 'org-ref-pdf))
   :config
   (progn
-    (setq reftex-default-bibliography '("~/Dropbox/bibliography/references.bib"))
+    (setq reftex-default-bibliography '("~/Dropbox/org/ref/references.bib"))
 
-    (setq org-ref-default-bibliography '("~/Dropbox/org/papers/references.bib")
-          org-ref-bibliography-notes "~/Dropbox/org/papers/notes.org"
+    (setq org-ref-default-bibliography '("~/Dropbox/org/ref/references.bib")
+          org-ref-bibliography-notes "~/Dropbox/org/ref/refnotes.org"
           org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
           org-ref-show-citation-on-enter t
           org-ref-show-broken-links t)))
-  
+
+#+END_SRC
+
+***** Org Ref Extensions
+
+#+NAME: org-ref-extend
+#+BEGIN_SRC emacs-lisp  :tangle no :noweb yes :exports none
+(with-eval-after-load 'org-ref
+  <<ore-vref>>
+
+  <<ore-orcb>>
+
+  <<ore-orj>>
+)
+#+END_SRC
+
+****** Support =vref= links
+
+#+NAME: ore-vref
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-ref-vref-export (keyword desc format)
+  (cond
+   ((eq format 'latex) (format "\\vref{%s}" keyword))
+   ((eq format 'html) (format "\\vref{%s}" keyword))
+   ((eq format 'md)
+    (format "[%s] (#%s)" keyword keyword)))
+
+(org-ref-link-set-parameters "vref"
+  :follow #'org-ref-ref-follow
+  :export #'org-ref-vref-export
+  :complete #'org-ref-complete-link
+  :face 'org-ref-ref-face-fn
+  :help-echo #'org-ref-ref-help-echo))
+
+(setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+                          "autoref" "cref" "Cref" "vref"))
+
+#+END_SRC
+
+****** Org Ref Bibtex Citation Formats
+
+#+NAME: ore-orcb
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<orcb-year-author-doi>>
+(add-to-list 'org-ref-clean-bibtex-entry-hook 'orcb-year-author-doi)
+#+END_SRC
+
+******* Year-Author-DOI
+
+#+NAME: orcb-year-author-doi
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun orcb-year-author-doi ()
+  "Replace bibtex key using YYYY-Author-DOI format."
+  (save-excursion
+    (bibtex-narrow-to-entry)
+    (bibtex-beginning-of-entry)
+    (when (looking-at bibtex-entry-maybe-empty-head)
+      (let ((key (bibtex-key-in-head))
+            (year (bibtex-autokey-get-field "year"))
+            (author (bibtex-autokey-demangle-name (bibtex-autokey-get-field "author")))
+            (doi (bibtex-autokey-get-field "doi")))
+        (re-search-forward key nil t)
+        (if (string= doi "")
+            (replace-match
+             (format "%s-%s"
+                     year
+                     (s-capitalize author)))
+          (replace-match
+           (format "%s-%s-%s"
+                   year
+                   (s-capitalize author)
+                   (replace-regexp-in-string "/" "_" doi))))))))
+
+#+END_SRC
+
+******* Pandoc Citations                                       :ignore:
+
+See [[http://kitchingroup.cheme.cmu.edu/blog/2015/01/29/Export-org-mode-to-docx-with-citations-via-pandoc/][kitchingroup]] article.
+
+#+NAME: orcb-pandoc
+#+BEGIN_SRC emacs-lisp :tangle no
+(require 'org-ref-ivy-cite)
+
+(defun helm-bibtex-format-pandoc-citation (keys)
+  (concat "[" (mapconcat (lambda (key) (concat "@" key)) keys "; ") "]"))
+
+(defalias #'ivy-bibtex-format-pandoc-citation #'helm-bibtex-format-pandoc-citation)
+
+;; inform completion framework (helm/ivy) how to format the citation in org-mde
+(setf (cdr (assoc 'org-mode bibtex-completion-format-citation-functions))
+      'ivy-bibtex-format-pandoc-citation)
+
+(defun ox-export-to-docx-and-open ()
+ "Export the current org file as a docx via markdown."
+ (interactive)
+ (let* ((bibfile (expand-file-name (car (org-ref-find-bibliography))))
+        ;; this is probably a full path
+        (current-file (buffer-file-name))
+        (basename (file-name-sans-extension current-file))
+        (docx-file (concat basename ".docx")))
+   (save-buffer)
+   (when (file-exists-p docx-file) (delete-file docx-file))
+   (shell-command (format
+                   "pandoc -s -smart --bibliography=%s %s -o %s"
+                   bibfile current-file docx-file))))
+
+
+#+END_SRC
+
+****** Org Ref Journal Abbreviations
+
+#+NAME: ore-orj
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq orbj-extra-abbrevs
+      '(("JPS" "Journal of Palestinian Studies")
+        ("JHG" "Journal of Historical Geography")
+        ("MEastStudies" "International Journal of Middle East Studies")))
+
+(dolist (elt orbj-extra-abbrevs)
+  (add-to-list 'org-ref-bibtex-journal-abbreviations elt))
 #+END_SRC
 
 ***** Open Pdf at point
@@ -1858,7 +2006,6 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 (when (display-graphic-p)
   <<org-pdf-pdftools>>
   <<org-pdf-pdfview>>
-  <<org-pdf-org-file-apps>>
 )
 #+END_SRC
 
@@ -1874,43 +2021,57 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pdf-tools
   :straight t
-  :defer t
   :config
   (pdf-tools-install))
 #+END_SRC
 
 ***** Org PDF View
 
+Now we can open pdf files with =org-pdfview=[fn:10]:
+
 #+NAME: org-pdf-pdfview
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-pdfview
   :straight t
+  :after (:all org pdf-tools)
+  :demand t
   :bind (:map pdf-view-mode-map
-	    ("C-s" . isearch-forward)
-	    ("h" . pdf-annot-add-highlight-markup-annotation)
-	    ("t" . pdf-annot-add-text-annotation)
-	    ("D" . pdf-annot-delete))
+              ("C-s" . isearch-forward)
+              ("h" . pdf-annot-add-highlight-markup-annotation)
+              ("t" . pdf-annot-add-text-annotation)
+              ("D" . pdf-annot-delete))
   :mode (("\\.pdf\\'" . pdf-view-mode))
-  :config
+  :init
   (progn
     (setq-default pdf-view-display-size 'fit-page)
     (setq pdf-annot-activate-created-annotations t)
-    (setq pdf-view-resize-factor 1.1)))
+    (setq pdf-view-resize-factor 1.1))
+
+
+  :config
+  (progn
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (add-to-list 'org-file-apps
+                           '("\\.pdf\\'" .
+                             (lambda (file link)
+                               (org-pdfview-open link))))
+              (add-to-list 'org-file-apps '("\\.docx?" . system))))))
 #+END_SRC
 
-Now we can open pdf files with =org-pdfview=[fn:9]:
 
-#+NAME: org-pdf-org-file-apps
-#+BEGIN_SRC emacs-lisp :tangle no
+**** Org BibTeX Extras
 
-(require 'org-pdfview)
-(add-hook 'org-mode-hook
-          (lambda ()
-            (add-to-list 'org-file-apps
-                         '("\\.pdf\\'" .
-                           (lambda (file link)
-                             (org-pdfview-open link))))))
-
+#+NAME: org-latex-bibtex-extras
+#+BEGIN_SRC emacs-lisp :tangle no 
+(use-package org-bibtex-extras
+  :if *is-mac*
+  :straight nil
+  :after (org)
+  :demand t
+  :config
+  (progn
+    (setq obe-bibtex-file "~/Dropbox/org/references.org")))
 #+END_SRC
 
 *** Org Mode Export
@@ -1944,11 +2105,13 @@ Now we can open pdf files with =org-pdfview=[fn:9]:
   <<org-latex-config>>
   ;; End Org Latex Expansion
    
-  ;; Org Expor
+  ;; Ox Latex
   <<org-export-latex>>
-  ;; End org-export-latex expansion
-
   ) ;; End LaTeX Backend
+
+;; BibTeX backend
+(when (chaffin/org-export-enabled-backend-p 'bibtex)
+  <<org-export-bibtex>>)
 
 ;; GFM backend
 (when (chaffin/org-export-enabled-backend-p 'gfm)
@@ -2109,6 +2272,7 @@ The default cross-referencing and hyperlink styles provided by
 <<org-export-latex-per-file-class>>
 <<org-export-latex-lingsyn-class>>
 <<org-export-latex-uclacs>>
+<<org-export-latex-humanities-class>>
 #+END_SRC
 
 ****** Org Per File Class
@@ -2248,6 +2412,22 @@ My custom mla-style LaTeX class.
         section-title-filter))
 #+END_SRC
 
+**** Ox Bibtex
+
+#+NAME: org-export-bibtex
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+(use-package ox-bibtex
+  :straight nil
+  :mode
+  (("\\.org.bib\\'" . org-mode))
+  :after (ox)
+  :demand t
+  :config
+  (progn
+    (require 'org-bibtex)
+    (setq org-bibtex-file "references.org")))
+#+END_SRC
+
 **** Ox Pandoc
 
 [[https://pandoc.org/][Pandoc]] is a document conversion tool that can convert pretty much
@@ -2259,19 +2439,22 @@ for exporting org-mode documents to various formats.
 (use-package ox-pandoc
   :if (executable-find "pandoc")
   :straight t
-  :after (ox)
+  :after (:all ox org-ref)
   :demand t
   :config
   (progn
+
+    (setq org-pandoc-options '((standalone . t)))
+
+    ;; LaTeX-Beamer-PDF
     (defun ox-pandoc--pdf-engine ()
       (let ((syms (mapcar (lambda (x) (cdr x)) latex-process-list))
             (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
             (sep "latex-process-"))
         (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
 
-    (setq org-pandoc-options '((standalone . t))
-          org-pandoc-options-for-docx '((standalone . nil))
-          org-pandoc-options-for-beamer-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine)))
+
+    (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine)))
           org-pandoc-options-for-latex-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine))))
     (defun org-pandoc-pdf-engine-set (&optional process)
       (interactive)
@@ -2279,7 +2462,6 @@ for exporting org-mode documents to various formats.
              (sym (substring-no-properties (car process))))
         (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,sym))
               org-pandoc-options-for-latex-pdf `((pdf-engine . ,sym)))))))
-
 #+END_SRC
 
 **** Ox GFM
@@ -2324,7 +2506,7 @@ and subtrees of the ignored headlines will be retained.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-publish
   :straight nil
-  :after ox
+  :after (ox)
   :demand t
   :bind (:map org-mode-map
               ("M-m r p" . org-publish-project)))
@@ -2610,7 +2792,7 @@ By default, decrypting gpg files in Emacs will result in the pin entry
 window being launched from the terminal session.
 
 By disabling the agent info, we can force Emacs to handle this
-internally[fn:10].
+internally[fn:11].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setenv "GPG_AGENT_INFO" nil)
@@ -2672,7 +2854,7 @@ killall gpg-agent
 
 *** Neotree
 
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:11] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:12] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
  
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package neotree
@@ -2847,7 +3029,7 @@ less-buggy ~pos-tip~ package rather than ~popup-el~.
 <<ivy-base>>
 <<ivy-hydra-config>>
 <<ivy-historian-config>>
-<<ivy-org-ref>>
+<<ivy-bibtex-config>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -2904,16 +3086,16 @@ support with ivy]].
   :straight t)
 #+END_SRC
 
-***** Use Ivy as Cite Completion Backend
+***** Ivy Bibtex
 
 Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org-ref-ivy][org-ref]] completion backend.
 
-
-#+NAME: ivy-org-ref
+#+NAME: ivy-bibtex-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-ref-completion-library 'org-ref-ivy-cite)
 (require 'org-ref)
 #+END_SRC
+
 
 **** Counsel
 
@@ -3167,7 +3349,7 @@ snippets corresponding to the major mode of the current buffer mode.
 ** Editing
 *** Indentation
 
-Tabs are the bane of humanity[fn:12]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:13]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -3687,7 +3869,7 @@ started from the terminal.
 *****  Atom One Dark Modifications
 
 Minor modifications to [[#atom-one-dark-theme][atom one dark theme]] color scheme, see footnote
-for source[fn:13].
+for source[fn:14].
 
 - Use default foreground color instead of highlight face for org-mode
   source lines.
@@ -5980,16 +6162,18 @@ dialects of Lisp.
 
 [fn:8] http://www.jonathanleroux.org/bibtex-mode.html
 
-[fn:9] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
+[fn:9] https://joelkuiper.eu/spellcheck_emacs
 
-[fn:10] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
+[fn:10] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:11] https://www.emacswiki.org/emacs/NeoTree
+[fn:11] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
 
-[fn:12] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+[fn:12] https://www.emacswiki.org/emacs/NeoTree
 
-[fn:13] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
+[fn:13] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+
+[fn:14] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
 Clojure Revised]]
 
-[fn:14] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:15] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
 

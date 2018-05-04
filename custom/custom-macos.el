@@ -171,7 +171,7 @@
  '(bibtex-autokey-year-title-separator "-")
  '(org-agenda-files
    (quote
-    ("~/Dropbox/Documents/Courses/cs180/org/TODOs.org" "~/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "~/Dropbox/org/todos/TODOs.org")))
+    ("~/Dropbox/Documents/Courses/hist109b/org/TODOS.org" "~/Dropbox/Documents/Courses/cs180/org/TODOs.org" "~/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "~/Dropbox/org/todos/TODOs.org")))
  '(safe-local-variable-values
    (quote
     ((eval bibtex-set-dialect

@@ -1,0 +1,6 @@
+# -*- mode: latex-mode -*-
+# name: ifthenelse
+# key: ifthenelse
+# --
+
+\ifthenelse{$1}{$2}{$3}
