@@ -2021,19 +2021,23 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pdf-tools
   :straight t
+  :init
+  (progn
+    (setq pdf-info-epdfinfo-program "~/.emacs.d/epdfinfo"))
   :config
-  (pdf-tools-install))
+  (progn
+    (pdf-tools-install)))
 #+END_SRC
 
 ***** Org PDF View
 
-Now we can open pdf files with =org-pdfview=[fn:10]:
+Now we can open pdf files with =org-pdfview= [fn:10]:
 
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-pdfview
   :straight t
-  :after (:all org pdf-tools)
+  :after (:all pdf-tools)
   :demand t
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward)
@@ -2041,15 +2045,11 @@ Now we can open pdf files with =org-pdfview=[fn:10]:
               ("t" . pdf-annot-add-text-annotation)
               ("D" . pdf-annot-delete))
   :mode (("\\.pdf\\'" . pdf-view-mode))
-  :init
+  :config
   (progn
     (setq-default pdf-view-display-size 'fit-page)
     (setq pdf-annot-activate-created-annotations t)
-    (setq pdf-view-resize-factor 1.1))
-
-
-  :config
-  (progn
+    (setq pdf-view-resize-factor 1.1)
   (add-hook 'org-mode-hook
             (lambda ()
               (add-to-list 'org-file-apps
