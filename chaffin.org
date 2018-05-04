@@ -1652,7 +1652,7 @@ miscellaneous or arbitrary tasks.
 
 #+NAME: org-agenda-global-todos
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-agenda-files "~/Dropbox/org/todos/TODOs.org")
+(setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"))
 #+END_SRC
 
 ***** Diary File
@@ -1784,7 +1784,6 @@ miscellaneous or arbitrary tasks.
 (use-package org-projectile
   :straight t
   :after (projectile)
-  :demand t
   :commands (org-projectile-files-to-agenda)
   :init
   (progn
@@ -2698,7 +2697,6 @@ list that one may use in the wacky world of Emacs.
       (global-page-break-lines-mode))
   :config
   (dashboard-setup-startup-hook))
-
 
 (add-to-list 'dashboard-items '(agenda) t)
 
