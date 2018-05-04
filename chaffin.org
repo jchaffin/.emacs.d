@@ -1,4 +1,7 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
+#+LANGUAGE: en
+#+OPTIONS: num:t toc:2 tags:nil todo:nil
+#+SETUPFILE: /Users/jacobchaffin/.emacs.d/straight/repos/org-html-themes/setup/theme-readtheorg.setup
 
 * Table Of Contents                                       :TOC_4_gh:noexport:
 - [[#configuration][Configuration]]
@@ -82,7 +85,6 @@
       - [[#highlight-inline-latex-fragments][Highlight Inline LaTeX fragments]]
       - [[#org-ref][Org Ref]]
       - [[#org-pdf][Org PDF]]
-      - [[#org-bibtex-extras][Org BibTeX Extras]]
     - [[#org-mode-export][Org Mode Export]]
       - [[#enable-backends][Enable Backends]]
       - [[#ox-latex][Ox LaTeX]]
@@ -90,6 +92,7 @@
       - [[#ox-pandoc][Ox Pandoc]]
       - [[#ox-gfm][Ox GFM]]
       - [[#ox-hugo][Ox Hugo]]
+      - [[#ox-html][Ox HTML]]
       - [[#ox-extra][Ox Extra]]
       - [[#ox-publish][Ox Publish]]
   - [[#file-navigation][File Navigation]]
@@ -480,15 +483,16 @@ Clojure-like =if-not= macro in elisp.
    transaction system."
   (interactive)
   (message "Evaluating %s..." (buffer-name))
-  (if (file-exists-p buffer-file-name)
-      (straight-transaction
-	(if (null buffer-file-name)
-	    (eval-buffer)
-	  (when (string= buffer-file-name user-init-file)
-	    (straight-mark-transaction-as-init))
-	  (load-file buffer-file-name)))
-    (eval-buffer))
-    (message "Evaluating %s...done." (buffer-name)))
+  (straight-transaction
+    (if (or (null buffer-file-name) 
+            (not (file-exists-p buffer-file-name)))
+        (eval-buffer)
+      (progn 
+        (when (string= buffer-file-name user-init-file)
+          (straight-mark-transaction-as-init))
+        (load-file buffer-file-name))))
+
+  (message "Evaluating %s...done." (buffer-name)))
 #+END_SRC
 
 **** Add multiple hooks
@@ -1625,6 +1629,12 @@ Embed YouTube Links in iframe.
 **** Org Capture
 
 #+NAME: org-taskmgr-capture
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<org-capture-templates>>
+<<org-capture-html>>
+#+END_SRC
+
+#+NAME: org-capture-templates
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
@@ -1634,6 +1644,42 @@ Embed YouTube Links in iframe.
   :PROPERTIES:
   :CREATED: %U
   :END:")
+#+END_SRC
+
+***** Org Protocol Capture HTML
+
+#+NAME: org-capture-html
+#+BEGIN_SRC emacs-lisp :tangle no
+(straight-use-package
+ `(org-protocol-capture-html
+   :host github
+   :repo "alphapapa/org-protocol-capture-html"
+   :local-repo-name org-protocol-capture-html))
+
+(use-package org-protocol-capture-html
+  :straight t
+  :after (org-capture)
+  :init
+  (progn
+    (add-to-list 'org-capture-templates
+                 '("w" "Web site" entry
+                   (file "")
+                   "* %a :website:\n\n%U %?\n\n%:initial")))
+  :config
+  (setq opch-shell-script-path  (expand-file-name "bin/org-protocol-capture-html.sh" user-emacs-directory))
+  (defun opch-install-shell-script ()
+    (interactive)
+    (if-not (file-exists-p opch-shell-script-path)
+        (with-current-buffer
+            (url-retrieve-synchronously
+             "https://raw.githubusercontent.com/alphapapa/org-protocol-capture-html/master/org-protocol-capture-html.sh"
+             'silent 'inhibit-cookies)
+          (goto-char (point-max))
+          (when (re-search-backward "^\\#!/bin/bash" (point-min) t)
+            (write-region (point) (point-max) opch-shell-script-path)
+            (set-file-modes opch-shell-script-path #o755)
+            (message "Installed to %s" opch-shell-script-path))))))
+
 #+END_SRC
 
 **** Org Agenda
@@ -1785,6 +1831,7 @@ miscellaneous or arbitrary tasks.
   :straight t
   :after (projectile)
   :commands (org-projectile-files-to-agenda)
+  :demand t
   :init
   (progn
     (defun org-projectile-files-to-agenda ()
@@ -1806,7 +1853,7 @@ miscellaneous or arbitrary tasks.
     (setq org-projectile-per-project-filepath "org/TODOs.org")
     (org-projectile-per-project)
     (setq org-projectile-capture-template
-          (format "%s%s" "* TODO %?" chaffin:created-property-string))
+          (format "%s%s" "** TODO %?" chaffin:created-property-string))
     (add-to-list 'org-capture-templates
                  (org-projectile-project-todo-entry
                   :capture-character "l"
@@ -1908,8 +1955,6 @@ miscellaneous or arbitrary tasks.
 (with-eval-after-load 'org-ref
   <<ore-vref>>
 
-  <<ore-orcb>>
-
   <<ore-orj>>
 )
 #+END_SRC
@@ -1939,41 +1984,9 @@ miscellaneous or arbitrary tasks.
 
 ****** Org Ref Bibtex Citation Formats
 
-#+NAME: ore-orcb
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<orcb-year-author-doi>>
-(add-to-list 'org-ref-clean-bibtex-entry-hook 'orcb-year-author-doi)
-#+END_SRC
+Oref ref provides various extensions to the built-in =bibtex.el=.
 
-******* Year-Author-DOI
-
-#+NAME: orcb-year-author-doi
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun orcb-year-author-doi ()
-  "Replace bibtex key using YYYY-Author-DOI format."
-  (save-excursion
-    (bibtex-narrow-to-entry)
-    (bibtex-beginning-of-entry)
-    (when (looking-at bibtex-entry-maybe-empty-head)
-      (let ((key (bibtex-key-in-head))
-            (year (bibtex-autokey-get-field "year"))
-            (author (bibtex-autokey-demangle-name (bibtex-autokey-get-field "author")))
-            (doi (bibtex-autokey-get-field "doi")))
-        (re-search-forward key nil t)
-        (if (string= doi "")
-            (replace-match
-             (format "%s-%s"
-                     year
-                     (s-capitalize author)))
-          (replace-match
-           (format "%s-%s-%s"
-                   year
-                   (s-capitalize author)
-                   (replace-regexp-in-string "/" "_" doi))))))))
-
-#+END_SRC
-
-******* Pandoc Citations                                       :ignore:
+****** Pandoc Citations
 
 See [[http://kitchingroup.cheme.cmu.edu/blog/2015/01/29/Export-org-mode-to-docx-with-citations-via-pandoc/][kitchingroup]] article.
 
@@ -2099,21 +2112,6 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
               (add-to-list 'org-file-apps '("\\.docx?" . system))))))
 #+END_SRC
 
-
-**** Org BibTeX Extras
-
-#+NAME: org-latex-bibtex-extras
-#+BEGIN_SRC emacs-lisp :tangle no 
-(use-package org-bibtex-extras
-  :if *is-mac*
-  :straight nil
-  :after (org)
-  :demand t
-  :config
-  (progn
-    (setq obe-bibtex-file "~/Dropbox/org/references.org")))
-#+END_SRC
-
 *** Org Mode Export
 :PROPERTIES:
 :ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
@@ -2165,6 +2163,11 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
 (when (chaffin/org-export-enabled-backend-p 'hugo)
   <<org-export-hugo>>)
 
+;; HTML Backend
+(when (chaffin/org-export-enabled-backend-p 'html)
+  <<org-export-html>>
+)
+
 #+END_SRC
 
 **** Enable Backends
@@ -2190,7 +2193,7 @@ And opt-in to all back ends when on local machine.
   (mapcar (lambda (backend)
             (setq org-export-enabled-backends
                   (cons backend org-export-enabled-backends)))
-          '(latex gfm extra pandoc hugo)))
+          '(extra gfm latex hugo html pandoc)))
 #+END_SRC
 
 **** Ox LaTeX
@@ -2526,6 +2529,43 @@ for exporting org-mode documents to various formats.
   :demand t)
 #+END_SRC
 
+**** Ox HTML
+
+#+NAME: org-export-html
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<ox-html-themes>>
+#+END_SRC
+
+***** Org HTML Themes
+
+#+NAME: ox-html-themes
+#+BEGIN_SRC emacs-lisp :tangle no
+(straight-use-package 
+ `(org-html-themes
+   :host github
+   :repo "fniessen/org-html-themes"
+   :local-repo-name org-html-themes
+   :files ("setup/*" "styles/*")))
+#+END_SRC
+
+#+NAME: ox-html-resolve-setupfile
+#+BEGIN_SRC emacs-lisp :tangle np
+(defun html-resolve-setupfile (data backend info)
+  (when (org-export-derived-backend-p 'html)
+    (lexical-let ((html-themes--dir (straight--build-dir "org-html-themes")))
+      (org-element-map data 'keyword
+        (lambda (keyword)
+          (let ((kw (org-element-property :key keyword))
+                (v (org-element-property :value keyword)))
+            (if (string= "SETUPFILE" (upcase kw))
+                (org-element-put-property keyword
+                                          :value (concat html-themes--dir v)))))))))
+(add-to-list 'org-export-filter-parse-tree-functions 'html-resolve-setupfile)
+
+#+END_SRC
+
+
+
 **** Ox Extra
 
 Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents
@@ -2537,7 +2577,8 @@ and subtrees of the ignored headlines will be retained.
   :straight nil
   :demand t
   :config
-  (ox-extras-activate '(ignore-headlines)))
+  (ox-extras-activate '(ignore-headlines
+                        org-export-filter-parse-tree-functions)))
 #+END_SRC
 
 **** Ox Publish
@@ -5983,7 +6024,8 @@ local file system.
    <<tagedit-mode-config>>
    <<css-mode-config>>
    <<emmet-mode-config>>
-   <<company-web-config>>)
+   <<company-web-config>>
+   <<htmlize-config>>)
 #+END_SRC
 
 **** Web Mode
@@ -6080,6 +6122,13 @@ local file system.
 
 ***** TODO Smart Parens
 
+***** Htmlize
+#+NAME: htmlize-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package htmlize
+  :straight t)
+#+END_SRC
+
 **** CSS
 ***** CSS Mode
 
@@ -6110,9 +6159,7 @@ local file system.
       (end-of-line)
       (search-backward "{")
       (while (not (looking-at "}"))
-        (join-line -1)))
-
-    (add-hook 'css-mode-hook 'web-mode-hook))
+        (join-line -1))))
   :config
   (progn
     (setq css-indent-offset 2)
@@ -6179,6 +6226,8 @@ and slim-mode using company.
                 (unless tern-mode (tern-mode))
               (if tern-mode (tern-mode -1))))))))
 #+END_SRC
+
+
 
 ** Footnotes
 
