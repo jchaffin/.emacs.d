@@ -1,8 +1,3 @@
-(setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"
-                         "~/Dropbox/Documents/Courses/hist109b/org/TODOS.org"
-                         "~/Dropbox/Documents/Courses/cs180/org/TODOS.org"
-                         "~/Dropbox/Documents/Courses/ling120c/org/TODOS.org"))
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -169,20 +164,13 @@
  '(bibtex-autokey-titlewords 2)
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
- '(org-agenda-files
-   (quote
-    ("~/Dropbox/Documents/Courses/hist109b/org/TODOS.org" "~/Dropbox/Documents/Courses/cs180/org/TODOs.org" "~/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "~/Dropbox/org/todos/TODOs.org")))
  '(safe-local-variable-values
    (quote
     ((eval bibtex-set-dialect
            (quote biblatex))
-     (flycheck-clang-include-path . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_33/labs/lab04/perflab-handout/include)
      (bibtex-file-path . "~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (bibtex-file-path . " ~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
-     (org-ref-default-bibliography quote
-                                   ("/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib"))
      (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/pdfs/")
-     (org-ref-pdf-directory . /Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/pdfs/)
      (org-ref-default-bibliography . "/Users/jacobchaffin/Dropbox/Documents/Courses/LING_120B/bib/ling120b.bib")
      (org-ref-default-bibliography concat default-directory "bib/ling120b.bib")
      (eval c-set-offset

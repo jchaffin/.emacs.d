@@ -75,6 +75,7 @@
       - [[#org-contacts][Org Contacts]]
       - [[#org-brain][Org Brain]]
       - [[#org-drill][Org Drill]]
+      - [[#org-projectile][Org Projectile]]
     - [[#org-latex][Org LaTeX]]
       - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
       - [[#edit-latex][Edit Latex]]
@@ -1618,6 +1619,7 @@ Embed YouTube Links in iframe.
 <<org-taskmgr-contacts>>
 <<org-taskmgr-agenda>>
 <<org-taskmgr-drill>>
+<<org-taskmgr-projectile>>
 #+END_SRC
 
 **** Org Capture
@@ -1627,13 +1629,30 @@ Embed YouTube Links in iframe.
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
          "* TODO %?\n %i\n %a")))
+
+(defvar chaffin:created-property-string "
+  :PROPERTIES:
+  :CREATED: %U
+  :END:")
 #+END_SRC
 
 **** Org Agenda
+
 #+NAME: org-taskmgr-agenda
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-agenda-diary>>
-<<org-agenda-date-hour-deadline>>
+<<org-agenda-global-todos>>
+#+END_SRC
+
+***** Global TODO File
+
+I use per-project agenda files for the most part (now being managed
+using [[#org-projectile][org-projectile]]), but I like having a designated global one for
+miscellaneous or arbitrary tasks.
+
+#+NAME: org-agenda-global-todos
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-agenda-files "~/Dropbox/org/todos/TODOs.org")
 #+END_SRC
 
 ***** Diary File
@@ -1643,32 +1662,6 @@ Embed YouTube Links in iframe.
 
 (setq diary-file "~/Dropbox/org/diary.org")
 #+END_SRC
-
-***** Adjust Hour of Task Deadline
-
-From [[https://emacs.stackexchange.com/a/14441][@14441]] on Emacs Stack Exchange:
-
-#+NAME: org-agenda-date-hour-deadline
-#+BEGIN_SRC emacs-lisp :tangle no
-(require 'cl-lib)
-
-(defvar org-deadline-default-time "23:59"
-  "The default time for deadlines.")
-
-(defun advise-deadline-default-time (deadline-func arg &optional time)
-  (let ((old-time (symbol-function #'org-read-date)))
-    (cl-letf (((symbol-function #'org-read-date)
-               #'(lambda (&optional a b c d default-time f g)
-                   (let ((default-time (or default-time
-                                           org-deadline-default-time)))
-                     (apply old-time a b c d f default-time g)
-                     ))))
-      (apply deadline-func arg time)
-    )))
-
-(advice-add #'org-deadline :around #'advise-deadline-default-time)
-#+END_SRC
-
 
 **** Org Journal
 
@@ -1778,6 +1771,54 @@ From [[https://emacs.stackexchange.com/a/14441][@14441]] on Emacs Stack Exchange
   :straight nil
   :after (org)
   :demand t)
+#+END_SRC
+
+**** Org Projectile
+:PROPERTIES:
+:ID:       D469E868-7FCB-45FD-AB3E-609018F4BC58
+:CUSTOM_ID: org-projectile
+:END:
+
+#+NAME: org-taskmgr-projectile
+#+BEGIN_SRC emacs-lisp :tangle no 
+(use-package org-projectile
+  :straight t
+  :after (projectile)
+  :demand t
+  :commands (org-projectile-files-to-agenda)
+  :init
+  (progn
+    (defun org-projectile-files-to-agenda ()
+      "Add org-projectile project files to org-agenda."
+      (interactive)
+      (let* ((todo-filepath (or (bound-and-true-p org-projectile-per-project-filepath) "org/TODOs.org"))
+             (active-projects
+              (seq-filter (lambda (proj)
+                            (file-exists-p
+                             (expand-file-name todo-filepath proj)))
+                          projectile-known-projects))
+             (project-agenda-files (mapcar (lambda (proj)
+                                             (expand-file-name todo-filepath proj))
+                                           active-projects)))
+        (setq org-agenda-files (append org-agenda-files project-agenda-files))))
+    (org-projectile-files-to-agenda))
+  :config
+  (progn
+    (setq org-projectile-per-project-filepath "org/TODOs.org")
+    (org-projectile-per-project)
+    (setq org-projectile-capture-template
+          (format "%s%s" "* TODO %?" chaffin:created-property-string))
+    (add-to-list 'org-capture-templates
+                 (org-projectile-project-todo-entry
+                  :capture-character "l"
+                  :capture-heading "Linked Project TODO"))
+    (add-to-list 'org-capture-templates
+                 (org-projectile-project-todo-entry
+                  :capture-character "p"))
+
+    (setq org-confirm-elisp-link-function nil)
+    (global-set-key (kbd "C-c p n") 'org-projectile-project-todo-completing-read)))
+
 #+END_SRC
 
 *** Org LaTeX
@@ -2658,7 +2699,9 @@ list that one may use in the wacky world of Emacs.
   :config
   (dashboard-setup-startup-hook))
 
+
 (add-to-list 'dashboard-items '(agenda) t)
+
 (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
       dashboard-items '(( agenda . 10)
                         ( projects . 5)
