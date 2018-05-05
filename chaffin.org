@@ -151,14 +151,17 @@
       - [[#shell][Shell]]
       - [[#tramp][Tramp]]
       - [[#prodigy][Prodigy]]
-  - [[#utilities][Utilities]]
+  - [[#image-and-graphics][Image and Graphics]]
     - [[#image][Image+]]
-    - [[#nov][Nov]]
-    - [[#deft][Deft]]
     - [[#uml-diagrams][UML Diagrams]]
       - [[#artist-mode][Artist Mode]]
       - [[#ditaa][Ditaa]]
       - [[#plantuml][PlantUML]]
+    - [[#graphs][Graphs]]
+      - [[#graphviz][Graphviz]]
+  - [[#utilities][Utilities]]
+    - [[#nov][Nov]]
+    - [[#deft][Deft]]
     - [[#ack][ack]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
@@ -1726,7 +1729,8 @@ miscellaneous or arbitrary tasks.
           org-journal-dat-format "%A, %B %d %Y"
           org-journal-time-prefix "* "
           org-journal-time-format "")
-    (push '("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
+    (push '("j" "Journal" entry 
+            (file+olp+datetree "~/Dropbox/org/journal.org")
             "* %?\nEntered on %U\n %i\n %a")
           org-capture-templates)))
 #+END_SRC
@@ -1909,19 +1913,22 @@ miscellaneous or arbitrary tasks.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Org Ref
 <<org-ref-config>>
-;; Org Ref Extensions
-<<org-ref-extend>>
-;; Org ref pdf
-<<org-ref-pdf>>
+
+(with-eval-after-load 'org-ref
+  ;; Org ref vref
+  <<org-ref-vref>>
+
+  ;; Org ref pdf
+  <<org-ref-pdf>>
+)
 #+END_SRC
 
 #+NAME: org-ref-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-ref
   :if *is-mac*
-  :after (:all ivy bibtex)
+  :after (:all ivy)
   :straight t
-  :demand t
   :init
   (progn
     ;; https://github.com/jkitchin/org-ref/issues/428
@@ -1938,99 +1945,49 @@ miscellaneous or arbitrary tasks.
     (require 'org-ref-pdf))
   :config
   (progn
+    
     (setq reftex-default-bibliography '("~/Dropbox/org/ref/references.bib"))
-
+    
     (setq org-ref-default-bibliography '("~/Dropbox/org/ref/references.bib")
           org-ref-bibliography-notes "~/Dropbox/org/ref/refnotes.org"
           org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
           org-ref-show-citation-on-enter t
-          org-ref-show-broken-links t)))
+          org-ref-show-broken-links t)
 
-#+END_SRC
-
-***** Org Ref Extensions
-
-#+NAME: org-ref-extend
-#+BEGIN_SRC emacs-lisp  :tangle no :noweb yes :exports none
-(with-eval-after-load 'org-ref
-  <<ore-vref>>
-
-  <<ore-orj>>
-)
-#+END_SRC
-
-****** Support =vref= links
-
-#+NAME: ore-vref
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-ref-vref-export (keyword desc format)
-  (cond
-   ((eq format 'latex) (format "\\vref{%s}" keyword))
-   ((eq format 'html) (format "\\vref{%s}" keyword))
-   ((eq format 'md)
-    (format "[%s] (#%s)" keyword keyword)))
-
-(org-ref-link-set-parameters "vref"
-  :follow #'org-ref-ref-follow
-  :export #'org-ref-vref-export
-  :complete #'org-ref-complete-link
-  :face 'org-ref-ref-face-fn
-  :help-echo #'org-ref-ref-help-echo))
-
-(setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
-                          "autoref" "cref" "Cref" "vref"))
-
-#+END_SRC
-
-****** Org Ref Bibtex Citation Formats
-
-Oref ref provides various extensions to the built-in =bibtex.el=.
-
-****** Pandoc Citations
-
-See [[http://kitchingroup.cheme.cmu.edu/blog/2015/01/29/Export-org-mode-to-docx-with-citations-via-pandoc/][kitchingroup]] article.
-
-#+NAME: orcb-pandoc
-#+BEGIN_SRC emacs-lisp :tangle no
-(require 'org-ref-ivy-cite)
-
-(defun helm-bibtex-format-pandoc-citation (keys)
-  (concat "[" (mapconcat (lambda (key) (concat "@" key)) keys "; ") "]"))
-
-(defalias #'ivy-bibtex-format-pandoc-citation #'helm-bibtex-format-pandoc-citation)
-
-;; inform completion framework (helm/ivy) how to format the citation in org-mde
-(setf (cdr (assoc 'org-mode bibtex-completion-format-citation-functions))
-      'ivy-bibtex-format-pandoc-citation)
-
-(defun ox-export-to-docx-and-open ()
- "Export the current org file as a docx via markdown."
- (interactive)
- (let* ((bibfile (expand-file-name (car (org-ref-find-bibliography))))
-        ;; this is probably a full path
-        (current-file (buffer-file-name))
-        (basename (file-name-sans-extension current-file))
-        (docx-file (concat basename ".docx")))
-   (save-buffer)
-   (when (file-exists-p docx-file) (delete-file docx-file))
-   (shell-command (format
-                   "pandoc -s -smart --bibliography=%s %s -o %s"
-                   bibfile current-file docx-file))))
-
-
-#+END_SRC
-
-****** Org Ref Journal Abbreviations
-
-#+NAME: ore-orj
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq orbj-extra-abbrevs
+    ;; Org Ref Journal abbreviations
+    (setq orbj-extra-abbrevs
       '(("JPS" "Journal of Palestinian Studies")
         ("JHG" "Journal of Historical Geography")
-        ("MEastStudies" "International Journal of Middle East Studies")))
+        ("MEAST" "International Journal of Middle East Studies")))
 
-(dolist (elt orbj-extra-abbrevs)
-  (add-to-list 'org-ref-bibtex-journal-abbreviations elt))
+    (dolist (elt orbj-extra-abbrevs)
+      (add-to-list 'org-ref-bibtex-journal-abbreviations elt))))
+
+#+END_SRC
+
+***** Support =vref= links
+
+#+NAME: org-ref-vref
+#+BEGIN_SRC emacs-lisp :tangle no
+(eval-and-compile
+  (require 'org-ref-core)
+
+  (defun org-ref-vref-export (keyword desc format)
+    "An export function for vref links."
+    (cond
+     ((eq format 'html)
+      (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
+     ((eq format 'latex) (format "\\vref{%s}" keyword))))
+
+  (org-ref-link-set-parameters "vref"
+    :follow #'org-ref-ref-follow
+    :export #'org-ref-vref-export
+    :complete #'org-ref-complete-link
+    :face 'org-ref-ref-face-fn
+    :help-echo #'org-ref-ref-help-echo)
+
+  (setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+                            "autoref" "cref" "Cref" "vref")))
 #+END_SRC
 
 ***** Open Pdf at point
@@ -3178,7 +3135,6 @@ Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org
 (require 'org-ref)
 #+END_SRC
 
-
 **** Counsel
 
 #+NAME: counsel-config
@@ -3554,7 +3510,7 @@ Interface for controlling external processes in Emacs.
   )
 #+END_SRC
 
-** Utilities
+** Image and Graphics
 *** Image+
 
 [[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
@@ -3576,46 +3532,6 @@ Interface for controlling external processes in Emacs.
          ("S" imagex-sticky-save-image "save file")
          ("r" imagex-sticky-rotate-right "rotate right")
          ("l" imagex-sticky-rotate-left "rotate left")))))
-#+END_SRC
-
-*** Nov
-[[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
-
-#+NAME: nov-mode
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package nov
-  :straight t
-  :mode ("\\.epub\\'" . nov-mode)
-  :config
-  (progn
-    (setq nov-text-width 80
-          visual-fill-column-center-text t)
-    (defun chaffin--nov-font-setup ()
-      (face-remap-add-relative 'variable-pitch
-                               :family "Bookmania"
-                               :weight 'light
-                               :height 1.0))
-    (when *is-mac*
-      (add-hook 'nov-mode-hook 'chaffin--nov-font-setup))
-    (add-hook 'nov-mode-hook 'visual-line-mode)
-    (add-hook 'nov-mode-hook 'visual-fill-column-mode)))
-#+END_SRC
-
-*** Deft
-
-[[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package deft
-  :if *is-mac*
-  :straight t
-  :bind ("C-x C-n" . deft)
-  :config
-  (progn
-    (setq deft-extensions '("org")
-          deft-directory "~/Dropbox/org/notes"
-          deft-use-filename-as-title t
-          deft-default-extension "org")))
 #+END_SRC
 
 *** UML Diagrams
@@ -3666,6 +3582,65 @@ configuration block as I learn how to use it.
         (setq plantuml-jar-path (chaffin/plantuml-resolve-jar-path)))))
 #+END_SRC
 
+*** Graphs
+**** Graphviz
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package graphviz-dot-mode
+  :straight t
+  :if (executable-find "dot")
+  :mode (("\\.dot\\'" . graphviz-dot-mode))
+  :defines (graphiz-dot-program-set)
+  :bind ((:map graphviz-dot-mode-map
+               ("M-s g" . graphviz-dot-program-set)))
+  :config
+  (progn
+    (defun graphviz-dot-program-set (&optional program)
+      (interactive)
+      (let ((dot-program (or program (completing-read "Process: " graphviz-dot-layout-programs))))
+        (setq graphviz-dot-dot-program dot-program)))))
+#+END_SRC
+
+** Utilities
+*** Nov
+[[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
+
+#+NAME: nov-mode
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package nov
+  :straight t
+  :mode ("\\.epub\\'" . nov-mode)
+  :config
+  (progn
+    (setq nov-text-width 80
+          visual-fill-column-center-text t)
+    (defun chaffin--nov-font-setup ()
+      (face-remap-add-relative 'variable-pitch
+                               :family "Bookmania"
+                               :weight 'light
+                               :height 1.0))
+    (when *is-mac*
+      (add-hook 'nov-mode-hook 'chaffin--nov-font-setup))
+    (add-hook 'nov-mode-hook 'visual-line-mode)
+    (add-hook 'nov-mode-hook 'visual-fill-column-mode)))
+#+END_SRC
+
+*** Deft
+
+[[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package deft
+  :if *is-mac*
+  :straight t
+  :bind ("C-x C-n" . deft)
+  :config
+  (progn
+    (setq deft-extensions '("org")
+          deft-directory "~/Dropbox/org/notes"
+          deft-use-filename-as-title t
+          deft-default-extension "org")))
+#+END_SRC
 
 *** ack
 
@@ -6226,7 +6201,6 @@ and slim-mode using company.
                 (unless tern-mode (tern-mode))
               (if tern-mode (tern-mode -1))))))))
 #+END_SRC
-
 
 ** Footnotes
 
