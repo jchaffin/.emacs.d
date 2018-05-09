@@ -688,7 +688,7 @@ from within Emacs.
 **** macOS Keybindings
 
 #+NAME: keybindings-macos
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<macos-modifier-keymap>>
 <<macos-prefix-command>>
 #+END_SRC
@@ -1574,7 +1574,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 **** Org Capture
 
 #+NAME: org-docmgr-capture
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-capture-templates>>
 <<org-capture-html>>
 <<org-capture-contacts>>
@@ -1953,7 +1953,7 @@ Calendar.
 *** Idea Management 
 
 #+NAME: org-ideamgr
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-ideamgr-brain>>
 <<org-ideamgr-drill>>
 #+END_SRC
@@ -2001,7 +2001,7 @@ Calendar.
 *** LaTeX in Org Buffers
 
 #+NAME: org-latex-editing
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-latex-edit-latex>>
 <<org-latex-highlight-tex>>
 #+END_SRC
@@ -2611,7 +2611,7 @@ for exporting org-mode documents to various formats.
 *** Ox HTML
 
 #+NAME: org-export-html
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<ox-html-themes>>
 #+END_SRC
 
@@ -3193,7 +3193,7 @@ This disables Emacs asking questions about loading a new theme.
 
 **** Install Themes
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<atom-theme-cfg>>
 <<ob-theme>>
 <<zenburn-theme-cfg>>
@@ -3906,7 +3906,7 @@ using =eww= as a matter of personal preference.
 * Prose
 
 #+NAME: prose-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<prose-spellcheck>>
 <<prose-completion>>
 <<prose-notes>>
@@ -3964,7 +3964,7 @@ checking for natural language.
 ** Text Completion
 
 #+NAME: prose-completion
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<completion-company-dict>>
 <<completion-osx-dictionary>>
 #+END_SRC
@@ -4004,7 +4004,7 @@ Provides an interface to /Dictionary.app/ in Emacs.
 ** Taking Notes
 
 #+NAME: prose-notes
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<notes-deft>>
 <<notes-velocity>>
 #+END_SRC
@@ -4045,7 +4045,7 @@ Provides an interface to /Dictionary.app/ in Emacs.
 ** Reading and viewing prose
 
 #+NAME: prose-readview
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<readview-epub>>
 <<readview-text>>
 #+END_SRC
@@ -4219,7 +4219,7 @@ Tabs are the bane of humanity[fn:14]. [[http://www.urbandictionary.com/define.ph
 *** Symbol Highlighting
 
 #+NAME: symbol-hl
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<hl-hl-sexp>>
 <<hl-highlight-symbol>>
 <<hl-prettify-symbol>>
@@ -4798,10 +4798,10 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+END_SRC
 
-****** Use on UCLA Servers
+****** Use on UCLA Servers                                      :ignore:
 
 The UCLA servers don't have llvm or libclang, so [[#irony-mode][irony-mode]] provided
-by adding 'c-c++ to =[[#proglang-api][proglang-enabled]]= won't compile.
+by adding 'c-c++ to =proglang-enabled= in the [[#proglang-api][Proglang API section]] won't compile.
 
 That blows but loading this this hook regardless corrects the per-file
 =compile-command= at least.
@@ -5963,7 +5963,7 @@ local file system.
 ***** Anaconda Mode
 
 #+NAME: python-anaconda-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :exports none
 (use-package anaconda-mode
   :straight t
   :init
@@ -6063,7 +6063,7 @@ local file system.
 *** Web
 
 #+NAME: web-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 (when (proglang-enabled-p 'web)
    <<web-mode-config>>
    <<tagedit-mode-config>>
