@@ -64,6 +64,7 @@
       - [[#org-bullets][Org Bullets]]
       - [[#toc-org][TOC Org]]
       - [[#column-view][Column View]]
+      - [[#equation-renumbering][Equation Renumbering]]
     - [[#document-management][Document Management]]
       - [[#org-id][Org ID]]
       - [[#spell-checking][Spell Checking]]
@@ -121,8 +122,6 @@
     - [[#projectile][Projectile]]
     - [[#neotree][Neotree]]
     - [[#wakatime][Wakatime]]
-    - [[#projects][Projects]]
-      - [[#cs180][CS180]]
   - [[#completion][Completion]]
     - [[#company][Company]]
       - [[#company-statistics][Company Statistics]]
@@ -789,7 +788,7 @@ editors and various other applications on macOS.
     (define-key 'macos-open-with-keymap "v" 'open-with-vscode)
     (define-key 'macos-open-with-keymap "b" 'open-with-bbedit)
     (define-key 'macos-open-with-keymap "c" 'open-with-coda)
-
+    (define-key 'macos-open-with-keymap "t" 'open-with-tower)
     ;; macos-iterm keymap
     (define-key 'macos-iterm-keymap "g" 'iterm-goto-filedir-or-home)
     (define-key 'macos-iterm-keymap "f" 'iterm-focus)
@@ -1299,6 +1298,7 @@ Prettify dedicated org-mode latex buffers.
   '((C . t)
     (clojure . t)
     (clojurescript . t)
+    (dot . t)
     (ditaa . t)
     (latex . t)
     (http . t)
@@ -1311,6 +1311,7 @@ Prettify dedicated org-mode latex buffers.
     (shell . t)
     (org . t)))
 #+END_SRC
+
 *** Org Mode UI
 
 These settings subjectively improve the overall viewable-ness of
@@ -1329,6 +1330,13 @@ org-mode buffers.
 
 ;; UI Toc Org
 <<org-ui-toc-org>>
+
+;; UI Column View
+<<org-ui-column-view>>
+
+;; UI Equation Renumbering
+<<org-ui-equation-renumbering>>
+
 #+END_SRC
 
 **** Wrap Text 
@@ -1397,9 +1405,58 @@ time of install.
 
 **** Column View
 
-#+NAME: org-column-view
+#+NAME: org-ui-column-view
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
+#+END_SRC
+
+**** Equation Renumbering
+
+Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbering-in-LaTeX-fragments-in-org-mode/][one]] from the kitchin group!
+
+#+NAME: org-ui-equation-renumbering
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-renumber-environment (orig-func &rest args)
+  (let ((results '()) 
+        (counter -1)
+        (numberp))
+
+    (setq results (loop for (begin .  env) in 
+                        (org-element-map (org-element-parse-buffer) 'latex-environment
+                          (lambda (env)
+                            (cons
+                             (org-element-property :begin env)
+                             (org-element-property :value env))))
+                        collect
+                        (cond
+                         ((and (string-match "\\\\begin{equation}" env)
+                               (not (string-match "\\\\tag{" env)))
+                          (incf counter)
+                          (cons begin counter))
+                         ((string-match "\\\\begin{align}" env)
+                          (prog2
+                              (incf counter)
+                              (cons begin counter)                          
+                            (with-temp-buffer
+                              (insert env)
+                              (goto-char (point-min))
+                              ;; \\ is used for a new line. Each one leads to a number
+                              (incf counter (count-matches "\\\\$"))
+                              ;; unless there are nonumbers.
+                              (goto-char (point-min))
+                              (decf counter (count-matches "\\nonumber")))))
+                         (t
+                          (cons begin nil)))))
+
+    (when (setq numberp (cdr (assoc (point) results)))
+      (setf (car args)
+            (concat
+             (format "\\setcounter{equation}{%s}\n" numberp)
+             (car args)))))
+  
+  (apply orig-func args))
+
+(advice-add 'org-create-formula-image :around #'org-renumber-environment)
 #+END_SRC
 
 *** Document Management
@@ -1726,7 +1783,7 @@ miscellaneous or arbitrary tasks.
   (progn
     (setq org-journal-dir (concat (file-name-as-directory org-directory) "journal")
           org-journal-date-prefix "#+TITLE: "
-          org-journal-dat-format "%A, %B %d %Y"
+          org-journal-date-format "%A, %B %d %Y"
           org-journal-time-prefix "* "
           org-journal-time-format "")
     (push '("j" "Journal" entry 
@@ -2319,11 +2376,11 @@ My custom mla-style LaTeX class.
 #+NAME: org-export-latex-lingsyn-class
 #+BEGIN_SRC emacs-lisp :tangle no
 (if (and (executable-find "kpsewhich")
-         (shell-command-to-string "kpsewhich lingsyn.cls"))
+         (shell-command-to-string "kpsewhich orgling.cls"))
 
     (add-to-list 'org-latex-classes
-                 '("lingsyn"
-                   "\\documentclass{lingsyn}
+                 '("orgling"
+                   "\\documentclass{orgling}
                     [NO-DEFAULT-PACKAGES]
                     [EXTRA]"
                    ("\\section{%s}" . "\\section*{%s}")
@@ -2549,6 +2606,7 @@ and subtrees of the ignored headlines will be retained.
   :bind (:map org-mode-map
               ("M-m r p" . org-publish-project)))
 #+END_SRC
+
 
 ** File Navigation
 *** Dired
@@ -2945,9 +3003,9 @@ killall gpg-agent
         (browse-url "https://wakatime.com/dashboard"))))
 #+END_SRC
 
-*** Projects
+*** Projects                                                     :noexport:
 
-#+NAME: proj
+#+NAME: publishing-projects
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 <<proj-cs180>>
 #+END_SRC
@@ -2956,8 +3014,9 @@ killall gpg-agent
 
 #+NAME: proj-cs180
 #+BEGIN_SRC emacs-lisp :tangle no
-
 #+END_SRC
+
+
 
 ** Completion
 *** Company
@@ -3599,6 +3658,16 @@ configuration block as I learn how to use it.
       (interactive)
       (let ((dot-program (or program (completing-read "Process: " graphviz-dot-layout-programs))))
         (setq graphviz-dot-dot-program dot-program)))))
+
+(with-eval-after-load 'graphviz-dot-mode
+  ;; https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/graphviz/packages.el
+  (define-key graphviz-dot-mode-map "{" nil)
+  (define-key graphviz-dot-mode-map "}" nil)
+  (add-hook 'graphviz-dot-mode-hook 'smartparens-mode)
+  (add-to-list 'org-babel-load-languages '(dot . t))
+  (setq org-src-lang-modes
+        (append '(("dot" . graphviz-dot))
+                 (delete '("dot" . fundamental) org-src-lang-modes))))
 #+END_SRC
 
 ** Utilities

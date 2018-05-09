@@ -104,7 +104,6 @@
     :local-repo-name org
     :files ("lisp/*.el" "contrib/lisp/*.el")))
 
-
 ;; https://github.com/raxod502/straight.el/issues/72
 ;; https://github.com/raxod502/straight.el/issues/192
 ;; https://github.com/raxod502/straight.el/issues/168

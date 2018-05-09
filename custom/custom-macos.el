@@ -166,7 +166,10 @@
  '(bibtex-autokey-year-title-separator "-")
  '(safe-local-variable-values
    (quote
-    ((eval bibtex-set-dialect
+    ((org-ref-default-bibliography quote
+                                   ("/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib"))
+     (eval sh-set-shell "zsh")
+     (eval bibtex-set-dialect
            (quote biblatex))
      (bibtex-file-path . "~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (bibtex-file-path . " ~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
