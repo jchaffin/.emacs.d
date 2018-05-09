@@ -1,6 +1,6 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
 #+LANGUAGE: en
-#+OPTIONS: num:t toc:2 tags:nil todo:nil H:3
+#+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: /Users/jacobchaffin/.emacs.d/straight/repos/org-html-themes/setup/theme-readtheorg.setup
 
 * Table Of Contents                                       :TOC_3_gh:noexport:
