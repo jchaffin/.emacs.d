@@ -1794,7 +1794,8 @@ Calendar.
   :config
   (progn
     (setq org-gcal-file-alist 
-          '(("8u01m20o80k2ja1lpp93qa3u98@group.calendar.google.com" . "~/Dropbox/Documents/Courses/cs180/org/cs180-gcal.org")))))
+          '(("8u01m20o80k2ja1lpp93qa3u98@group.calendar.google.com" . "~/Dropbox/Documents/Courses/cs180/org/cs180-gcal.org")
+            ("jchaffin@g.ucla.edu" . "~/Dropbox/org/todos/TODOS.gcal.org")))))
 #+END_SRC
 
 

@@ -167,12 +167,6 @@
  '(safe-local-variable-values
    (quote
     ((org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib")
-     (org-ref-default-bibliography
-      ("~/Dropbox/Documents/Courses/ling120c/ling120c.bib"))
-     (org-ref-default-bibliography quote
-                                   ("~/Dropbox/Documents/Courses/ling120c/ling120c.bib"))
-     (org-ref-default-bibliography quote
-                                   ("/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib"))
      (eval sh-set-shell "zsh")
      (eval bibtex-set-dialect
            (quote biblatex))
