@@ -81,6 +81,7 @@
       - [[#org-agenda][Org Agenda]]
       - [[#org-projectile][Org Projectile]]
       - [[#org-pomodoro][Org Pomodoro]]
+      - [[#org-gcal][Org gcal]]
     - [[#idea-management][Idea Management]]
       - [[#org-brain][Org Brain]]
       - [[#org-drill][Org Drill]]
@@ -802,7 +803,7 @@ This might come back to bite me one day but I never use them.
 	    (concat "gpg --list-keys | grep " user-mail-address)))
       (load-library (concat user-emacs-directory "secrets/secrets.el.gpg"))
     (print (format "GPG key(s) for %s not found"
-		   (or user-full-name user-mail-address)))))
+                   (or user-full-name user-mail-address)))))
 #+END_SRC
 
 *** Encryption
@@ -1820,6 +1821,7 @@ Embed YouTube Links in iframe.
 <<org-agendacal-agenda>>
 <<org-agendacal-projectile>>
 <<org-agendacal-pomodoro>>
+<<org-agendacal-gcal>>
 #+END_SRC
 
 **** Org Agenda
@@ -1931,6 +1933,22 @@ miscellaneous or arbitrary tasks.
           org-pomodoro-long-break-sound-args "--volume 0.2"
           org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav"))))
 #+END_SRC
+
+**** Org gcal
+
+The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode integration with Google
+Calendar.
+
+#+NAME: org-agendacal-gcal
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-gcal
+  :straight t
+  :config
+  (progn
+    (setq org-gcal-file-alist 
+          '(("8u01m20o80k2ja1lpp93qa3u98@group.calendar.google.com" . "~/Dropbox/Documents/Courses/cs180/org/cs180-gcal.org")))))
+#+END_SRC
+
 
 *** Idea Management 
 
