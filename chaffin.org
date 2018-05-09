@@ -5955,7 +5955,7 @@ local file system.
 **** Anaconda
 
 #+NAME: py-anaconda>>
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<python-anaconda-mode>>
 <<python-anaconda-company>>
 #+END_SRC
@@ -5963,7 +5963,7 @@ local file system.
 ***** Anaconda Mode
 
 #+NAME: python-anaconda-mode
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package anaconda-mode
   :straight t
   :init
