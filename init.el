@@ -47,6 +47,8 @@
 
 ;; Bootstrap straight.el from develop branch
 ;; https://github.com/raxod502/straight.el#getting-started
+
+(setq straight-repository-branch "develop")
 (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
       (bootstrap-version 2))
   (unless (file-exists-p bootstrap-file)
@@ -58,7 +60,6 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-
 ;; Clone use-package dependencies
 (straight-use-package 'diminish)
 (straight-use-package 'bind-key)
@@ -68,7 +69,10 @@
 ;; Use straight integration of `use-package'
 (setq straight-use-package-version 'straight
       ;; And enable by default.
-      straight-use-package-by-default t)
+      straight-use-package-by-default t
+      ;; pseudo packages
+      straight-built-in-pseudo-packages '(emacs winner-mode artist-mode))
+
 (setq use-package-always-defer t)
 
 (straight-use-package 'cl)
@@ -97,12 +101,7 @@
    :local-repo-name auctex))
 
 ;; Install org
-(straight-use-package
-  `(org
-    :host github
-    :repo "emacsmirror/org"
-    :local-repo-name org
-    :files ("lisp/*.el" "contrib/lisp/*.el")))
+(straight-use-package 'org-plus-contrib)
 
 ;; https://github.com/raxod502/straight.el/issues/72
 ;; https://github.com/raxod502/straight.el/issues/192

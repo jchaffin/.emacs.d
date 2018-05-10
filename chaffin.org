@@ -43,7 +43,7 @@
     - [[#org-babel][Org Babel]]
     - [[#org-mode-ui][Org Mode UI]]
     - [[#document-management][Document Management]]
-    - [[#agenda-and-calendar][Agenda and Calendar]]
+    - [[#task-management][Task Management]]
     - [[#idea-management][Idea Management]]
   - [[#org-latex][Org LaTeX]]
     - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
@@ -87,7 +87,9 @@
     - [[#emojis][Emojis]]
 - [[#completion][Completion]]
   - [[#company][Company]]
-  - [[#yasnippet][YASnippet]]
+  - [[#snippets][Snippets]]
+    - [[#yasnippet][YASnippet]]
+    - [[#code-library][Code Library]]
   - [[#minibuffer][Minibuffer]]
     - [[#ivy][Ivy]]
     - [[#counsel][Counsel]]
@@ -1266,7 +1268,7 @@ Prettify dedicated org-mode latex buffers.
   <<org-ob>>
   <<org-ui>>
   <<org-docmgr>>
-  <<org-agendacal>>
+  <<org-taskmgr>>
   <<org-ideamgr>>
   <<org-export>>
 )
@@ -1476,6 +1478,21 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 (advice-add 'org-create-formula-image :around #'org-renumber-environment)
 #+END_SRC
 
+**** Org radiobutton
+
+The [[https://github.com/Fuco1/org-radiobutton][org-radiobutton]] package a minor mode which automates the property
+requirements for radiobutton lists.
+
+See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-option-from-a-list.html][blogpost]] for more information.
+
+#+NAME: org-ui-radiobutton
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-radiobutton
+  :straight t
+  :init
+  (when (fboundp global-org-radiobutton-mode)
+    (global-org-radiobutton-mode)))
+#+END_SRC
 *** Document Management
 
 #+NAME: org-docmgr
@@ -1550,7 +1567,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+NAME: org-capture-contacts
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-contacts
-  :straight nil
+  :straight org
   :config
   (push '("c" "Contacts" entry (file "~/Dropbox/org/contacts.org")
            "* %(org-contacts-template-name)
@@ -1581,7 +1598,6 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
             "* %?\nEntered on %U\n %i\n %a")
           org-capture-templates)))
 #+END_SRC
-
 
 **** Org ID
 
@@ -1696,9 +1712,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+NAME: org-links-manpage
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package org-man
-  :straight nil
-  :after (org)
-  :demand t)
+  :straight org)
 #+END_SRC
 
 ***** Org YouTube
@@ -1731,19 +1745,21 @@ Embed YouTube Links in iframe.
                     path (or desc "video"))))))
 #+END_SRC
 
-*** Agenda and Calendar
+*** Task Management
 
-#+NAME: org-agendacal
+#+NAME: org-taskmgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-agendacal-agenda>>
-<<org-agendacal-projectile>>
-<<org-agendacal-pomodoro>>
-<<org-agendacal-gcal>>
+<<org-taskmgr-agenda>>
+<<org-taskmgr-projectile>>
+<<org-taskmgr-pomodoro>>
+<<org-taskmgr-gcal>>
+<<org-taskmgr-coclock>>
+<<org-taskmgr-mru-clock>>
 #+END_SRC
 
 **** Org Agenda
 
-#+NAME: org-agendacal-agenda
+#+NAME: org-taskmgr-agenda
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-agenda-diary>>
 <<org-agenda-global-todos>>
@@ -1773,7 +1789,7 @@ miscellaneous or arbitrary tasks.
 :CUSTOM_ID: org-projectile
 :END:
 
-#+NAME: org-agendacal-projectile
+#+NAME: org-taskmgr-projectile
 #+BEGIN_SRC emacs-lisp :tangle no 
 (use-package org-projectile
   :straight t
@@ -1821,7 +1837,7 @@ miscellaneous or arbitrary tasks.
 :CUSTOM_ID: org-pomodoro
 :END:
 
-#+NAME: org-agendacal-pomodoro
+#+NAME: org-taskmgr-pomodoro
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-pomodoro
   :straight t
@@ -1851,12 +1867,12 @@ miscellaneous or arbitrary tasks.
           org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav"))))
 #+END_SRC
 
-**** Org gcal
+**** Org Google Calendar
 
 The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode integration with Google
 Calendar.
 
-#+NAME: org-agendacal-gcal
+#+NAME: org-taskmgr-gcal
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-gcal
   :straight t
@@ -1866,6 +1882,37 @@ Calendar.
           '(("8u01m20o80k2ja1lpp93qa3u98@group.calendar.google.com" . "~/Dropbox/Documents/Courses/cs180/org/cs180-gcal.org")
             ("jchaffin@g.ucla.edu" . "~/Dropbox/org/todos/TODOS.gcal.org")))))
 #+END_SRC
+
+**** Counsel Org Clock
+
+#+NAME: org-taskmgr-coclock
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-org-clock
+  :straight (:host github
+                   :repo "akirak/counsel-org-clock")
+  :after (:all org-agenda ivy))
+#+END_SRC
+
+**** Org Mru Clock
+
+The [[https://github.com/unhammer/org-mru-clock][org-mru-clock]] package prefills clock history with clocks from
+org agenda files. 
+
+#+NAME: org-taskmgr-mru-clock
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-mru-clock
+  :straight t
+  :after (:all org-agenda ivy)
+  :demand t
+  :bind (("C-c C-x i" . org-mru-clock-in)
+         ("C-c C-x C-j" . org-mru-clock-select-recent-task))
+  :init
+  (progn
+    (setq org-mru-clock-how-many 50
+          org-mru-completing-read #'ivy-completing-read)))
+#+END_SRC
+
+Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
 
 *** Idea Management 
 
@@ -1901,9 +1948,7 @@ Calendar.
 #+NAME: org-ideamgr-drill
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-drill
-  :straight nil
-  :after (org)
-  :demand t)
+  :straight org)
 #+END_SRC
 
 ** Org LaTeX
@@ -2076,7 +2121,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 
 ***** Org PDF View
 
-Now we can open pdf files with =org-pdfview= [fn:11]:
+Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2456,7 +2501,7 @@ My custom mla-style LaTeX class.
 #+NAME: org-export-bibtex
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (use-package ox-bibtex
-  :straight nil
+  :straight org
   :mode
   (("\\.org.bib\\'" . org-mode))
   :after (ox)
@@ -2568,7 +2613,7 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: org-export-ox-extra
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-extra
-  :straight nil
+  :straight org
   :demand t
   :config
   (ox-extras-activate '(ignore-headlines
@@ -2580,7 +2625,7 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: org-export-publish
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-publish
-  :straight nil
+  :straight org
   :after (ox)
   :demand t
   :bind (("M-m r p" . org-publish-project)))
@@ -2662,8 +2707,8 @@ Adds extensions and functionality to dired mode.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dired+
   :straight t
-  :config
-  (add-hook #'dired-mode-hook #'dired-hide-details-mode-hook))
+  :init
+  (add-hook #'dired-mode-hook #'dired-hide-details-mode))
 #+END_SRC
 
 ***** Dired Icons
@@ -2695,7 +2740,7 @@ Adds extensions and functionality to dired mode.
 
 **** Neotree
 
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:12] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
  
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package neotree
@@ -2835,7 +2880,7 @@ so happens this prefix can be extended by every key in the arrow pad
 without causing a conflict with external keymaps on my system.
 
 The suggested keybindings from the footnoted EmacsWiki page may be more
-accessible for you [fn:13].
+accessible for you [fn:14].
 
 #+NAME: window-resize-keybindings
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -2863,7 +2908,6 @@ different window configurations.
 #+NAME: winner-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package winner-mode
-  :straight nil
   :init
   (when (fboundp 'winner-mode)
     (winner-mode 1)))
@@ -3183,7 +3227,7 @@ started from the terminal.
 *****  Atom One Dark Modifications
 
 Minor modifications to [[#atom-one-dark-theme][atom one dark theme]] color scheme, see footnote
-for source[fn:14].
+for source[fn:15].
 
 - Use default foreground color instead of highlight face for org-mode
   source lines.
@@ -3386,15 +3430,12 @@ top candidates for completion.
   (company-statistics-mode))
 #+END_SRC
 
-** YASnippet
+** Snippets
+*** YASnippet
 
-YASnippet is a template system based off the TextMate snippet syntax.
+[[https://github.com/joaotavora/yasnippet][YASnippet]] is a template system based off the TextMate snippet syntax.
 
-Let's begin by creating a variable for our personal snippets directory.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(setq user-snippets-dir (concat user-emacs-directory "snippets"))
-#+END_SRC
+Here, I create a variable for my personal snippets directory.
 
 After installation and enabling the package, add the personal snippets
 directory to the list of directories where YASnippet should look for snippets.
@@ -3403,9 +3444,7 @@ directory to the list of directories where YASnippet should look for snippets.
 (use-package yasnippet
   :straight t
   :init
-  (yas-global-mode 1)
-  :config
-  (push 'user-snippets-dir yas-snippet-dirs))
+  (yas-global-mode 1))
 #+END_SRC
 
 YASnippet can also be used as a non-global minor mode on a per-buffer
@@ -3419,6 +3458,30 @@ snippets corresponding to the major mode of the current buffer mode.
 (yas-reload-all)
 (add-hook 'prog-mode-hook #'yas-minor-mode)
 #+END_EXAMPLE
+
+*** Code Library
+
+#+NAME: snippets-cl
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package code-library
+  :straight t
+  :after (org)
+  :init
+  (progn
+    (setq code-library-directory (concat user-emacs-directory "codelibrary"))
+    (if-not (file-exists-p code-library-directory)
+        (if (yes-or-no-p
+             (format-message "Directory `%s' doesn't exist. Make directory?" code-library-directory))
+            (mkdir code-library-directory))))
+  :config
+  (progn
+    (append 'code-library-mode-file-alist
+            '((latex-mode . "latex.org")
+              (clojure-mode . "clojure.org")
+              (makefile-mode . "makefile.org")
+              (makefile-gmake-mode . "makefile.org")))
+    (setq code-library-sync-to-gist t)))
+#+END_SRC
 
 ** Minibuffer
 
@@ -3622,7 +3685,9 @@ documentation browser.
   :if *is-mac*)
 #+END_SRC
 
+
 *** Swiper
+
 
 #+NAME: swiper-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3892,7 +3957,7 @@ using =eww= as a matter of personal preference.
 <<sc-langtool>>
 #+END_SRC
 
-Tools for checking lexical and grammatical errors in text buffers[fn:15].
+Tools for checking lexical and grammatical errors in text buffers[fn:16].
 
 *** Flyspell
 
@@ -3961,7 +4026,7 @@ checking for natural language.
 
 The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
 dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:16].
+whistles, it makes up for in compatibility and hackability [fn:17].
 
 #+NAME: completion-dictionary-el
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4006,8 +4071,7 @@ whistles, it makes up for in compatibility and hackability [fn:16].
 #+NAME: notes-velocity
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-velocity
-  :straight nil
-  :after (org)
+  :straight org
   :bind
   (("C-c n" . org-velocity))
   :demand t
@@ -4078,7 +4142,6 @@ configuration block as I learn how to use it.
 #+NAME: artist-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package artist-mode
-  :straight nil
   :bind ((:map artist-mode-map
                ("C-c C-a p" . artist-select-op-pen-line))))
 #+END_SRC
@@ -4183,7 +4246,7 @@ Colors the modeline according to current Flycheck state of buffer.
 ** Reading and viewing code
 *** Indentation
 
-Tabs are the bane of humanity[fn:17]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:18]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -6273,21 +6336,23 @@ dialects of Lisp.
 
 [fn:10] http://www.jonathanleroux.org/bibtex-mode.html
 
-[fn:11] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
+[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
 
-[fn:12] https://www.emacswiki.org/emacs/NeoTree
+[fn:12] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:13] https://www.emacswiki.org/emacs/WindowResize
+[fn:13] https://www.emacswiki.org/emacs/NeoTree
 
-[fn:14] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
+[fn:14] https://www.emacswiki.org/emacs/WindowResize
+
+[fn:15] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
 Clojure Revised]]
 
-[fn:15] https://joelkuiper.eu/spellcheck_emacs
+[fn:16] https://joelkuiper.eu/spellcheck_emacs
 
-[fn:16] http://ergoemacs.org/emacs/dictionary_lookup.html
+[fn:17] http://ergoemacs.org/emacs/dictionary_lookup.html
 
-[fn:17] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+[fn:18] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
-[fn:18] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:19] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
 
 

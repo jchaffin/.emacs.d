@@ -166,7 +166,9 @@
  '(bibtex-autokey-year-title-separator "-")
  '(safe-local-variable-values
    (quote
-    ((mangle-whitespace . t)
+    ((org-hide-emphasis-markers)
+     (bug-reference-bug-regexp . "#\\(?2:[[:digit:]]+\\)")
+     (mangle-whitespace . t)
      (org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib")
      (eval sh-set-shell "zsh")
      (eval bibtex-set-dialect
