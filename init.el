@@ -60,6 +60,7 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+(straight-use-package 'el-patch)
 ;; Clone use-package dependencies
 (straight-use-package 'diminish)
 (straight-use-package 'bind-key)
@@ -71,7 +72,7 @@
       ;; And enable by default.
       straight-use-package-by-default t
       ;; pseudo packages
-      straight-built-in-pseudo-packages '(emacs winner-mode artist-mode))
+      straight-built-in-pseudo-packages '(emacs winner-mode artist-mode browse-url xwidget))
 
 (setq use-package-always-defer t)
 

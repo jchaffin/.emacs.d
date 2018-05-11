@@ -103,9 +103,12 @@
   - [[#tramp][Tramp]]
 - [[#web][Web]]
   - [[#browsing][Browsing]]
+    - [[#webkit-xwidget][Webkit xwidget]]
+    - [[#set-the-default-browser][Set the default browser.]]
     - [[#osx-browse][=osx-browse=]]
     - [[#google-search-at-point][Google search at point]]
-    - [[#when-no-external-web-browser-is-available][When no external web browser is available]]
+    - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
+    - [[#search-web][Search Web]]
     - [[#browse-at-remote][Browse at remote]]
   - [[#email][Email]]
     - [[#mu][Mu]]
@@ -3815,6 +3818,39 @@ Connect Remotely.
 
 * Web
 ** Browsing
+*** Webkit xwidget
+
+See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webkit][veshboo/emacs]].
+
+#+NAME: browse-webkit-xwidget
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package xwidget
+  :if (> emacs-major-version 26)
+  :init
+  (progn
+    (add-hook 'pre-command-hook
+              (lambda ()
+                (if (eq this-command #'bookmark-bmenu-list)
+                    (if-not (eq major-mode 'xwidget-webkit-mode)
+                        (setq xwidget-webkit-bookmark-jump-new-session t)
+                      (setq xwidget-webkit-bookmark-jump-new-session nil)
+                      (setq xwidget-webkit-last-session-buffer (current-buffer))))))))
+#+END_SRC
+
+*** Set the default browser.
+
+- [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package browse-url
+  :config
+  (progn
+    (cond ((> emacs-major-version 26)
+           (setq browse-url-browser-function 'xwidget-webkit-browse-url))
+          ((*is-lnxsrv*
+            (setq browse-url-browser-function 'eww-browse-url))))))
+#+END_SRC
+
 *** =osx-browse=
 
 This library provides several useful commands for using the
@@ -3857,17 +3893,7 @@ the user will be prompted to edit the search string first."
     (browse-url search)))
 #+END_SRC
 
-*** When no external web browser is available
-**** Set the default browser =eww=
-
-- [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-lnxsrv*
-  (setq browse-url-browser-function 'eww-browse-url))
-#+END_SRC
-
-**** Choose browser when using Org-mode's =org-open-at-point=
+*** Choose browser when using Org-mode's =org-open-at-point=
 :PROPERTIES:
 :ID:       69b03145-629e-4593-ae4c-6cbd5404ff3e
 :CUSTOM_ID: org-open-at-point-browser
@@ -3877,7 +3903,7 @@ This function from [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][emacswiki.
 choosing different browsers. The original snippet uses =w3m=, I'm
 using =eww= as a matter of personal preference.
 
-#+NAME: lnxsrv-browser-org-open-at-point-advise
+#+NAME: org-open-at-point-advise
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
   (let ((browse-url-browser-function
@@ -3887,8 +3913,25 @@ using =eww= as a matter of personal preference.
                 'choose-browser)
                (t
                 (lambda (url &optional new)
-                  (eww-browse-url url t))))))
+                  (if (and (> emacs-major-version 26)
+                           (display-graphic-p))
+                      (xwidget-webkit-browse-url url t)
+                    (eww-browse-url url t)))))))
     ad-do-it))
+#+END_SRC
+
+*** Search Web
+
+#+NAME: search-web-xwidget
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package search-web
+  :straight t
+  :bind (("C-c w" . search-web))
+  :init
+  (if (and (> emacs-major-version 26) (display-graphic-p))
+      (defun browse-url-default-browser (url &rest args)
+        "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS." 
+        (xwidget-webkit-browse-url url args))))
 #+END_SRC
 
 *** Browse at remote
@@ -3962,6 +4005,9 @@ using =eww= as a matter of personal preference.
                                                     "jchaffin@ucla.edu\n"
                                                     "(650)-380-3288\n"))))))))
 #+END_SRC
+
+
+
 
 * Prose
 
@@ -5983,6 +6029,10 @@ local file system.
   (setenv "IPY_TEST_SIMPLE_PROMPT" "1")
   (setq python-shell-interpreter "ipython3"
         python-shell-interpreter-args "-i"))
+
+(add-hook 'inferior-python-mode
+          (lambda ()
+            (smartparens-mode t)))
 #+END_SRC
 
 ***** Add Dash Docsets
