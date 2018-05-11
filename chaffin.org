@@ -91,13 +91,13 @@
     - [[#yasnippet][YASnippet]]
     - [[#code-library][Code Library]]
   - [[#minibuffer][Minibuffer]]
-    - [[#ivy][Ivy]]
-    - [[#counsel][Counsel]]
-    - [[#swiper][Swiper]]
+    - [[#prompt-properties][Prompt Properties]]
+    - [[#counsel-ivy][Counsel Ivy]]
     - [[#smex][Smex]]
 - [[#terminal][Terminal]]
   - [[#with-editor][With Editor]]
   - [[#multi-term][Multi-Term]]
+  - [[#xterm][xterm]]
   - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
   - [[#shell][Shell]]
   - [[#tramp][Tramp]]
@@ -1006,7 +1006,9 @@ running macOS.
   :straight t
   :if (not (boundp 'mac-system-move-file-to-trash-use-finder))
   :init
-  (osx-trash-setup))
+  (osx-trash-setup)
+  :config
+  (setq delete-by-moving-to-trash t))
 #+END_SRC
 
 * LaTeX and Org Mode
@@ -2863,6 +2865,8 @@ so we'll leave it there.
 (scroll-bar-mode -1)
 (unless *is-mac*
   (menu-bar-mode -1))
+
+(setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . 'dark)))
 #+END_SRC
 
 ** Window Manager
@@ -2966,7 +2970,7 @@ Set the cursor to a bar. The default is too thin for my liking.
 Set the width to 4px. Also remove the cursor in inactive windows.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq-default cursor-type '(bar . 1)
+(setq-default cursor-type '(bar . 2)
               cursor-in-non-selected-windows 'nil
               x-stretch-cursor t
               line-spacing 2)
@@ -3330,12 +3334,23 @@ for source[fn:15].
 #+END_SRC
 
 *** Scrolling
+**** Scroll to first error on compilation
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq compilation-scroll-output 'first-error)
+#+END_SRC
+
+**** Smooth Scrolling
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package smooth-scrolling
   :straight t
   :init
-  (smooth-scrolling-mode 1))
+  (smooth-scrolling-mode 1)
+  :config
+  (setq scroll-preserve-screen-position t
+        scroll-margin 0
+        scroll-conservatively 101))
 #+END_SRC
 
 *** Emojis
@@ -3486,14 +3501,28 @@ snippets corresponding to the major mode of the current buffer mode.
 ** Minibuffer
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<minibuffer-prompt>>
 <<ivy-config>>
 <<counsel-config>>
 <<swiper-config>>
 <<smex-config>>
 #+END_SRC
 
-*** Ivy
+*** Prompt Properties
 
+Don't let the cursor go into the minibuffer prompt.[fn:16]
+
+From Xah Lee: [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html][emacs-stop-cursor-enter-prompt]]. 
+
+#+NAME: minibuffer-prompt
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq minibuffer-prompt-properties
+      '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
+#+END_SRC
+
+*** Counsel Ivy 
+
+**** Ivy
 #+NAME: ivy-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<ivy-base>>
@@ -3525,7 +3554,7 @@ support with ivy]].
         '((t . ivy--regex-plus))))
 #+END_SRC
 
-**** Ivy Hydra
+***** Ivy Hydra
 
 #+NAME: ivy-hydra-config>>
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3534,7 +3563,7 @@ support with ivy]].
   :after (:all hydra ivy))
 #+END_SRC
 
-**** Ivy Historian
+***** Ivy Historian
 
 #+NAME: ivy-historian
 #+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
@@ -3556,7 +3585,7 @@ support with ivy]].
   :straight t)
 #+END_SRC
 
-**** Ivy Bibtex
+***** Ivy Bibtex
 
 Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org-ref-ivy][org-ref]] completion backend.
 
@@ -3567,7 +3596,7 @@ Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org
   (require 'org-ref))
 #+END_SRC
 
-*** Counsel
+**** Counsel
 
 #+NAME: counsel-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -3600,7 +3629,7 @@ Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org
    ("C-S-o" . counsel-rhythmbox)))
 #+END_SRC
 
-**** Counsel OSX App
+***** Counsel OSX App
 
  #+NAME: counsel-osx-app-config
  #+BEGIN_SRC emacs-lisp :tangle no
@@ -3611,7 +3640,7 @@ Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org
   :bind (("C-c o a" . counsel-osx-app)))
  #+END_SRC
 
-**** Counsel iTunes
+***** Counsel iTunes
 
 #+NAME: counsel-itunes-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3640,7 +3669,7 @@ Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org
       (define-key 'counsel-itunes-keymap "s"    #'counsel-itunes-shuffle))))
 #+END_SRC
 
-**** Counsel Projectile
+***** Counsel Projectile
 
 [[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
 friends.
@@ -3654,7 +3683,7 @@ friends.
   (counsel-projectile-mode))
 #+END_SRC
 
-**** Counsel Gtags
+***** Counsel Gtags
 
 #+NAME: counsel-ggtags-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3667,7 +3696,7 @@ friends.
           counsel-gtags-auto-update t)))
 #+END_SRC
 
-**** Counsel Dash
+***** Counsel Dash
 
 Counsel dash provides a simple wrapper around [[https://github.com/areina/helm-dash][helm-dash]] bindings to provide
 ivy integration with dash docsets. This is not great, as installing
@@ -3685,8 +3714,7 @@ documentation browser.
   :if *is-mac*)
 #+END_SRC
 
-
-*** Swiper
+**** Swiper
 
 
 #+NAME: swiper-config
@@ -3745,6 +3773,13 @@ A smart M-x enhancement for Emacs.
     (add-to-list 'term-bind-key-alist
                  '("C-c C-k" . term-char-mode))))
 
+#+END_SRC
+
+** xterm
+
+#+NAME: xterm-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(xterm-mouse-mode 1)
 #+END_SRC
 
 ** Run Bash On Windows/PC
@@ -3957,7 +3992,7 @@ using =eww= as a matter of personal preference.
 <<sc-langtool>>
 #+END_SRC
 
-Tools for checking lexical and grammatical errors in text buffers[fn:16].
+Tools for checking lexical and grammatical errors in text buffers[fn:17].
 
 *** Flyspell
 
@@ -4026,7 +4061,7 @@ checking for natural language.
 
 The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
 dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:17].
+whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME: completion-dictionary-el
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4246,7 +4281,7 @@ Colors the modeline according to current Flycheck state of buffer.
 ** Reading and viewing code
 *** Indentation
 
-Tabs are the bane of humanity[fn:18]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:19]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -4268,7 +4303,7 @@ Minor mode to highlight sexp.
 
 #+NAME: hl-hl-sexp
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package hl-sexp
+(use-package highlight-sexp
   :straight t)
 #+END_SRC
 
@@ -5054,7 +5089,7 @@ Configuration for common-lisp
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
 (with-eval-after-load 'paredit
   (add-hook 'lisp-mode-hook #'paredit-mode)
-  (add-hook 'lisp-mode-hook #'hl-sexp-mode)
+  (add-hook 'lisp-mode-hook #'highlight-symbol-mode)
   (when *is-mac*
     (add-hook 'lisp-mode-hook
               (setq-local dash-plugin-keywords '("lisp")))))
@@ -6347,12 +6382,15 @@ dialects of Lisp.
 [fn:15] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
 Clojure Revised]]
 
-[fn:16] https://joelkuiper.eu/spellcheck_emacs
+[fn:16] From spacemacs base layer: [[https://github.com/syl20bnr/spacemacs/blob/bd7ef98e4c35fd87538dd2a81356cc83f5fd02f3/layers/%2Bdistributions/spacemacs-base/config.el#L128-L131][spacemacs-base/config.el]]
 
-[fn:17] http://ergoemacs.org/emacs/dictionary_lookup.html
+[fn:17] https://joelkuiper.eu/spellcheck_emacs
 
-[fn:18] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+[fn:18] http://ergoemacs.org/emacs/dictionary_lookup.html
 
-[fn:19] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:19] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+
+[fn:20] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+
 
 
