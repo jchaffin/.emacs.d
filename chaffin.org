@@ -2052,7 +2052,6 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 #+NAME: org-ref-vref
 #+BEGIN_SRC emacs-lisp :tangle no
 (eval-and-compile
-  (require 'org-ref-core)
 
   (defun org-ref-vref-export (keyword desc format)
     "An export function for vref links."
@@ -2866,7 +2865,7 @@ so we'll leave it there.
 (unless *is-mac*
   (menu-bar-mode -1))
 
-(setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . 'dark)))
+(setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
 #+END_SRC
 
 ** Window Manager
@@ -5454,7 +5453,7 @@ CIDER eldoc information.
 (add-hook 'emacs-lisp-mode-hook
 	  (lambda ()
 	    (paredit-mode 1)
-	    (hl-sexp-mode 1)
+      (highlight-symbol-mode 1)
       (when *is-mac*
         (setq-local dash-plugin-keywords '("elisp")))))
 #+END_SRC
