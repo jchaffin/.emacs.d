@@ -591,7 +591,7 @@ Also sets terminal coding system to "utf-8".
 
 As far as I know, there is no trackpad gesture to trigger the
 =<mouse-2>= event in Emacs. The following snippet uses
-[[help:key-translation-map][`key-translation-map']] to emulate the =<mouse-2>= event when clicking
+[[elisp-variable::key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
 the trackpad (=<mouse-1>=) like normal while holding down Command, or
 "super", modifier key 
 
@@ -1544,6 +1544,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
   (when (fboundp global-org-radiobutton-mode)
     (global-org-radiobutton-mode)))
 #+END_SRC
+
 *** Document Management
 
 #+NAME: org-docmgr
@@ -1756,6 +1757,9 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-links-youtube>>
 <<org-links-manpage>>
+<<org-links-mac>>
+<<org-links-cliplink>>
+<<org-links-elisp-help>>
 #+END_SRC
 
 ***** Org Man
@@ -1764,6 +1768,33 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package org-man
   :straight org)
+#+END_SRC
+
+***** Org Elisp Help Links
+
+#+NAME: org-links-elisp-help
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-elisp-help
+  :straight t)
+#+END_SRC
+
+***** Org Mac Link
+
+#+NAME: org-links-mac
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-mac-link
+  :straight org)
+#+END_SRC
+
+***** Org Cliplink
+
+Insert org links from the system clipboard.
+
+#+NAME: org-links-cliplink
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-cliplink
+  :straight t
+  :bind (("C-x p i" . org-cliplink)))
 #+END_SRC
 
 ***** Org YouTube
@@ -1795,6 +1826,7 @@ Embed YouTube Links in iframe.
      (latex (format "\href{%s}{%s}"
                     path (or desc "video"))))))
 #+END_SRC
+
 
 *** Task Management
 
@@ -4589,8 +4621,9 @@ Disabling for now.
 #+NAME: git-magit
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<magit-kill-buffers>>
-<<magit-src>>
+<<magit-config>>
 <<magit-magithub>>
+<<magit-orgit>>
 #+END_SRC
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
@@ -4605,7 +4638,7 @@ Magit would not be very good at that.
 As a git client though, magit is awesome.
 
 
-#+NAME: magit-src
+#+NAME: magit-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit
   :straight t
@@ -4688,6 +4721,16 @@ yunmodified magit buffers will be killed without confirming."
   :config
   (progn
     (magithub-feature-autoinject t)))
+#+END_SRC
+
+***** Orggit
+
+Insert Org links to magit buffers.
+
+#+NAME: magit-orgit
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package orgit
+  :straight t)
 #+END_SRC
 
 **** gist.el
