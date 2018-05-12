@@ -879,9 +879,7 @@ external programs.
   <<macos-trash>>
 
   ;; osx-app
-  <<macos-counsel-osx-app>>
-) ;; End macOS noweb
-
+  <<macos-counsel-osx-app>>)
 #+END_SRC
 
 **** MacOS Computer Name
@@ -896,10 +894,11 @@ external programs.
       nil)))
 
 (defvar computer-name nil)
-(defconst *is-hal* (string= computer-name "hal"))
+
 
 (when *is-mac*
   (setq computer-name (chaffin/computer-name-cmd))
+  (defconst *is-hal* (string= computer-name "hal")))
 #+END_SRC
 
 **** MacOS Dev Utils
@@ -2687,7 +2686,6 @@ and subtrees of the ignored headlines will be retained.
   :bind (("M-m r p" . org-publish-project)))
 #+END_SRC
 
-
 * Customizing Emacs
 ** Search and Navigation
 *** The buffer
@@ -3734,8 +3732,9 @@ friends.
 (use-package counsel-projectile
   :straight t
   :after (:all projectile counsel)
+  :demand t
   :init
-  (counsel-projectile-mode))
+  (counsel-projectile-mode t))
 #+END_SRC
 
 ***** Counsel Gtags
