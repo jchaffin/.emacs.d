@@ -109,8 +109,8 @@
     - [[#set-the-default-browser][Set the default browser.]]
     - [[#osx-browse][=osx-browse=]]
     - [[#google-search-at-point][Google search at point]]
-    - [[#choose-browser-when-using-org-modes-org-open-at-point][Choose browser when using Org-mode's =org-open-at-point=]]
     - [[#search-web][Search Web]]
+    - [[#advise-org-open-at-point][Advise =org-open-at-point=]]
     - [[#browse-at-remote][Browse at remote]]
   - [[#email][Email]]
     - [[#mu][Mu]]
@@ -1066,8 +1066,8 @@ running macOS.
 
 Note that this the code blocks in the [[#latex][LaTeX]] section are tangled in the
 [[#org-mode-export][export]] code block, at which point the described packages will be
-loaded if the =latex= symbol is an element in the =
-=[[#user-enable-backends][org-export-enabled-backends]]= variable.
+loaded if the =latex= symbol is an element in the 
+[[#user-enable-backends][org-export-enabled-backends]] variable.
 
 #+NAME: latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -1075,7 +1075,6 @@ loaded if the =latex= symbol is an element in the =
 
 ;; Reftex
 <<latex-reftex>>
-(init-reftex)
 
 ;; Bibtex
 <<latex-bibtex>>
@@ -1094,6 +1093,9 @@ loaded if the =latex= symbol is an element in the =
 
 ;; Auctex Latexmk
 <<latex-auctex-latexmk>>
+
+;; Latex Preview
+<<laetx-latex-preview>>
 
 ;; Texinfo mode
 <<latex-texinfo>>
@@ -1174,11 +1176,13 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 #+NAME: latex-reftex
 #+BEGIN_SRC emacs-lisp :tangle no
-  (defun init-reftex ()
-    (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
-    (setq reftex-plug-into-AUCTeX '(nil nil t t t)
-          reftex-use-fonts t
-          reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
+(defun chaffin--latex-reftex-hook ()
+  (turn-on-reftex)
+  (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+        reftex-use-fonts t
+        reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
+
+(add-hook 'LaTeX-mode-hook 'chaffin-latex-reftex-hook)
 #+END_SRC
 
 *** BibTex
@@ -1307,7 +1311,6 @@ Prettify dedicated org-mode latex buffers.
   :init
   (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
 #+END_SRC
-
 
 ** Org Mode
 
@@ -2149,7 +2152,7 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 )
 #+END_SRC
 
-***** PDF Tools
+**** PDF Tools
 
 [[https://github.com/politza/pdf-tools][PDF Tools]] adds several features and enhancements for interacting with
 PDF documents in Emacs. It serves as a replacement for DocView mode.
@@ -2169,7 +2172,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
     (pdf-tools-install)))
 #+END_SRC
 
-***** Org PDF View
+**** Org PDF View
 
 Now we can open pdf files with =org-pdfview= [fn:11]:
 
@@ -2181,22 +2184,21 @@ Now we can open pdf files with =org-pdfview= [fn:11]:
   :demand t
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward)
-              ("h" . pdf-annot-add-highlight-markup-annotation)
-              ("t" . pdf-annot-add-text-annotation)
-              ("D" . pdf-annot-delete))
+              ("h"   . pdf-annot-add-highlight-markup-annotation)
+              ("t"   . pdf-annot-add-text-annotation)
+              ("D"   . pdf-annot-delete))
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :config
   (progn
     (setq-default pdf-view-display-size 'fit-page)
     (setq pdf-annot-activate-created-annotations t)
     (setq pdf-view-resize-factor 1.1)
-  (add-hook 'org-mode-hook
-            (lambda ()
-              (add-to-list 'org-file-apps
-                           '("\\.pdf\\'" .
-                             (lambda (file link)
-                               (org-pdfview-open link))))
-              (add-to-list 'org-file-apps '("\\.docx?" . system))))))
+    (add-hook 'org-mode-hook
+              (lambda ()
+                (add-to-list 'org-file-apps
+                             '("\\.pdf\\'" .
+                               (lambda (file link)
+                                 (org-pdfview-open link))))))))
 #+END_SRC
 
 ** Org Mode Export
@@ -2587,15 +2589,19 @@ for exporting org-mode documents to various formats.
             (sep "latex-process-"))
         (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
 
-
     (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine)))
           org-pandoc-options-for-latex-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine))))
+
     (defun org-pandoc-pdf-engine-set (&optional process)
       (interactive)
       (let* ((process (or process (assoc (completing-read "Pandoc Process: " latex-process-list nil nil) latex-process-list)))
              (sym (substring-no-properties (car process))))
         (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,sym))
-              org-pandoc-options-for-latex-pdf `((pdf-engine . ,sym)))))))
+              org-pandoc-options-for-latex-pdf `((pdf-engine . ,sym)))))
+
+    ;; Docx
+    (when (symbolp 'org-file-apps)
+      (add-to-list 'org-file-apps '("\\.docx?\\'" . system)))))
 #+END_SRC
 
 *** Ox GFM
@@ -3881,7 +3887,21 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
                     (if-not (eq major-mode 'xwidget-webkit-mode)
                         (setq xwidget-webkit-bookmark-jump-new-session t)
                       (setq xwidget-webkit-bookmark-jump-new-session nil)
-                      (setq xwidget-webkit-last-session-buffer (current-buffer))))))))
+                      (setq xwidget-webkit-last-session-buffer (current-buffer)))))))
+  :config
+  (progn
+    ;; (when (symbolp 'org-file-apps)
+    ;;   (add-to-list 'org-file-apps '("\\.html'\\" . emacs)))
+    (defun xwidget-webkit-open-file (&optional file)
+      "Render FILE using xwidget-webkit"
+      (interactive "fFile: ")
+      (xwidget-webkit-browse-url (concat "file://"
+                                         (and (memq system-type '(windows-nt ms-dos)) "/")
+                                         (expand-file-name (or file (buffer-file-name))))))
+    (defun xwidget-webkit-open-file-at-point ()
+      (interactive)
+      (funcall #'xwidget-webkit-open-file))))
+
 #+END_SRC
 
 *** Set the default browser.
@@ -3940,15 +3960,27 @@ the user will be prompted to edit the search string first."
     (browse-url search)))
 #+END_SRC
 
-*** Choose browser when using Org-mode's =org-open-at-point=
+*** Search Web
+
+#+NAME: search-web-xwidget
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package search-web
+  :straight t
+  :bind (("C-c w" . search-web))
+  :init
+  (if (and (> emacs-major-version 26) (display-graphic-p))
+      (defun browse-url-default-browser (url &rest args)
+        "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS." 
+        (xwidget-webkit-browse-url url args))))
+#+END_SRC
+
+*** Advise =org-open-at-point=
 :PROPERTIES:
 :ID:       69b03145-629e-4593-ae4c-6cbd5404ff3e
 :CUSTOM_ID: org-open-at-point-browser
 :END:
 
-This function from [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][emacswiki.org]] advises =org-opt-at-point= to allow
-choosing different browsers. The original snippet uses =w3m=, I'm
-using =eww= as a matter of personal preference.
+This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-open-at-point= to allow choosing different browsers. 
 
 #+NAME: org-open-at-point-advise
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -3965,20 +3997,6 @@ using =eww= as a matter of personal preference.
                       (xwidget-webkit-browse-url url t)
                     (eww-browse-url url t)))))))
     ad-do-it))
-#+END_SRC
-
-*** Search Web
-
-#+NAME: search-web-xwidget
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package search-web
-  :straight t
-  :bind (("C-c w" . search-web))
-  :init
-  (if (and (> emacs-major-version 26) (display-graphic-p))
-      (defun browse-url-default-browser (url &rest args)
-        "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS." 
-        (xwidget-webkit-browse-url url args))))
 #+END_SRC
 
 *** Browse at remote
