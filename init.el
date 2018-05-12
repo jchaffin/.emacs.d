@@ -102,6 +102,33 @@
    :local-repo-name auctex))
 
 ;; Install org
+(defun org-git-version ()
+  (require 'git)
+  (let ((git-repo (expand-file-name
+                   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (git-run "describe"
+              "--match=release\*"
+              "--abbrev=6"
+              "HEAD"))))
+
+(defun org-release ()
+  "The release version of org-mode.
+  Inserted by installing org-mode or when a release is made."
+  (require 'git)
+  (let ((git-repo (expand-file-name
+                   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (string-remove-prefix
+        "release_"
+        (git-run "describe"
+                 "--match=release\*"
+                 "--abbrev=0"
+                 "HEAD")))))
+
+
+(provide 'org-version)
+
 (straight-use-package 'org-plus-contrib)
 
 ;; https://github.com/raxod502/straight.el/issues/72
@@ -113,34 +140,8 @@
    ("C-c c" . org-capture)
    ("C-c M-o" . org-store-link)
    (:map org-mode-map
-         ("C-c M-t" . org-set-tags)
+         ("C-c M-t" . org-set-tags-command)
          ("C-c C-x h" . org-toggle-link-display)))
-
-  :init
-  (defun org-git-version ()
-    (require 'git)
-    (let ((git-repo (expand-file-name
-                     "straight/repos/org/" user-emacs-directory)))
-      (string-trim
-       (git-run "describe"
-                "--match=release\*"
-                "--abbrev=6"
-                "HEAD"))))
-
-  (defun org-release ()
-    "The release version of org-mode.
-  Inserted by installing org-mode or when a release is made."
-    (require 'git)
-    (let ((git-repo (expand-file-name
-                     "straight/repos/org/" user-emacs-directory)))
-      (string-trim
-       (string-remove-prefix
-        "release_"
-        (git-run "describe"
-                 "--match=release\*"
-                 "--abbrev=0"
-                 "HEAD")))))
-   (provide 'org-version)
 
    :config
    (progn
@@ -149,8 +150,6 @@
              org-default-notes-file (concat org-directory "capture.org")))
      (setq org-insert-heading-respect-content t
            org-startup-indented t)))
-
-
 
 
 (defvar literate-config-file "chaffin.org"
