@@ -16,7 +16,7 @@
     - [[#constants][Constants]]
     - [[#macros][Macros]]
     - [[#functions][Functions]]
-    - [[#keybindings][Keybindings]]
+    - [[#extending-the-global-keymap][Extending the Global Keymap]]
     - [[#default-setup][Default Setup]]
     - [[#encryption][Encryption]]
     - [[#alias-yes-or-no][Alias Yes Or No]]
@@ -70,6 +70,8 @@
     - [[#initial-buffer][Initial Buffer]]
     - [[#initial-scratch][Initial Scratch]]
     - [[#initial-frame][Initial Frame]]
+  - [[#keybindings][Keybindings]]
+    - [[#hydra][Hydra]]
   - [[#window-manager][Window Manager]]
     - [[#window-resize][Window Resize]]
     - [[#popwin][Popwin]]
@@ -92,7 +94,7 @@
     - [[#code-library][Code Library]]
   - [[#minibuffer][Minibuffer]]
     - [[#prompt-properties][Prompt Properties]]
-    - [[#counsel-ivy][Counsel Ivy]]
+    - [[#ivy-counsel][Ivy (Counsel)]]
     - [[#smex][Smex]]
 - [[#terminal][Terminal]]
   - [[#with-editor][With Editor]]
@@ -515,7 +517,7 @@ interactive minibuffer completion menu using ivy.
   (define-key goto-map "r" #'goto-repo))
 #+END_SRC
 
-*** Keybindings
+*** Extending the Global Keymap
 **** Personal Keymap
 
 #+NAME: personal-global-keymap
@@ -591,10 +593,11 @@ As far as I know, there is no trackpad gesture to trigger the
 =<mouse-2>= event in Emacs. The following snippet uses
 [[help:key-translation-map][`key-translation-map']] to emulate the =<mouse-2>= event when clicking
 the trackpad (=<mouse-1>=) like normal while holding down Command, or
-"super", modifier key [fn:6].
+"super", modifier key 
 
 #+NAME: macos-mouse-2
 #+BEGIN_SRC emacs-lisp :tangle no
+;; From https://emacs.stackexchange.com/questions/20946/generate-mouse-2-event-from-macbook-trackpadTrackpage
 (when *is-mac*
   (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>")))
 #+END_SRC
@@ -633,7 +636,7 @@ contributing to the solution.
 
 **** Custom File
 
-By default, Emacs customizations[fn:7] done through the =customize=
+By default, Emacs customizations[fn:6] done through the =customize=
 interface write to =user-init-file=.
 
 While I usually prefer configuring emacs programmatically, settings
@@ -730,7 +733,7 @@ By default, decrypting gpg files in Emacs will result in the pin entry
 window being launched from the terminal session.
 
 By disabling the agent info, we can force Emacs to handle this
-internally[fn:8].
+internally[fn:7].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setenv "GPG_AGENT_INFO" nil)
@@ -803,7 +806,7 @@ The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] pa
 user environment variables from the shell.
 
 The ~exec-path-from-shell~ package only works with posix-compliant
-operating systems. This may or may not include Microsoft Windows[fn:9].
+operating systems. This may or may not include Microsoft Windows[fn:8].
 
 However, the ~exec-path-from-shell~ instructions recommends loading
 the package on linux and macOS operating system. I don't use Windows
@@ -854,28 +857,49 @@ external programs.
 
 #+NAME: macos-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-(when *is-mac*
-   (progn
-     <<macos-finder-config>>
-     <<macos-dash-config>>
-     <<macos-dev-utils>>
-     <<macos-dictionary>>
-     <<macos-trash>>))
+
+;; MacOS noweb block
+(progn
+  ;; macos computer name
+  <<macos-computer-name>>
+
+  ;; macos finder
+  <<macos-finder-config>>
+
+  ;; custom dash commands
+  <<macos-dash-config>>
+
+  ;; macos-dev-utils
+  <<macos-dev-utils>>
+
+  ;; osx-dictionary
+  <<macos-dictionary>>
+
+  ;; osx-trash
+  <<macos-trash>>
+
+  ;; osx-app
+  <<macos-counsel-osx-app>>
+) ;; End macOS noweb
+
 #+END_SRC
 
 **** MacOS Computer Name
 
-#+NAME: defvar-computer-name
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: macos-computer-name
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun chaffin/computer-name-cmd ()
   (let* ((has-scutil (executable-find "scutil"))
-	 (scutil-cmd (lambda () (shell-command-to-string "scutil --get ComputerName"))))
+	       (scutil-cmd (lambda () (shell-command-to-string "scutil --get ComputerName"))))
     (if has-scutil
-	(replace-regexp-in-string "\n" "" (funcall scutil-cmd))
+	      (replace-regexp-in-string "\n" "" (funcall scutil-cmd))
       nil)))
 
-(defvar computer-name (chaffin/computer-name-cmd))
+(defvar computer-name nil)
 (defconst *is-hal* (string= computer-name "hal"))
+
+(when *is-mac*
+  (setq computer-name (chaffin/computer-name-cmd))
 #+END_SRC
 
 **** MacOS Dev Utils
@@ -966,9 +990,11 @@ query it with the marked region or symbol at point.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
   :straight t
-  :demand t
-  :config
-  (define-key 'macos-keymap "f" #'reveal-in-osx-finder))
+  :if *is-mac*
+  :commands (reveal-in-osx-finder)
+  :init
+  (progn
+    (define-key 'macos-keymap "f" #'reveal-in-osx-finder)))
 #+END_SRC
 
 **** OSX Dictionary
@@ -1007,12 +1033,29 @@ running macOS.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package osx-trash
   :straight t
-  :if (not (boundp 'mac-system-move-file-to-trash-use-finder))
+  :if (and *is-mac* (not (boundp 'mac-system-move-file-to-trash-use-finder)))
   :init
-  (osx-trash-setup)
+  (progn
+    (osx-trash-setup))
   :config
-  (setq delete-by-moving-to-trash t))
+  (progn
+    (setq delete-by-moving-to-trash t)))
 #+END_SRC
+
+**** Counsel OSX App
+
+ #+NAME: macos-counsel-osx-app
+ #+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-osx-app
+  :straight t
+  :if *is-mac*
+  :after (:all ivy counsel)
+  :commands (counsel-osx-app)
+  :config
+  (progn
+    (define-key 'macos-keymap "a" 'counsel-osx-app)))
+
+ #+END_SRC
 
 * LaTeX and Org Mode
 ** LaTeX
@@ -1141,7 +1184,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 *** BibTex
 
 BibTeX mode is built-in with GNU Emacs. Like /super/ built-in. This is
-from the author of the online BibTeX mode manual[fn:10]:
+from the author of the online BibTeX mode manual[fn:9]:
 
 #+BEGIN_QUOTE
 I am not the author of this file and am only putting it online because, to my knowledge, it is not available anywhere else anymore and I find it a very valuable reference.  I haven't been able to find out who the current maintainer of the BibTex-Mode for GNU emacs is, but am willing to withdraw this text or add any copyright notice that would be deemed relevant.
@@ -1264,6 +1307,7 @@ Prettify dedicated org-mode latex buffers.
   :init
   (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
 #+END_SRC
+
 
 ** Org Mode
 
@@ -1917,9 +1961,9 @@ org agenda files.
           org-mru-completing-read #'ivy-completing-read)))
 #+END_SRC
 
-Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
+Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:10].
 
-*** Idea Management 
+*** Idea Management
 
 #+NAME: org-ideamgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -2012,7 +2056,8 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-ref
   :if *is-mac*
-  :after (:all ivy)
+  :after (ivy)
+  :demand t
   :straight t
   :init
   (progn
@@ -2030,6 +2075,7 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
     (require 'org-ref-pdf))
   :config
   (progn
+    (setq org-ref-completion-library 'org-ref-ivy-cite)
     
     (setq reftex-default-bibliography '("~/Dropbox/org/ref/references.bib"))
     
@@ -2038,7 +2084,7 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
           org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
           org-ref-show-citation-on-enter t
           org-ref-show-broken-links t)
-
+    
     ;; Org Ref Journal abbreviations
     (setq orbj-extra-abbrevs
       '(("JPS" "Journal of Palestinian Studies")
@@ -2125,7 +2171,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 
 ***** Org PDF View
 
-Now we can open pdf files with =org-pdfview= [fn:12]:
+Now we can open pdf files with =org-pdfview= [fn:11]:
 
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2635,6 +2681,7 @@ and subtrees of the ignored headlines will be retained.
   :bind (("M-m r p" . org-publish-project)))
 #+END_SRC
 
+
 * Customizing Emacs
 ** Search and Navigation
 *** The buffer
@@ -2744,7 +2791,7 @@ Adds extensions and functionality to dired mode.
 
 **** Neotree
 
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:12] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
  
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package neotree
@@ -2867,8 +2914,41 @@ so we'll leave it there.
 (scroll-bar-mode -1)
 (unless *is-mac*
   (menu-bar-mode -1))
+#+END_SRC
 
+**** Default Frame Appearance
+
+Starting in Emacs 26, the =default-frame-alist= variable can be used
+create a natural title bar in the GUI. Setting the default frame
+properties to the following values has the same effect as the
+'--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
+recommended for Spacemacs users on macOS[fn:13].
+
+#+BEGIN_SRC emacs-lisp :tangle yes
 (setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
+#+END_SRC
+
+** Keybindings 
+*** Hydra
+
+[[https://github.com/abo-abo/hydra/wiki/Emacs][Hydra]] is a package used to bind a family of related commands with a
+common prefix.
+
+#+NAME: hydra-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package hydra
+  :straight t
+  :demand t)
+#+END_SRC
+
+
+**** Ivy Hydra
+
+#+NAME: ivy-hydra-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ivy-hydra
+  :straight t
+  :after (:all ivy hydra
 #+END_SRC
 
 ** Window Manager
@@ -2895,7 +2975,6 @@ accessible for you [fn:14].
 (global-set-key (kbd "C-s-<down>") 'shrink-window)
 (global-set-key (kbd "C-s-<up>") 'enlarge-window)
 #+END_SRC
-
 
 *** Popwin
 
@@ -2958,7 +3037,6 @@ different window configurations.
          ("r" imagex-sticky-rotate-right "rotate right")
          ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
-
 
 ** User Interface
 
@@ -3232,8 +3310,9 @@ started from the terminal.
 
 *****  Atom One Dark Modifications
 
-Minor modifications to [[#atom-one-dark-theme][atom one dark theme]] color scheme, see footnote
-for source[fn:15].
+Minor modifications to [[#atom-one-dark-theme][atom one dark theme]]
+color scheme. The template is from the modification of monokai-theme
+in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][blogpost]].
 
 - Use default foreground color instead of highlight face for org-mode
   source lines.
@@ -3512,9 +3591,9 @@ snippets corresponding to the major mode of the current buffer mode.
 
 *** Prompt Properties
 
-Don't let the cursor go into the minibuffer prompt.[fn:16]
+Don't let the cursor go into the minibuffer prompt.
 
-From Xah Lee: [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html][emacs-stop-cursor-enter-prompt]]. 
+From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html][emacs-stop-cursor-enter-prompt]], found in the [[https://github.com/syl20bnr/spacemacs/blob/bd7ef98e4c35fd87538dd2a81356cc83f5fd02f3/layers/%2Bdistributions/spacemacs-base/config.el#L128-L131][config.el]] file of the spacemacs base layer.
 
 #+NAME: minibuffer-prompt
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3522,27 +3601,26 @@ From Xah Lee: [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html][
       '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
 #+END_SRC
 
-*** Counsel Ivy 
+*** Ivy (Counsel)
 
 **** Ivy
+
 #+NAME: ivy-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<ivy-base>>
-<<ivy-hydra-config>>
 <<ivy-historian-config>>
-<<ivy-bibtex-config>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
 as helm.
+
 It doesn't have the same kind of ecosystem or interopability,
 but its easy to configure, offers a minimalistic interface,
 and is every bit as good of a completion tool as helm is,
 if not better.
 
 I prefer the default regex matcher, but if you want fuzzy matching as
-a fallback or replacement checkout this article on [[https://oremacs.com/2016/01/06/ivy-flx/][better fuzzmatching
-support with ivy]].
+a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
 
 #+NAME: ivy-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
@@ -3556,47 +3634,23 @@ support with ivy]].
         '((t . ivy--regex-plus))))
 #+END_SRC
 
-***** Ivy Hydra
-
-#+NAME: ivy-hydra-config>>
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy-hydra
-  :straight t
-  :after (:all hydra ivy))
-#+END_SRC
 
 ***** Ivy Historian
 
-#+NAME: ivy-historian
-#+BEGIN_SRC emacs-lisp :tangle no :exports none :noweb yes
-<<historian-config>>
-<<ivy-historian-config>>
-#+END_SRC
+[[https://github.com/PythonNut/historian.el][Historian.el]] uses a persistent store of =completing-read= results
+and similar functions to provide completion candidates based on
+frequency of use[fn:15].
 
 #+NAME: ivy-historian-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy-historian
-  :after (:all historian ivy))
-#+END_SRC
-
-****** Historian
-
-#+NAME: historian-config
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
 (use-package historian
   :straight t)
+
+(use-package ivy-historian
+  :after (ivy)
+  :straight historian)
 #+END_SRC
 
-***** Ivy Bibtex
-
-Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org-ref-ivy][org-ref]] completion backend.
-
-#+NAME: ivy-bibtex-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'ivy 
-  (setq org-ref-completion-library 'org-ref-ivy-cite)
-  (require 'org-ref))
-#+END_SRC
 
 **** Counsel
 
@@ -3633,14 +3687,7 @@ Use ivy as the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#org
 
 ***** Counsel OSX App
 
- #+NAME: counsel-osx-app-config
- #+BEGIN_SRC emacs-lisp :tangle no
-(use-package counsel-osx-app
-  :if *is-mac*
-  :after (ivy)
-  :straight t
-  :bind (("C-c o a" . counsel-osx-app)))
- #+END_SRC
+
 
 ***** Counsel iTunes
 
@@ -4006,9 +4053,6 @@ using =eww= as a matter of personal preference.
                                                     "(650)-380-3288\n"))))))))
 #+END_SRC
 
-
-
-
 * Prose
 
 #+NAME: prose-config
@@ -4037,7 +4081,7 @@ using =eww= as a matter of personal preference.
 <<sc-langtool>>
 #+END_SRC
 
-Tools for checking lexical and grammatical errors in text buffers[fn:17].
+Tools for checking lexical and grammatical errors in text buffers[fn:16].
 
 *** Flyspell
 
@@ -4106,7 +4150,7 @@ checking for natural language.
 
 The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
 dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:18].
+whistles, it makes up for in compatibility and hackability [fn:17].
 
 #+NAME: completion-dictionary-el
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4326,7 +4370,7 @@ Colors the modeline according to current Flycheck state of buffer.
 ** Reading and viewing code
 *** Indentation
 
-Tabs are the bane of humanity[fn:19]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:18]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -6395,8 +6439,8 @@ and slim-mode using company.
 
 * Footnotes
 
-[fn:1]  "Next-generation, purely
-functional package manager for the Emacs hacker."
+[fn:1]  "Next-generation, purely functional package manager for the
+Emacs hacker."
 
 [fn:2] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
 
@@ -6408,38 +6452,37 @@ dialects of Lisp.
 
 [fn:4] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
 
-[fn:5] [[https://www.emacswiki.org/emacs/EmacsForMacOS][EmacsForMacOS]]
+[fn:5] [[https://www.emacswiki.org/emacs/EmacsForMacOS][Emacs Wiki - Emacs For MacOS]]
 
-[fn:6] https://emacs.stackexchange.com/questions/20946/generate-mouse-2-event-from-macbook-trackpad
+[fn:6] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
 
-[fn:7] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
+[fn:7] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
 
-[fn:8] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
+[fn:8] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
 
-[fn:9] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
+[fn:9] http://www.jonathanleroux.org/bibtex-mode.html
 
-[fn:10] http://www.jonathanleroux.org/bibtex-mode.html
+[fn:10] http://mbork.pl/2018-04-28_org-mru-clock
 
-[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
+[fn:11] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:12] See [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
+[fn:13] [[https://github.com/d12frosted/homebrew-emacs-plus][d12frosted/homebrew-emacs-plus]]
 
-[fn:13] https://www.emacswiki.org/emacs/NeoTree
+[fn:12] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
 
-[fn:14] https://www.emacswiki.org/emacs/WindowResize
+[fn:14] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
 
-[fn:15] [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][fgiasson.com - My Optimal Gnu Emacs Settings for Developing
-Clojure Revised]]
+[fn:15] =ivy-historian= is provided by the =historian= package.
 
-[fn:16] From spacemacs base layer: [[https://github.com/syl20bnr/spacemacs/blob/bd7ef98e4c35fd87538dd2a81356cc83f5fd02f3/layers/%2Bdistributions/spacemacs-base/config.el#L128-L131][spacemacs-base/config.el]]
+[fn:16] https://joelkuiper.eu/spellcheck_emacs
 
-[fn:17] https://joelkuiper.eu/spellcheck_emacs
+[fn:17] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
 
-[fn:18] http://ergoemacs.org/emacs/dictionary_lookup.html
+[fn:18] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
-[fn:19] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
+[fn:19] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
 
-[fn:20] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+
 
 
 
