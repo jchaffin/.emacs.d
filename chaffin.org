@@ -2964,6 +2964,7 @@ recommended for Spacemacs users on macOS[fn:13].
 (setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
 #+END_SRC
 
+
 ** Keybindings 
 *** Hydra
 
@@ -2973,18 +2974,17 @@ common prefix.
 #+NAME: hydra-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package hydra
-  :straight t
-  :demand t)
+  :straight t)
 #+END_SRC
-
 
 **** Ivy Hydra
 
 #+NAME: ivy-hydra-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package ivy-hydra
   :straight t
-  :after (:all ivy hydra
+  :after (:all ivy hydra)
+  :demand t)
 #+END_SRC
 
 ** Window Manager
