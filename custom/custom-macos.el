@@ -4,8 +4,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(bibtex-BibTeX-entry-alist
-   (quote
-    (("Online" "Online Resource"
+   '(("Online" "Online Resource"
       (("title")
        ("url")
        ("urldate"))
@@ -158,33 +157,52 @@
        ("howpublished" "The way in which the work was published")
        ("month")
        ("year")
-       ("note"))))))
+       ("note")))))
  '(bibtex-autokey-name-year-separator "-")
  '(bibtex-autokey-titleword-separator "-")
  '(bibtex-autokey-titlewords 2)
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
  '(safe-local-variable-values
-   (quote
-    ((org-hide-emphasis-markers)
+   '((eval when
+           (and
+            (buffer-file-name)
+            (file-regular-p
+             (buffer-file-name))
+            (string-match-p "^[^.]"
+                            (buffer-file-name)))
+           (unless
+               (featurep 'package-build)
+             (let
+                 ((load-path
+                   (cons "../package-build" load-path)))
+               (require 'package-build)))
+           (package-build-minor-mode)
+           (set
+            (make-local-variable 'package-build-working-dir)
+            (expand-file-name "../working/"))
+           (set
+            (make-local-variable 'package-build-archive-dir)
+            (expand-file-name "../packages/"))
+           (set
+            (make-local-variable 'package-build-recipes-dir)
+            default-directory))
+     (org-hide-emphasis-markers)
      (bug-reference-bug-regexp . "#\\(?2:[[:digit:]]+\\)")
      (mangle-whitespace . t)
      (org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib")
      (eval sh-set-shell "zsh")
-     (eval bibtex-set-dialect
-           (quote biblatex))
+     (eval bibtex-set-dialect 'biblatex)
      (bibtex-file-path . "~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (bibtex-file-path . " ~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
      (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/pdfs/")
      (org-ref-default-bibliography . "/Users/jacobchaffin/Dropbox/Documents/Courses/LING_120B/bib/ling120b.bib")
      (org-ref-default-bibliography concat default-directory "bib/ling120b.bib")
-     (eval c-set-offset
-           (quote innamespace)
-           0)
+     (eval c-set-offset 'innamespace 0)
      (org-image-actual-width)
      (cider-cljs-lein-repl . "(do (user/go) (user/cljs-repl))")
      (cider-refresh-after-fn . "reloaded.repl/resume")
-     (cider-refresh-before-fn . "reloaded.repl/suspend")))))
+     (cider-refresh-before-fn . "reloaded.repl/suspend"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

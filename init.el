@@ -47,7 +47,6 @@
 
 ;; Bootstrap straight.el from develop branch
 ;; https://github.com/raxod502/straight.el#getting-started
-
 (setq straight-repository-branch "develop")
 (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
       (bootstrap-version 2))
@@ -60,11 +59,21 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(straight-use-package 'el-patch)
+;; The `straight-use-package' command fails when called interactively on the develop branch.
+;; This is because gnu-elpa repository support isn't yet stable. For now, I'm bypassing
+;; this issue by creating the directory if it does not exist when `straight-recipes-gnu-elpa-list'
+;; is invoked.
+(defadvice straight-recipes-gnu-elpa-list (around straight-recipe-gnu-elpa-list-around activate)
+  (let* ((elpa-repo-dir (expand-file-name "straight/repos/elpa/" user-emacs-directory))
+         (elpa-pkg-dir (expand-file-name "packages/" elpa-repo-dir)))
+    (unless (file-exists-p elpa-pkg-dir)
+      (if (file-exists-p elpa-repo-dir)
+          (mkdir elpa-pkg-dir)))
+    ad-do-it))
+
 ;; Clone use-package dependencies
 (straight-use-package 'diminish)
 (straight-use-package 'bind-key)
-
 ;; Now clone the `use-package' library
 (straight-use-package 'use-package)
 ;; Use straight integration of `use-package'
@@ -99,9 +108,11 @@
  `(auctex
    :host github
    :repo "jchaffin/auctex"
-   :local-repo-name auctex))
+   :files (:defaults (:exclude "doc/*.texi"))))
 
 ;; Install org
+;; https://github.com/raxod502/straight.el/tree/develop#installing-org-with-straightel
+;; https://github.com/raxod502/radian/blob/master/radian-emacs/radian-org.el#L56-L92
 (defun org-git-version ()
   (require 'git)
   (let ((git-repo (expand-file-name

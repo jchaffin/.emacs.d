@@ -30,6 +30,7 @@
 - [[#latex-and-org-mode][LaTeX and Org Mode]]
   - [[#latex][LaTeX]]
     - [[#tex][Tex]]
+    - [[#tex-site][Tex site]]
     - [[#reftex][RefTeX]]
     - [[#bibtex][BibTex]]
     - [[#latex-extra][LaTeX Extra]]
@@ -112,6 +113,7 @@
     - [[#search-web][Search Web]]
     - [[#advise-org-open-at-point][Advise =org-open-at-point=]]
     - [[#browse-at-remote][Browse at remote]]
+    - [[#set-default-browser][Set default browser]]
   - [[#email][Email]]
     - [[#mu][Mu]]
 - [[#prose][Prose]]
@@ -222,7 +224,7 @@ Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/a
 [[/resources/img/documentation-is-for-wimps.png]]
 
 It took me a while to figure out how straight works and to
-conceptualize  the way it loads packages  - primarily because
+conceptualize the way it loads packages  - primarily because
 documentation is also for people who understand things - but now that
 I've gotten through the substantial learning curve (made substantially
 harder due to my misconception regrading the value of reading
@@ -230,6 +232,7 @@ documentation), I've come to find it reduces a lot of the weirdness
 of the Emacs loading process and increases the rapidity (shall I say
 agility? no..) with which I comprehend the way third-party packages are
 implemented and modify them as I deem necessary.
+
 
 ** User Information
 
@@ -1070,7 +1073,11 @@ loaded if the =latex= symbol is an element in the
 
 #+NAME: latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Tex
 <<latex-tex>>
+
+;; Tex Site
+
 
 ;; Reftex
 <<latex-reftex>>
@@ -1104,6 +1111,7 @@ Note that LaTeX packages are loaded, configured, and installed when
 ='latex= is a member of =org-export-enabled-backends=.
 
 *** Tex
+
 #+NAME: latex-tex
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
   (use-package tex
@@ -1163,6 +1171,14 @@ Note that LaTeX packages are loaded, configured, and installed when
       (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
       (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
       (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
+#+END_SRC
+
+*** Tex site
+
+#+NAME: latex-tex-site
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package tex-site
+  :straight auctex)
 #+END_SRC
 
 *** RefTeX
@@ -2290,6 +2306,7 @@ Now we can open pdf files with =org-pdfview= [fn:11]:
 
 #+END_SRC
 
+
 *** Enable Backends
 :PROPERTIES:
 :ID:       59AEA962-792E-4AB7-ACDE-3EC61C45D279
@@ -2421,6 +2438,22 @@ through [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org][org-ref]]
 (add-to-list 'org-latex-default-packages-alist '("" "natbib" "") t)
 #+END_SRC
 
+**** Async Export
+
+Open exported document in new window on save.
+
+#+NAME: org-export-latex-async
+#+BEGIN_SRC emacs-lisp :tangle no
+;; https://github.com/jkitchin/scimax/issues/30#issuecomment-271198016
+(add-hook 'after-save-hook 
+          (lambda ()
+            (org-latex-export-to-pdf 't)
+            (find-file-other-window
+             (concat (file-name-base (buffer-file-name))
+                     ".pdf")
+             nil t)))
+#+END_SRC
+
 **** Hyperref Template
 
 The default cross-referencing and hyperlink styles provided by
@@ -2540,7 +2573,6 @@ My custom mla-style LaTeX class.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-
 **** Filter Section Numbering by tag
 
 - [[http://bastibe.de/2014-12-03-org-numbering.html][Org Numbering]]
@@ -2577,7 +2609,6 @@ My custom mla-style LaTeX class.
       '(headline-numbering-filter
         section-title-filter))
 #+END_SRC
-
 
 *** Ox Bibtex
 
@@ -2925,16 +2956,23 @@ list that one may use in the wacky world of Emacs.
 
 #+END_SRC
 
+**** Fireplace
+
+Just for the hell of it.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package fireplace
+  :straight t)
+#+END_SRC
+
 *** Initial Scratch
 
 #+NAME: startup-initial-scratch
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq initial-scratch-message nil
       inhibit-startup-message t
-      ;; inhibit-startup-echo-area-message t
-      ;; inhibit-startup-screen t
-      )
-#+END_SRC
+      inhibit-startup-echo-area-message t)
+  #+END_SRC
 
 *** Initial Frame
 
@@ -3921,8 +3959,6 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
                       (setq xwidget-webkit-last-session-buffer (current-buffer)))))))
   :config
   (progn
-    ;; (when (symbolp 'org-file-apps)
-    ;;   (add-to-list 'org-file-apps '("\\.html'\\" . emacs)))
     (defun xwidget-webkit-open-file (&optional file)
       "Render FILE using xwidget-webkit"
       (interactive "fFile: ")
@@ -3998,11 +4034,13 @@ the user will be prompted to edit the search string first."
 (use-package search-web
   :straight t
   :bind (("C-c w" . search-web))
-  :init
-  (if (and (> emacs-major-version 26) (display-graphic-p))
-      (defun browse-url-default-browser (url &rest args)
-        "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS." 
-        (xwidget-webkit-browse-url url args))))
+  ;; :init
+  ;; (progn
+  ;;   (if (and (> emacs-major-version 26) (display-graphic-p))
+  ;;       (defun browse-url-default-browser (url &rest args)
+  ;;         "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS." 
+  ;;         (xwidget-webkit-browse-url url args))))
+  )
 #+END_SRC
 
 *** Advise =org-open-at-point=
@@ -4034,7 +4072,38 @@ This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package browse-at-remote
-  :straight t)
+  :straight t
+  :init
+  (progn
+    (if *is-mac*
+        (when (fboundp 'osx-browse-url-chrome)
+          (setq browse-url-browser-function 'osx-browse-url-chrome)))))
+#+END_SRC
+
+*** Set default browser 
+
+Interactively.
+
+#+NAME: browse-set-default-browser
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar browse-url-browser-alist
+      '(("chrome" . browse-url-chrome)
+        ("firefox" . browse-url-firefox)
+        ("eww" . eww-browse-url)
+        ("xwidget-webkit" . xwidget-webkit-browse-url)))
+
+(if *is-mac*
+    (progn 
+      (setf (cdr (assoc "chrome" browse-url-browser-alist)) #'osx-browse-url-chrome)
+      (setf (cdr (assoc "firefox" browse-url-browser-alist)) #'osx-browse-url-firefox)
+      (add-to-list 'browse-url-browser-alist '("safari" . osx-browse-url-safari))))
+
+
+(defun chaffin-set-browser-function ()
+  (interactive)
+  (let ((browser (assoc (completing-read "Browser: " browse-url-browser-alist)
+                        browse-url-browser-alist)))
+    (setq browse-url-browser-function (cdr browser) )))
 #+END_SRC
 
 ** Email
@@ -6541,8 +6610,4 @@ dialects of Lisp.
 [fn:18] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
 [fn:19] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
-
-
-
-
 
