@@ -85,8 +85,6 @@
 
 (setq use-package-always-defer t)
 
-(straight-use-package 'cl)
-(straight-use-package 'dash)
 (straight-use-package 'git)
 
 (eval-when-compile

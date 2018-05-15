@@ -143,6 +143,7 @@
   - [[#reading-and-viewing-code][Reading and viewing code]]
     - [[#indentation][Indentation]]
     - [[#symbol-highlighting][Symbol Highlighting]]
+    - [[#code-folding][Code Folding]]
   - [[#code-completion][Code Completion]]
     - [[#pair-matching][Pair Matching]]
     - [[#gtags][Gtags]]
@@ -233,7 +234,6 @@ documentation), I've come to find it reduces a lot of the weirdness
 of the Emacs loading process and increases the rapidity (shall I say
 agility? no..) with which I comprehend the way third-party packages are
 implemented and modify them as I deem necessary.
-
 
 ** User Information
 
@@ -371,10 +371,10 @@ Clojure-like =if-not= macro in elisp.
 See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#7398216]]
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-  (defun add-to-hooks (fun hooks)
-    "Add function to hooks"
-    (dolist (hook hooks)
-      (add-hook hook fun)))
+(defun add-to-hooks (fun hooks)
+  "Add function to hooks"
+  (dolist (hook hooks)
+    (add-hook hook fun)))
 #+END_SRC
 
 **** Join Strings with Separator
@@ -4546,6 +4546,21 @@ the absence of a window system. I'll check for the latter for now.
   (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
 
+*** Code Folding
+**** Origami.el
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package origami
+  :straight t
+  :after (:all dash s)
+  :bind ((:map origami-mode-map
+               ([C-tab] . origami-toggle-node)))
+  :demand t
+  :init
+  (progn
+    (global-origami-mode t)))
+#+END_SRC
+
 ** Code Completion
 *** Pair Matching
 **** Paredit
@@ -5687,6 +5702,37 @@ CIDER eldoc information.
       (highlight-symbol-mode 1)
       (when *is-mac*
         (setq-local dash-plugin-keywords '("elisp")))))
+#+END_SRC
+
+**** CL Bindings
+
+***** =cl-lib=
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package cl-lib
+  :straight t)
+#+END_SRC
+
+***** =cl-lib-highlight= 
+
+#+BEGIN_SRC emacs-lisp :tangle yes 
+(use-package cl-lib-highlight
+  :after (cl-lib)
+  :straight t)
+#+END_SRC
+
+**** Dash 
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package dash
+  :straight t)
+#+END_SRC
+
+**** String manipulation library
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package s
+  :straight t)
 #+END_SRC
 
 *** Groovy
