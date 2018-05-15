@@ -87,6 +87,7 @@
     - [[#theme][Theme]]
     - [[#all-the-icons][All The Icons]]
     - [[#scrolling][Scrolling]]
+    - [[#redisplay][Redisplay]]
     - [[#emojis][Emojis]]
 - [[#completion][Completion]]
   - [[#company][Company]]
@@ -1542,7 +1543,8 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
   
   (apply orig-func args))
 
-(advice-add 'org-create-formula-image :around #'org-renumber-environment)
+;; (advice-add 'org-create-formula-image :around #'org-renumber-environment)
+
 #+END_SRC
 
 **** Org radiobutton
@@ -2150,24 +2152,24 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 
 #+NAME: org-ref-vref
 #+BEGIN_SRC emacs-lisp :tangle no
-(eval-and-compile
+(defun org-ref-vref-export (keyword desc format)
+  "An export function for vref links."
+  (cond
+   ((eq format 'html)
+    (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
+   ((eq format 'latex) (format "\\vref{%s}" keyword))))
 
-  (defun org-ref-vref-export (keyword desc format)
-    "An export function for vref links."
-    (cond
-     ((eq format 'html)
-      (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
-     ((eq format 'latex) (format "\\vref{%s}" keyword))))
 
-  (org-ref-link-set-parameters "vref"
-    :follow #'org-ref-ref-follow
-    :export #'org-ref-vref-export
-    :complete #'org-ref-complete-link
-    :face 'org-ref-ref-face-fn
-    :help-echo #'org-ref-ref-help-echo)
+(org-ref-link-set-parameters "vref"
+   :follow #'org-ref-ref-follow
+   :export #'org-ref-vref-export
+   :complete #'org-ref-complete-link
+   :face 'org-ref-ref-face-fn
+   :help-echo #'org-ref-ref-help-echo)
 
-  (setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
-                            "autoref" "cref" "Cref" "vref")))
+(setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+                          "autoref" "cref" "Cref" "vref"))
+
 #+END_SRC
 
 **** Open Pdf at point
@@ -2971,7 +2973,9 @@ Just for the hell of it.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq initial-scratch-message nil
       inhibit-startup-message t
-      inhibit-startup-echo-area-message t)
+      inhibit-startup-echo-area-message t
+      inhibit-startup-screen t)
+
   #+END_SRC
 
 *** Initial Frame
@@ -3001,7 +3005,6 @@ recommended for Spacemacs users on macOS[fn:13].
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
 #+END_SRC
-
 
 ** Keybindings 
 *** Hydra
@@ -3508,6 +3511,12 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
         scroll-conservatively 101))
 #+END_SRC
 
+*** Redisplay
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq redisplay-dont-pause t)
+#+END_SRC
+
 *** Emojis
 
 #+NAME: emojify-mode-config
@@ -3950,6 +3959,9 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
   :if (> emacs-major-version 26)
   :init
   (progn
+    (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
+    (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
+    (require 'bookmark)
     (add-hook 'pre-command-hook
               (lambda ()
                 (if (eq this-command #'bookmark-bmenu-list)
@@ -4085,7 +4097,7 @@ This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-
 Interactively.
 
 #+NAME: browse-set-default-browser
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (defvar browse-url-browser-alist
       '(("chrome" . browse-url-chrome)
         ("firefox" . browse-url-firefox)
@@ -5992,8 +6004,9 @@ local file system.
 (use-package tern
   :if (executable-find "tern")
   :straight t
-  :after (js2-mode)
-  :init (add-hook 'js2-mode-hook 'tern-mode))
+  :init 
+  (progn
+    (add-hook 'js2-mode-hook 'tern-mode)))
 #+END_SRC
 
 ***** Company Tern
@@ -6003,11 +6016,12 @@ local file system.
 #+NAME: js-company-tern
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-tern
-  :demand t
-  :after (:all tern company)
   :straight t
+  :after (:all tern company)
+  :demand t
   :init
-  (add-to-list 'company-backends 'company-tern)
+  (progn
+    (add-to-list 'company-backends 'company-tern))
   :config
   (progn
     (setq company-tern-property-marker nil
@@ -6067,7 +6081,7 @@ local file system.
   :mode ("\\.coffee\\'" . coffee-mode))
 #+END_SRC
 
-**** Add Node Modules Path ([[https://github.com/codesuki/add-node-modules-path][repository]])
+**** Add Node Modules Path 
 
 #+NAME: js-add-node-modules-path
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6078,16 +6092,25 @@ local file system.
   (add-hook 'js2-mode-hook #'add-node-modules-path))
 #+END_SRC
 
-**** Npm Mode
+**** NPM Mode
 
 
 #+NAME: js-npm-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
   :straight t
-  :config
+  :init
+  (progn
   (add-hook 'js2-mode-hook 'npm-mode)
-  (add-hook 'json-mode-hook 'npm-mode))
+  (add-hook 'json-mode-hook 'npm-mode)))
+#+END_SRC
+
+**** Yarn mode
+
+#+NAME: js-yarn-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package yarn-mode
+  :straight t)
 #+END_SRC
 
 **** NVM

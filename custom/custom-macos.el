@@ -163,6 +163,8 @@
  '(bibtex-autokey-titlewords 2)
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
+ '(org-agenda-files
+   '("~/Dropbox/org/todos/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org"))
  '(safe-local-variable-values
    '((eval when
            (and
