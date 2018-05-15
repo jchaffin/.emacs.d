@@ -81,8 +81,7 @@
       ;; And enable by default.
       straight-use-package-by-default t
       ;; pseudo packages
-      straight-built-in-pseudo-packages '(emacs winner-mode
-                                                artist-mode browse-url xwidget popup-el))
+      straight-built-in-pseudo-packages '(emacs))
 
 (setq use-package-always-defer t)
 
