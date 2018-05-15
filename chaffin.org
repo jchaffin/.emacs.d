@@ -1874,7 +1874,7 @@ miscellaneous or arbitrary tasks.
 
 #+NAME: org-agenda-global-todos
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-agenda-files '("~/Dropbox/org/todos/TODOs.org"))
+(setq org-agenda-files '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org"))
 #+END_SRC
 
 ***** Diary
