@@ -1198,7 +1198,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
         reftex-use-fonts t
         reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
 
-(add-hook 'LaTeX-mode-hook 'chaffin-latex-reftex-hook)
+(add-hook 'LaTeX-mode-hook 'chaffin--latex-reftex-hook)
 #+END_SRC
 
 *** BibTex
