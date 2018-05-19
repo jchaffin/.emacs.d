@@ -284,7 +284,6 @@ interactive minibuffer completion menu using ivy.
   (define-key #'chaffin-keymap "g" #'straight-browse-at-github))
 #+END_SRC
 
-
 ** User Information
 
 These values are initialized with the ’name’ and ’email’
@@ -307,7 +306,7 @@ directory.
 #+END_SRC
 
 ** Core
-*** Constants                                                      :ignore:
+*** Constants
 
 Variables used throughout this file[fn:3]:
 
@@ -317,7 +316,6 @@ Variables used throughout this file[fn:3]:
 (defconst *is-linux* (eq system-type 'linux))
 (defconst *is-windows* (eq system-type 'windows))
 (defconst *is-lnxsrv* (string-prefix-p "lnxsrv" system-name))
-#+END_SRC
 #+END_SRC
 
 *** Macros
@@ -385,7 +383,7 @@ Clojure-like =if-not= macro in elisp.
 
 #+NAME: chaffin-reload-init
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun chaffin-reload-init ()
+(defun straight-reload-init ()
   "Reload init.el"
   (interactive)
   (straight-transaction
@@ -393,13 +391,12 @@ Clojure-like =if-not= macro in elisp.
     (message "Reloading initialization file...")
     (load user-init-file nil 'nomessage)
     (message "Reloading initialization file...done.")))
-
 #+END_SRC
 
 **** Eval Buffer using =straight.el= transaction system.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun chaffin-eval-buffer ()
+(defun straight-eval-buffer ()
   "Evaluate current buffer using the `straight'
    transaction system."
   (interactive)
@@ -550,7 +547,6 @@ buffer.
 
 #+END_SRC
 
-
 *** Extending the Global Keymap
 **** Personal Keymap
 
@@ -567,8 +563,8 @@ buffer.
 ;; Make `chaffin-reload-eval-keymap'
 (define-prefix-command 'reload-eval-keymap)
 (define-key 'chaffin-keymap "r" 'reload-eval-keymap)
-(define-key 'reload-eval-keymap "i"  #'chaffin-reload-init)
-(define-key 'reload-eval-keymap "b"  #'chaffin-eval-buffer)
+(define-key 'reload-eval-keymap "i"  #'straight-reload-init)
+(define-key 'reload-eval-keymap "b"  #'straight-eval-buffer)
 (define-key 'reload-eval-keymap "r"  #'eval-region)
 (define-key 'reload-eval-keymap "f"  #'eval-defun)
 #+END_SRC
@@ -2947,6 +2943,12 @@ Adds extensions and functionality to dired mode.
   :straight t)
 #+END_SRC
 
+**** grep+
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package grep+
+  :straight t)
+#+END_SRC
 
 ** Startup
 *** Initial Buffer
