@@ -2839,6 +2839,14 @@ interactive tree .
   :straight t)
 #+END_SRC
 
+**** ag
+
+#+NAME: ag-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package ag
+  :straight t)
+#+END_SRC
+
 *** The file system
 **** Dired
 ***** Asynchronous Processing

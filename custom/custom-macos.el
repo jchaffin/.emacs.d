@@ -166,7 +166,8 @@
  '(org-agenda-files
    '("~/Dropbox/org/todos/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org"))
  '(safe-local-variable-values
-   '((eval when
+   '((nameless-current-name . "configuration-layer")
+     (eval when
            (and
             (buffer-file-name)
             (file-regular-p
