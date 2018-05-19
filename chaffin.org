@@ -65,8 +65,8 @@
 - [[#customizing-emacs][Customizing Emacs]]
   - [[#search-and-navigation][Search and Navigation]]
     - [[#the-buffer][The buffer]]
-    - [[#the-file-system][The file system]]
     - [[#the-project][The project]]
+    - [[#the-file-system][The file system]]
   - [[#startup][Startup]]
     - [[#initial-buffer][Initial Buffer]]
     - [[#initial-scratch][Initial Scratch]]
@@ -89,6 +89,9 @@
     - [[#scrolling][Scrolling]]
     - [[#redisplay][Redisplay]]
     - [[#emojis][Emojis]]
+  - [[#multimedia][Multimedia]]
+    - [[#emms][emms]]
+    - [[#soundcloud][soundcloud]]
 - [[#completion][Completion]]
   - [[#company][Company]]
   - [[#snippets][Snippets]]
@@ -515,7 +518,8 @@ interactive minibuffer completion menu using ivy.
        "Go to Package Directory: "
        (directory-files repo-dir)
        :action (lambda (package)
-                 (let ((default-directory (concat  (file-name-as-directory repo-dir) package)))
+                 (let ((default-directory
+                         (concat (file-name-as-directory repo-dir) package)))
                    (dired default-directory))))))
   ;; Add to goto-* keymap
   (define-key goto-map "r" #'goto-repo))
@@ -2775,6 +2779,66 @@ interactive tree .
   (global-undo-tree-mode))
 #+END_SRC
 
+*** The project
+**** Projectile
+
+#+NAME: projectile-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package projectile
+  :straight t
+  :init
+  (projectile-mode)
+  :config
+  (progn
+    (mapcar
+     (lambda (elt)
+       (add-to-list 'projectile-globally-ignored-directories elt))
+     '("gradle" "target" ".meghanada" ".gradle" "build" "bin"))))
+#+END_SRC
+
+**** Neotree
+
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:12] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+ 
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package neotree
+  :straight t
+  :after (projectile)
+  :demand t
+  :commands (neotree-project-dir)
+  :bind
+  (([f8] . neotree-project-dir))
+  :init
+  (progn
+    (setq neo-theme
+          (if (display-graphic-p)
+              'icons 'arrow)))
+  :config
+  (progn
+    ;; @source https://www.emacswiki.org/emacs/NeoTree
+    (defun neotree-project-dir ()
+      "Open NeoTree using the git root"
+      (interactive)
+      (let ((project-dir (projectile-project-root))
+            (file-name (buffer-file-name)))
+        (neotree-toggle)
+        (if project-dir
+            (if (neo-global--window-exists-p)
+                 (progn
+                   (neotree-dir project-dir)
+                   (neotree-find file-name)))
+          (message "Project root not found."))))))
+#+END_SRC
+
+**** ack
+
+#+NAME: ack-config
+#+BEGIN_SRC emacs-lisp :tangle yes 
+(use-package ack
+  :if (executable-find "ack")
+  :straight t)
+#+END_SRC
+
 *** The file system
 **** Dired
 ***** Asynchronous Processing
@@ -2841,63 +2905,10 @@ Adds extensions and functionality to dired mode.
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
-*** The project
-**** Projectile
+**** Treemacs
 
-#+NAME: projectile-config
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package projectile
-  :straight t
-  :init
-  (projectile-mode)
-  :config
-  (progn
-    (mapcar
-     (lambda (elt)
-       (add-to-list 'projectile-globally-ignored-directories elt))
-     '("gradle" "target" ".meghanada" ".gradle" "build" "bin"))))
-#+END_SRC
-
-**** Neotree
-
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:12] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
- 
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package neotree
-  :straight t
-  :after (projectile)
-  :demand t
-  :commands (neotree-project-dir)
-  :bind
-  (([f8] . neotree-project-dir))
-  :init
-  (progn
-    (setq neo-theme
-          (if (display-graphic-p)
-              'icons 'arrow)))
-  :config
-  (progn
-    ;; @source https://www.emacswiki.org/emacs/NeoTree
-    (defun neotree-project-dir ()
-      "Open NeoTree using the git root"
-      (interactive)
-      (let ((project-dir (projectile-project-root))
-            (file-name (buffer-file-name)))
-        (neotree-toggle)
-        (if project-dir
-            (if (neo-global--window-exists-p)
-                 (progn
-                   (neotree-dir project-dir)
-                   (neotree-find file-name)))
-          (message "Project root not found."))))))
-#+END_SRC
-
-**** ack
-
-#+NAME: ack-config
-#+BEGIN_SRC emacs-lisp :tangle yes 
-(use-package ack
-  :if (executable-find "ack")
+(use-package treemacs
   :straight t)
 #+END_SRC
 
@@ -3531,6 +3542,36 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
       (add-hook 'magit-status-mode-hook 'emojify-mode-hook)))
 #+END_SRC
 
+** Multimedia
+*** emms
+
+#+NAME: emms-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package emms
+  :straight t
+  :demand t
+  :init
+  (progn
+    (require 'emms-setup)
+    (emms-all)
+    (emms-default-players))
+  :config
+  (progn
+    ;; add flv and ogv
+    (define-emms-simple-player mplayer '(file url)
+      (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg" ".mpeg" ".wmv" ".wma"
+                    ".mov" ".avi" ".divx" ".ogm" ".asf" ".mkv" "http://" "mms://"
+                    ".rm" ".rmvb" ".mp4" ".flac" ".vob" ".m4a" ".flv" ".ogv" ".pls"))
+      "mplayer" "-slave" "-quiet" "-really-quiet" "-fullscreen")))
+#+END_SRC
+
+*** soundcloud
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package soundcloud
+  :straight t)
+#+END_SRC
+
 * Completion
 ** Company
 
@@ -3623,7 +3664,16 @@ directory to the list of directories where YASnippet should look for snippets.
 (use-package yasnippet
   :straight t
   :init
-  (yas-global-mode 1))
+  (yas-global-mode 1)
+  :config
+  (progn
+    (defun goto-snippet-dir ()
+      (interactive)
+      (let ((default-directory
+              (expand-file-name "snippets" user-emacs-directory)))
+        (dired default-directory)))
+    (define-key goto-map "s" #'goto-snippet-dir)))
+
 #+END_SRC
 
 YASnippet can also be used as a non-global minor mode on a per-buffer
@@ -3685,7 +3735,6 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 #+END_SRC
 
 *** Ivy (Counsel)
-
 **** Ivy
 
 #+NAME: ivy-config
@@ -3733,7 +3782,6 @@ frequency of use[fn:15].
   :after (ivy)
   :straight historian)
 #+END_SRC
-
 
 **** Counsel
 
@@ -3951,9 +3999,12 @@ Connect Remotely.
 ** Browsing
 *** Webkit xwidget
 
+
+**** nsxwidget
+
 See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webkit][veshboo/emacs]].
 
-#+NAME: browse-webkit-xwidget
+#+NAME: nsxwidget-webkit-xwidget
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package xwidget
   :if (> emacs-major-version 26)
@@ -3981,6 +4032,15 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
       (interactive)
       (funcall #'xwidget-webkit-open-file))))
 
+#+END_SRC
+
+****  xwidgete
+
+#+NAME: nsxwidget-xwidgete
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package xwidgete
+  :straight t
+  :after (xwidget))
 #+END_SRC
 
 *** Set the default browser.
