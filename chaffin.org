@@ -67,6 +67,7 @@
     - [[#the-buffer][The buffer]]
     - [[#the-project][The project]]
     - [[#the-file-system][The file system]]
+    - [[#searching][Searching]]
   - [[#startup][Startup]]
     - [[#initial-buffer][Initial Buffer]]
     - [[#initial-scratch][Initial Scratch]]
@@ -237,6 +238,52 @@ documentation), I've come to find it reduces a lot of the weirdness
 of the Emacs loading process and increases the rapidity (shall I say
 agility? no..) with which I comprehend the way third-party packages are
 implemented and modify them as I deem necessary.
+
+**** Goto local package repository
+
+Function to jump to a repository installed by [[#straight][straight]].  an
+interactive minibuffer completion menu using ivy.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(with-eval-after-load 'ivy
+  (defun goto-repo ()
+    (interactive)
+    (let ((repo-dir "~/.emacs.d/straight/repos/"))
+
+      (ivy-read
+       "Go to Package Directory: "
+       (directory-files repo-dir)
+       :action (lambda (package)
+                 (let ((default-directory
+                         (concat (file-name-as-directory repo-dir) package)))
+                   (dired default-directory))))))
+  ;; Add to goto-* keymap
+  (define-key goto-map "r" #'goto-repo))
+#+END_SRC
+
+**** Browse straight repository at GitHub
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun straight-browse-at-github (&optional package)
+  (interactive "P")
+  (let* ((pkg (if (interactive-p)
+                  (completing-read
+                   "Which recipe? "
+                   (straight-recipes-list straight-recipe-repositories)
+                   nil 'require-match)))
+         (recipe (cdr (straight-recipes-retrieve (intern pkg)))))
+    (destructuring-bind (repo host)
+        `(,(plist-get recipe :repo)
+          ,(plist-get recipe :host))
+      (if (eq host 'github)
+          (browse-url (concat "https://github.com/" repo))
+        (message "%s is not a GitHub repository :(" pkg)))))
+
+
+(when (fboundp 'chaffin-keymap)
+  (define-key #'chaffin-keymap "g" #'straight-browse-at-github))
+#+END_SRC
+
 
 ** User Information
 
@@ -503,27 +550,6 @@ buffer.
 
 #+END_SRC
 
-**** Goto local package repository
-
-Function to jump to a repository installed by [[#straight][straight]].  an
-interactive minibuffer completion menu using ivy.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(with-eval-after-load 'ivy
-  (defun goto-repo ()
-    (interactive)
-    (let ((repo-dir "~/.emacs.d/straight/repos/"))
-
-      (ivy-read
-       "Go to Package Directory: "
-       (directory-files repo-dir)
-       :action (lambda (package)
-                 (let ((default-directory
-                         (concat (file-name-as-directory repo-dir) package)))
-                   (dired default-directory))))))
-  ;; Add to goto-* keymap
-  (define-key goto-map "r" #'goto-repo))
-#+END_SRC
 
 *** Extending the Global Keymap
 **** Personal Keymap
@@ -2830,23 +2856,6 @@ interactive tree .
           (message "Project root not found."))))))
 #+END_SRC
 
-**** ack
-
-#+NAME: ack-config
-#+BEGIN_SRC emacs-lisp :tangle yes 
-(use-package ack
-  :if (executable-find "ack")
-  :straight t)
-#+END_SRC
-
-**** ag
-
-#+NAME: ag-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package ag
-  :straight t)
-#+END_SRC
-
 *** The file system
 **** Dired
 ***** Asynchronous Processing
@@ -2919,6 +2928,25 @@ Adds extensions and functionality to dired mode.
 (use-package treemacs
   :straight t)
 #+END_SRC
+
+*** Searching
+**** ack
+
+#+NAME: ack-config
+#+BEGIN_SRC emacs-lisp :tangle yes 
+(use-package ack
+  :if (executable-find "ack")
+  :straight t)
+#+END_SRC
+
+**** ag
+
+#+NAME: ag-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package ag
+  :straight t)
+#+END_SRC
+
 
 ** Startup
 *** Initial Buffer
