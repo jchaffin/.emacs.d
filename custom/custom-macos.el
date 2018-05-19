@@ -164,48 +164,10 @@
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
  '(org-agenda-files
-   '("~/Dropbox/org/todos/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org"))
- '(safe-local-variable-values
-   '((nameless-current-name . "configuration-layer")
-     (eval when
-           (and
-            (buffer-file-name)
-            (file-regular-p
-             (buffer-file-name))
-            (string-match-p "^[^.]"
-                            (buffer-file-name)))
-           (unless
-               (featurep 'package-build)
-             (let
-                 ((load-path
-                   (cons "../package-build" load-path)))
-               (require 'package-build)))
-           (package-build-minor-mode)
-           (set
-            (make-local-variable 'package-build-working-dir)
-            (expand-file-name "../working/"))
-           (set
-            (make-local-variable 'package-build-archive-dir)
-            (expand-file-name "../packages/"))
-           (set
-            (make-local-variable 'package-build-recipes-dir)
-            default-directory))
-     (org-hide-emphasis-markers)
-     (bug-reference-bug-regexp . "#\\(?2:[[:digit:]]+\\)")
-     (mangle-whitespace . t)
-     (org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib")
-     (eval sh-set-shell "zsh")
-     (eval bibtex-set-dialect 'biblatex)
-     (bibtex-file-path . "~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
-     (bibtex-file-path . " ~/Dropbox/Documents/Courses/COMSCI_35L/research-project/cs35l-research.bib")
-     (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/Courses/COMSCI_35L/pdfs/")
-     (org-ref-default-bibliography . "/Users/jacobchaffin/Dropbox/Documents/Courses/LING_120B/bib/ling120b.bib")
-     (org-ref-default-bibliography concat default-directory "bib/ling120b.bib")
-     (eval c-set-offset 'innamespace 0)
-     (org-image-actual-width)
-     (cider-cljs-lein-repl . "(do (user/go) (user/cljs-repl))")
-     (cider-refresh-after-fn . "reloaded.repl/resume")
-     (cider-refresh-before-fn . "reloaded.repl/suspend"))))
+   '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org" 
+     "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" 
+     "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" 
+     "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org")))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
