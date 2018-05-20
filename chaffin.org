@@ -1213,11 +1213,9 @@ Note that LaTeX packages are loaded, configured, and installed when
         (setq TeX-source-correlate-start-server t))
       
       ;; Update PDF buffers after successful LaTeX runs
-      (add-hook 'LaTeX-mode-hook 'latex-mode-hook)
       (add-hook 'LaTeX-mode-hook 'latex--view-hook)
       (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
       (add-hook 'LaTeX-mode-hook 'latex--auto-fill-mode)
-      ;; (add-hook 'LateX-mode-hook 'latex-mode-hook)
       (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
       (add-hook 'LaTeX-mode-hook 'TeX-fold-mode)
       (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
@@ -1347,15 +1345,17 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magic-latex-buffer
   :straight t
-  :demand t
-  :init
-  (add-hook 'LaTeX-mode-hook 'magic-latex-buffer)
+  :after (tex)
+  :init 
+  (progn
+    (add-hook 'LaTeX-mode-hook 'magic-latex-buffer))
   :config
-  (setq magic-latex-enable-block-highlight t
-        magic-latex-enable-suscript t
-        magic-latex-enable-pretty-symbols t
-        magic-latex-enable-block-align nil
-        magic-latex-enable-inline-image nil))
+  (progn
+    (setq magic-latex-enable-block-highlight t
+          magic-latex-enable-suscript t
+          magic-latex-enable-pretty-symbols t
+          magic-latex-enable-block-align nil
+          magic-latex-enable-inline-image nil)))
 #+END_SRC
 
 *** Auctex Latexmk
@@ -1364,7 +1364,7 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package auctex-latexmk
   :straight t
-  :after (:all tex tex-site)
+  :after (:all tex)
   :demand t
   :init
   (progn
