@@ -164,10 +164,9 @@
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
  '(org-agenda-files
-   '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org" 
-     "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" 
-     "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" 
-     "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org")))
+   '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org"))
+ '(safe-local-variable-values
+   '((org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

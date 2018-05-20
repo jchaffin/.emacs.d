@@ -552,14 +552,20 @@ buffer.
 
 #+NAME: personal-global-keymap
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 ;; Make personal keymap
 (define-prefix-command 'chaffin-keymap)
 (global-set-key "\M-m" 'chaffin-keymap)
+
 #+END_SRC
 
 **** Reload Eval Keymap
+
+
+
 #+NAME: user-emacs-keybindings
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 ;; Make `chaffin-reload-eval-keymap'
 (define-prefix-command 'reload-eval-keymap)
 (define-key 'chaffin-keymap "r" 'reload-eval-keymap)
@@ -567,6 +573,7 @@ buffer.
 (define-key 'reload-eval-keymap "b"  #'straight-eval-buffer)
 (define-key 'reload-eval-keymap "r"  #'eval-region)
 (define-key 'reload-eval-keymap "f"  #'eval-defun)
+
 #+END_SRC
 
 ***** Restart Emacs
@@ -607,6 +614,7 @@ Also sets terminal coding system to "utf-8".
 (when *is-mac*
   (global-set-key (kbd "s-=" ) 'text-scale-increase)
   (global-set-key (kbd "s--")  'text-scale-decrease))
+
 #+END_SRC
 
 ****** MacOS Prefix Command
@@ -1146,20 +1154,23 @@ Note that LaTeX packages are loaded, configured, and installed when
     :demand t
     :init
     (progn
-      
+
+      ;; Default to latexmk, if possible.
       (defvar latex-build-command
-        (if (executable-find "latexmk")
-            "LatexMk"
-          "LaTeX"))
+        (if (executable-find "latexmk") "LatexMk" "LaTeX")
+        "The default command to use with `TeX-command'. 
+         This variable is essentially an alias for `TeX-command-default'.")
       
       (setq TeX-command-default latex-build-command))
+
     :config
     (progn
       (setq TeX-auto-save t
             TeX-parse-self t
             TeX-syntactic-comment t
-            ;; Synctex support
-            TeX-source-correlate-start-server t
+            ;; nonstopmode
+            TeX-interactive-mode nil
+            TeX-command-extra-options "-shell-escape"
             ;; Don't insert line-break at inline math
             LaTeX-fill-break-at-separators nil)
 
@@ -1188,16 +1199,38 @@ Note that LaTeX packages are loaded, configured, and installed when
         (when do-auto-fill
           (do-auto-fill)))
 
-      (defun tex-auto-fill-mode ()
+      (defun latex--auto-fill-mode ()
+        "Toggle autofill mode"
         (interactive)
         (auto-fill-mode)
         (setq auto-fill-mode 'chaffin--tex-autofill))
 
-      (add-hook 'LaTeX-mode-hook 'tex-auto-fill-mode)
-      (add-hook 'LateX-mode-hook 'latex-mode-hook)
+      (defun latex--view-hook ()
+        ;; Use pdf-tools to open PDF files.
+        ;; https://emacs.stackexchange.com/a/19475      
+        (add-to-list 'TeX-view-program-list '("PDF Tools" TeX-pdf-tools-sync-view))
+        (setf (alist-get 'output-pdf TeX-view-program-selection) '("PDF Tools"))
+        (setq TeX-source-correlate-start-server t))
+      
+      ;; Update PDF buffers after successful LaTeX runs
+      (add-hook 'LaTeX-mode-hook 'latex-mode-hook)
+      (add-hook 'LaTeX-mode-hook 'latex--view-hook)
+      (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
+      (add-hook 'LaTeX-mode-hook 'latex--auto-fill-mode)
+      ;; (add-hook 'LateX-mode-hook 'latex-mode-hook)
       (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+      (add-hook 'LaTeX-mode-hook 'TeX-fold-mode)
+      (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
       (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
-      (add-hook 'LaTeX-mode-hook 'smartparens-mode)))
+      (when (fboundp 'flyspell-mode)
+        (add-hook 'LaTeX-mode-hook 'flyspell-mode))
+      (when (fboundp 'smartparens-mode)
+        (add-hook 'LaTeX-mode-hook 'smartparens-mode))
+      (when (fboundp 'doc-view-mode)
+        (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+      
+      (when (fboundp 'ggtags-mode)
+        (add-hook 'latex-mode-local-vars-hook (ggtags-mode 1)))))
 #+END_SRC
 
 *** Tex site
@@ -1272,10 +1305,7 @@ save.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-preview-pane
   :straight t
-  :config
-  (latex-preview-pane-enable))
-
-(add-hook 'doc-view-mode-hook 'auto-revert-mode)
+  :after (:all pdf-tools tex))
 #+END_SRC
 
 *** Company AucTeX
@@ -1334,10 +1364,11 @@ Prettify dedicated org-mode latex buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package auctex-latexmk
   :straight t
-  :after (tex)
+  :after (:all tex tex-site)
   :demand t
-  :config
+  :init
   (progn
+    (setq auctex-latexmk-inherit-TeX-PDF-mode t)
     (auctex-latexmk-setup)))
 
 #+END_SRC
@@ -2239,12 +2270,21 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pdf-tools
   :straight t
+  :mode (("\\.pdf\\'" . pdf-view-mode))
+  :bind (:map pdf-view-mode-map
+              ("C-s" . isearch-forward)
+              ("h"   . pdf-annot-add-highlight-markup-annotation)
+              ("t"   . pdf-annot-add-text-annotation)
+              ("D"   . pdf-annot-delete))
   :init
   (progn
-    (setq pdf-info-epdfinfo-program "~/.emacs.d/bin/epdfinfo"))
+    (setq pdf-info-epdfinfo-program "~/.emacs.d/bin/epdfinfo")
+    (pdf-tools-install))
   :config
   (progn
-    (pdf-tools-install)))
+    (setq-default pdf-view-display-size 'fit-page)
+    (setq pdf-annot-activate-created-annotations t)
+    (setq pdf-view-resize-factor 1.1)))
 #+END_SRC
 
 **** Org PDF View
@@ -2257,17 +2297,8 @@ Now we can open pdf files with =org-pdfview= [fn:11]:
   :straight t
   :after (:all pdf-tools)
   :demand t
-  :bind (:map pdf-view-mode-map
-              ("C-s" . isearch-forward)
-              ("h"   . pdf-annot-add-highlight-markup-annotation)
-              ("t"   . pdf-annot-add-text-annotation)
-              ("D"   . pdf-annot-delete))
-  :mode (("\\.pdf\\'" . pdf-view-mode))
   :config
   (progn
-    (setq-default pdf-view-display-size 'fit-page)
-    (setq pdf-annot-activate-created-annotations t)
-    (setq pdf-view-resize-factor 1.1)
     (add-hook 'org-mode-hook
               (lambda ()
                 (add-to-list 'org-file-apps
@@ -3403,38 +3434,7 @@ This disables Emacs asking questions about loading a new theme.
     (add-to-list 'custom-enabled-themes 'atom-one-dark)))
 #+END_SRC
 
-**** Install Themes
-
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<atom-theme-cfg>>
-<<ob-theme>>
-<<zenburn-theme-cfg>>
-#+END_SRC
-
-**** Load Themes
-
-Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
-
-I find that zenburn looks better when Emacs is
-started from the terminal.
-
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-(if (display-graphic-p)
-    (progn
-      (load-theme 'org-beautify)
-      (load-theme 'atom-one-dark)
-      (add-hook 'after-init-hook
-                (lambda ()
-                  (load-theme 'atom-one-dark)
-                  (load-theme 'org-beautify)
-
-                  <<atom-one-dark-mods>>)))
-  (progn
-    (load-theme 'zenburn)))
-#+END_SRC
-
-
-*****  Atom One Dark Modifications
+***** Atom One Dark Modifications
 
 Minor modifications to [[#atom-one-dark-theme][atom one dark theme]]
 color scheme. The template is from the modification of monokai-theme
@@ -3502,7 +3502,45 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
          "#B57" "#B45" "#B33" "#B11")
        nrepl-message-colors
        '("#dc322f" "#cb4b16" "#b58900"))
+
+;; Enable custom theme
+(add-to-list 'custom-enabled-themes 'atom-one-dark-mods)
+
 #+END_SRC
+
+**** Install Themes
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<atom-theme-cfg>>
+<<atom-one-dark-mods>>
+<<ob-theme>>
+<<zenburn-theme-cfg>>
+#+END_SRC
+
+**** Load Themes
+
+Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
+
+I find that zenburn looks better when Emacs is
+started from the terminal.
+
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+(if (display-graphic-p)
+    (progn
+      (load-theme 'org-beautify)
+      (load-theme 'atom-one-dark)
+      (enable-theme 'atom-one-dark-mods)
+      (add-hook 'after-init-hook
+                (lambda ()
+                  (load-theme 'atom-one-dark)
+                  (load-theme 'org-beautify)
+                  (enable-theme 'atom-one-dark-mods))))
+  
+  (progn
+    (load-theme 'zenburn)))
+#+END_SRC
+
+
 
 *** All The Icons
 
@@ -3702,7 +3740,8 @@ directory to the list of directories where YASnippet should look for snippets.
 (use-package yasnippet
   :straight t
   :init
-  (yas-global-mode 1)
+  (progn
+    (yas-global-mode 1))
   :config
   (progn
     (defun goto-snippet-dir ()
@@ -4069,7 +4108,6 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
     (defun xwidget-webkit-open-file-at-point ()
       (interactive)
       (funcall #'xwidget-webkit-open-file))))
-
 #+END_SRC
 
 ****  xwidgete
@@ -4209,11 +4247,11 @@ Interactively.
       (add-to-list 'browse-url-browser-alist '("safari" . osx-browse-url-safari))))
 
 
-(defun chaffin-set-browser-function ()
+(defun set-browser-function ()
   (interactive)
   (let ((browser (assoc (completing-read "Browser: " browse-url-browser-alist)
                         browse-url-browser-alist)))
-    (setq browse-url-browser-function (cdr browser) )))
+    (setq browse-url-browser-function (cdr browser))))
 #+END_SRC
 
 ** Email
