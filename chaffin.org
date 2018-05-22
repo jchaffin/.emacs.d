@@ -160,7 +160,7 @@
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#asm][ASM]]
-    - [[#c][C++]]
+    - [[#cc][C/C++]]
     - [[#common-lisp][Common Lisp]]
     - [[#clojurescript][Clojure(Script)]]
     - [[#emacs-lisp][Emacs Lisp]]
@@ -3661,7 +3661,6 @@ started from the terminal.
 * Completion
 ** Company
 
-
 #+NAME: company-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<company-company>>
@@ -4741,10 +4740,15 @@ haystack, smartparens are a great productivity tool.
 (use-package smartparens
   :straight t
   :init
-  (require 'smartparens-config)
-  (add-hook 'progmode-hook
-            (lambda ()
-              (smartparens-mode))))
+  (progn
+    (require 'smartparens-config)
+    (smartparens-global-mode)
+
+    (defun disable-smartparens ()
+      "Disable smartparens when `paredit-mode' is enabled."
+      (smartparens-mode -1))
+    (when (fboundp 'paredit-mode)
+      (add-hook 'paredit-mode-hook #'disable-smartparens))))
 #+END_SRC
 
 **** Rainbow Delimiters
@@ -5219,7 +5223,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+END_SRC
 
-*** C++
+*** C/C++
 
 #+NAME: c-cxx-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none

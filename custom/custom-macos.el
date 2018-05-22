@@ -166,7 +166,24 @@
  '(org-agenda-files
    '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org"))
  '(safe-local-variable-values
-   '((org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib"))))
+   '((elisp-lint-indent-specs
+      (if-let* . 2)
+      (when-let* . 1)
+      (let* . defun)
+      (nrepl-dbind-response . 2)
+      (cider-save-marker . 1)
+      (cider-propertize-region . 1)
+      (cider--make-result-overlay . 1)
+      (multiline-comment-handler . defun)
+      (insert-label . defun)
+      (insert-align-label . defun)
+      (insert-rect . defun)
+      (cl-defun . 2)
+      (with-parsed-tramp-file-name . 2)
+      (thread-first . 1)
+      (thread-last . 1))
+     (checkdoc-package-keywords-flag)
+     (org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
