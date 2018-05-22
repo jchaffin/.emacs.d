@@ -1224,8 +1224,6 @@ Note that LaTeX packages are loaded, configured, and installed when
       (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
       (when (fboundp 'flyspell-mode)
         (add-hook 'LaTeX-mode-hook 'flyspell-mode))
-      (when (fboundp 'smartparens-mode)
-        (add-hook 'LaTeX-mode-hook 'smartparens-mode))
       (when (fboundp 'doc-view-mode)
         (add-hook 'doc-view-mode-hook 'auto-revert-mode))
       
@@ -4593,7 +4591,6 @@ configuration block as I learn how to use it.
   ;; https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/graphviz/packages.el
   (define-key graphviz-dot-mode-map "{" nil)
   (define-key graphviz-dot-mode-map "}" nil)
-  (add-hook 'graphviz-dot-mode-hook 'smartparens-mode)
   (add-to-list 'org-babel-load-languages '(dot . t))
   (setq org-src-lang-modes
         (append '(("dot" . graphviz-dot))
@@ -5155,7 +5152,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+NAME: asm-asm-hooks
 #+BEGIN_SRC emacs-lisp :tangle no
 (defun chaffin-asm-setup ()
-  (setq indent-tabs-mode nil)
   (setq tab-stopp-list (number-sequence 2 60 2)))
 
 (defvar asm-colon-has-space nil)
@@ -5241,7 +5237,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<cc-hooks-compile-command>>
 <<cc-hooks-flycheck-include-headers>>
-<<cc-hooks-smartparens>>
 #+END_SRC
 
 ***** Per-File Compile Command
@@ -5254,17 +5249,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
          (let ((file (file-name-sans-extension buffer-file-name)))
            (format "%s %s -o %s" compiler buffer-file-name file)))))
 
-#+END_SRC
-
-***** Enable Smartparens 
-
-#+NAME: cc-hooks-smartparens
-#+BEGIN_SRC emacs-lisp :tangle no
-(add-hook 'c-mode-hook (lambda ()
-                         (smartparens-mode t)))
-
-(add-hook 'c++-mode-hook (lambda ()
-                         (smartparens-mode t)))
 #+END_SRC
 
 ***** Add Project Headers to Flycheck Clang Include Path
@@ -5436,13 +5420,7 @@ Company backend for C/C++ files using irony mode.
 (use-package cmake-mode
   :straight t
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
-         ("\\.cmake\\'" . cmake-mode))
-
-  :config
-  (progn
-    (add-hook 'cmake-mode-hook
-              (lambda ()
-                (smartparens-mode t)))))
+         ("\\.cmake\\'" . cmake-mode)))
 #+END_SRC
 
 *** Common Lisp
@@ -5497,7 +5475,6 @@ Configuration for common-lisp
     (add-hook 'slime-repl-mode-hook #'slime-disable-smartparens)))
 #+END_SRC
 
-***** TODO Slime Company
 *** Clojure(Script)
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
@@ -5646,7 +5623,6 @@ Two options:
     (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
     (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
     (add-hook 'cider-repl-mode-hook #'subword-mode)
-    (add-hook 'cider-repl-mode-hook #'smartparens-mode)
     (add-to-hooks (lambda () (run-hooks 'prog-mode-hook))
                   '(cider-mode-hook cider-repl-mode-hook))))
 #+END_SRC
@@ -5871,13 +5847,12 @@ CIDER eldoc information.
   :mode ("\\.gradle\\'" . groovy-mode)
   :config
   (progn
-    (add-hook 'groovy-mode-hook
-              (lambda ()
-                (smartparens-mode)
-                (setq groovy-indent-offset 2
-                      tab-width 4
-                      indent-tabs-mode nil
-                      c-indent-comments-syntactically-p t)))))
+    (defun groovy-style ()
+      (setq groovy-indent-offset 2
+            tab-width 4
+            indent-tabs-mode nil
+            c-indent-comments-syntactically-p t))
+    (add-hook 'groovy-mode-hook #'groovy-style)))
 #+END_SRC
 
 *** Java
@@ -5911,26 +5886,17 @@ CIDER eldoc information.
 
 #+NAME: java-hooks
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-(defun java-mode-indent-hook ()
+(defun java-mode-style ()
   (c-set-offset 'arglist-close '0)
   (setq indent-tabs-mode nil
         tab-width 2
         c-basic-offset 2))
 
-(defun java-mode-minor-modes-hook ()
-  (when (symbolp 'smartparens-mode)
-    (smartparens-mode t))
-  (when (symbolp 'rainbow-delimiters-mode)
-    (raindbow-delimiters-mode t))
-  (when (symbolp 'highlight-symbol-mode)
-    (highlight-symbol-mode t)))
-
 (defun java-mode-dash-docsets-hook ()
   (setq-local dash-plugin-keywords '("java" "gradle" "groovy")))
 
 ;; Enable Hooks
-(add-hook 'java-mode-hook 'java-mode-indent-hook)
-(add-hook 'java-mode-hook 'java-mode-minor-modes-hook)
+(add-hook 'java-mode-hook 'java-mode-style)
 (with-system darwin
   (add-hook 'java-mode-hook 'java-mode-dash-docsets-hook))
 #+END_SRC
@@ -6120,10 +6086,7 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
   :config
   (progn
     (setq js-indent-level 2)
-    (add-hook 'js2-mode-hook
-              (lambda ()
-                (flycheck-mode +1)
-                (smartparens-mode t)))
+    (add-hook 'js2-mode-hook #'flycheck-mode)
     (when *is-mac*
       (add-hook 'js2-mode-hook
                 (lambda ()
@@ -6211,7 +6174,6 @@ local file system.
   :mode (("\\.json\\'" . json-mode))
   :config
   (progn
-    (add-hook 'json-mode-hook 'smartparens-mode)
     (add-hook 'json-mode-hook
           (lambda ()
             (make-local-variable 'js-indent-level)
@@ -6398,10 +6360,6 @@ local file system.
   (setenv "IPY_TEST_SIMPLE_PROMPT" "1")
   (setq python-shell-interpreter "ipython3"
         python-shell-interpreter-args "-i"))
-
-(add-hook 'inferior-python-mode
-          (lambda ()
-            (smartparens-mode t)))
 #+END_SRC
 
 ***** Add Dash Docsets
@@ -6655,8 +6613,6 @@ local file system.
     (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
 #+END_SRC
 
-***** TODO Smart Parens
-
 ***** Htmlize
 #+NAME: htmlize-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6697,9 +6653,8 @@ local file system.
         (join-line -1))))
   :config
   (progn
-    (setq css-indent-offset 2)
     (add-hook 'css-mode-hook (lambda ()
-                                (smartparens-mode +1)))))
+                               (setq css-indent-offset 2)))))
 
 #+END_SRC
 
