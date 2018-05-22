@@ -319,7 +319,7 @@ Variables used throughout this file[fn:3]:
   "Print the operating system name using the `uname' UNIX command.")
 
 (defconst *is-mac* (or (eq system-type 'darwin) (string= "darwin" uname)))
-(defconst *is-linux* (or (eq system-type 'linux) (string= "linux" uname)))
+(defconst *is-linux* (or (eq system-type 'gnu/linux) (string= "linux" uname)))
 (defconst *is-windows* (eq system-type 'windows) )
 #+END_SRC
 
