@@ -113,7 +113,7 @@
   - [[#browsing][Browsing]]
     - [[#webkit-xwidget][Webkit xwidget]]
     - [[#set-the-default-browser][Set the default browser.]]
-    - [[#osx-browse][=osx-browse=]]
+    - [[#browser-utilities-on-macos][Browser utilities on macOS]]
     - [[#google-search-at-point][Google search at point]]
     - [[#search-web][Search Web]]
     - [[#advise-org-open-at-point][Advise =org-open-at-point=]]
@@ -312,10 +312,15 @@ Variables used throughout this file[fn:3]:
 
 #+NAME: define-constants
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defconst *is-mac* (eq system-type 'darwin))
-(defconst *is-linux* (eq system-type 'linux))
-(defconst *is-windows* (eq system-type 'windows))
-(defconst *is-lnxsrv* (string-prefix-p "lnxsrv" system-name))
+(defvar uname
+  (lambda ()
+    (downcase
+     (replace-regexp-in-string "\n" ""  (shell-command-to-string "uname"))))
+  "Print the operating system name using the `uname' UNIX command.")
+
+(defconst *is-mac* (or (eq system-type 'darwin) (string= "darwin" uname)))
+(defconst *is-linux* (or (eq system-type 'linux) (string= "linux" uname)))
+(defconst *is-windows* (eq system-type 'windows) )
 #+END_SRC
 
 *** Macros
@@ -689,7 +694,7 @@ other machines.
 			       "custom"))))
   (cond (*is-mac*
          (setq custom-file (concat custom-file-directory "custom-macos.el")))
-        ((or *is-linux* *is-lnxsrv*)
+        (*is-linux*
          (setq custom-file (concat custom-file-directory "custom-linux.el")))
         (*is-windows*
          (setq custom-file (concat custom-file-directory "custom-windows.el")))
@@ -3249,7 +3254,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+END_SRC
 
 *** Fonts
-**** Font List
+**** Font variables
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defvar font-list
@@ -3265,6 +3270,12 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
    e.g (\"FONT-FAMILY\" . WEIGHT)"
   )
 
+
+#+END_SRC
+
+**** Set font interactively
+
+#+BEGIN_SRC emacs-lisp :tangle yes
 (when *is-mac*
   (let ((font-weight-xs '(("Andale Mono" . extralight)
                           ("Droid Sans Mono" . normal)
@@ -3295,7 +3306,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 					      :height 120))))))
 #+END_SRC
 
-**** Load Fonts
+**** Set the default font
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defvar macos-default-font
@@ -3308,6 +3319,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 (if *is-hal*
     (setq macos-default-font
 	  "Operator Mono:pixelsize=12:weight=light:slant=normal:width=normal:spacing=100:scalable=true"))
+
 
 (cond (*is-linux*
        (set-frame-font "Ubuntu Mono 12" nil t))
@@ -3627,7 +3639,7 @@ started from the terminal.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package emms
   :straight t
-  :demand t
+  :if *is-mac*
   :init
   (progn
     (require 'emms-setup)
@@ -3635,6 +3647,7 @@ started from the terminal.
     (emms-default-players))
   :config
   (progn
+    (setq emms-source-file-default-directory "~/Dropbox/Music/iTunes/iTunes Media/Music")
     ;; add flv and ogv
     (define-emms-simple-player mplayer '(file url)
       (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg" ".mpeg" ".wmv" ".wma"
@@ -4129,15 +4142,13 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 (use-package browse-url
   :config
   (progn
-    (cond ((> emacs-major-version 26)
-           (setq browse-url-browser-function 'xwidget-webkit-browse-url))
-          ((*is-lnxsrv*
-            (setq browse-url-browser-function 'eww-browse-url))))))
+    (when (not (display-graphic-p))
+      (setq browse-url-browser-function 'eww-browse-url))))
 #+END_SRC
 
-*** =osx-browse=
+*** Browser utilities on macOS
 
-This library provides several useful commands for using the
+The =osx-browse= library provides several useful commands for using the
 Google Chrome, Safari, and Firefox web browsers on macOS.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4183,14 +4194,7 @@ the user will be prompted to edit the search string first."
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package search-web
   :straight t
-  :bind (("C-c w" . search-web))
-  ;; :init
-  ;; (progn
-  ;;   (if (and (> emacs-major-version 26) (display-graphic-p))
-  ;;       (defun browse-url-default-browser (url &rest args)
-  ;;         "Override `browse-url-default-browser' to use `xwidget-webkit' URL ARGS." 
-  ;;         (xwidget-webkit-browse-url url args))))
-  )
+  :bind (("C-c w" . search-web)))
 #+END_SRC
 
 *** Advise =org-open-at-point=
@@ -5251,20 +5255,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
          (let ((file (file-name-sans-extension buffer-file-name)))
            (format "%s %s -o %s" compiler buffer-file-name file)))))
 
-#+END_SRC
-
-****** Use on UCLA Servers                                      :ignore:
-
-The UCLA servers don't have llvm or libclang, so [[#irony-mode][irony-mode]] provided
-by adding 'c-c++ to =proglang-enabled= in the [[#proglang-api][Proglang API section]] won't compile.
-
-That blows but loading this this hook regardless corrects the per-file
-=compile-command= at least.
-
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
-(when (and (not (proglang-enabled-p 'c-c++))
-           ,*is-lnxsrv*)
-  <<cc-hooks-compile-command>>)
 #+END_SRC
 
 ***** Enable Smartparens 
