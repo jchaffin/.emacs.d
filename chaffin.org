@@ -312,15 +312,9 @@ Variables used throughout this file[fn:3]:
 
 #+NAME: define-constants
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defvar uname
-  (lambda ()
-    (downcase
-     (replace-regexp-in-string "\n" ""  (shell-command-to-string "uname"))))
-  "Print the operating system name using the `uname' UNIX command.")
-
-(defconst *is-mac* (or (eq system-type 'darwin) (string= "darwin" uname)))
-(defconst *is-linux* (or (eq system-type 'gnu/linux) (string= "linux" uname)))
-(defconst *is-windows* (eq system-type 'windows) )
+(defconst *is-mac* (eq system-type 'darwin))
+(defconst *is-linux* (eq system-type 'gnu/linux))
+(defconst *is-windows* (eq system-type 'windows))
 #+END_SRC
 
 *** Macros
@@ -936,12 +930,13 @@ external programs.
 	      (replace-regexp-in-string "\n" "" (funcall scutil-cmd))
       nil)))
 
+
 (defvar computer-name nil)
 
-
 (when *is-mac*
-  (setq computer-name (chaffin/computer-name-cmd))
-  (defconst *is-hal* (string= computer-name "hal")))
+  (setq computer-name (chaffin/computer-name-cmd)))
+
+(defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
 **** MacOS Dev Utils
