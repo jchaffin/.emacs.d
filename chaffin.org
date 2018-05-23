@@ -13,6 +13,7 @@
     - [[#straight][Straight]]
   - [[#user-information][User Information]]
   - [[#core][Core]]
+    - [[#libraries][Libraries]]
     - [[#constants][Constants]]
     - [[#macros][Macros]]
     - [[#functions][Functions]]
@@ -79,6 +80,7 @@
     - [[#window-resize][Window Resize]]
     - [[#popwin][Popwin]]
     - [[#winner-mode][Winner Mode]]
+    - [[#golden-ratio][Golden Ratio]]
   - [[#emacs][Emacs+]]
     - [[#help][Help+]]
     - [[#image][Image+]]
@@ -310,6 +312,65 @@ directory.
 #+END_SRC
 
 ** Core
+*** Libraries
+**** Dash
+
+Functional bindings i.e thread =->= macro.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(use-package dash
+  :straight t
+  :config
+  (eval-after-load 'dash
+    '(dash-enable-font-lock)))
+
+#+END_SRC
+
+**** Cl-lib
+
+Common Lisp extensions.
+
+#+BEGIN_SRC emacs-lisp :tangle eys
+
+(use-package cl-lib
+  :straight t)
+
+#+END_SRC
+
+***** cl-highlight
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(use-package cl-lib-highlight
+  :straight t
+  :demand t
+  :after (cl-lib))
+
+#+END_SRC
+
+**** =f=
+
+Declarative file and directory utilities.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(use-package f
+  :straight t)
+
+#+END_SRC
+
+**** =s=
+
+The string manipulation library.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(use-package s
+  :straight t)
+
+#+END_SRC
+
 *** Constants
 
 Variables used throughout this file[fn:3]:
@@ -3049,16 +3110,15 @@ list that one may use in the wacky world of Emacs.
   :init
   (if (not (global-page-break-lines-mode))
       (global-page-break-lines-mode))
+  (dashboard-setup-startup-hook)
   :config
-  (dashboard-setup-startup-hook))
+  (add-to-list 'dashboard-items '(agenda) t)
 
-(add-to-list 'dashboard-items '(agenda) t)
-
-(setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
-      dashboard-items '(( agenda . 10)
-                        ( projects . 5)
-                        ( recents . 5)
-                        ( bookmarks . 5)))
+  (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
+        dashboard-items '(( agenda . 10)
+                          ( projects . 5)
+                          ( recents . 5)
+                          ( bookmarks . 5))))
 
 #+END_SRC
 
@@ -3177,6 +3237,15 @@ different window configurations.
   :init
   (when (fboundp 'winner-mode)
     (winner-mode 1)))
+#+END_SRC
+
+*** Golden Ratio
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package golden-ratio
+  :straight t
+  :init
+  (setq golden-ratio-auto-scale t))
 #+END_SRC
 
 ** Emacs+
@@ -4751,7 +4820,7 @@ the absence of a window system. I'll check for the latter for now.
 
 *** Editorconfig
 
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package editorconfig
   :straight t)
 #+END_SRC

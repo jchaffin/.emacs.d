@@ -1,4 +1,4 @@
-;;; default.el -- Emacs Initialization File
+;;; init.el -- Emacs Initialization File
 ;;
 ;; Copyright (c) 2017 Jacob Chaffin
 ;;
@@ -96,6 +96,10 @@
 ;; Now clone the `use-package' library
 (straight-use-package 'use-package)
 ;; Straight integration of `use-package'.
+;;
+;; TODO: Comply with radian-emacs Style Guide
+;; e.g `use-package' keyword ordering, no lambdas in hooks.
+;; [1] https://github.com/raxod502/radian/blob/develop/docs/style.md
 (setq straight-use-package-version 'straight
       ;; And enable by default.
       straight-use-package-by-default t
@@ -104,36 +108,6 @@
       '(emacs browse-url artist-mode winner-mode xwidget)
       ;; Defer by default
       use-package-always-defer t)
-
-;; Using the radian-emacs `use-package' guidelines.
-;; [1] https://github.com/raxod502/radian/blob/develop/docs/style.md
-
-
-;; Make useful elisp libraries available early.
-
-;; dash.el - functional bindings i.e thread `->' macro.
-(use-package dash
-  :straight t
-  :config
-  (eval-after-load 'dash
-    '(dash-enable-font-lock)))
-
-;; Common Lisp extensions.
-(use-package cl-lib
-  :straight t)
-
-(use-package cl-lib-highlight
-  :straight t
-  :demand t
-  :after (cl-lib))
-
-;; `f' - declarative file and directory utilities.
-(use-package f
-  :straight t)
-
-;; `s' - The string manipulation library.
-(use-package s
-  :straight t)
 
 (straight-use-package 'git)
 
@@ -182,6 +156,7 @@
      (when (eq system-type 'darwin)
        (setq org-directory (expand-file-name "~/Dropbox/org/")
              org-default-notes-file (expand-file-name "capture.org" org-directory)))
+
      (setq org-insert-heading-respect-content t
            org-startup-indented t
            org-src-fontify-natively t

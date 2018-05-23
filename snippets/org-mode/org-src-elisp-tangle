@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: org-src-elisp-tangle
+# key: <set
+# --
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+$1
+#+END_SRC

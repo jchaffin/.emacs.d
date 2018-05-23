@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: org-src-elisp-tangle-noweb
+# key: <setw
+# --
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+$1
+#+END_SRC
