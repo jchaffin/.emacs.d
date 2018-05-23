@@ -110,6 +110,7 @@
   - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
   - [[#shell][Shell]]
   - [[#tramp][Tramp]]
+    - [[#anything-tramp][Anything Tramp]]
 - [[#web][Web]]
   - [[#browsing][Browsing]]
     - [[#webkit-xwidget][Webkit xwidget]]
@@ -145,10 +146,11 @@
   - [[#error-checking][Error checking]]
     - [[#flycheck][Flycheck]]
     - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
-  - [[#reading-and-viewing-code][Reading and viewing code]]
+  - [[#code-style][Code Style]]
     - [[#indentation][Indentation]]
     - [[#symbol-highlighting][Symbol Highlighting]]
     - [[#code-folding][Code Folding]]
+    - [[#editorconfig][Editorconfig]]
   - [[#code-completion][Code Completion]]
     - [[#pair-matching][Pair Matching]]
     - [[#gtags][Gtags]]
@@ -266,7 +268,7 @@ interactive minibuffer completion menu using ivy.
 **** Browse straight repository at GitHub
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun straight-browse-at-github (&optional package)
+(defun straight-browse-on-github (&optional package)
   (interactive "P")
   (let* ((pkg (if (interactive-p)
                   (completing-read
@@ -4021,7 +4023,7 @@ documentation browser.
   :init (progn
           (defun straight-recipes-installed (pkg)
             (f-dir? (f-join user-emacs-directory "straight" "build" (symbol-name pkg))))
-          
+
           (defalias #'package-installed-p #'straight-recipes-installed))
   :after (counsel))
 #+END_SRC
@@ -4120,10 +4122,16 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
 ** Tramp
 
-Connect Remotely.
-
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq tramp-default-method "ssh")
+#+END_SRC
+
+*** Anything Tramp
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package anything-tramp
+  :straight t
+  :bind (("C-c s" . anything-tramp)))
 #+END_SRC
 
 * Web
@@ -4677,7 +4685,7 @@ Colors the modeline according to current Flycheck state of buffer.
   (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
      #+END_SRC
 
-** Reading and viewing code
+** Code Style
 *** Indentation
 
 Tabs are the bane of humanity[fn:18]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
@@ -4739,6 +4747,13 @@ the absence of a window system. I'll check for the latter for now.
   :init
   (progn
     (global-origami-mode t)))
+#+END_SRC
+
+*** Editorconfig
+
+#+BEGIN_SRC emacs-lisp 
+(use-package editorconfig
+  :straight t)
 #+END_SRC
 
 ** Code Completion
@@ -5109,12 +5124,20 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 #+END_SRC
 
 **** Docker
+***** Dockerfile mode
 
 #+NAME: devops-docker
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package dockerfile-mode
   :straight t
   :mode ( "Dockerfile\\'" .  dockerfile-mode))
+#+END_SRC
+
+***** Docker Tramp
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package docker-tramp
+  :straight t)
 #+END_SRC
 
 **** Amazon Web Services

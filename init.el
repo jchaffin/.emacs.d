@@ -108,13 +108,17 @@
 ;; Using the radian-emacs `use-package' guidelines.
 ;; [1] https://github.com/raxod502/radian/blob/develop/docs/style.md
 
-;; Make powerful elisp libraries available early.
+
+;; Make useful elisp libraries available early.
+
+;; dash.el - functional bindings i.e thread `->' macro.
 (use-package dash
   :straight t
   :config
   (eval-after-load 'dash
     '(dash-enable-font-lock)))
 
+;; Common Lisp extensions.
 (use-package cl-lib
   :straight t)
 
@@ -123,10 +127,11 @@
   :demand t
   :after (cl-lib))
 
+;; `f' - declarative file and directory utilities.
 (use-package f
   :straight t)
 
-;; `s' - The string manipulation library
+;; `s' - The string manipulation library.
 (use-package s
   :straight t)
 
