@@ -157,6 +157,7 @@
   - [[#prog-tools][Prog Tools]]
     - [[#devops][DevOps]]
     - [[#time-tracking][Time Tracking]]
+    - [[#debugging][Debugging]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#asm][ASM]]
@@ -5109,6 +5110,17 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
         (browse-url "https://wakatime.com/dashboard"))))
 #+END_SRC
 
+*** Debugging
+**** RealGUD
+
+A front-end for interacting with external debuggers in Emacs.
+
+#+NAME: debug-realgud
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package realgud
+  :straight t)
+#+END_SRC
+
 ** Prog Lang API
 
 Opt-in to programming languages. A very simplified version of
@@ -5876,8 +5888,7 @@ CIDER eldoc information.
   <<java-google-c-style>>
   (cond ((eq chaffin--java-backend 'meghanada)
          (progn
-           <<java-meghanada>>
-           <<java-realgud>>))
+           <<java-meghanada>>))
         ((eq chaffin--java-backend 'ensime)
          <<java-ensime>>)
         ((eq chaffin--java-backend 'eclim)
@@ -5948,66 +5959,59 @@ Gradle is a build tool for Java. It's awesome.
 (use-package meghanada
   :straight t
   :commands (meghanada-mode meghanada-code-beautify-before-save)
+  :bind
+  (:map meghanada-mode-map
+	      ("C-S-t" . meghanada-switch-testcase)
+	      ("M-RET" . meghanada-local-variable)
+	      ("M-r"   . meghanada-reference)
+	      ("M-t"   . meghanada-typeinfo)
+	      ("C-z"   . hydra-meghanada/body))
   :init
   (add-hook 'java-mode-hook
 	    (lambda ()
 	      ;; enable meghanada mode
 	      (meghanada-mode t)))
   (add-hook 'java-mode-hook 'flycheck-mode)
+
+
   :config
   (progn
     (setq meghanada-server-remote-debug t
-          meghanada-javac-xlint "-Xlint:all,-processing"))
-  :bind
-  (:map meghanada-mode-map
-	("C-S-t" . meghanada-switch-testcase)
-	("M-RET" . meghanada-local-variable)
-	("M-r"   . meghanada-reference)
-	("M-t"   . meghanada-typeinfo)
-	("C-z"   . hydra-meghanada/body)))
+          meghanada-javac-xlint "-Xlint:all,-processing")
 
-(defhydra hydra-meghanada (:hint nil :exit t)
-  "
-  ^Edit^                          ^Tast or Task^
-  ^^^^^^---------------------------------------------
-  _f_: meghanada-compile-file     _m_: meghanada-restart
-  _c_: meghanada-compile-project  _t_: meghanada-run-task
-  _o_: meghanada-optimize-import  _j_: meghanada-run-junit-test-case
-  _s_: meghanada-switch-test-case _J_: meghanada-run-junit-class
-  _v_: meghanada-local-variable   _R_: meghanada-run-junit-recent
-  _i_: meghanada-import-all       _r_: meghanada-reference
-  _q_: exit                       _T_: meghanada-typeinfo
-  "
-  ("f" meghanada-compile-file)
-  ("m" meghanada-restart)
+    (defhydra hydra-meghanada (:hint nil :exit t)
+      "
+       ^Edit^                          ^Tast or Task^
+       ^^^^^^---------------------------------------------
+       _f_: meghanada-compile-file     _m_: meghanada-restart
+       _c_: meghanada-compile-project  _t_: meghanada-run-task
+       _o_: meghanada-optimize-import  _j_: meghanada-run-junit-test-case
+       _s_: meghanada-switch-test-case _J_: meghanada-run-junit-class
+       _v_: meghanada-local-variable   _R_: meghanada-run-junit-recent
+       _i_: meghanada-import-all       _r_: meghanada-reference
+       _q_: exit                       _T_: meghanada-typeinfo
+       "
+      ("f" meghanada-compile-file)
+      ("m" meghanada-restart)
 
-  ("c"  meghanada-compile-project)
-  ("o"  meghanada-optimize-import)
-  ("s"  meghanada-switch-test-case)
-  ("v"  meghanada-local-variable)
-  ("i"  meghanada-import-all)
+      ("c"  meghanada-compile-project)
+      ("o"  meghanada-optimize-import)
+      ("s"  meghanada-switch-test-case)
+      ("v"  meghanada-local-variable)
+      ("i"  meghanada-import-all)
 
 
-  ("t"  meghanada-run-task)
-  ("T"  meghanada-typeinfo)
-  ("j"  meghanada-run-junit-test-case)
-  ("J"  meghanada-run-junit-class)
-  ("R"  meghanada-run-junit-recent)
-  ("r"  meghanada-reference)
+      ("t"  meghanada-run-task)
+      ("T"  meghanada-typeinfo)
+      ("j"  meghanada-run-junit-test-case)
+      ("J"  meghanada-run-junit-class)
+      ("R"  meghanada-run-junit-recent)
+      ("r"  meghanada-reference)
 
-  ("q" exit)
-  ("z" nil "leave"))
-#+END_SRC
+      ("q" exit)
+      ("z" nil "leave"))))
 
-***** RealGUD
 
-A front-end for interacting with external debuggers in Emacs.
-
-#+NAME: java-realgud
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package realgud
-  :straight t
-  :after (meghanada))
 #+END_SRC
 
 **** Ensime

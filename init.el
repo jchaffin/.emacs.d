@@ -1,4 +1,4 @@
-;;; init.el -- Emacs Initialization File
+;;; default.el -- Emacs Initialization File
 ;;
 ;; Copyright (c) 2017 Jacob Chaffin
 ;;
@@ -47,7 +47,10 @@
 
 ;; Bootstrap straight.el from develop branch
 ;; https://github.com/raxod502/straight.el#getting-started
-(setq straight-repository-branch "develop")
+(setq straight-repository-branch "develop"
+      straight-profiles '((halidom . "default.el"))
+      straight-current-profile 'halidom)
+
 (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
       (bootstrap-version 2))
   (unless (file-exists-p bootstrap-file)
@@ -58,6 +61,9 @@
       (goto-char (point-max))
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
+
+
+
 
 ;; The `straight-use-package' command fails when called interactively on the develop branch.
 ;; This is because gnu-elpa repository support isn't yet stable. For now, I'm bypassing
