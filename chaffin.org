@@ -29,6 +29,7 @@
   - [[#macos][macOS]]
 - [[#latex-and-org-mode][LaTeX and Org Mode]]
   - [[#latex][LaTeX]]
+    - [[#auctex][AucTeX]]
     - [[#tex][Tex]]
     - [[#tex-site][Tex site]]
     - [[#reftex][RefTeX]]
@@ -1096,24 +1097,21 @@ running macOS.
  #+END_SRC
 
 * LaTeX and Org Mode
+
 ** LaTeX
 :PROPERTIES:
 :ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
 :CUSTOM_ID: latex
 :END:
 
-Note that this the code blocks in the [[#latex][LaTeX]] section are tangled in the
-[[#org-mode-export][export]] code block, at which point the described packages will be
-loaded if the =latex= symbol is an element in the 
-[[#user-enable-backends][org-export-enabled-backends]] variable.
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<auctex-recipe>>
+#+END_SRC
 
 #+NAME: latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Tex
 <<latex-tex>>
-
-;; Tex Site
-
 
 ;; Reftex
 <<latex-reftex>>
@@ -1143,10 +1141,33 @@ loaded if the =latex= symbol is an element in the
 <<latex-texinfo>>
 #+END_SRC
 
-Note that LaTeX packages are loaded, configured, and installed when
-='latex= is a member of =org-export-enabled-backends=.
+*** AucTeX
+
+Recent versions of AuCTeX are problematic with straight.
+On a clean install, I had to manually run the following command to get
+it to work properly:
+
+#+BEGIN_SRC shell :tangle no
+( cd $HOME/straight/repos/auctex && \
+      ./autogen.sh && \
+      ./configure --with-texmf-dir=`kpsewhich --var-value=TEXMFHOME` && \
+      make && make install )
+#+END_SRC 
+
+#+NAME: auctex-recipe
+#+BEGIN_SRC emacs-lisp :tangle no
+;; https://github.com/raxod502/straight.el/issues/240
+(straight-use-package
+ `(auctex
+   :host github
+   :repo "jchaffin/auctex"
+   :files (:defaults (:exclude "doc/*.texi"))))
+#+END_SRC
 
 *** Tex
+
+Note that LaTeX packages are loaded, configured, and installed when
+='latex= is a member of =org-export-enabled-backends=.
 
 #+NAME: latex-tex
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
@@ -3409,7 +3430,10 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: ob-theme
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-beautify-theme
-  :straight t
+  ;; Minor modifications for better compatibility with atom-one-dark
+  ;; theme.
+  :straight (:host github
+             :repo "jchaffin/org-beautify-theme")
   :config
   (progn
     (setq org-beautify-theme-use-box-hack nil)
@@ -3842,7 +3866,7 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 #+NAME: ivy-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package ivy
-  :straight t
+  :straight swiper
   :config
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t
@@ -3877,28 +3901,36 @@ frequency of use[fn:15].
 <<counsel-projectile-config>>
 <<counsel-ggtags-config>>
 <<counsel-itunes-config>>
+<<counsel-dash-config>>
+<<counsel-tramp-config>>
 #+END_SRC
 
 #+NAME: counsel-base
 #+BEGIN_SRC emacs-lisp :noweb no :tangle no
 (use-package counsel
   :straight t
+  :init
+  (progn
+    (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history))
+  :demand t
+  :after (ivy)
   :bind
   (("C-c C-r" . ivy-resume)
    ("C-`" . ivy-avy)
    ("M-x" . counsel-M-x)
    ("M-y" . counsel-yank-pop)
    ("C-x C-f" . counsel-find-file)
-   ("<f1> f" . counsel-describe-function)
-   ("<f1> v" . counsel-describe-variable)
-   ("<f1> l" . counsel-load-library)
-   ("<f2> i" . counsel-info-lookup-symbol)
+   ("<f1> l" . counsel-find-library)
    ("<f2> u" . counsel-unicode-char)
+   ("C-c l" . counsel-load-library)
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
    ("C-c k" . counsel-ag)
    ("C-x l" . counsel-locate)
-   ("C-S-o" . counsel-rhythmbox)))
+   (:map help-map
+         ("f" . counsel-describe-function)
+         ("v" . counsel-describe-variable)
+         ("C-l" . counsel-info-lookup-symbol))))
 #+END_SRC
 
 ***** Counsel OSX App
@@ -3972,12 +4004,26 @@ See my [[#macos-dash][implementation]] if you are running macOS, have [[https://
 your system, and would like to open docsets natively in the Dash
 documentation browser.
 
-#+NAME: dash-config
+#+NAME: counsel-dash-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package counsel-dash
-  :after (:all counsel ivy)
+  :after (:all counsel)
   :demand t
   :if *is-mac*)
+#+END_SRC
+
+***** Counsel Tramp
+
+#+NAME: counsel-tramp-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-tramp
+  :straight t
+  :init (progn
+          (defun straight-recipes-installed (pkg)
+            (f-dir? (f-join user-emacs-directory "straight" "build" (symbol-name pkg))))
+          
+          (defalias #'package-installed-p #'straight-recipes-installed))
+  :after (counsel))
 #+END_SRC
 
 **** Swiper
@@ -5811,43 +5857,16 @@ CIDER eldoc information.
 *** Emacs Lisp
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(add-hook 'emacs-lisp-mode-hook
-	  (lambda ()
-	    (paredit-mode 1)
-      (highlight-symbol-mode 1)
-      (when *is-mac*
-        (setq-local dash-plugin-keywords '("elisp")))))
-#+END_SRC
+(defun emacs-lisp-style ()
+  (paredit-mode 1)
+  (highlight-symbol-mode 1))
 
-**** CL Bindings
+(defun macos-dash-elisp-docsets ()
+  (setq-local dash-plugin-keywords '("elisp")))
 
-***** =cl-lib=
+(add-hook 'emacs-lisp-mode-hook #'emacs-lisp-style)
+(add-hook 'emacs-lisp-mode-hook #'macos-dash-elisp-docsets)
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package cl-lib
-  :straight t)
-#+END_SRC
-
-***** =cl-lib-highlight= 
-
-#+BEGIN_SRC emacs-lisp :tangle yes 
-(use-package cl-lib-highlight
-  :after (cl-lib)
-  :straight t)
-#+END_SRC
-
-**** Dash 
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package dash
-  :straight t)
-#+END_SRC
-
-**** String manipulation library
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package s
-  :straight t)
 #+END_SRC
 
 *** Groovy
@@ -6092,26 +6111,28 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
     (setq js-indent-level 2)
     (add-hook 'js2-mode-hook #'flycheck-mode)
     (when *is-mac*
-      (add-hook 'js2-mode-hook
-                (lambda ()
-                  (setq-local dash-plugin-keywords
-                              '("javascript" "react" "jquery"
-                                "jqueryui" "jquerym" "angularjs"
-                                "backbone" "bootstrap" "moo" "prototype"
-                                "marionette" "meteor" "sproutcore"
-                                "foundation" "lodash" "underscore"
-                                "ember" "sencha" "extjs" "titanium"
-                                "knockdown" "zepto" "yui" "d3"
-                                "svg" "dojo" "coffee" "nodejs" "express"
-                                "nodejs" "express" "grunt" "mongoos"
-                                "moment" "require" "awsjs" "jasmine"
-                                "sails" "sinon" "chai" "html" "cordova"
-                                "css" "cordova" "phonegap" "unity3d"
-                                "webpack")))))))
+      (defun macos-dash-js-docsets ()
+        (set (make-local-variable 'dash-plugin-keywords)
+             (if *is-mac*
+               '("javascript" "react" "jquery"
+                 "jqueryui" "jquerym" "angularjs"
+                 "backbone" "bootstrap" "moo" "prototype"
+                 "marionette" "meteor" "sproutcore"
+                 "foundation" "lodash" "underscore"
+                 "ember" "sencha" "extjs" "titanium"
+                 "knockdown" "zepto" "yui" "d3"
+                 "svg" "dojo" "coffee" "nodejs" "express"
+                 "nodejs" "express" "grunt" "mongoos"
+                 "moment" "require" "awsjs" "jasmine"
+                 "sails" "sinon" "chai" "html" "cordova"
+                 "css" "cordova" "phonegap" "unity3d"
+                 "webpack"))))
+      (add-hook 'js2-mode-hook #'macos-dash-js-docsets))))
 #+END_SRC
 
 **** Js Comint
-Run an inferior Node process using =comint-mode=
+
+Run an inferior Node process using =comint-mode=.
 
 #+NAME: js-js-comint
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -6137,7 +6158,6 @@ Real jsx support.
 
 Before install, make sure the =tern= executable can be found on your
 local file system.
-
 
 #+NAME: js-tern
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6189,24 +6209,21 @@ local file system.
 #+NAME: js-typescript
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package tide
-  :defer t
   :straight t
-  :after (flycheck)
   :config
   (progn
     (defun setup-tide-mode ()
       (interactive)
       (tide-setup)
-      (flycheck-mode +1)
-      (setq flycheck-check-syntax-automatically
-            '(save mode-enabled))
+      (when (fboundp 'flycheck-mode)
+        (flycheck-mode +1))
+
+      (setq flycheck-check-syntax-automatically '(save mode-enabled))
       (eldoc-mode +1)
-      (tide-hl-identifier-mode +1)
-      (when *is-mac*
-        (setq-local dash-plugin-keywords '("typescript"))))
+      (tide-hl-identifier-mode +1))
 
     ;; Formats buffer before saving
-    (add-hook 'before-save-hook 'tide-format-before-save)
+    (add-hook 'before-save-hook #'tide-format-before-save)
 
     (add-hook 'typescript-mode-hook #'setup-tide-mode)))
 #+END_SRC
@@ -6228,11 +6245,11 @@ local file system.
   :if (executable-find "node")
   :straight t
   :init
-  (add-hook 'js2-mode-hook #'add-node-modules-path))
+  (progn
+    (add-hook 'js2-mode-hook #'add-node-modules-path)))
 #+END_SRC
 
 **** NPM Mode
-
 
 #+NAME: js-npm-mode
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6282,7 +6299,7 @@ local file system.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package markdown-mode
   :straight t
-  :commands (markdown-mode gfm-mode)
+  :defines (markdown-command markdown-mode-hook)
   :mode
   (("README\\.md\\'" . gfm-mode)
 	 ("\\.md\\'" . markdown-mode)
@@ -6290,13 +6307,17 @@ local file system.
   :init
   (progn
     (setq markdown-command "multimarkdown")
-    (if *is-mac*
-        (setq markdown-open-command #'macos-open-with-default-app)))
+    (add-hook 'markdown-mode-hook)
+    (if (fboundp 'macos-open-with-default-app)
+        (setq markdown-open-command macos-open-with-default-app)
+      (setq browse-url-browser-function #'xwidget-webkit-open-file))
+)
   :config
-  (add-to-hooks  (lambda ()
-                   (visual-line-mode t)
-                   (auto-fill-mode t))
-                 '(markdown-mode-hook gfm-mode-hook)))
+  (progn
+    (add-to-hooks (lambda ()
+                    (visual-line-mode t)
+                    (auto-fill-mode t))
+                  '(markdown-mode-hook gfm-mode-hook))))
 #+END_SRC
 
 **** markdown-mode+

@@ -45,11 +45,21 @@
 
 ;;; Code:
 
-;; Bootstrap straight.el from develop branch
+
+(defvar literate-config-file "chaffin.org"
+  "The *.org file containing the source code responsible for
+  declaration and configuration of third-party packages, as well as
+  any settings and customizations defined in this GNU Emacs
+  distribution.")
+
+;; Prevent elpa from loading `package.el' in case loading fails.
+(setq package-enable-at-startup nil)
+;
 ;; https://github.com/raxod502/straight.el#getting-started
-(setq straight-repository-branch "develop"
-      straight-profiles '((halidom . "default.el"))
-      straight-current-profile 'halidom)
+(setq straight-repository-branch "develop" ; Bootstrap straight.el from develop branch
+      ;; Use the default lockfile.
+      straight-profiles '((default . "default.el"))
+      straight-current-profile 'default)
 
 (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
       (bootstrap-version 2))
@@ -62,13 +72,16 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-
-
-
-;; The `straight-use-package' command fails when called interactively on the develop branch.
-;; This is because gnu-elpa repository support isn't yet stable. For now, I'm bypassing
-;; this issue by creating the directory if it does not exist when `straight-recipes-gnu-elpa-list'
+;;
+;; Interactive commands such as `straight-use-package' fail on the
+;; `develop' branch of `straight'.  
+;;
+;; The issue appears to be that straight expects the local `gnu-elpa'
+;; clone to minimally contain a `packages/' directory. Support for
+;; `gnu-elpa' is still unstable. For now, I'm bypassing the issue by
+;; ensuring the directory exists when `straight-recipes-gnu-elpa-list' 
 ;; is invoked.
+;;
 (defadvice straight-recipes-gnu-elpa-list (around straight-recipe-gnu-elpa-list-around activate)
   (let* ((elpa-repo-dir (expand-file-name "straight/repos/elpa/" user-emacs-directory))
          (elpa-pkg-dir (expand-file-name "packages/" elpa-repo-dir)))
@@ -82,42 +95,46 @@
 (straight-use-package 'bind-key)
 ;; Now clone the `use-package' library
 (straight-use-package 'use-package)
-;; Use straight integration of `use-package'
+;; Straight integration of `use-package'.
 (setq straight-use-package-version 'straight
       ;; And enable by default.
       straight-use-package-by-default t
-      ;; pseudo packages
-      straight-built-in-pseudo-packages '(emacs winner-mode
-                                                artist-mode browse-url xwidget popup-el))
+      ;; Allow built-in packages to be configured by `use-package'.
+      straight-built-in-pseudo-packages
+      '(emacs browse-url artist-mode winner-mode xwidget)
+      ;; Defer by default
+      use-package-always-defer t)
 
-(setq use-package-always-defer t)
+;; Using the radian-emacs `use-package' guidelines.
+;; [1] https://github.com/raxod502/radian/blob/develop/docs/style.md
+
+;; Make powerful elisp libraries available early.
+(use-package dash
+  :straight t
+  :config
+  (eval-after-load 'dash
+    '(dash-enable-font-lock)))
+
+(use-package cl-lib
+  :straight t)
+
+(use-package cl-lib-highlight
+  :straight t
+  :demand t
+  :after (cl-lib))
+
+(use-package f
+  :straight t)
+
+;; `s' - The string manipulation library
+(use-package s
+  :straight t)
 
 (straight-use-package 'git)
 
-(eval-when-compile
-  ;; String manipulated library bundled with Emacs >24.4.
-  (require 'cl)
-  (require 'dash)
-  (require 'subr-x)
-  (require 'git))
-
-;; Add org-beautify-theme fork
-(straight-use-package
-  `(org-beautify-theme
-    :host github
-    :repo "jchaffin/org-beautify-theme"
-    :local-repo-name org-beautify-theme))
-
-;; https://github.com/raxod502/straight.el/issues/240
-(straight-use-package
- `(auctex
-   :host github
-   :repo "jchaffin/auctex"
-   :files (:defaults (:exclude "doc/*.texi"))))
-
 ;; Install org
-;; https://github.com/raxod502/straight.el/tree/develop#installing-org-with-straightel
-;; https://github.com/raxod502/radian/blob/master/radian-emacs/radian-org.el#L56-L92
+;; [1] https://github.com/raxod502/straight.el/tree/develop#installing-org-with-straightel
+;; [2] https://github.com/raxod502/radian/blob/master/radian-emacs/radian-org.el#L56-L92
 (defun org-git-version ()
   (require 'git)
   (let ((git-repo (expand-file-name
@@ -142,14 +159,10 @@
                  "--abbrev=0"
                  "HEAD")))))
 
-
 (provide 'org-version)
 
 (straight-use-package 'org-plus-contrib)
 
-;; https://github.com/raxod502/straight.el/issues/72
-;; https://github.com/raxod502/straight.el/issues/192
-;; https://github.com/raxod502/straight.el/issues/168
 (use-package org
   :bind
   (("C-c a" . org-agenda)
@@ -163,28 +176,22 @@
    (progn
      (when (eq system-type 'darwin)
        (setq org-directory (expand-file-name "~/Dropbox/org/")
-             org-default-notes-file (concat org-directory "capture.org")))
+             org-default-notes-file (expand-file-name "capture.org" org-directory)))
      (setq org-insert-heading-respect-content t
-           org-startup-indented t)))
-
-
-(defvar literate-config-file "chaffin.org"
-  "The *.org file containing the source code responsible for declaration and
-configuration of third-party packages, as well as any settings and customizations
-defined in this GNU Emacs distribution")
+           org-startup-indented t
+           org-src-fontify-natively t
+           org-confirm-babel-evaluate nil
+           org-src-preserve-indentation t)))
 
 (defun load-literate (&optional user-config-file)
-  (let ((target-file (or literate-config-file
-                         user-config-file))
-        (target-dir (or user-emacs-directory
-                        default-directory)))
-        (setq org-src-fontify-natively t
-              org-confirm-babel-evaluate nil
-              org-src-preserve-indentation t)
-        (if target-file
-            (org-babel-load-file
-             (expand-file-name target-file target-dir))
-          (message "No configuration file set, not extracting source code."))))
+  "If USER-CONFIG-FILE is passed as an argument, then tangle. 
+Else use the value of `literate-config-file'."
+  (let ((target-file (or literate-config-file user-config-file))
+        (target-dir (or user-emacs-directory default-directory)))
+    (if target-file
+        (org-babel-load-file
+         (expand-file-name target-file target-dir))
+      (message "No configuration file set, not extracting source code."))))
 
 (load-literate)
 
