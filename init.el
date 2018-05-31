@@ -45,19 +45,24 @@
 
 ;;; Code:
 
-
 (defvar literate-config-file "chaffin.org"
   "The *.org file containing the source code responsible for
   declaration and configuration of third-party packages, as well as
   any settings and customizations defined in this GNU Emacs
   distribution.")
 
-;; Prevent elpa from loading `package.el' in case loading fails.
+
 (setq package-enable-at-startup nil)
-;
-;; https://github.com/raxod502/straight.el#getting-started
-(setq straight-repository-branch "develop" ; Bootstrap straight.el from develop branch
-      ;; Use the default lockfile.
+
+(require 'gnutls)
+
+;; Prevent elpa from loading `package.el' in case loading fails.
+;; Use LibreSSL certificates to bootstrap dependencies.
+;; [1] https://github.com/raxod502/straight.el/commit/7e77328b
+(add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem")
+
+(setq straight-repository-branch "develop" 
+      ;; Use the macos lockfile
       straight-profiles '((default . "default.el"))
       straight-current-profile 'default)
 

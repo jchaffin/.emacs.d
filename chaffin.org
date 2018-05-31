@@ -84,6 +84,7 @@
   - [[#emacs][Emacs+]]
     - [[#help][Help+]]
     - [[#image][Image+]]
+  - [[#bug-tracking][Bug Tracking]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
     - [[#fonts][Fonts]]
@@ -3288,6 +3289,13 @@ different window configurations.
          ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
+** Bug Tracking
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package debbugs
+  :straight t)
+#+END_SRC
+
 ** User Interface
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes
@@ -4989,6 +4997,8 @@ Disabling for now.
 <<magit-config>>
 <<magit-magithub>>
 <<magit-orgit>>
+<<magit-topgit-config>>
+<<magit-stgit-config>>
 #+END_SRC
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
@@ -5007,6 +5017,7 @@ As a git client though, magit is awesome.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit
   :straight t
+  :defines (magit-mode-hook)
   :bind
   (("C-c v v" . magit-status)
    ("C-c v m" . magit-merge)
@@ -5022,8 +5033,44 @@ As a git client though, magit is awesome.
    ("C-c v P" . magit-push)
    ("C-c v S" . magit-stash))
   :config
-  (setq magit-save-repository-buffers 'dontask))
+  (progn
+    (setq magit-save-repository-buffers 'dontask)))
+
+
 #+END_SRC
+
+***** Magit topgit
+
+#+NAME: magit-topgit-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package magit-topgit
+  :straight t
+  :init
+  (progn
+    (add-hook 'magit-mode-hook 'turn-on-magit-topgit))
+  :demand t
+  :after (magit))
+#+END_SRC
+
+***** Magit stgit
+
+To configure:
+
+#+BEGIN_SRC shell :tangle no
+git config --global --add magit.extension stgit
+#+END_SRC
+
+#+NAME: magit-stgit-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package magit-stgit
+  :straight t
+  :init
+  (progn
+    (add-hook 'magit-mode-hook 'magit-stgit-mode))
+  :demand t
+  :after (magit))
+#+END_SRC
+
 
 ***** Killing Magit Buffers
 
