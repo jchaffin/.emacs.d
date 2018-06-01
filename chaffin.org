@@ -126,11 +126,14 @@
     - [[#set-default-browser][Set default browser]]
   - [[#email][Email]]
     - [[#mu][Mu]]
+    - [[#engine-mode][Engine Mode]]
 - [[#prose][Prose]]
   - [[#prose-keymap][Prose Keymap]]
   - [[#spelling-and-grammar][Spelling and Grammar]]
     - [[#flyspell][Flyspell]]
     - [[#langtool][Langtool]]
+  - [[#academic-phrases][Academic Phrases]]
+  - [[#proselint][Proselint]]
   - [[#text-completion][Text Completion]]
     - [[#company-dict][Company Dict]]
     - [[#dictionaryel][Dictionary.el]]
@@ -145,6 +148,7 @@
     - [[#artist-mode][Artist Mode]]
     - [[#uml-diagrams][UML Diagrams]]
     - [[#graphs][Graphs]]
+    - [[#thesaurus][Thesaurus]]
 - [[#code][Code]]
   - [[#error-checking][Error checking]]
     - [[#flycheck][Flycheck]]
@@ -2283,6 +2287,8 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
     ;; Org Ref Journal abbreviations
     (setq orbj-extra-abbrevs
       '(("JPS" "Journal of Palestinian Studies")
+        ("JMEISA" "Journal of Middle Eastern and Islamic Studies (in
+                  Asia) Vol")
         ("JHG" "Journal of Historical Geography")
         ("MEAST" "International Journal of Middle East Studies")))
 
@@ -4449,6 +4455,70 @@ Interactively.
                                                     "(650)-380-3288\n"))))))))
 #+END_SRC
 
+*** Engine Mode
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package engine-mode
+  :straight t
+  :init
+  (engine-mode t)
+  :config
+  (progn
+    (defengine github
+      "https://github.com/search?ref=simplesearch&q=%s")
+
+    (defengine worldcat
+      "https://ucla.worldcat.org/search?q=%s")
+
+    (defengine google
+      "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+      :keybinding "g")
+
+    (defengine cassi
+      "http://cassi.cas.org/search.jsp"
+      :browser 'xwidget-webkit-browse-url)
+
+    (defengine google-bookmarks
+      "chrome://bookmarks/?q=%s")
+
+    (defengine google-images
+      "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s")
+
+    (defengine google-maps
+      "http://maps.google.com/maps?q=%s"
+      :docstring "Mappin' it up.")
+
+    (defengine project-gutenberg
+      "http://www.gutenberg.org/ebooks/search/?query=%s")
+
+    (defengine rfcs
+      "http://pretty-rfc.herokuapp.com/search?q=%s")
+
+    (defengine stack-overflow
+      "https://stackoverflow.com/search?q=%s")
+
+    (defengine twitter
+      "https://twitter.com/search?q=%s")
+
+    (defengine wikipedia
+      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+      :keybinding "w"
+      :docstring "Searchin' the wikis.")
+
+    (defengine wiktionary
+      "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
+
+    (defengine wolfram-alpha
+      "http://www.wolframalpha.com/input/?i=%s")
+
+    (defengine youtube
+      "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
+
+    (defengine ctan
+      "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
+      :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")))
+#+END_SRC
+
 * Prose
 
 #+NAME: prose-config
@@ -4513,6 +4583,29 @@ checking for natural language.
     (setq langtool-language-tool-jar "/usr/local/Cellar/languagetool/4.1/libexec/languagetool-commandline.jar"
           langtool-mother-tongue "en"
           langtool-disabled-rules '("WHITESPACE_RULE"))))
+#+END_SRC
+
+** Academic Phrases
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package academic-phrases
+  :straight t)
+#+END_SRC
+
+** Proselint
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(with-eval-after-load 'flycheck
+  (flycheck-define-checker proselint
+                           "A linter for prose."
+                           :command ("proselint" source-inplace)
+                           :error-patterns
+                           ((warning line-start (file-name) ":" line ":" column ": "
+	                                   (id (one-or-more (not (any " "))))
+	                                   (message) line-end))
+                           :modes (text-mode org-mode markdown-mode gfm-mode))
+  (add-to-list 'flycheck-checkers 'proselint))
+
 #+END_SRC
 
 ** Text Completion
@@ -4727,6 +4820,23 @@ configuration block as I learn how to use it.
   (setq org-src-lang-modes
         (append '(("dot" . graphviz-dot))
                  (delete '("dot" . fundamental) org-src-lang-modes))))
+#+END_SRC
+
+*** Thesaurus 
+
+This library needs to allow setting transfer protocol on the user
+end. It's hardcoded to use port 80. HTTP doesn't really work on my
+school's WLAN.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package thesaurus
+  :straight t
+  :demand t
+  :config
+  (progn
+    ;;  `thesaurus-bhl-api-key' is set in secrets
+    (setq thesaurus-prompt-mechanism 'counsel-imenu
+          url-proxy-services nil)))
 #+END_SRC
 
 * Code
