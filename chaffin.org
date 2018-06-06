@@ -3,7 +3,7 @@
  #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: /Users/jacobchaffin/.emacs.d/straight/repos/org-html-themes/setup/theme-readtheorg.setup
 
-* Table Of Contents                                       :TOC_3_gh:noexport:
+* Table Of Contents :TOC_3_gh:noexport:
 - [[#preface][Preface]]
   - [[#about-this-document][About this document]]
   - [[#literate-programming][Literate Programming]]
@@ -48,6 +48,7 @@
     - [[#document-management][Document Management]]
     - [[#task-management][Task Management]]
     - [[#idea-management][Idea Management]]
+    - [[#org-hacks][Org Hacks]]
   - [[#org-latex][Org LaTeX]]
     - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
     - [[#edit-latex][Edit Latex]]
@@ -56,6 +57,7 @@
     - [[#org-pdf][Org PDF]]
   - [[#org-mode-export][Org Mode Export]]
     - [[#enable-backends][Enable Backends]]
+    - [[#ox-org][Ox Org]]
     - [[#ox-latex][Ox LaTeX]]
     - [[#ox-bibtex][Ox Bibtex]]
     - [[#ox-pandoc][Ox Pandoc]]
@@ -197,28 +199,16 @@
 * Preface
 ** About this document
 
-This document contains my entire configuration for the GNU Emacs text
-editor. It written as some combination of travelogue, technical
-notebook, personal journal, and [[https://www.stackoverflow.com][StackOverflow]] pasteboard.
+This document contains my entire configuration for the GNU Emacs text editor. It written as some combination of travelogue, technical notebook, personal journal, and [[https://www.stackoverflow.com][StackOverflow]] pasteboard.
 
 ** Literate Programming
 
-[[https://en.wikipedia.org/wiki/literate_programming][Literate Programming]] is a method of writing computer programs where
-the composition, logic, and structure of the program are optimized for
-human comprehension. Introduced by Donald Knuth in his 1983 eponymous
-work, a literate program interoperates source code with macros,
-commentary, and documentation written in natural language prose. The
-source code is then extracted in a pre-compilation step known as
-/tangling/.
+[[https://en.wikipedia.org/wiki/literate_programming][Literate Programming]] is a method of writing computer programs where the composition, logic, and structure of the program are optimized for human comprehension. Introduced by Donald Knuth in his 1983 eponymous work, a literate program interoperates source code with macros, commentary, and documentation written in natural language prose. The source code is then extracted in a pre-compilation step known as /tangling/.
 
-Where as a program is traditionally presented in a tree structure, a
-programmer implementing literate techniques arranges parts and forms
-the relations of these parts in the order of human logic.
+Where as a program is traditionally presented in a tree structure, a programmer implementing literate techniques arranges parts and forms the relations of these parts in the order of human logic.
 
-A literate program is then structured like an essay or other work of
-literature, where ideas are connected in the form of a web rather than
-the unidirectional order of interpretation that is characteristic of a
-compiler.
+A literate program is then structured like an essay or other work of literature, where ideas are connected in the form of a web rather than the unidirectional order of interpretation that is characteristic of a
+compiler. 
 
 ** Influences
 
@@ -235,9 +225,7 @@ compiler.
 :CUSTOM_ID: straight
 :END:
 
-[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading
-the repository description [fn:1], I impetuously refactored my entire
-Emacs configuration without reading any of the documentation, because
+[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading the repository description [fn:1], I impetuously refactored my entire Emacs configuration without reading any of the documentation, because
 
 #+BEGIN_SRC http :pretty :file ./resources/img/documentation-is-for-wimps.png :exports none
 GET https://3.bp.blogspot.com/-b3dUlC6AJjI/WE2U_wcJvrI/AAAAAAAAA_4/lciulxFqwrUAZxLol9FVybHCpCdgXSufgCLcB/w1200-h630-p-k-no-nu/documentation-is-for-wimps.png
@@ -250,35 +238,28 @@ Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/a
 [[/resources/img/documentation-is-for-wimps.png]]
 
 It took me a while to figure out how straight works and to
-conceptualize the way it loads packages  - primarily because
-documentation is also for people who understand things - but now that
-I've gotten through the substantial learning curve (made substantially
-harder due to my misconception regrading the value of reading
-documentation), I've come to find it reduces a lot of the weirdness
-of the Emacs loading process and increases the rapidity (shall I say
-agility? no..) with which I comprehend the way third-party packages are
-implemented and modify them as I deem necessary.
+conceptualize the way it loads packages  - primarily because documentation is also for people who understand things - but now that I've gotten through the substantial learning curve (made substantially harder due to my misconception regrading the value of reading documentation), I've come to find it reduces a lot of the weirdness of the Emacs loading process and increases the rapidity (shall I say agility? no..) with which I comprehend the way third-party packages are implemented and modify them as I deem necessary.
 
 **** Goto local package repository
 
-Function to jump to a repository installed by [[#straight][straight]].  an
+Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(with-eval-after-load 'ivy
-  (defun goto-repo ()
-    (interactive)
-    (let ((repo-dir "~/.emacs.d/straight/repos/"))
+(defun goto-repo (&optional build-dir)
+  (interactive "P")
+  (let* ((dir (-> user-emacs-directory
+                  (f-join "straight"
+                          (if build-dir "build" "repos"))))
+         (msg (format "(%s) Goto recipe: " (upcase-initials (f-base dir)))))
+    (ivy-read
+     msg
+     (directory-files dir)
+     :action (lambda (package)
+               (dired (f-join dir package))))))
 
-      (ivy-read
-       "Go to Package Directory: "
-       (directory-files repo-dir)
-       :action (lambda (package)
-                 (let ((default-directory
-                         (concat (file-name-as-directory repo-dir) package)))
-                   (dired default-directory))))))
   ;; Add to goto-* keymap
-  (define-key goto-map "r" #'goto-repo))
+  (define-key goto-map "r" #'goto-repo)
 #+END_SRC
 
 **** Browse straight repository at GitHub
@@ -807,6 +788,24 @@ This might come back to bite me one day but I never use them.
       (load-library (concat user-emacs-directory "secrets/secrets.el.gpg"))
     (print (format "GPG key(s) for %s not found"
                    (or user-full-name user-mail-address)))))
+#+END_SRC
+
+**** Fill Column
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq-default fill-column 80)
+#+END_SRC
+
+**** make emacs more modern
+
+- makuto's [[https://github.com/makuto/editorPreferences/blob/master/Emacs/emacsConfig.txt][emacsConfig.txt]]
+- Xah Lee [[http://ergoemacs.org/emacs/emacs_make_modern.html][emacs make modern]]
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(global-subword-mode 0)
+(delete-selection-mode 1)
+(global-hl-line-mode 1)
+(save-place-mode 1)
 #+END_SRC
 
 *** Encryption
@@ -1577,6 +1576,8 @@ org-mode buffers.
 
 #+NAME: org-ui
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<org-ui-fill>>
+
 ;; UI Fixed Width Block
 <<org-ui-fixedwidth-image>>
 
@@ -1592,6 +1593,13 @@ org-mode buffers.
 ;; UI Equation Renumbering
 <<org-ui-equation-renumbering>>
 
+#+END_SRC
+p
+**** Org visual fill
+
+#+NAME: org-ui-fill
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-hook 'org-mode-hook 'visual-fill-column-mode)
 #+END_SRC
 
 **** Per-image display width
@@ -2022,9 +2030,11 @@ Embed YouTube Links in iframe.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-agenda-diary>>
 <<org-agenda-global-todos>>
+<<org-agenda-view>>
 #+END_SRC
 
 ***** Global Agenda File
+
 
 I use per-project agenda files for the most part (now being managed
 using [[#org-projectile][org-projectile]]), but I like having a designated global one for
@@ -2033,6 +2043,13 @@ miscellaneous or arbitrary tasks.
 #+NAME: org-agenda-global-todos
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-agenda-files '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org"))
+#+END_SRC
+
+***** Agenda View
+
+#+NAME: org-agenda-view
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-tags-column 0)
 #+END_SRC
 
 ***** Diary
@@ -2234,6 +2251,133 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-drill
   :straight org)
+#+END_SRC
+
+*** Org Hacks
+
+From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks.html#sec-1-8-5][org hacks]]
+
+Fix problem with saveplace.el which puts point back in a folded position.
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(add-hook 'org-mode-hook
+          (lambda ()
+            (when (outline-invisible-p)
+              (save-excursion
+                (outline-previous-visible-heading 1)
+                (org-show-subtree)))))
+
+#+END_SRC
+
+Extract hyperlink
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun chaffin-org-extract-link ()
+  "Extract the link location at point and put it on the killring."
+  (interactive)
+  (when (org-in-regexp org-bracket-link-regexp 1)
+    (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
+
+#+END_SRC
+
+Export to datetree
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(require 'org-datetree)
+
+; (setq org-archive-location "%s_archive::date-tree")
+(defadvice org-archive-subtree
+  (around org-archive-subtree-to-data-tree activate)
+  "org-archive-subtree to date-tree"
+  (if
+      (string= "date-tree"
+               (org-extract-archive-heading
+                (org-get-local-archive-location)))
+      (let* ((dct (decode-time (org-current-time)))
+             (y (nth 5 dct))
+             (m (nth 4 dct))
+             (d (nth 3 dct))
+             (this-buffer (current-buffer))
+             (location (org-get-local-archive-location))
+             (afile (org-extract-archive-file location))
+             (org-archive-location
+              (format "%s::*** %04d-%02d-%02d %s" afile y m d
+                      (format-time-string "%A" (encode-time 0 0 0 d m y)))))
+        (message "afile=%s" afile)
+        (unless afile
+          (error "Invalid `org-archive-location'"))
+        (save-excursion
+          (switch-to-buffer (find-file-noselect afile))
+          (org-datetree-find-year-create y)
+          (org-datetree-find-month-create y m)
+          (org-datetree-find-day-create y m d)
+          (widen)
+          (switch-to-buffer this-buffer))
+        ad-do-it)
+    ad-do-it))
+#+END_SRC
+
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq ba/org-adjust-tags-column t)
+
+(defun ba/org-adjust-tags-column-reset-tags ()
+  "In org-mode buffers it will reset tag position according to
+`org-tags-column'."
+  (when (and
+         (not (string= (buffer-name) "*Remember*"))
+         (eql major-mode 'org-mode))
+    (let ((b-m-p (buffer-modified-p)))
+      (condition-case nil
+          (save-excursion
+            (goto-char (point-min))
+            (command-execute 'outline-next-visible-heading)
+            ;; disable (message) that org-set-tags generates
+            (flet ((message (&rest ignored) nil))
+              (org-set-tags 1 t))
+            (set-buffer-modified-p b-m-p))
+        (error nil)))))
+
+(defun ba/org-adjust-tags-column-now ()
+  "Right-adjust `org-tags-column' value, then reset tag position."
+  (set (make-local-variable 'org-tags-column)
+       (- (- (window-width) (length org-ellipsis))))
+  (ba/org-adjust-tags-column-reset-tags))
+
+(defun ba/org-adjust-tags-column-maybe ()
+  "If `ba/org-adjust-tags-column' is set to non-nil, adjust tags."
+  (when ba/org-adjust-tags-column
+    (ba/org-adjust-tags-column-now)))
+
+(defun ba/org-adjust-tags-column-before-save ()
+  "Tags need to be left-adjusted when saving."
+  (when ba/org-adjust-tags-column
+     (setq org-tags-column 1)
+     (ba/org-adjust-tags-column-reset-tags)))
+
+(defun ba/org-adjust-tags-column-after-save ()
+  "Revert left-adjusted tag position done by before-save hook."
+  (ba/org-adjust-tags-column-maybe)
+  (set-buffer-modified-p nil))
+
+; automatically align tags on right-hand side
+(add-hook 'window-configuration-change-hook
+          'ba/org-adjust-tags-column-maybe)
+(add-hook 'before-save-hook 'ba/org-adjust-tags-column-before-save)
+(add-hook 'after-save-hook 'ba/org-adjust-tags-column-after-save)
+(add-hook 'org-agenda-mode-hook '(lambda ()
+                                  (setq org-agenda-tags-column (- (window-width)))))
+
+; between invoking org-refile and displaying the prompt (which
+; triggers window-configuration-change-hook) tags might adjust,
+; which invalidates the org-refile cache
+(defadvice org-refile (around org-refile-disable-adjust-tags)
+  "Disable dynamically adjusting tags"
+  (let ((ba/org-adjust-tags-column nil))
+    ad-do-it))
+(ad-activate 'org-refile)
 #+END_SRC
 
 ** Org LaTeX
@@ -2494,7 +2638,6 @@ Now we can open pdf files with =org-pdfview= [fn:11]:
 
 #+END_SRC
 
-
 *** Enable Backends
 :PROPERTIES:
 :ID:       59AEA962-792E-4AB7-ACDE-3EC61C45D279
@@ -2519,6 +2662,27 @@ And opt-in to all back ends when on local machine.
             (setq org-export-enabled-backends
                   (cons backend org-export-enabled-backends)))
           '(extra gfm latex hugo html pandoc)))
+#+END_SRC
+
+*** Ox Org
+
+#+NAME: ox-export-org
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun org-to-org-handle-includes ()
+  "Copy the contents of the current buffer to OUTFILE,
+recursively processing #+INCLUDEs."
+  (let* ((s (buffer-string))
+     (fname (buffer-file-name))
+     (ofname (format "%s.I.org" (file-name-sans-extension fname))))
+    (setq result
+      (with-temp-buffer
+        (insert s)
+        (org-export-handle-include-files-recurse)
+        (buffer-string)))
+    (find-file ofname)
+    (delete-region (point-min) (point-max))
+    (insert result)
+    (save-buffer)))
 #+END_SRC
 
 *** Ox LaTeX
@@ -3214,6 +3378,7 @@ recommended for Spacemacs users on macOS[fn:13].
 (setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
 #+END_SRC
 
+
 ** Keybindings
 *** Hydra
 
@@ -3351,10 +3516,10 @@ Set the cursor to a bar. The default is too thin for my liking.
 Set the width to 4px. Also remove the cursor in inactive windows.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq-default cursor-type '(bar . 2)
-              cursor-in-non-selected-windows 'nil
-              x-stretch-cursor t
-              line-spacing 2)
+(setq-default cursor-in-non-selected-windows 'nil
+              x-stretch-cursor t)
+
+(modify-all-frames-parameters (list (cons 'cursor-type 'bar)))
 #+END_SRC
 
 **** Disable Blink
@@ -3369,10 +3534,12 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 **** Smart Cursor Color
 
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package smart-cursor-color
   :straight t
   :config
   (smart-cursor-color-mode +1))
+
 #+END_SRC
 
 **** Multiple Cursors
@@ -4950,20 +5117,17 @@ This works by frobbing `face-remapping-alist'."
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package visual-fill-column
   :straight t
-  :after (visual-line-mode)
-  :init
-  (progn
-    (add-hook 'org-mode-hook 'visual-fill-column-mode))
+  :commands (visual-fill-column-mode)
   :config
-  (progn
-    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-    (setq split-window-preferred-function visual-fill-column-split-window-sensibly)
-    ;; https://github.com/hlissner/doom-emacs/blob/master/core/core-ui.el#L326-L331
-    (setq-default visual-fill-column-center-text t
-                  visual-fill-column-width
-                  (+ (fboundp 'display-line-numbers) 6 0) fill-column)
+    (progn
+      (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
+      (setq split-window-preferred-function
+            #'visual-fill-column-split-window-sensibly)
+      (setq visual-fill-column-width
+            ;; take Emacs 26 line numbers into account
+            (+ (if (boundp 'display-line-numbers) 6 0)
+               fill-column))))
 
-    (add-hook 'visual-fill-column-hook 'visual-line-mode)))
 #+END_SRC
 
 *** Fill Column Indicator
