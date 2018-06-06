@@ -1,6 +1,6 @@
 #+TITLE: Jacob Chaffin's Literate Emacs Configuration
 #+LANGUAGE: en
-#+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
+ #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: /Users/jacobchaffin/.emacs.d/straight/repos/org-html-themes/setup/theme-readtheorg.setup
 
 * Table Of Contents                                       :TOC_3_gh:noexport:
@@ -88,8 +88,8 @@
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
     - [[#fonts][Fonts]]
-    - [[#modeline][Modeline]]
     - [[#theme][Theme]]
+    - [[#modeline][Modeline]]
     - [[#all-the-icons][All The Icons]]
     - [[#scrolling][Scrolling]]
     - [[#redisplay][Redisplay]]
@@ -694,7 +694,9 @@ Also sets terminal coding system to "utf-8".
   (global-set-key (kbd "s--")  'text-scale-decrease)
   ;; Default is <XF86Back> .. C-x <right>
   (global-set-key (kbd "s-[")  'previous-buffer)
-  (global-set-key (kbd "s-]")  'next-buffer))
+  (global-set-key (kbd "s-]")  'next-buffer)
+  (global-set-key (kbd "s-}")  'ns-next-frame)
+  (global-set-key (kbd "s-{")  'ns-prev-frame))
 
 #+END_SRC
 
@@ -1575,9 +1577,6 @@ org-mode buffers.
 
 #+NAME: org-ui
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-
-<<org-ui-writing>>
-
 ;; UI Fixed Width Block
 <<org-ui-fixedwidth-image>>
 
@@ -1593,15 +1592,6 @@ org-mode buffers.
 ;; UI Equation Renumbering
 <<org-ui-equation-renumbering>>
 
-#+END_SRC
-
-**** Line wrap
-
-#+NAME: org-ui-writing
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (add-hook #'org-mode-hook (lambda ()
-                              (auto-fill-mode 1)
-                              (visual-line-mode 1)))
 #+END_SRC
 
 **** Per-image display width
@@ -2050,6 +2040,32 @@ miscellaneous or arbitrary tasks.
 #+NAME: org-agenda-diary
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq diary-file "~/Dropbox/org/diary.org")
+#+END_SRC
+
+***** Org Agenda ng
+
+#+NAME: org-agenda-ng-cfg
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-agenda-ng
+  :straight (org-agenda-ng :host github
+                           :repo "alphapapa/org-agenda-ng"
+                           :files (:defaults "*.el")))
+
+(use-package org-ql
+  :straight org-agenda-ng
+  :demand t)
+
+#+END_SRC
+
+***** Org Sidebar
+
+#+NAME: org-agenda-sidebar
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-sidebar
+  :after (org-habit org-agenda-ng)
+  :straight (:host github
+                   :repo "alphapapa/org-sidebar")
+  :demand t)
 #+END_SRC
 
 **** Org Projectile
@@ -3454,70 +3470,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 ***** TODO Write Macro to define =-default-font= vars with templated docstring
 
-*** Modeline
-**** Display Time
-
-Show the time in the modeline.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(display-time-mode 1)
-#+END_SRC
-
-**** Spaceline
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package spaceline
-  :straight t
- )
-#+END_SRC
-
-***** Spaceline All the Icons
-
-#+NAME: all-the-icons-spaceline
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-(use-package spaceline-all-the-icons
-  :straight t
-  :demand t
-  :config
-  (progn
-      (setq spaceline-all-the-icons-separator-type 'arrow)
-      (require 'spaceline)
-      (require 'spaceline-segments)
-      (require 'spaceline-config)
-      (require 'all-the-icons)
-      (require 'spaceline-all-the-icons)
-      (spaceline-all-the-icons-theme 'org-pomodoro)))
-
-#+END_SRC
-
-***** Spaceline Segments
-****** Flycheck Segment
-
-By default, =spacleine-all-the-icons= theme displays the flycheck
-status no matter what. I only want this enabled when =flycheck-mode=
-is on.
-
-#+NAME: spaceline-segment-flycheck
-#+BEGIN_SRC emacs-lisp :tangle no
-
-(spaceline-toggle-all-the-icons-flycheck-status-off)
-(add-hook 'flycheck-mode-hook
-	  (lambda ()
-	    (spaceline-toggle-all-the-icons-flycheck-status)))
-
-#+END_SRC
-
-**** Mode Icons
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package mode-icons
-  :straight t
-  :if (display-graphic-p)
-  :after (smart-mode-line)
-  :config
-  (mode-icons-mode))
-#+END_SRC
-
 *** Theme
 **** Enable Custom Themes
 
@@ -3646,6 +3598,14 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
 
 #+END_SRC
 
+**** Doom Themes
+
+#+NAME: doom-theme-cfg
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package doom-themes
+  :straight t)
+#+END_SRC
+
 **** Install Themes
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
@@ -3653,16 +3613,30 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
 <<atom-one-dark-mods>>
 <<ob-theme>>
 <<zenburn-theme-cfg>>
+<<doom-theme-cfg>>
 #+END_SRC
 
-**** Load Themes
+**** Load Default Theme
+
+#+NAME: default-theme-config
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+<<theme-config-1>>
+#+END_SRC
+
+#+NAME: theme-config-2
+#+BEGIN_SRC emacs-lisp :tangle no :noweb no
+(load-theme 'doom-one t)
+(doom-themes-neotree-config)
+(doom-themes-org-config)
+#+END_SRC
 
 Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
 
 I find that zenburn looks better when Emacs is
 started from the terminal.
 
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+#+NAME: theme-config-1
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
 (if (display-graphic-p)
     (progn
       (load-theme 'org-beautify)
@@ -3678,12 +3652,68 @@ started from the terminal.
     (load-theme 'zenburn)))
 #+END_SRC
 
+*** Modeline
+**** Display Time
 
-**** Load Theme Buffer Local
+Show the time in the modeline.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package load-theme-buffer-local
-  :straight t)
+(display-time-mode 1)
+#+END_SRC
+
+**** Spaceline
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package spaceline
+  :straight t
+ )
+#+END_SRC
+
+***** Spaceline All the Icons
+
+#+NAME: all-the-icons-spaceline
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+(use-package spaceline-all-the-icons
+  :straight t
+  :demand t
+  :config
+  (progn
+      (setq spaceline-all-the-icons-separator-type 'arrow)
+      (require 'spaceline)
+      (require 'spaceline-segments)
+      (require 'spaceline-config)
+      (require 'all-the-icons)
+      (require 'spaceline-all-the-icons)
+      (spaceline-all-the-icons-theme 'org-pomodoro)))
+
+#+END_SRC
+
+***** Spaceline Segments
+****** Flycheck Segment
+
+By default, =spacleine-all-the-icons= theme displays the flycheck
+status no matter what. I only want this enabled when =flycheck-mode=
+is on.
+
+#+NAME: spaceline-segment-flycheck
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(spaceline-toggle-all-the-icons-flycheck-status-off)
+(add-hook 'flycheck-mode-hook
+	  (lambda ()
+	    (spaceline-toggle-all-the-icons-flycheck-status)))
+
+#+END_SRC
+
+**** Mode Icons
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package mode-icons
+  :straight t
+  :if (display-graphic-p)
+  :after (smart-mode-line)
+  :config
+  (mode-icons-mode))
 #+END_SRC
 
 *** All The Icons
@@ -4916,7 +4946,6 @@ This works by frobbing `face-remapping-alist'."
 
 *** Visual Fill Column
 
-
 #+NAME: readview-fc
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package visual-fill-column
@@ -4924,13 +4953,17 @@ This works by frobbing `face-remapping-alist'."
   :after (visual-line-mode)
   :init
   (progn
-    ;; (add-hook #'visual-line-mode-hook #'visual-fill-column-mode)
-    )
+    (add-hook 'org-mode-hook 'visual-fill-column-mode))
   :config
   (progn
-    (advice-add 'text-scale-adjust
-                :after #'visual-fill-column-adjust)
-    (setq split-window-preferred-function visual-fill-column-split-window-sensibly)))
+    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
+    (setq split-window-preferred-function visual-fill-column-split-window-sensibly)
+    ;; https://github.com/hlissner/doom-emacs/blob/master/core/core-ui.el#L326-L331
+    (setq-default visual-fill-column-center-text t
+                  visual-fill-column-width
+                  (+ (fboundp 'display-line-numbers) 6 0) fill-column)
+
+    (add-hook 'visual-fill-column-hook 'visual-line-mode)))
 #+END_SRC
 
 *** Fill Column Indicator
