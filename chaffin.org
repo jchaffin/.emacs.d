@@ -1168,7 +1168,7 @@ running macOS.
 (use-package counsel-osx-app
   :straight t
   :if *is-mac*
-  :after (:all ivy counsel)
+  :after (:all ivy)
   :commands (counsel-osx-app)
   :config
   (progn
@@ -3977,13 +3977,14 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 #+NAME: ivy-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package ivy
-  :straight swiper
+  :straight t
   :config
-  (ivy-mode 1)
-  (setq ivy-use-virtual-buffers t
-        ivy-initial-inputs-alist nil
-        ivy-re-builders-alist
-        '((t . ivy--regex-plus))))
+  (progn
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t
+          ivy-initial-inputs-alist nil
+          ivy-re-builders-alist
+          '((t . ivy--regex-plus)))))
 #+END_SRC
 
 
@@ -4024,7 +4025,6 @@ frequency of use[fn:15].
   (progn
     (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history))
   :demand t
-  :after (ivy)
   :bind
   (("C-c C-r" . ivy-resume)
    ("C-`" . ivy-avy)
@@ -4045,7 +4045,6 @@ frequency of use[fn:15].
 #+END_SRC
 
 ***** Counsel OSX App
-
 
 
 ***** Counsel iTunes
@@ -4143,7 +4142,7 @@ documentation browser.
 #+NAME: swiper-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package swiper
-  :after (ivy)
+  :straight t
   :bind
   (("\C-s" . swiper)))
 #+END_SRC
