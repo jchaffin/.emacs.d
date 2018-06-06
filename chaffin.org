@@ -124,26 +124,35 @@
     - [[#advise-org-open-at-point][Advise =org-open-at-point=]]
     - [[#browse-at-remote][Browse at remote]]
     - [[#set-default-browser][Set default browser]]
+    - [[#engine-mode][Engine Mode]]
   - [[#email][Email]]
     - [[#mu][Mu]]
-    - [[#engine-mode][Engine Mode]]
 - [[#prose][Prose]]
   - [[#prose-keymap][Prose Keymap]]
   - [[#spelling-and-grammar][Spelling and Grammar]]
     - [[#flyspell][Flyspell]]
     - [[#langtool][Langtool]]
-  - [[#academic-phrases][Academic Phrases]]
-  - [[#proselint][Proselint]]
+    - [[#academic-phrases][Academic Phrases]]
+    - [[#proselint][Proselint]]
   - [[#text-completion][Text Completion]]
     - [[#company-dict][Company Dict]]
     - [[#dictionaryel][Dictionary.el]]
   - [[#taking-notes][Taking Notes]]
     - [[#deft][Deft]]
     - [[#org-velocity][Org Velocity]]
+    - [[#generating-dummy-text][Generating Dummy Text]]
+  - [[#writing-mode][Writing mode]]
+    - [[#variable-pitch][Variable Pitch]]
+    - [[#poet][Poet]]
+    - [[#centered-cursor-mode][Centered Cursor Mode]]
+    - [[#olivetti][Olivetti]]
+    - [[#writeroom][Writeroom]]
   - [[#reading-and-viewing-prose][Reading and viewing prose]]
+    - [[#justify-kp][Justify Kp]]
     - [[#nov][Nov]]
+    - [[#adaptive-wrap][Adaptive Wrap]]
     - [[#visual-fill-column][Visual Fill Column]]
-  - [[#generating-dummy-text][Generating Dummy Text]]
+    - [[#fill-column-indicator][Fill Column Indicator]]
   - [[#graphics][Graphics]]
     - [[#artist-mode][Artist Mode]]
     - [[#uml-diagrams][UML Diagrams]]
@@ -217,7 +226,7 @@ compiler.
 - [[http://aaronbedra.com/emacs.d/][Aaron Bedra's Emacs Configuration]]
 - [[https://github.com/Wasamasa/dotemacs/blob/master/init.org][wasamasa/dotemacs]]
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
- 
+
 * Base Configuration
 ** Package Management
 *** Straight
@@ -471,10 +480,10 @@ Clojure-like =if-not= macro in elisp.
   (interactive)
   (message "Evaluating %s..." (buffer-name))
   (straight-transaction
-    (if (or (null buffer-file-name) 
+    (if (or (null buffer-file-name)
             (not (file-exists-p buffer-file-name)))
         (eval-buffer)
-      (progn 
+      (progn
         (when (string= buffer-file-name user-init-file)
           (straight-mark-transaction-as-init))
         (load-file buffer-file-name))))
@@ -682,7 +691,10 @@ Also sets terminal coding system to "utf-8".
 
 (when *is-mac*
   (global-set-key (kbd "s-=" ) 'text-scale-increase)
-  (global-set-key (kbd "s--")  'text-scale-decrease))
+  (global-set-key (kbd "s--")  'text-scale-decrease)
+  ;; Default is <XF86Back> .. C-x <right>
+  (global-set-key (kbd "s-[")  'previous-buffer)
+  (global-set-key (kbd "s-]")  'next-buffer))
 
 #+END_SRC
 
@@ -700,7 +712,7 @@ As far as I know, there is no trackpad gesture to trigger the
 =<mouse-2>= event in Emacs. The following snippet uses
 [[elisp-variable::key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
 the trackpad (=<mouse-1>=) like normal while holding down Command, or
-"super", modifier key 
+"super", modifier key
 
 #+NAME: macos-mouse-2
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -867,7 +879,7 @@ killall gpg-agent
 **** Ignore Extensions
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(append completion-ignored-extensions 
+(append completion-ignored-extensions
         '("o" "~" ".lbin" ".so" ".a"
           ".git/" ".hg/" ".svn" ".svn-base"))
 #+END_SRC
@@ -1165,7 +1177,6 @@ running macOS.
  #+END_SRC
 
 * LaTeX and Org Mode
-
 ** LaTeX
 :PROPERTIES:
 :ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
@@ -1220,7 +1231,7 @@ it to work properly:
       ./autogen.sh && \
       ./configure --with-texmf-dir=`kpsewhich --var-value=TEXMFHOME` && \
       make && make install )
-#+END_SRC 
+#+END_SRC
 
 #+NAME: auctex-recipe
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1248,9 +1259,9 @@ Note that LaTeX packages are loaded, configured, and installed when
       ;; Default to latexmk, if possible.
       (defvar latex-build-command
         (if (executable-find "latexmk") "LatexMk" "LaTeX")
-        "The default command to use with `TeX-command'. 
+        "The default command to use with `TeX-command'.
          This variable is essentially an alias for `TeX-command-default'.")
-      
+
       (setq TeX-command-default latex-build-command))
 
     :config
@@ -1263,6 +1274,7 @@ Note that LaTeX packages are loaded, configured, and installed when
             ;; Don't insert line-break at inline math
             LaTeX-fill-break-at-separators nil)
 
+      (defvar latex-use-auto-fill t)
 
       (defvar latex-nofill-env '("equation"
                                  "equation*"
@@ -1272,7 +1284,7 @@ Note that LaTeX packages are loaded, configured, and installed when
                                  "tabular"
                                  "tikzpicture"))
 
-      (defun chaffin--tex-autofill ()
+      (defun chaffin--tex-auto-fill ()
         "Check whether the pointer is currently inside one of
          the environments in `latex-nofill-env` and inhibits auto-filling
          of the current paragraph."
@@ -1292,12 +1304,12 @@ Note that LaTeX packages are loaded, configured, and installed when
         "Toggle autofill mode"
         (interactive)
         (auto-fill-mode)
-        (setq auto-fill-mode 'chaffin--tex-autofill))
+        (setq auto-fill-mode 'chaffin--tex-auto-fill))
 
 
       (defun latex--view-hook ()
         ;; Use pdf-tools to open PDF files.
-        ;; https://emacs.stackexchange.com/a/19475      
+        ;; https://emacs.stackexchange.com/a/19475
         (add-to-list 'TeX-view-program-list '("PDF Tools" TeX-pdf-tools-sync-view))
         (setf (alist-get 'output-pdf TeX-view-program-selection) '("PDF Tools"))
         (setq TeX-source-correlate-start-server t))
@@ -1307,7 +1319,17 @@ Note that LaTeX packages are loaded, configured, and installed when
       (add-hook 'LaTeX-mode-hook (lambda ()
                                    (setq TeX-command-extra-options "-shell-escape")))
       (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
-      (add-hook 'LaTeX-mode-hook 'latex--auto-fill-mode)
+
+      (when latex-use-auto-fill
+        (add-hook 'LaTeX-mode-hook 'latex--auto-fill-mode))
+
+
+      ;; (when (fboundp 'visual-fill-column-mode)
+      ;;   (add-hook 'LaTeX-mode-hook (lambda ()
+      ;;                                (setq fill-column 80)
+      ;;                                (visual-line-mode 1)
+      ;;                                (visual-fill-column-mode 1))))
+
       (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
       (add-hook 'LaTeX-mode-hook 'TeX-fold-mode)
       (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
@@ -1316,7 +1338,7 @@ Note that LaTeX packages are loaded, configured, and installed when
         (add-hook 'LaTeX-mode-hook 'flyspell-mode))
       (when (fboundp 'doc-view-mode)
         (add-hook 'doc-view-mode-hook 'auto-revert-mode))
-      
+
       (when (fboundp 'ggtags-mode)
         (add-hook 'latex-mode-local-vars-hook (ggtags-mode 1)))))
 #+END_SRC
@@ -1355,9 +1377,9 @@ from the author of the online BibTeX mode manual[fn:9]:
 
 #+BEGIN_QUOTE
 I am not the author of this file and am only putting it online because, to my knowledge, it is not available anywhere else anymore and I find it a very valuable reference.  I haven't been able to find out who the current maintainer of the BibTex-Mode for GNU emacs is, but am willing to withdraw this text or add any copyright notice that would be deemed relevant.
-#+END_QUOTE 
+#+END_QUOTE
 
-That was from 2009... 
+That was from 2009...
 
 These are the recommended settings in the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#bibtex-key-format][org-ref]] documentation.
 
@@ -1436,7 +1458,7 @@ Prettify dedicated org-mode latex buffers.
 (use-package magic-latex-buffer
   :straight t
   :after (tex)
-  :init 
+  :init
   (progn
     (add-hook 'LaTeX-mode-hook 'magic-latex-buffer))
   :config
@@ -1553,8 +1575,8 @@ org-mode buffers.
 
 #+NAME: org-ui
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; UI Wrap Text Block 
-<<org-ui-wraptext>>
+
+<<org-ui-writing>>
 
 ;; UI Fixed Width Block
 <<org-ui-fixedwidth-image>>
@@ -1573,13 +1595,13 @@ org-mode buffers.
 
 #+END_SRC
 
-**** Wrap Text 
+**** Line wrap
 
-#+NAME: org-ui-wraptext
-#+BEGIN_SRC emacs-lisp :tangle no
+#+NAME: org-ui-writing
+#+BEGIN_SRC emacs-lisp :tangle yes
   (add-hook #'org-mode-hook (lambda ()
-                              (auto-fill-mode)
-                              (visual-line-mode)))
+                              (auto-fill-mode 1)
+                              (visual-line-mode 1)))
 #+END_SRC
 
 **** Per-image display width
@@ -1651,11 +1673,11 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+NAME: org-ui-equation-renumbering
 #+BEGIN_SRC emacs-lisp :tangle no
 (defun org-renumber-environment (orig-func &rest args)
-  (let ((results '()) 
+  (let ((results '())
         (counter -1)
         (numberp))
 
-    (setq results (loop for (begin .  env) in 
+    (setq results (loop for (begin .  env) in
                         (org-element-map (org-element-parse-buffer) 'latex-environment
                           (lambda (env)
                             (cons
@@ -1670,7 +1692,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
                          ((string-match "\\\\begin{align}" env)
                           (prog2
                               (incf counter)
-                              (cons begin counter)                          
+                              (cons begin counter)
                             (with-temp-buffer
                               (insert env)
                               (goto-char (point-min))
@@ -1687,7 +1709,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
             (concat
              (format "\\setcounter{equation}{%s}\n" numberp)
              (car args)))))
-  
+
   (apply orig-func args))
 
 ;; (advice-add 'org-create-formula-image :around #'org-renumber-environment)
@@ -1810,7 +1832,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
           org-journal-date-format "%A, %B %d %Y"
           org-journal-time-prefix "* "
           org-journal-time-format "")
-    (push '("j" "Journal" entry 
+    (push '("j" "Journal" entry
             (file+olp+datetree "~/Dropbox/org/journal.org")
             "* %?\nEntered on %U\n %i\n %a")
           org-capture-templates)))
@@ -1900,7 +1922,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 
 **** Org Download
 
-Drag and Drop images directly from a web browser to an org-mode buffer. 
+Drag and Drop images directly from a web browser to an org-mode buffer.
 
 #+NAME: org-docmgr-download
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1992,7 +2014,6 @@ Embed YouTube Links in iframe.
                     path (or desc "video"))))))
 #+END_SRC
 
-
 *** Task Management
 
 #+NAME: org-taskmgr
@@ -2038,7 +2059,7 @@ miscellaneous or arbitrary tasks.
 :END:
 
 #+NAME: org-taskmgr-projectile
-#+BEGIN_SRC emacs-lisp :tangle no 
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-projectile
   :straight t
   :after (projectile)
@@ -2126,7 +2147,7 @@ Calendar.
   :straight t
   :config
   (progn
-    (setq org-gcal-file-alist 
+    (setq org-gcal-file-alist
           '(("8u01m20o80k2ja1lpp93qa3u98@group.calendar.google.com" . "~/Dropbox/Documents/Courses/cs180/org/cs180-gcal.org")
             ("jchaffin@g.ucla.edu" . "~/Dropbox/org/todos/TODOS.gcal.org")))))
 #+END_SRC
@@ -2144,7 +2165,7 @@ Calendar.
 **** Org Mru Clock
 
 The [[https://github.com/unhammer/org-mru-clock][org-mru-clock]] package prefills clock history with clocks from
-org agenda files. 
+org agenda files.
 
 #+NAME: org-taskmgr-mru-clock
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2275,15 +2296,15 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
   :config
   (progn
     (setq org-ref-completion-library 'org-ref-ivy-cite)
-    
+
     (setq reftex-default-bibliography '("~/Dropbox/org/ref/references.bib"))
-    
+
     (setq org-ref-default-bibliography '("~/Dropbox/org/ref/references.bib")
           org-ref-bibliography-notes "~/Dropbox/org/ref/refnotes.org"
           org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
           org-ref-show-citation-on-enter t
           org-ref-show-broken-links t)
-    
+
     ;; Org Ref Journal abbreviations
     (setq orbj-extra-abbrevs
       '(("JPS" "Journal of Palestinian Studies")
@@ -2425,11 +2446,11 @@ Now we can open pdf files with =org-pdfview= [fn:11]:
   ;; LaTeX Configuration
   <<latex-config>>
   ;; End LaTeX Config
-  
-  ;; Org LaTeX 
+
+  ;; Org LaTeX
   <<org-latex-config>>
   ;; End Org Latex Expansion
-   
+
   ;; Ox Latex
   <<org-export-latex>>
   ) ;; End LaTeX Backend
@@ -2596,7 +2617,7 @@ Open exported document in new window on save.
 #+NAME: org-export-latex-async
 #+BEGIN_SRC emacs-lisp :tangle no
 ;; https://github.com/jkitchin/scimax/issues/30#issuecomment-271198016
-(add-hook 'after-save-hook 
+(add-hook 'after-save-hook
           (lambda ()
             (org-latex-export-to-pdf 't)
             (find-file-other-window
@@ -2646,7 +2667,7 @@ external configuration.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Humanities 
+***** Humanities
 
 My custom mla-style LaTeX class.
 
@@ -2729,7 +2750,7 @@ My custom mla-style LaTeX class.
 - [[http://bastibe.de/2014-12-03-org-numbering.html][Org Numbering]]
 
 #+NAME: org-export-latex-numfilter
-#+BEGIN_SRC emacs-lisp :tangle no 
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun headline-numbering-filter (data backend info)
   "No numbering in headlines that have a property :numbers: no"
   (let* ((beg (next-property-change 0 data))
@@ -2850,7 +2871,7 @@ for exporting org-mode documents to various formats.
 
 #+NAME: ox-html-themes
 #+BEGIN_SRC emacs-lisp :tangle no
-(straight-use-package 
+(straight-use-package
  `(org-html-themes
    :host github
    :repo "fniessen/org-html-themes"
@@ -2944,7 +2965,7 @@ interactive tree .
 **** Neotree
 
 [[https://github.com/jaypei/emacs-neotree][Neotree]][fn:12] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
- 
+
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package neotree
   :straight t
@@ -3052,7 +3073,7 @@ Adds extensions and functionality to dired mode.
 **** ack
 
 #+NAME: ack-config
-#+BEGIN_SRC emacs-lisp :tangle yes 
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package ack
   :if (executable-find "ack")
   :straight t)
@@ -3177,7 +3198,7 @@ recommended for Spacemacs users on macOS[fn:13].
 (setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
 #+END_SRC
 
-** Keybindings 
+** Keybindings
 *** Hydra
 
 [[https://github.com/abo-abo/hydra/wiki/Emacs][Hydra]] is a package used to bind a family of related commands with a
@@ -3560,7 +3581,7 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
 - Use default foreground color instead of highlight face for org-mode
   source lines.
 - Use italic font (when available) for strings, comments, and keywords
-- Modify vertical border foreground color 
+- Modify vertical border foreground color
 - Modify highlight symbol foreground face and colors
 
 #+NAME: atom-one-dark-mods
@@ -3652,12 +3673,18 @@ started from the terminal.
                   (load-theme 'atom-one-dark)
                   (load-theme 'org-beautify)
                   (enable-theme 'atom-one-dark-mods))))
-  
+
   (progn
     (load-theme 'zenburn)))
 #+END_SRC
 
 
+**** Load Theme Buffer Local
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package load-theme-buffer-local
+  :straight t)
+#+END_SRC
 
 *** All The Icons
 
@@ -3774,7 +3801,6 @@ started from the terminal.
 <<company-company>>
 <<company-quick-help>>
 <<company-statistics-config>>
-<<company-dict-config>>
 #+END_SRC
 
 Emacs has two popular packages for code completion --
@@ -4083,7 +4109,7 @@ friends.
 
 Counsel dash provides a simple wrapper around [[https://github.com/areina/helm-dash][helm-dash]] bindings to provide
 ivy integration with dash docsets. This is not great, as installing
-=helm-dash= requires installing =helm= itself. 
+=helm-dash= requires installing =helm= itself.
 
 See my [[#macos-dash][implementation]] if you are running macOS, have [[https://kapeli.com/dash][Dash]] installed on
 your system, and would like to open docsets natively in the Dash
@@ -4220,8 +4246,6 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 * Web
 ** Browsing
 *** Webkit xwidget
-
-
 **** nsxwidget
 
 See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webkit][veshboo/emacs]].
@@ -4255,7 +4279,7 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
       (funcall #'xwidget-webkit-open-file))))
 #+END_SRC
 
-****  xwidgete
+**** xwidgete
 
 #+NAME: nsxwidget-xwidgete
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4333,7 +4357,7 @@ the user will be prompted to edit the search string first."
 :CUSTOM_ID: org-open-at-point-browser
 :END:
 
-This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-open-at-point= to allow choosing different browsers. 
+This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-open-at-point= to allow choosing different browsers.
 
 #+NAME: org-open-at-point-advise
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4364,7 +4388,7 @@ This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-
           (setq browse-url-browser-function 'osx-browse-url-chrome)))))
 #+END_SRC
 
-*** Set default browser 
+*** Set default browser
 
 Interactively.
 
@@ -4377,7 +4401,7 @@ Interactively.
         ("xwidget-webkit" . xwidget-webkit-browse-url)))
 
 (if *is-mac*
-    (progn 
+    (progn
       (setf (cdr (assoc "chrome" browse-url-browser-alist)) #'osx-browse-url-chrome)
       (setf (cdr (assoc "firefox" browse-url-browser-alist)) #'osx-browse-url-firefox)
       (add-to-list 'browse-url-browser-alist '("safari" . osx-browse-url-safari))))
@@ -4388,71 +4412,6 @@ Interactively.
   (let ((browser (assoc (completing-read "Browser: " browse-url-browser-alist)
                         browse-url-browser-alist)))
     (setq browse-url-browser-function (cdr browser))))
-#+END_SRC
-
-** Email
-*** Mu
-
-#+NAME: mu-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package mu4e
-  :if *is-mac*
-  :load-path "/usr/local/Cellar/mu/0.9.18_1/share/emacs/site-lisp/mu/mu4e"
-  :config
-  (progn
-    (setq mu4e-maildir (expand-file-name "~/.mail")
-          mu4e-context-policy 'pick-first
-          mu4e-compose-policy nil
-          mu4e-get-mail-command "offlineimap -q -u quiet"
-          mu4e-show-images t
-          mu4e-show-addresses t)
-
-     ;; smtp settings
-     (setq mu4e-send-mail-function 'smtp-mail-send-it
-           mu4e-default-smtp-server "smtp.gmail.com"
-           smtpmail-smtp-service 587
-           smtp-mail-smtp-stream-type 'ssl)
-
-
-     (setq mu4e-contexts
-           `( ,(make-mu4e-context
-                :name "private"
-                :match-func (lambda (msg)
-                              (when msg
-                                mu4e-message-contact-field-matches msg
-                                :to "jchaffin57@gmail.com"))
-                :leave-func (lambda ()
-                              (mu4e-message "Leaving Gmail Account"))
-                :vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
-                         ( user-mail-address . "jchaffin57@gmail.com" )
-                         ( user-full-name . "Jacob Chaffin" )
-                         ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
-                         ( mu4e-sent-folder . "/private/[Gmail].Trash" )
-                         ( mu4e-refile-folder . "/archived")
-                         ( mu4e-compose-signature .
-                                                  (concat
-                                                   "Jacob Chaffin\n"
-                                                   "UCLA 19\n"
-                                                   "Linguistics and Computer Science\n"
-                                                   "jchaffin@ucla.edu\n"))))
-
-              ,(make-mu4e-context
-                :name "school"
-                :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
-                :leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
-                :match-func  (lambda (msg)
-                               (when msg
-                                 (mu4e-message-contact-field-matches msg :to (or
-                                                                              "jchaffin@ucla.edu"
-                                                                              "jchaffin@g.ucla.edu"))))
-                :vars '( (user-mail-address . "jchaffin@ucla.edu" )
-                         (user-full-name . "Jacob Chaffin" )
-                         (mu4e-compose-signature . (concat
-                                                    "Jacob Chaffin\n"
-                                                    "UCLA 19\n"
-                                                    "Linguistics and Computer Science\n"
-                                                    "jchaffin@ucla.edu\n"
-                                                    "(650)-380-3288\n"))))))))
 #+END_SRC
 
 *** Engine Mode
@@ -4469,6 +4428,10 @@ Interactively.
 
     (defengine worldcat
       "https://ucla.worldcat.org/search?q=%s")
+
+    (defengine proquest
+      "https://search.proquest.com"
+      :browser 'xwidget-webkit-browse-url)
 
     (defengine google
       "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
@@ -4519,6 +4482,70 @@ Interactively.
       :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")))
 #+END_SRC
 
+** Email
+*** Mu
+
+#+NAME: mu-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package mu4e
+  :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
+  :config
+  (progn
+    (setq mu4e-maildir (expand-file-name "~/.mail")
+          mu4e-context-policy 'pick-first
+          mu4e-compose-policy nil
+          mu4e-get-mail-command "offlineimap -q -u quiet"
+          mu4e-show-images t
+          mu4e-show-addresses t)
+
+     ;; smtp settings
+     (setq mu4e-send-mail-function 'smtp-mail-send-it
+           mu4e-default-smtp-server "smtp.gmail.com"
+           smtpmail-smtp-service 587
+           smtp-mail-smtp-stream-type 'ssl)
+
+
+     (setq mu4e-contexts
+           `( ,(make-mu4e-context
+                :name "private"
+                :match-func (lambda (msg)
+                              (when msg
+                                mu4e-message-contact-field-matches msg
+                                :to "jchaffin57@gmail.com"))
+                :leave-func (lambda ()
+                              (mu4e-message "Leaving Gmail Account"))
+                :vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
+                         ( user-mail-address . "jchaffin57@gmail.com" )
+                         ( user-full-name . "Jacob Chaffin" )
+                         ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
+                         ( mu4e-sent-folder . "/private/[Gmail].Sent Mail" )
+                         ( mu4e-refile-folder . "/archived")
+                         ( mu4e-compose-signature .
+                                                  (concat
+                                                   "Jacob Chaffin\n"
+                                                   "UCLA 19\n"
+                                                   "Linguistics and Computer Science\n"
+                                                   "jchaffin@ucla.edu\n"))))
+
+              ,(make-mu4e-context
+                :name "school"
+                :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
+                :leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
+                :match-func  (lambda (msg)
+                               (when msg
+                                 (mu4e-message-contact-field-matches msg :to (or
+                                                                              "jchaffin@ucla.edu"
+                                                                              "jchaffin@g.ucla.edu"))))
+                :vars '( (user-mail-address . "jchaffin@ucla.edu" )
+                         (user-full-name . "Jacob Chaffin" )
+                         (mu4e-compose-signature . (concat
+                                                    "Jacob Chaffin\n"
+                                                    "UCLA 19\n"
+                                                    "Linguistics and Computer Science\n"
+                                                    "jchaffin@ucla.edu\n"
+                                                    "(650)-380-3288\n"))))))))
+#+END_SRC
+
 * Prose
 
 #+NAME: prose-config
@@ -4528,7 +4555,6 @@ Interactively.
 <<prose-completion>>
 <<prose-notes>>
 <<prose-readview>>
-<<prose-dummy>>
 #+END_SRC
 
 ** Prose Keymap
@@ -4539,15 +4565,19 @@ Interactively.
 (define-key 'chaffin-keymap "p" 'prose-keymap)
 #+END_SRC
 
+
 ** Spelling and Grammar
 
 #+NAME: prose-spellcheck
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<sc-flyspell>>
 <<sc-langtool>>
+<<sc-academic>>
+<<sc-proselint>>
 #+END_SRC
 
-Tools for checking lexical and grammatical errors in text buffers[fn:16].
+Tools for checking lexical and grammatical errors in text
+buffers[fn:16].
 
 *** Flyspell
 
@@ -4585,16 +4615,18 @@ checking for natural language.
           langtool-disabled-rules '("WHITESPACE_RULE"))))
 #+END_SRC
 
-** Academic Phrases
+*** Academic Phrases
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: sc-academic
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package academic-phrases
   :straight t)
 #+END_SRC
 
-** Proselint
+*** Proselint
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: sc-proselint
+#+BEGIN_SRC emacs-lisp :tangle no
 (with-eval-after-load 'flycheck
   (flycheck-define-checker proselint
                            "A linter for prose."
@@ -4651,14 +4683,14 @@ whistles, it makes up for in compatibility and hackability [fn:17].
     (define-prefix-command 'dictionary-keymap)
     (define-key 'prose-keymap "d" 'dictionary-keymap)
     (define-key 'dictionary-keymap "i" 'dictionary-lookup-definition)))
-#+END_SRC   
+#+END_SRC
 
 ** Taking Notes
 
 #+NAME: prose-notes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<notes-deft>>
-<<notes-velocity>>
+<<notes-dummy>>
 #+END_SRC
 
 *** Deft
@@ -4693,12 +4725,135 @@ whistles, it makes up for in compatibility and hackability [fn:17].
     (setq org-velocity-bucket (expand-file-name "bucket.org" org-directory))))
 #+END_SRC
 
+*** Generating Dummy Text
+
+#+NAME: notes-dummy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lorem-ipsum
+  :straight t)
+#+END_SRC
+
+** Writing mode
+
+#+NAME:  prose-writing
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+<<writing-olivetti>>
+<<writing-writerrom>>
+<<writing-variable-pitch>>
+#+END_SRC
+
+
+*** Variable Pitch
+
+#+NAME: writing-variable-pitch
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar org-fixed-pitch-faces
+  '(org-table
+    org-code
+    org-special-keyword
+    org-verbatim
+    org-meta-line
+    org-block
+    org-block-begin-line
+    org-block-end-line
+    org-done
+    org-document-info-keyword)
+  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’.")
+
+(defvar org-fixed-pitch-font
+  (face-attribute 'fixed-pitch :family))
+
+(defvar org-variable-pitch-font
+  (face-attribute 'variable-pitch :family))
+
+(setq org-fixed-pitch-font "Monospace")
+(setq org-variable-pitch-font "Bookmania")
+
+(defun toggle-variable-pitch-font ()
+  (interactive)
+  (let ((spec '(default variable-pitch :family "Bookmania"))) 
+    (set (make-local-variable 'face-remapping-alist) 
+         (if (member spec face-remapping-alist) 
+             (delete spec face-remapping-alist) 
+           (cons spec face-remapping-alist)))))
+
+(defun org-toggle-variable-pitch () 
+  "Toggle use of face `variable-pitch'. 
+This works by frobbing `face-remapping-alist'." 
+  (interactive) 
+  (if-not face-remapping-alist
+      (progn
+        (face-remap-add-relative 'variable-pitch :family org-variable-pitch-font)
+        (face-remap-add-relative 'default 'variable-pitch)
+        (->> org-fixed-pitch-faces 
+            (mapcar (lambda (x) (list x :family org-fixed-pitch-font))) 
+            (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
+    (setq face-remapping-alist nil)))
+
+
+#+END_SRC
+
+*** Poet
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package poet
+  :straight (:host github
+                   :repo "kunalb/poet"))
+#+END_SRC
+
+*** Centered Cursor Mode
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package centered-cursor-mode
+  :straight t)
+#+END_SRC
+
+*** Olivetti
+
+#+NAME:  writing-olivetti
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package olivetti
+  :straight t
+  :config
+  (progn
+    (add-hook 'olivetti-mode-hook (lambda ()
+                                    (auto-fill-mode -1)))
+
+    (add-hook 'olivetti-mode-hook 'centerd-cursor-mode)))
+
+#+END_SRC
+
+*** Writeroom
+
+#+NAME: writing-writeroom
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package writeroom-mode
+  :straight t
+  :config
+  (progn
+    (add-hook 'writeroom-mode-hook 'org-toggle-variable-pitch)
+    (add-hook 'writeroom-mode-hook (lambda () (auto-fill-mode -1)))))
+#+END_SRC
+
 ** Reading and viewing prose
 
 #+NAME: prose-readview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<readview-epub>>
-<<readview-text>>
+<<readview-fc>>
+<<readview-justify>>
+<<readview-fc-indicator>>
+<<readview-adaptive-wrap>>
+#+END_SRC
+
+*** Justify Kp
+
+#+NAME: readview-justify
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package justify-kp
+  :straight (:host github
+                   :repo "Fuco1/justify-kp")) 
 #+END_SRC
 
 *** Nov
@@ -4709,41 +4864,84 @@ whistles, it makes up for in compatibility and hackability [fn:17].
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package nov
   :straight t
-  :mode ("\\.epub\\'" . nov-mode)
+  :mode (("\\.epub\\'" . nov-mode))
   :config
   (progn
-    (setq nov-text-width 80
-          visual-fill-column-center-text t)
-    (defun chaffin--nov-font-setup ()
+
+    (require 'justify-kp)
+
+
+    (defun nov-setup ()
       (face-remap-add-relative 'variable-pitch
-                               :family "Bookmania"
-                               :weight 'light
-                               :height 1.0))
-    (when *is-mac*
-      (add-hook 'nov-mode-hook 'chaffin--nov-font-setup))
-    (add-hook 'nov-mode-hook 'visual-line-mode)
-    (add-hook 'nov-mode-hook 'visual-fill-column-mode)))
+                               :family "Bookmania")
+      (visual-line-mode 1)
+      (visual-fill-column-mode 1)
+
+      (setq nov-text-width most-positive-fixnum
+            visual-fill-column-center-text t))
+
+    (defun my-nov-window-configuration-change-hook ()
+      (my-nov-post-html-render-hook)
+      (remove-hook 'window-configuration-change-hook
+                   'my-nov-window-configuration-change-hook t))
+
+    (defun my-nov-post-html-render-hook ()
+      (if (get-buffer-window)
+          (let ((max-width (pj-line-width))
+                buffer-read-only)
+            (save-excursion
+              (goto-char (point-min))
+              (while (not (eobp))
+                (when (not (looking-at "^[[:space:]]*$"))
+                  (goto-char (line-end-position))
+                  (when (> (shr-pixel-column) max-width)
+                    (goto-char (line-beginning-position))
+                    (pj-justify)))
+                (forward-line 1))))
+        (add-hook 'window-configuration-change-hook
+                  'my-nov-window-configuration-change-hook
+                  nil t)))
+
+
+    (add-hook 'nov-mode-hook 'nov-setup)
+    (add-hook 'nov-post-html-render-hook 'my-nov-post-html-render-hook)))
+#+END_SRC
+
+*** Adaptive Wrap
+
+#+NAME: readview-adaptive-wrap
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package adaptive-wrap
+  :straight t)
 #+END_SRC
 
 *** Visual Fill Column
 
-Mimics behavior of =fill-column= in =visual-line-mode=.
 
-#+NAME: readview-text
+#+NAME: readview-fc
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package visual-fill-column
   :straight t
+  :after (visual-line-mode)
+  :init
+  (progn
+    ;; (add-hook #'visual-line-mode-hook #'visual-fill-column-mode)
+    )
   :config
-  (advice-add 'text-scale-adjust
-              :after #'visual-fill-column-adjust))
+  (progn
+    (advice-add 'text-scale-adjust
+                :after #'visual-fill-column-adjust)
+    (setq split-window-preferred-function visual-fill-column-split-window-sensibly)))
 #+END_SRC
 
-** Generating Dummy Text
+*** Fill Column Indicator
 
-#+NAME: prose-dummy
+#+NAME: readview-fc-indicator
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package lorem-ipsum
-  :straight t)
+(use-package fill-column-indicator
+  :straight t
+  :init
+  (setq fci-rule-use-dashes nil))
 #+END_SRC
 
 ** Graphics
@@ -4822,7 +5020,7 @@ configuration block as I learn how to use it.
                  (delete '("dot" . fundamental) org-src-lang-modes))))
 #+END_SRC
 
-*** Thesaurus 
+*** Thesaurus
 
 This library needs to allow setting transfer protocol on the user
 end. It's hardcoded to use port 80. HTTP doesn't really work on my
@@ -5436,7 +5634,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
           langs))
 
 (when *is-mac*
-  (add-to-list-proglang-enabled 'asm 'c-c++ 'common-lisp 'clojure 'groovy 'java
+  (add-to-list-proglang-enabled 'asm 'common-lisp 'clojure 'groovy 'java
                                 'javascript 'markdown 'scala 'python 'ruby
                                 'web))
 #+END_SRC
@@ -5469,7 +5667,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
              (member (string (char-after)) '(" " "\t")))
     (setq asm-colon-has-space t)))
 
-(defun chaffin-asm-colon-delete-space () 
+(defun chaffin-asm-colon-delete-space ()
   (unless asm-colon-has-space
     (call-interactively 'delete-horizontal-space)))
 
@@ -6413,7 +6611,7 @@ local file system.
 (use-package tern
   :if (executable-find "tern")
   :straight t
-  :init 
+  :init
   (progn
     (add-hook 'js2-mode-hook 'tern-mode)))
 #+END_SRC
@@ -6486,7 +6684,7 @@ local file system.
   :mode ("\\.coffee\\'" . coffee-mode))
 #+END_SRC
 
-**** Add Node Modules Path 
+**** Add Node Modules Path
 
 #+NAME: js-add-node-modules-path
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6978,7 +7176,7 @@ and slim-mode using company.
            '(company-tern company-web-html company-yasnippet company-files)))
 
     (add-hook 'web-mode-hook #'chaffin--company-web-mode-hook)
-    
+
     ;; Enable JavaScript completion between <script>...</script> etc.
     (defadvice company-tern (before web-mode-set-up-ac-sources activate)
       "Set `tern-mode' based on current language before running company-tern."
@@ -7035,4 +7233,5 @@ dialects of Lisp.
 [fn:18] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
 [fn:19] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+
 

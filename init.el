@@ -61,7 +61,7 @@
 ;; [1] https://github.com/raxod502/straight.el/commit/7e77328b
 (add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem")
 
-(setq straight-repository-branch "develop" 
+(setq straight-repository-branch "develop"
       ;; Use the macos lockfile
       straight-profiles '((default . "default.el"))
       straight-current-profile 'default)
@@ -79,12 +79,12 @@
 
 ;;
 ;; Interactive commands such as `straight-use-package' fail on the
-;; `develop' branch of `straight'.  
+;; `develop' branch of `straight'.
 ;;
 ;; The issue appears to be that straight expects the local `gnu-elpa'
 ;; clone to minimally contain a `packages/' directory. Support for
 ;; `gnu-elpa' is still unstable. For now, I'm bypassing the issue by
-;; ensuring the directory exists when `straight-recipes-gnu-elpa-list' 
+;; ensuring the directory exists when `straight-recipes-gnu-elpa-list'
 ;; is invoked.
 ;;
 (defadvice straight-recipes-gnu-elpa-list (around straight-recipe-gnu-elpa-list-around activate)
@@ -169,7 +169,7 @@
            org-src-preserve-indentation t)))
 
 (defun load-literate (&optional user-config-file)
-  "If USER-CONFIG-FILE is passed as an argument, then tangle. 
+  "If USER-CONFIG-FILE is passed as an argument, then tangle.
 Else use the value of `literate-config-file'."
   (let ((target-file (or literate-config-file user-config-file))
         (target-dir (or user-emacs-directory default-directory)))
@@ -179,9 +179,6 @@ Else use the value of `literate-config-file'."
       (message "No configuration file set, not extracting source code."))))
 
 (load-literate)
-
-
-
 
 
 
