@@ -1,0 +1,7 @@
+# -*- mode: org-mode -*-
+# name: lemma
+# key: <lem
+# --
+#+BEGIN_lemma
+$1
+#+END_lemma
