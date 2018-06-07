@@ -3523,8 +3523,10 @@ different window configurations.
 (use-package debbugs
   :straight (debbugs :type git
                      :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
-                     :files ("packages/debbugs/*.el" "packages/debugs/*.wdsl")
+                     :files ("packages/debbugs/*.el"
+                             "packages/debbugs/Debbugs.wsdl")
                      :local-repo "elpa"))
+
 #+END_SRC
 
 ** User Interface
