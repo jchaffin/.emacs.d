@@ -32,7 +32,6 @@
   - [[#latex][LaTeX]]
     - [[#auctex][AucTeX]]
     - [[#tex][Tex]]
-    - [[#tex-site][Tex site]]
     - [[#reftex][RefTeX]]
     - [[#bibtex][BibTex]]
     - [[#latex-extra][LaTeX Extra]]
@@ -55,6 +54,7 @@
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
     - [[#org-ref][Org Ref]]
     - [[#org-pdf][Org PDF]]
+    - [[#miscellany][Miscellany]]
   - [[#org-mode-export][Org Mode Export]]
     - [[#enable-backends][Enable Backends]]
     - [[#ox-org][Ox Org]]
@@ -841,6 +841,11 @@ This might come back to bite me one day but I never use them.
 (save-place-mode 1)
 #+END_SRC
 
+**** Prefer newer bytecode
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq load-prefer-newer t)
+#+END_SRC
 *** Encryption
 ***** GnuTLS
 
@@ -1274,8 +1279,8 @@ Recent versions of AuCTeX are problematic with straight.
 On a clean install, I had to manually run the following command to get
 it to work properly:
 
-#+BEGIN_SRC shell :tangle no
-( cd $HOME/straight/repos/auctex && \
+#+BEGIN_SRC shell :tangle no :results none
+( cd $HOME/.emacs.d/straight/repos/auctex && \
       ./autogen.sh && \
       ./configure --with-texmf-dir=`kpsewhich --var-value=TEXMFHOME` && \
       make && make install )
@@ -1389,14 +1394,6 @@ Note that LaTeX packages are loaded, configured, and installed when
 
       (when (fboundp 'ggtags-mode)
         (add-hook 'latex-mode-local-vars-hook (ggtags-mode 1)))))
-#+END_SRC
-
-*** Tex site
-
-#+NAME: latex-tex-site
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package tex-site
-  :straight auctex)
 #+END_SRC
 
 *** RefTeX
@@ -1648,8 +1645,8 @@ org-mode buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 
 (defun chaffin--org-mode-vfc-hook ()
-  (setq-local visual-fill-column-use-visual-line t)
-  (visual-fill-column-mode 1))
+  (visual-fill-column-mode 1)
+  (visual-line-mode 1))
 
 (add-hook 'org-mode-hook #'chaffin--org-mode-vfc-hook)
 
@@ -2138,11 +2135,12 @@ miscellaneous or arbitrary tasks.
 (use-package org-agenda-ng
   :straight (org-agenda-ng :host github
                            :repo "alphapapa/org-agenda-ng"
-                           :files (:defaults "*.el")))
+                           :files ("org-agenda-ng.el")))
 
 (use-package org-ql
-  :straight org-agenda-ng
-  :demand t)
+  :straight (org-ql :host github
+                           :repo "alphapapa/org-agenda-ng"
+                           :files ("org-ql.el")))
 
 #+END_SRC
 
@@ -2150,11 +2148,14 @@ miscellaneous or arbitrary tasks.
 
 #+NAME: org-agenda-sidebar
 #+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-habit
+  :straight nil)
+
 (use-package org-sidebar
-  :after (org-habit org-agenda-ng)
-  :straight (:host github
-                   :repo "alphapapa/org-sidebar")
-  :demand t)
+  :after (:all org-habit org-agenda-ng org-ql)
+  :demand t
+  :straight (org-sidebar :host github
+                         :repo "alphapapa/org-sidebar"))
 #+END_SRC
 
 **** Org Projectile
@@ -2652,6 +2653,37 @@ Now we can open pdf files with =org-pdfview= [fn:11]:
                                  (org-pdfview-open link))))))))
 #+END_SRC
 
+*** Miscellany
+
+This doesn't work... it just caches the project metadata for some reason.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(defvar org-publish--project-file "project.el"
+  "The file which defines a project's publishing specification.
+ Used to configure `org-publish-project'.")
+
+
+(defun load-project-publish-config ()
+  "Load the `org-publish-project' configuration for the current project. "
+  (interactive)
+    (lexical-let* ((project-directory (projectile-project-root))
+                   (project-publish-config (expand-file-name
+                                            org-publish--project-file
+                                            project-directory)))
+
+    (if (file-exists-p project-publish-config)
+        (progn
+          (with-temp-buffer
+            (insert-file-contents project-publish-config)
+            (straight-eval-buffer)
+            (message "Loaded publish config for project %s"
+
+                     (car (nreverse (f-split project-directory)))))))))
+
+
+
+#+END_SRC
 ** Org Mode Export
 :PROPERTIES:
 :ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
@@ -3172,6 +3204,7 @@ and subtrees of the ignored headlines will be retained.
   :demand t
   :bind (("M-m r p" . org-publish-project)))
 #+END_SRC
+
 
 * Customizing Emacs
 ** Search and Navigation
@@ -4323,6 +4356,7 @@ Turn Ivy mode on if ARG is positive, off othherwise.
 ;; filtering in various contexts. It is not published to MELPA, so we
 ;; must define a recipe here.
 (use-package prescient
+  :straight t
   :config
   ;; Remember usage statistics across Emacs sessions.
   (prescient-persist-mode +1))
@@ -4330,6 +4364,7 @@ Turn Ivy mode on if ARG is positive, off othherwise.
 ;; Package `ivy-prescient' provides intelligent sorting and filtering
 ;; for candidates in Ivy menus.
 (use-package ivy-prescient
+  :straight t
   :demand t
   :after ivy
   :config
@@ -4354,10 +4389,10 @@ Turn Ivy mode on if ARG is positive, off othherwise.
 #+NAME: counsel-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<counsel-base>>
-<<counsel-osx-app-config>>
 <<counsel-projectile-config>>
 <<counsel-ggtags-config>>
 <<counsel-itunes-config>>
+<<counsel-spotify-config>>
 <<counsel-dash-config>>
 <<counsel-tramp-config>>
 #+END_SRC
@@ -4436,8 +4471,6 @@ replacements. "
 
 #+END_SRC
 
-***** Counsel OSX App
-
 ***** Counsel iTunes
 
 #+NAME: counsel-itunes-config
@@ -4465,6 +4498,15 @@ replacements. "
       (define-key 'counsel-itunes-keymap "n"    #'counsel-itunes-next-track)
       (define-key 'counsel-itunes-keymap "b"    #'counsel-itunes-previous-track)
       (define-key 'counsel-itunes-keymap "s"    #'counsel-itunes-shuffle))))
+#+END_SRC
+
+***** Counsel Spotify
+
+#+NAME: counsel-spotify-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package counsel-spotify
+  :straight t)
+
 #+END_SRC
 
 ***** Counsel Projectile
@@ -5207,6 +5249,7 @@ This works by frobbing `face-remapping-alist'."
 (use-package poet
   :straight (:host github
                    :repo "kunalb/poet"))
+
 #+END_SRC
 
 *** Centered Cursor Mode
@@ -5223,12 +5266,14 @@ This works by frobbing `face-remapping-alist'."
 
 (use-package olivetti
   :straight t
+  :after centered-cursor-mode
+  :demand t
   :config
   (progn
     (add-hook 'olivetti-mode-hook (lambda ()
                                     (auto-fill-mode -1)))
 
-    (add-hook 'olivetti-mode-hook 'centerd-cursor-mode)))
+    (add-hook 'olivetti-mode-hook 'centered-cursor-mode)))
 
 #+END_SRC
 
@@ -5500,10 +5545,11 @@ Tabs are the bane of humanity[fn:17]. [[http://www.urbandictionary.com/define.ph
 #+NAME: symbol-hl
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<hl-hl-sexp>>
+<<hl-hl-todo>>
 <<hl-highlight-symbol>>
 <<hl-prettify-symbol>>
 #+END_SRC
-
+«
 **** Hlsexp
 
 Minor mode to highlight sexp.
@@ -5512,6 +5558,14 @@ Minor mode to highlight sexp.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package highlight-sexp
   :straight t)
+#+END_SRC
+
+**** Hl Todo
+
+Highlight =TODO= keywords:
+#+NAME: hl-hl-todo
+#+BEGIN_SRC emacs-lisp :tangle no
+
 #+END_SRC
 
 **** Highlight Symbol
@@ -5533,6 +5587,7 @@ the absence of a window system. I'll check for the latter for now.
 (when (display-graphic-p)
   (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
+
 
 *** Code Folding
 **** Origami.el
@@ -5602,6 +5657,11 @@ haystack, smartparens are a great productivity tool.
   (progn
     (require 'smartparens-config)
     (smartparens-global-mode)
+
+    (defun sp-wrap-math ()
+      "Wrap marked region as ordinary LaTeX inline math mode."
+      (interactive)
+      (sp-wrap-with-pair "$"))
 
     (defun disable-smartparens ()
       "Disable smartparens when `paredit-mode' is enabled."

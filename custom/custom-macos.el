@@ -166,7 +166,14 @@
  '(org-agenda-files
    '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org"))
  '(safe-local-variable-values
-   '((eval bibtex-set-dialect 'biblatex)
+   '((eval font-lock-add-keywords nil
+           `((,(concat "("
+                       (regexp-opt
+                        '("sp-do-move-op" "sp-do-move-cl" "sp-do-put-op" "sp-do-put-cl" "sp-do-del-op" "sp-do-del-cl")
+                        t)
+                       "\\_>")
+              1 'font-lock-variable-name-face)))
+     (eval bibtex-set-dialect 'biblatex)
      (eval sh-set-shell "zsh")
      (eval when
            (and

@@ -63,8 +63,9 @@
 
 (setq straight-repository-branch "develop"
       ;; Use the macos lockfile
-      straight-profiles '((default . "default.el"))
-      straight-current-profile 'default)
+      straight-profiles '((halidom . "versions.el")
+			  (nil . "default.el"))
+      straight-current-profile 'halidom)
 
 (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
       (bootstrap-version 2))
@@ -101,15 +102,15 @@
 ;; Now clone the `use-package' library
 (straight-use-package 'use-package)
 ;; Straight integration of `use-package'.
-(setq straight-use-package-version 'straight
-      ;; And enable by default.
-      straight-use-package-by-default t
-      ;; Allow built-in packages to be configured by `use-package'.
-      ;; TODO: Figure out what this is doing
-      straight-built-in-pseudo-packages
-      '(emacs browse-url artist-mode winner-mode xwidget)
-      ;; Defer by default
-      use-package-always-defer t)
+;; Allow built-in packages to be configured by `use-package'.
+(setq straight-use-package-version 'straight)
+;; And enable by default.
+(setq straight-use-package-by-default t)
+;; TODO: Figure out what this is doing
+(setq straight-built-in-pseudo-packages
+      '(emacs browse-url artist-mode winner-mode xwidget))
+;; Defer by default
+(setq use-package-always-defer t)
 
 ;; Advice system and package lazy-loading
 ;; [1] https://github.com/raxod502/el-patch#lazy-loading-packages
