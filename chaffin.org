@@ -83,6 +83,7 @@
     - [[#popwin][Popwin]]
     - [[#winner-mode][Winner Mode]]
     - [[#golden-ratio][Golden Ratio]]
+  - [[#copy-and-paste][Copy and Paste]]
   - [[#emacs][Emacs+]]
     - [[#help][Help+]]
     - [[#image][Image+]]
@@ -606,6 +607,17 @@ buffer.
 
 #+END_SRC
 
+**** ssl-p
+
+From the melpa installation 
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun ssl-p ()
+  "Determine whether https protocol is supported."
+  (and (not (memq system-type '(windows-nt ms-dos)))
+       (gnutls-available-p)))
+#+END_SRC
+
 *** Extending the Global Keymap
 **** Personal Keymap
 
@@ -677,7 +689,8 @@ Also sets terminal coding system to "utf-8".
   (global-set-key (kbd "s-[")  'previous-buffer)
   (global-set-key (kbd "s-]")  'next-buffer)
   (global-set-key (kbd "s-}")  'ns-next-frame)
-  (global-set-key (kbd "s-{")  'ns-prev-frame))
+  (global-set-key (kbd "s-{")  'ns-prev-frame)
+  (global-set-key (kbd "s-L")   'mark-sexp))
 
 #+END_SRC
 
@@ -1018,6 +1031,9 @@ external programs.
   ;; osx-trash
   <<macos-trash>>
 
+  ;; osx-clipboard
+  <<macos-pbcopy>>
+
   ;; osx-app
   <<macos-counsel-osx-app>>)
 #+END_SRC
@@ -1180,6 +1196,17 @@ running macOS.
   :config
   (progn
     (setq delete-by-moving-to-trash t)))
+#+END_SRC
+
+**** OSX Clipboard
+
+#+NAME: macos-pbcopy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pbcopy
+  :straight t
+  :if (and *is-mac* (not (display-graphic-p)))
+  :init (turn-on-pbcopy))
+
 #+END_SRC
 
 **** Counsel OSX App
@@ -1614,12 +1641,19 @@ org-mode buffers.
 <<org-ui-equation-renumbering>>
 
 #+END_SRC
-p
+
 **** Org visual fill
 
 #+NAME: org-ui-fill
 #+BEGIN_SRC emacs-lisp :tangle no
-(add-hook 'org-mode-hook 'visual-fill-column-mode)
+
+(defun chaffin--org-mode-vfc-hook ()
+  (setq-local visual-fill-column-use-visual-line t)
+  (visual-fill-column-mode 1))
+
+(add-hook 'org-mode-hook #'chaffin--org-mode-vfc-hook)
+
+
 #+END_SRC
 
 **** Per-image display width
@@ -1783,24 +1817,41 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
   :END:")
 #+END_SRC
 
+***** Org Protocol Handler
+
+#+NAME: org-protocol-mac
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun org-protocol-handler-install ()
+  (interactive)
+  (let* ((apps-dir (f-join user-emacs-directory "apps"))
+         (op-app-path (f-join apps-dir "org-protocol-handler" "Org Protocol Handler.app"))
+         (git-repo apps-dir))
+    (unwind-protect
+        (if-not (f-dir-p apps-dir)
+            (progn
+              (f-mkdir apps-dir)
+              (git-clone "https://github.com/aaronbieber/org-protocol-handler.git")
+              (f-symlink op-app-path "/Applications/"))))))
+
+(with-eval-after-load 'server
+	(if (and *is-mac* (server-running-p))
+	    (org-protocol-handler-install)))
+#+END_SRC
+
 ***** Org Protocol Capture HTML
 
 #+NAME: org-capture-html
 #+BEGIN_SRC emacs-lisp :tangle no
-(straight-use-package
- `(org-protocol-capture-html
-   :host github
-   :repo "alphapapa/org-protocol-capture-html"
-   :local-repo-name org-protocol-capture-html))
-
 (use-package org-protocol-capture-html
-  :straight t
+  :straight (org-protocol-capture-html
+             :host github
+             :repo "alphapapa/org-protocol-capture-html")
   :after (org-capture)
   :init
   (progn
     (add-to-list 'org-capture-templates
                  '("w" "Web site" entry
-                   (file "")
+                   (file "~/Dropbox/org/capture.org")
                    "* %a :website:\n\n%U %?\n\n%:initial")))
   :config
   (setq opch-shell-script-path  (expand-file-name "bin/org-protocol-capture-html.sh" user-emacs-directory))
@@ -1818,6 +1869,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
             (message "Installed to %s" opch-shell-script-path))))))
 
 #+END_SRC
+
 
 ***** Org Contacts
 
@@ -3398,7 +3450,6 @@ recommended for Spacemacs users on macOS[fn:13].
 (setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
 #+END_SRC
 
-
 ** Keybindings
 *** Hydra
 
@@ -3475,6 +3526,17 @@ different window configurations.
   :straight t
   :init
   (setq golden-ratio-auto-scale t))
+#+END_SRC
+
+** Copy and Paste
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package mark-forward-sexp
+  :straight t
+  :bind (("C-c o" . mark-forward-sexp)
+         ("C-c O" . mark-backward-sexp)
+         ("C-c i" . mark-inside-forward-sexp)
+         ("C-c I" . mark-inside-backwad-sexp)))
 #+END_SRC
 
 ** Emacs+
@@ -4182,7 +4244,7 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 #+NAME: ivy-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<ivy-base>>
-<<ivy-historian-config>>
+<<ivy-prescient-config>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -4253,22 +4315,38 @@ Turn Ivy mode on if ARG is positive, off othherwise.
 #+END_SRC
 
 
-***** Ivy Historian
+***** Ivy Prescient
 
-[[https://github.com/PythonNut/historian.el][Historian.el]] uses a persistent store of =completing-read= results
-and similar functions to provide completion candidates based on
-frequency of use[fn:15].
-
-#+NAME: ivy-historian-config
+#+NAME: ivy-prescient-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package historian
-  :straight t)
+;; Package `prescient' is a library for intelligent sorting and
+;; filtering in various contexts. It is not published to MELPA, so we
+;; must define a recipe here.
+(use-package prescient
+  :config
+  ;; Remember usage statistics across Emacs sessions.
+  (prescient-persist-mode +1))
 
-(use-package ivy-historian
-  :straight historian
-  :after (ivy)
-  :init
-  (add-hook 'ivy-mode-hook 'ivy-historian-mode))
+;; Package `ivy-prescient' provides intelligent sorting and filtering
+;; for candidates in Ivy menus.
+(use-package ivy-prescient
+  :demand t
+  :after ivy
+  :config
+
+  ;; Use `prescient' for Ivy menus.
+  (ivy-prescient-mode +1))
+
+;; Package `company-prescient' provides intelligent sorting and
+;; filtering for candidates in Company completions.
+(use-package company-prescient
+  :demand t
+  :after company
+  :config
+
+  ;; Use `prescient' for Company menus.
+  (company-prescient-mode +1))
+
 #+END_SRC
 
 **** Counsel
@@ -4288,6 +4366,7 @@ frequency of use[fn:15].
 #+BEGIN_SRC emacs-lisp :noweb no :tangle no
 (use-package counsel
   :bind (("<f2> u" . counsel-unicode-char)
+         ("<f1> l" . counsel-find-library)
          ("C-c l" . counsel-load-library)
          ("C-c g" . counsel-git)
          ("C-c j" . counsel-git-grep)
@@ -4577,17 +4656,17 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
                         (setq xwidget-webkit-bookmark-jump-new-session t)
                       (setq xwidget-webkit-bookmark-jump-new-session nil)
                       (setq xwidget-webkit-last-session-buffer (current-buffer)))))))
+  :bind ((:map xwidget-mode-map
+               ("w" . xwidget-current-url-message-kill)))
   :config
   (progn
     (defun xwidget-webkit-open-file (&optional file)
       "Render FILE using xwidget-webkit"
       (interactive "fFile: ")
-      (xwidget-webkit-browse-url (concat "file://"
-                                         (and (memq system-type '(windows-nt ms-dos)) "/")
-                                         (expand-file-name (or file (buffer-file-name))))))
-    (defun xwidget-webkit-open-file-at-point ()
-      (interactive)
-      (funcall #'xwidget-webkit-open-file))))
+      (xwidget-webkit-browse-url
+       (concat "file://"
+               (and (memq system-type '(windows-nt ms-dos)) "/")
+               (expand-file-name (or file (buffer-file-name))))))))
 #+END_SRC
 
 **** xwidgete
@@ -4888,7 +4967,7 @@ Interactively.
 #+END_SRC
 
 Tools for checking lexical and grammatical errors in text
-buffers[fn:16].
+buffers[fn:15].
 
 *** Flyspell
 
@@ -4982,7 +5061,7 @@ checking for natural language.
 
 The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
 dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:17].
+whistles, it makes up for in compatibility and hackability [fn:16].
 
 #+NAME: completion-dictionary-el
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -5241,7 +5320,14 @@ This works by frobbing `face-remapping-alist'."
       (setq visual-fill-column-width
             ;; take Emacs 26 line numbers into account
             (+ (if (boundp 'display-line-numbers) 6 0)
-               fill-column))))
+               fill-column))
+
+      ;;;###autoload
+      (defvar visual-fill-column-use-visual-line nil
+        "Enable `visual-line-mode' when `visual-fill-column-mode' is non-nil.")
+
+      (if-not visual-fill-column-use-visual-line
+          (add-hook 'visual-fill-column-mode-hook #'visual-line-mode))))
 
 #+END_SRC
 
@@ -5384,7 +5470,7 @@ Colors the modeline according to current Flycheck state of buffer.
 ** Code Style
 *** Indentation
 
-Tabs are the bane of humanity[fn:18]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+Tabs are the bane of humanity[fn:17]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
@@ -7534,14 +7620,12 @@ dialects of Lisp.
 
 [fn:14] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
 
-[fn:15] =ivy-historian= is provided by the =historian= package.
+[fn:15] https://joelkuiper.eu/spellcheck_emacs
 
-[fn:16] https://joelkuiper.eu/spellcheck_emacs
+[fn:16] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
 
-[fn:17] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
+[fn:17] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
-[fn:18] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
-
-[fn:19] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:18] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
 
 

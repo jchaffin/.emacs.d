@@ -174,17 +174,20 @@
 
      (add-hook 'org-mode-hook 'chaffin--unbind-org-mode-map-keys)))
 
-(defun load-literate (&optional user-config-file)
+(defun load-literate (&optional user-config-file init-server)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
 Else use the value of `literate-config-file'."
-  (let ((target-file (or literate-config-file user-config-file))
+  (let ((target-file (or user-config-file literate-config-file))
         (target-dir (or user-emacs-directory default-directory)))
+    (if init-server
+	(require 'server)
+	(start-server))
     (if target-file
         (org-babel-load-file
          (expand-file-name target-file target-dir))
       (message "No configuration file set, not extracting source code."))))
 
-(load-literate)
+(load-literate literate-config-file t)
 
 
 

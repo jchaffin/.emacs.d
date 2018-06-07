@@ -1,0 +1,8 @@
+# -*- mode: org-mode -*-
+# name: org-src-elisp
+# key: <se
+# --
+#+NAME: $1
+#+BEGIN_SRC emacs-lisp :tangle $2
+$3
+#+END_SRC
