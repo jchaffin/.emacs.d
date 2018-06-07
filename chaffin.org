@@ -4972,6 +4972,12 @@ buffers[fn:15].
 *** Flyspell
 
 #+NAME: sc-flyspell
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<flyspell-base>>
+<<flyspell-correct-config>>
+#+END_SRC
+
+#+NAME: flyspell-base
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package flyspell
     :straight t
@@ -4984,6 +4990,18 @@ buffers[fn:15].
         (setq-default ispell-program-name "hunspell")
         (setq-default ispell-dictionary "en_US")
         (setq ispell-really-hunspell t))))
+#+END_SRC
+
+**** Flyspell Correct
+
+#+NAME: flyspell-correct-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flyspell-correct-ivy
+  :straight t
+  :after (:all flyspell ivy)
+  :demand t
+  :config
+  (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic))
 #+END_SRC
 
 *** Langtool
