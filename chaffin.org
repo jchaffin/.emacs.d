@@ -707,6 +707,7 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 *** Default Setup
 **** Garbage Collection
 
+
 Consider the following from the documentation:
 
 #+BEGIN_QUOTE
@@ -736,7 +737,8 @@ contributing to the solution.
 (add-hook 'minibuffer-exit-hook 'chaffin/rev-down-gc)
 #+END_SRC
 
-**** Custom File
+**** Files
+***** Custom File
 
 By default, Emacs customizations[fn:6] done through the =customize=
 interface write to =user-init-file=.
@@ -770,13 +772,32 @@ other machines.
   (load custom-file))
 #+END_SRC
 
-**** Backup Files
+***** Backup Files
 
 This might come back to bite me one day but I never use them.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq make-backup-files nil)
 #+END_SRC
+
+
+***** Shortcuts
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun goto-init ()
+  (interactive)
+  (find-file user-init-file))
+
+(defun goto-literate ()
+  (interactive)
+  (find-file literate-config-file))
+
+(define-key goto-map "i" #'goto-init)
+(define-key goto-map "l" #'goto-literate)
+
+
+#+END_SRC
+
 
 **** Load Secrets
 
