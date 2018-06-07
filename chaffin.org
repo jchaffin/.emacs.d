@@ -4198,13 +4198,56 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package ivy
   :straight t
+  :init
+  ;; Lazy Load Ivy
+  ;; [1] https://github.com/raxod502/el-patch#lazy-loading-packages
+  ;; [2] https://github.com/raxod502/radian/blob/develop/radian-emacs/radian-completion.el#L25
+  (el-patch-feature ivy)
+  (el-patch-defvar ivy-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [remap switch-to-buffer]
+        'ivy-switch-buffer)
+      (define-key map [remap switch-to-buffer-other-window]
+        'ivy-switch-buffer-other-window)
+      map)
+    "Keymap for `ivy-mode'.")
+  (el-patch-define-minor-mode ivy-mode
+    "Toggle Ivy mode on or off.
+Turn Ivy mode on if ARG is positive, off othherwise.
+
+  Global bindings:
+  \\{ivy-mode-map}
+  
+  Minibuffer bindings:
+  \\{ivy-minibuffer-map}"
+
+    :group 'ivy
+    :global t
+    :keymap ivy-mode-map
+    :lighter " ivy"
+    (if ivy-mode
+        (progn
+          (setq completing-read-function 'ivy-completing-read)
+          (el-patch-splice 2
+            (when ivy-do-completion-in-region
+              (setq completion-in-region-function 'ivy-completion-in-region))))
+      (setq completing-read-function 'completing-read-default)
+      (setq completion-in-region-function 'completion--in-region)))
+  (ivy-mode +1)
+  (diminish 'ivy-mode)
+  :bind (("C-c C-r" . ivy-resume)
+         ("C-`" . ivy-avy))
   :config
   (progn
     (ivy-mode 1)
     (setq ivy-use-virtual-buffers t
+          ;; Default is caret (^)
           ivy-initial-inputs-alist nil
+          ivy-sort-max-size 50000
           ivy-re-builders-alist
-          '((t . ivy--regex-plus)))))
+          '((t . ivy--regex-plus))))
+
+  :diminish ivy-mode)
 #+END_SRC
 
 
@@ -4220,8 +4263,10 @@ frequency of use[fn:15].
   :straight t)
 
 (use-package ivy-historian
+  :straight historian
   :after (ivy)
-  :straight historian)
+  :init
+  (add-hook 'ivy-mode-hook 'ivy-historian-mode))
 #+END_SRC
 
 **** Counsel
@@ -4240,32 +4285,77 @@ frequency of use[fn:15].
 #+NAME: counsel-base
 #+BEGIN_SRC emacs-lisp :noweb no :tangle no
 (use-package counsel
-  :straight t
+  :bind (("<f2> u" . counsel-unicode-char)
+         ("C-c l" . counsel-load-library)
+         ("C-c g" . counsel-git)
+         ("C-c j" . counsel-git-grep)
+         ("C-c k" . counsel-ag)
+         ("C-x l" . counsel-locate)
+         (:map minibuffer-local-map
+               ("C-r" . counsel-minibuffer-history)))
   :init
-  (progn
-    (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history))
-  :demand t
-  :bind
-  (("C-c C-r" . ivy-resume)
-   ("C-`" . ivy-avy)
-   ("M-x" . counsel-M-x)
-   ("M-y" . counsel-yank-pop)
-   ("C-x C-f" . counsel-find-file)
-   ("<f1> l" . counsel-find-library)
-   ("<f2> u" . counsel-unicode-char)
-   ("C-c l" . counsel-load-library)
-   ("C-c g" . counsel-git)
-   ("C-c j" . counsel-git-grep)
-   ("C-c k" . counsel-ag)
-   ("C-x l" . counsel-locate)
-   (:map help-map
-         ("f" . counsel-describe-function)
-         ("v" . counsel-describe-variable)
-         ("C-l" . counsel-info-lookup-symbol))))
+  ;; Lazy-load `counsel'.
+  (el-patch-defvar counsel-mode-map
+    (let ((map (make-sparse-keymap)))
+      (dolist (binding
+               '((execute-extended-command . counsel-M-x)
+                 (describe-bindings . counsel-descbinds)
+                 (describe-function . counsel-describe-function)
+                 (describe-variable . counsel-describe-variable)
+                 (describe-face . counsel-describe-face)
+                 (list-faces-display . counsel-faces)
+                 (find-file . counsel-find-file)
+                 (find-library . counsel-find-library)
+                 (imenu . counsel-imenu)
+                 (load-library . counsel-load-library)
+                 (load-theme . counsel-load-theme)
+                 (yank-pop . counsel-yank-pop)
+                 (info-lookup-symbol . counsel-info-lookup-symbol)
+                 (pop-to-mark-command . counsel-mark-ring)
+                 (bookmark-jump . counsel-bookmark)))
+        (define-key map (vector 'remap (car binding)) (cdr binding)))
+      map)
+    "Map for `counsel-mode'.
+Remaps built-in functions to counsel replacements.")
+
+   (el-patch-defcustom counsel-mode-override-describe-bindings nil
+    "Whether to override `describe-bindings' when `counsel-mode' is active."
+    :group 'ivy
+    :type 'boolean)
+
+  (el-patch-define-minor-mode counsel-mode
+    "Toggle Counsel mode on or off.
+Turn Counsel mode on if ARG is positive, off otherwise. Counsel
+mode remaps built-in emacs functions that have counsel
+replacements. "
+    :group 'ivy
+    :global t
+    :keymap counsel-mode-map
+    :lighter " counsel"
+    (if counsel-mode
+        (progn
+          (when (and (fboundp 'advice-add)
+                     counsel-mode-override-describe-bindings)
+            (advice-add #'describe-bindings :override #'counsel-descbinds))
+          (define-key minibuffer-local-map (kbd "C-r")
+            'counsel-minibuffer-history))
+      (when (fboundp 'advice-remove)
+        (advice-remove #'describe-bindings #'counsel-descbinds))))
+
+  ;; Use customized Ivy configurations for built-in Emacs commands.
+  (counsel-mode +1)
+
+  ;; Diminish the lazy-loaded version of `counsel-mode'.
+  (diminish 'counsel-mode)
+
+  :config
+  (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
+
+  :diminish counsel-mode)
+
 #+END_SRC
 
 ***** Counsel OSX App
-
 
 ***** Counsel iTunes
 

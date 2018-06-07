@@ -101,18 +101,19 @@
 ;; Now clone the `use-package' library
 (straight-use-package 'use-package)
 ;; Straight integration of `use-package'.
-;;
-;; TODO: Comply with radian-emacs Style Guide
-;; e.g `use-package' keyword ordering, no lambdas in hooks.
-;; [1] https://github.com/raxod502/radian/blob/develop/docs/style.md
 (setq straight-use-package-version 'straight
       ;; And enable by default.
       straight-use-package-by-default t
       ;; Allow built-in packages to be configured by `use-package'.
+      ;; TODO: Figure out what this is doing
       straight-built-in-pseudo-packages
       '(emacs browse-url artist-mode winner-mode xwidget)
       ;; Defer by default
       use-package-always-defer t)
+
+;; Advice system and package lazy-loading
+;; [1] https://github.com/raxod502/el-patch#lazy-loading-packages
+(straight-use-package 'el-patch)
 
 (straight-use-package 'git)
 
@@ -155,7 +156,6 @@
    (:map org-mode-map
          ("C-c M-t" . org-set-tags-command)
          ("C-c C-x h" . org-toggle-link-display)))
-
    :config
    (progn
      (when (eq system-type 'darwin)
@@ -166,7 +166,13 @@
            org-startup-indented t
            org-src-fontify-natively t
            org-confirm-babel-evaluate nil
-           org-src-preserve-indentation t)))
+           org-src-preserve-indentation t)
+
+     (defun chaffin--unbind-org-mode-map-keys ()
+       ;; Conflicts with `ivy-resume'
+       (define-key org-mode-map (kbd "C-c C-r") nil))
+
+     (add-hook 'org-mode-hook 'chaffin--unbind-org-mode-map-keys)))
 
 (defun load-literate (&optional user-config-file)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
