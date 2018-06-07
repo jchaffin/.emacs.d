@@ -798,7 +798,6 @@ This might come back to bite me one day but I never use them.
 
 #+END_SRC
 
-
 **** Load Secrets
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -3522,7 +3521,10 @@ different window configurations.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package debbugs
-  :straight t)
+  :straight (debbugs :type git
+                     :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
+                     :files ("packages/debbugs/*.el" "packages/debugs/*.wdsl")
+                     :local-repo "elpa"))
 #+END_SRC
 
 ** User Interface
@@ -5595,7 +5597,6 @@ git config --global --add magit.extension stgit
   :demand t
   :after (magit))
 #+END_SRC
-
 
 ***** Killing Magit Buffers
 
