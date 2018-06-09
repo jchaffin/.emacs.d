@@ -87,6 +87,8 @@
   - [[#emacs][Emacs+]]
     - [[#help][Help+]]
     - [[#image][Image+]]
+    - [[#info][Info+]]
+    - [[#visual-replace][Visual Replace]]
   - [[#bug-tracking][Bug Tracking]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
@@ -1867,7 +1869,6 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+END_SRC
 
-
 ***** Org Contacts
 
 #+NAME: org-capture-contacts
@@ -3205,7 +3206,6 @@ and subtrees of the ignored headlines will be retained.
   :bind (("M-m r p" . org-publish-project)))
 #+END_SRC
 
-
 * Customizing Emacs
 ** Search and Navigation
 *** The buffer
@@ -3421,7 +3421,7 @@ list that one may use in the wacky world of Emacs.
   :straight t
   :demand t
   :init
-  (if (not (global-page-break-lines-mode))
+  (if-not (global-page-break-lines-mode)
       (global-page-break-lines-mode))
   (dashboard-setup-startup-hook)
   :config
@@ -3431,7 +3431,8 @@ list that one may use in the wacky world of Emacs.
         dashboard-items '(( agenda . 10)
                           ( projects . 5)
                           ( recents . 5)
-                          ( bookmarks . 5))))
+                          ( bookmarks . 5)))
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
 
 #+END_SRC
 
@@ -3610,6 +3611,59 @@ different window configurations.
          ("S" imagex-sticky-save-image "save file")
          ("r" imagex-sticky-rotate-right "rotate right")
          ("l" imagex-sticky-rotate-left "rotate left")))))
+#+END_SRC
+
+*** Info+
+
+#+NAME: info=plus
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package info+
+  :straight t)
+#+END_SRC
+
+*** Visual Replace
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package visual-regexp
+  :straight t
+  :bind
+  (("C-c r" . vr/replace)
+   ("C-c q" . vr/query-replace)
+   ("C-c m" . vr/mc-mark)))
+#+END_SRC
+
+**** Visit file+ :bug:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar read-only-directories '("/Users/jacobchaffin/.emacs.d/straight/"))
+(defvar read-only-file-extensions '("\\.gz\\'"))
+(defvar user-home-directory "/Users/jacobchaffin/")
+
+(defun dir-level (dir)
+  (length (f-split dir)))
+
+(defun chaffin//dir-or-subdir-p (d1 d2)
+  (cond ((= (dir-level d1) (dir-level d2)) nil)
+        ((string= d1 d2) t)
+        (t (chaffin//dir-or-subdir-p (file-name-directory (directory-file-name d1)) d2))))
+
+(defun chaffin//open-buffer-as-read-only-p (bf)
+  (cl-flet ((f (d) (funcall #'chaffin//dir-or-subdir-p bf d)))
+    (and (not (null (seq-filter #'f read-only-directories)))
+         (file-writable-p bf))))
+
+(defun chaffin/open-buffer-as-read-only (file)
+  "All buffers from `read-only-directories' or `read-only-file-extensions' are set to read-only."
+  (let ((bd (and buffer-file-name (file-name-directory file))))
+    (if (chaffin//open-buffer-as-read-only-p bd) (read-only-mode 1))))
+
+(defun chaffin/find-file-read-only-hook ()
+  (funcall #'chaffin/open-buffer-as-read-only (buffer-file-name)))
+
+(add-hook 'find-file-hook #'chaffin/find-file-read-only-hook)
+
+
+
 #+END_SRC
 
 ** Bug Tracking
@@ -4570,7 +4624,6 @@ documentation browser.
 #+END_SRC
 
 **** Swiper
-
 
 #+NAME: swiper-config
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -7394,7 +7447,6 @@ local file system.
 (use-package ruby-mode
   :mode "\\.rb\\'"
   :interpreter "ruby"
-  :functions inf-ruby-keys
   :config
   (progn
     (defun chaffin/ruby-mode-hook ()
@@ -7405,7 +7457,7 @@ local file system.
     (when *is-mac*
       (add-hook 'ruby-mode-hook
                 (setq-local dash-plugin-keywords
-                            ("ruby" "rails"))))))
+                            '("ruby" "rails"))))))
 #+END_SRC
 
 **** rvm

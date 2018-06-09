@@ -51,6 +51,10 @@
   any settings and customizations defined in this GNU Emacs
   distribution.")
 
+(defvar user-literate-init-file
+  (expand-file-name literate-config-file user-emacs-directory)
+  "The absolute path of `literate-config-file.'")
+
 
 (setq package-enable-at-startup nil)
 
