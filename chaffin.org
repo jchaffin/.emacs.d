@@ -1818,29 +1818,6 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
   :END:")
 #+END_SRC
 
-***** Org Protocol Handler
-
-#+NAME: org-protocol-mac
-#+BEGIN_SRC emacs-lisp :tangle yes
-(defun org-protocol-handler-install ()
-  (interactive)
-  (let* ((apps-dir (f-join user-emacs-directory "apps"))
-         (op-app-path (f-join apps-dir "org-protocol-handler" "Org Protocol Handler.app"))
-         (url-type (if (ssl-p) "https" "http"))
-         (git-repo apps-dir))
-    (unwind-protect
-        (if-not (f-dir-p apps-dir)
-            (progn
-              (f-mkdir apps-dir)
-              (git-clone
-               "https://github.com/aaronbieber/org-protocol-handler.git")
-              (f-symlink op-app-path "/Applications/"))))))
-
-(with-eval-after-load 'server
-	(if (and *is-mac* (server-running-p))
-	    (org-protocol-handler-install)))
-#+END_SRC
-
 ***** Org Protocol Capture HTML
 
 #+NAME: org-capture-html
