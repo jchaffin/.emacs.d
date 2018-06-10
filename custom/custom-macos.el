@@ -166,7 +166,8 @@
  '(org-agenda-files
    '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/cs180/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/ling120c/org/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/Courses/hist109b/org/TODOs.org"))
  '(safe-local-variable-values
-   '((eval font-lock-add-keywords nil
+   '((mangle-whitespace . t)
+     (eval font-lock-add-keywords nil
            `((,(concat "("
                        (regexp-opt
                         '("sp-do-move-op" "sp-do-move-cl" "sp-do-put-op" "sp-do-put-cl" "sp-do-del-op" "sp-do-del-cl")

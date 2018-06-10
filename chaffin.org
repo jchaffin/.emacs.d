@@ -83,6 +83,7 @@
     - [[#popwin][Popwin]]
     - [[#winner-mode][Winner Mode]]
     - [[#golden-ratio][Golden Ratio]]
+    - [[#purpose][Purpose]]
   - [[#copy-and-paste][Copy and Paste]]
   - [[#emacs][Emacs+]]
     - [[#help][Help+]]
@@ -121,6 +122,7 @@
     - [[#anything-tramp][Anything Tramp]]
 - [[#web][Web]]
   - [[#browsing][Browsing]]
+    - [[#domains][Domains]]
     - [[#webkit-xwidget][Webkit xwidget]]
     - [[#set-the-default-browser][Set the default browser.]]
     - [[#browser-utilities-on-macos][Browser utilities on macOS]]
@@ -805,7 +807,7 @@ This might come back to bite me one day but I never use them.
 
 (defun goto-literate ()
   (interactive)
-  (find-file literate-config-file))
+  (find-file user-literate-init-file))
 
 (define-key goto-map "i" #'goto-init)
 (define-key goto-map "l" #'goto-literate)
@@ -1824,12 +1826,14 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
   (interactive)
   (let* ((apps-dir (f-join user-emacs-directory "apps"))
          (op-app-path (f-join apps-dir "org-protocol-handler" "Org Protocol Handler.app"))
+         (url-type (if (ssl-p) "https" "http"))
          (git-repo apps-dir))
     (unwind-protect
         (if-not (f-dir-p apps-dir)
             (progn
               (f-mkdir apps-dir)
-              (git-clone "https://github.com/aaronbieber/org-protocol-handler.git")
+              (git-clone
+               "https://github.com/aaronbieber/org-protocol-handler.git")
               (f-symlink op-app-path "/Applications/"))))))
 
 (with-eval-after-load 'server
@@ -2348,11 +2352,21 @@ Fix problem with saveplace.el which puts point back in a folded position.
 Extract hyperlink
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun chaffin-org-extract-link ()
+(defun org-extract-link ()
   "Extract the link location at point and put it on the killring."
   (interactive)
   (when (org-in-regexp org-bracket-link-regexp 1)
     (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
+
+
+(defun browse-url-extract-org-link (orig-fun &rest args)
+  "If `thing-at-point' is a org-link, then call `org-extract-link' 
+and apply ORIG-FUN with the extracted url in the car of original ARGS."
+  (when (and (eq major-mode 'org-mode)
+             (string= (car (org-thing-at-point)) "link"))
+    (setcar args (org-extract-link)))
+  (apply orig-fun args))
+
 
 #+END_SRC
 
@@ -2394,7 +2408,7 @@ Export to datetree
 #+END_SRC
 
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (setq ba/org-adjust-tags-column t)
 
 (defun ba/org-adjust-tags-column-reset-tags ()
@@ -2772,7 +2786,7 @@ And opt-in to all back ends when on local machine.
 *** Ox Org
 
 #+NAME: ox-export-org
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun org-to-org-handle-includes ()
   "Copy the contents of the current buffer to OUTFILE,
 recursively processing #+INCLUDEs."
@@ -3241,10 +3255,13 @@ interactive tree .
   (projectile-mode)
   :config
   (progn
-    (mapcar
-     (lambda (elt)
-       (add-to-list 'projectile-globally-ignored-directories elt))
-     '("gradle" "target" ".meghanada" ".gradle" "build" "bin"))))
+    (append projectile-globally-ignored-directories
+            '("gradle" "target" ".meghanada" ".gradle" "build" "bin"))
+    (defvar chaffin/ignored-project-directories '("~/.emacs.d/straight"))
+    (defun projectile-ignore-projects-in-directory (project-root)
+      (cl-flet ((ignored-dir-or-subdir-p (path) (f-descendant-of? (f-expand project-root) path)))
+        (->> chaffin/ignored-project-directories (seq-filter #'ignored-dir-or-subdir-p) seq-empty-p not)))
+    (setq projectile-ignored-project-function #'projectile-ignore-projects-in-directory)))
 #+END_SRC
 
 **** Neotree
@@ -3560,6 +3577,25 @@ different window configurations.
   :straight t
   :init
   (setq golden-ratio-auto-scale t))
+#+END_SRC
+
+*** Purpose
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package ivy-purpose
+  :straight t
+  :config
+  (progn
+    (setq pop-up-frames t) ;; allow Emacs to popup new frames
+    ;; give help buffers the 'popup-frame purpose
+    (add-to-list 'purpose-user-mode-purposes
+                 '(help-mode . popup-frame))
+    (add-to-list 'purpose-special-action-sequences
+                 '(popup-frame
+                   purpose-display-reuse-window-buffer
+                   purpose-display-reuse-window-purpose
+                   purpose-display-pop-up-frame)))
+  )
 #+END_SRC
 
 ** Copy and Paste
@@ -4730,6 +4766,12 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
 * Web
 ** Browsing
+*** Domains
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+#+END_SRC
+
 *** Webkit xwidget
 **** nsxwidget
 
@@ -4751,7 +4793,7 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
                         (setq xwidget-webkit-bookmark-jump-new-session t)
                       (setq xwidget-webkit-bookmark-jump-new-session nil)
                       (setq xwidget-webkit-last-session-buffer (current-buffer)))))))
-  :bind ((:map xwidget-mode-map
+  :bind ((:map xwidget-webkit-mode-map
                ("w" . xwidget-current-url-message-kill)))
   :config
   (progn
@@ -4896,7 +4938,9 @@ Interactively.
   (interactive)
   (let ((browser (assoc (completing-read "Browser: " browse-url-browser-alist)
                         browse-url-browser-alist)))
-    (setq browse-url-browser-function (cdr browser))))
+    (setq browse-url-browser-function (cdr browser)))
+
+  (advice-add 'osx-browse-url :around #'browse-url-extract-org-link))
 #+END_SRC
 
 *** Engine Mode
@@ -5700,7 +5744,7 @@ JavaScript objects, angle brackets in HTML, and most other major
 programming languages. I think I the "delete-on-command" behavior of
 paredit for lisp programming, but in languages where locating
 unmatched pairs is less comparable to searching for a needle in a
-haystack, smartparens are a great productivity tool.
+haystack, =smartparens= are a great productivity tool.
 
 #+NAME: smartparens-config
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -5716,9 +5760,11 @@ haystack, smartparens are a great productivity tool.
       (interactive)
       (sp-wrap-with-pair "$"))
 
+
     (defun disable-smartparens ()
       "Disable smartparens when `paredit-mode' is enabled."
       (smartparens-mode -1))
+
     (when (fboundp 'paredit-mode)
       (add-hook 'paredit-mode-hook #'disable-smartparens))))
 #+END_SRC
