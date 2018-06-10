@@ -68,7 +68,7 @@
 (setq straight-repository-branch "develop"
       ;; Use the macos lockfile
       straight-profiles '((halidom . "versions.el")
-			  (nil . "default.el"))
+			                    (nil . "default.el"))
       straight-current-profile 'halidom)
 
 (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))

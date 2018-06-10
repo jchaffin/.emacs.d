@@ -311,6 +311,7 @@ directory.
 (setq user-emacs-directory "~/.emacs.d/")
 #+END_SRC
 
+
 ** Core
 *** Libraries
 **** Dash
@@ -2386,7 +2387,7 @@ Export to datetree
 
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq ba/org-adjust-tags-column t)
+(setq ba/org-adjust-tags-column nil)
 
 (defun ba/org-adjust-tags-column-reset-tags ()
   "In org-mode buffers it will reset tag position according to
@@ -3648,34 +3649,41 @@ different window configurations.
 **** Visit file+ :bug:
 
 #+BEGIN_SRC emacs-lisp :tangle no
-(defvar read-only-directories '("/Users/jacobchaffin/.emacs.d/straight/"))
-(defvar read-only-file-extensions '("\\.gz\\'"))
-(defvar user-home-directory "/Users/jacobchaffin/")
+(defvar read-only-directories '()
+  "A list of directories for which all files and subdirectories 
+should open in `read-only-mode'.")
+
+(defvar read-only-file-extensions '("\\.gz\\'")
+  "Not yet implemented.")
 
 (defun dir-level (dir)
   (length (f-split dir)))
 
 (defun chaffin//dir-or-subdir-p (d1 d2)
-  (cond ((= (dir-level d1) (dir-level d2)) nil)
+  (cond ((< (dir-level d1) (dir-level d2)) nil)
         ((string= d1 d2) t)
-        (t (chaffin//dir-or-subdir-p (file-name-directory (directory-file-name d1)) d2))))
+        (t
+         (chaffin//dir-or-subdir-p
+          (file-name-directory (directory-file-name d1)) d2))))
 
-(defun chaffin//open-buffer-as-read-only-p (bf)
+(defun read-only-directory-p (bf)
   (cl-flet ((f (d) (funcall #'chaffin//dir-or-subdir-p bf d)))
     (and (not (null (seq-filter #'f read-only-directories)))
          (file-writable-p bf))))
 
 (defun chaffin/open-buffer-as-read-only (file)
-  "All buffers from `read-only-directories' or `read-only-file-extensions' are set to read-only."
+  "All buffers from `read-only-directories' or 
+`read-only-file-extensions' are set to read-only."
   (let ((bd (and buffer-file-name (file-name-directory file))))
-    (if (chaffin//open-buffer-as-read-only-p bd) (read-only-mode 1))))
+    (if (read-only-directory-p bd) (read-only-mode 1))))
 
 (defun chaffin/find-file-read-only-hook ()
   (funcall #'chaffin/open-buffer-as-read-only (buffer-file-name)))
 
+(setq read-only-directories '("/Users/jacobchaffin/.emacs.d/straight/"
+                              "/usr/local/Cellar/emacs-plus/"))
+
 (add-hook 'find-file-hook #'chaffin/find-file-read-only-hook)
-
-
 
 #+END_SRC
 
