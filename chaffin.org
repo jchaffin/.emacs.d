@@ -35,7 +35,7 @@
     - [[#reftex][RefTeX]]
     - [[#bibtex][BibTex]]
     - [[#latex-extra][LaTeX Extra]]
-    - [[#latex-preview-pane][LaTeX Preview Pane]]
+    - [[#latex-preview][LaTeX Preview]]
     - [[#company-auctex][Company AucTeX]]
     - [[#cdlatex][cdlatex]]
     - [[#magic-latex-buffer][Magic Latex Buffer]]
@@ -89,7 +89,10 @@
     - [[#help][Help+]]
     - [[#image][Image+]]
     - [[#info][Info+]]
+    - [[#color][Color+]]
+    - [[#frame-fns][Frame-fns]]
     - [[#visual-replace][Visual Replace]]
+    - [[#other-improvements][Other improvements]]
   - [[#bug-tracking][Bug Tracking]]
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
@@ -1456,7 +1459,14 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
     (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
 #+END_SRC
 
-*** LaTeX Preview Pane
+*** LaTeX Preview
+#+NAME: latex-latex-preview
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<latex-latex-preview-pane>>
+<<latex-preview-katex>>
+#+END_SRC
+
+**** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
 save.
@@ -1467,6 +1477,133 @@ save.
   :straight t
   :after (:all pdf-tools tex))
 #+END_SRC
+
+**** Webkit Katex Renderer
+
+#+NAME: latex-preview-katex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package webkit-katex-render
+  :straight (webkit-katex-render :host github
+                                 :repo "fuxialexander/emacs-webkit-katex-render"
+                                 :files ("katex.html" "webkit-katex-render.el"))
+  :demand t
+  :init
+   ;; if you want to add your customized ~math-at-point~ function
+  (setq webkit-katex-render--math-at-point-function 'function))
+
+#+END_SRC
+
+**** LuaTeX Preview
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-preview-luamagick
+      '(luamagick
+        :programs ("lualatex" "convert")
+        :description "pdf > png"
+        :message "you need to install lualatex and imagemagick."
+        :use-xcolor t
+        :image-input-type "pdf"
+        :image-output-type "png"
+        :image-size-adjust (1.0 . 1.0)
+        :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
+        :image-converter ("convert -density %D -trim -antialias %f -quality 100 %O")))
+
+
+(add-to-list 'org-preview-latex-process-alist luamagick)
+
+(setq org-format-lualatex-header "\\documentclass{article}
+                              \\usepackage[usenames,dvipsnames,svgnames]{xcolor}
+                              [PACKAGES]
+                              [DEFAULT-PACKAGES]
+                              \\pagestyle{empty}             % do not remove
+                              \\usepackage{amsmath}
+                              \\usepackage{fontspec}
+                              \\usepackage{unicode-math}
+                              \\usepackage{hologo}
+                              \\setmathfont{STIX2Math}[
+                                Extension={.otf},
+                                Scale=1]
+                              \\setmainfont{STIX2Text}[
+                                Extension={.otf},
+                                UprightFont={*-Regular},
+                                BoldFont={*-Bold},
+                                ItalicFont={*-Italic},
+                              BoldItalicFont={*-BoldItalic}]
+                              % The settings below are copied from fullpage.sty
+                              \\setlength{\\textwidth}{\\paperwidth}
+                              \\addtolength{\\textwidth}{-3cm}
+                              \\setlength{\\oddsidemargin}{1.5cm}
+                              \\addtolength{\\oddsidemargin}{-2.54cm}
+                              \\setlength{\\evensidemargin}{\\oddsidemargin}
+                              \\setlength{\\textheight}{\\paperheight}
+                              \\addtolength{\\textheight}{-\\headheight}
+                              \\addtolength{\\textheight}{-\\headsep}
+                              \\addtolength{\\textheight}{-\\footskip}
+                              \\addtolength{\\textheight}{-3cm}
+                              \\setlength{\\topmargin}{1.5cm}
+                              \\addtolength{\\topmargin}{-2.54cm}
+                              % The settings below are copied from ucla.cls
+
+                              \\usepackage[algoruled,linesnumbered]{algorithm2e}
+                              \\SetKwInOut{Input}{Input}
+                              \\SetKwInOut{Output}{Output}
+                              \\SetKwProg{proc}{Procedure}{}{}
+                              \\newcommand{\\forcond}[3]{$#1=#2$ \\KwTo $#3$}
+                              \\newcommand{\\forcondi}[2]{\\forcond{i}{#1}{#2}}
+                              \\newcommand{\\forcondj}[2]{\\forcond{j}{#1}{#2}}
+                              \\usepackage{etoolbox}
+                               \\usepackage{adjustbox}
+                               \\usepackage{forest}
+                               \\forestset{
+                                 default preamble={%
+                                   for tree={circle,draw, l sep=2mm}%
+                                 }%
+                               }%")
+
+
+(defun org-preview-luamagick-fragments ()
+  (org-element-map (org-element-parse-buffer) 'keyword
+    (lambda (keyword)
+      (if (string= "uclacs" (org-element-property :value keyword))
+          (progn
+            (message "%s\n" "Using custom preview header for uclacs LaTeX class.")
+            (set (make-local-variable 'org-format-latex-header)
+                 org-format-lualatex-header)
+            (set (make-local-variable 'org-preview-latex-default-process)
+                 'luamagick)))) nil t))
+
+(add-hook 'org-mode-hook #'org-preview-luamagick-fragments)
+
+(defun org-preview-clear-cache ()
+  (interactive)
+  (let ((preview-cache (f-join default-directory "ltximg")))
+    (if (f-directory? preview-cache)
+        (f-delete preview-cache t)
+      (message "%s" "Directory 'ltximg' does not exist."))))
+
+(defun org-preview-algorithm--bg ()
+  (substring
+   (apply #'color-rgb-to-hex 
+          (color-complement (frame-parameter nil 'background-color))) 0 7))
+
+(defun org-preview-algorithm-environment (orig-func &rest args)
+  (let ((algop)
+        (options (nth 2 args)))
+    (org-element-map (org-element-parse-buffer) 'latex-environment
+      (lambda (env)
+        (let ((beg (org-element-property :begin env))
+              (val (org-element-property :value env)))
+          (if (string-match "\\\\begin{algorithm}" val)
+              (setq algop t)))))
+    (when algop
+      (setq options (plist-put options :background (org-preview-algorithm--bg))))
+    (setf (nth 2 args) options)
+    (apply orig-func args)))
+
+(advice-add 'org-create-formula-image :around #'org-preview-algorithm-environment)
+;; (advice-remove 'org-create-formula-image #'org-preview-algorithm-environment)
+#+END_SRC
+
 
 *** Company AucTeX
 
@@ -1639,8 +1776,28 @@ org-mode buffers.
 ;; UI Column View
 <<org-ui-column-view>>
 
+
+;; UI Overlay
+<<org-ui-ov>>
+
 ;; UI Equation Renumbering
 <<org-ui-equation-renumbering>>
+
+#+END_SRC
+
+**** Overlay
+
+#+NAME: org-ui-ov
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ov
+  :straight t)
+
+(use-package ov-highlight
+  :straight (ov-highlight
+             :host github
+             :repo "jkitchin/ov-highlight")
+  :after ov
+  :demand t)
 
 #+END_SRC
 
@@ -2677,6 +2834,7 @@ This doesn't work... it just caches the project metadata for some reason.
 
 
 #+END_SRC
+
 ** Org Mode Export
 :PROPERTIES:
 :ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
@@ -2851,6 +3009,9 @@ nonstopmode -output-directory %o %f")
 
 
 (setq org-latex-pdf-process latex-process-xelatex)
+
+(defvar org-latex-pdf-process-set-hook nil)
+
 (defun org-latex-pdf-process-set (&optional process)
   (interactive)
   (let* ((process (or
@@ -2858,9 +3019,14 @@ nonstopmode -output-directory %o %f")
                    (assoc (completing-read "Process: " latex-process-list nil nil)
                           latex-process-list)))
          (cmd-string (cdr process)))
-    (setq org-latex-pdf-process (symbol-value cmd-string))))
+    (setq org-latex-pdf-process (symbol-value cmd-string))
+    (run-hooks 'org-latex-pdf-process-set-hook)))
 
-(add-hook 'org-mode-hook (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
+
+(add-hook 'org-mode-hook
+          (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
+
+(defvar org-latex-pdf-process-set-hook )
 #+END_SRC
 
 **** Prefer user provided labeling system
@@ -2870,7 +3036,7 @@ nonstopmode -output-directory %o %f")
 (setq org-latex-prefer-user-labels t)
 #+END_SRC
 
-**** Org LaTeX Default Packages                                   :ignore:
+**** Org LaTeX Default Packages :ignore:
 
 #+NAME: org-export-latex-default-packages
 #+BEGIN_SRC emacs-lisp :tangle no :exports none
@@ -2917,10 +3083,13 @@ The default cross-referencing and hyperlink styles provided by
 
 #+NAME: org-export-latex-custom-classes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+
 <<org-export-latex-per-file-class>>
 <<org-export-latex-lingsyn-class>>
 <<org-export-latex-uclacs>>
 <<org-export-latex-humanities-class>>
+<<org-export-latex-article-no-packages>>
+
 #+END_SRC
 
 ***** Org Per File Class
@@ -2942,6 +3111,23 @@ external configuration.
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
+
+***** Article no packages
+
+#+NAME: org-export-latex-artcile-no-packages
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-to-list 'org-latex-classes
+	     '("article-no-defaults"                          ;class-name
+	       "\\documentclass{article}
+          [NO-DEFAULT-PACKAGES]
+          [PACKAGES]
+          [EXTRA]" ;;header-string
+	       ("\\section{%s}" . "\\section*{%s}")
+	       ("\\subsection{%s}" . "\\subsection*a{%s}")
+	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
 ***** Humanities
@@ -3058,6 +3244,7 @@ My custom mla-style LaTeX class.
       '(headline-numbering-filter
         section-title-filter))
 #+END_SRC
+
 
 *** Ox Bibtex
 
@@ -3635,6 +3822,30 @@ different window configurations.
   :straight t)
 #+END_SRC
 
+*** Color+
+
+**** Rainbow Mode
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package rainbow-mode
+  :straight t)
+#+END_SRC
+
+**** Col Highlight
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package col-highlight
+  :straight )
+#+END_SRC
+
+*** Frame-fns
+
+#+NAME: frame-fns-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package frame-fns
+  :straight t)
+#+END_SRC
+
 *** Visual Replace
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -3648,7 +3859,7 @@ different window configurations.
 
 **** Visit file+ :bug:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (defvar read-only-directories '()
   "A list of directories for which all files and subdirectories 
 should open in `read-only-mode'.")
@@ -3684,6 +3895,20 @@ should open in `read-only-mode'.")
                               "/usr/local/Cellar/emacs-plus/"))
 
 (add-hook 'find-file-hook #'chaffin/find-file-read-only-hook)
+
+#+END_SRC
+
+*** Other improvements
+
+#+NAME: thingatpt-plus
+#+BEGIN_SRC emacs-lisp :tangle 
+(use-package thingatpt+
+  :straight t)
+
+(use-package misc-fns
+  :straight t)
+
+
 
 #+END_SRC
 
@@ -3865,10 +4090,7 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: zenburn-theme-cfg
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package zenburn-theme
-  :straight t
-  :config
-  (progn
-    (add-to-list 'custom-enabled-themes 'zenburn-theme)))
+  :straight t)
 #+END_SRC
 
 **** Atom One Dark Theme
@@ -3912,6 +4134,7 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
    `(highlight-symbol-face
      ((,class :foreground "#E0E0E0")))
 
+   `(org-block (()))
    ;; Org Faces
    `(org-block-begin-line
      ((t :foreground "#ABB2BF"
@@ -3920,9 +4143,6 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
    `(org-block-end-line
      ((t :foreground "#ABB2BF"
          :background "#35373E")))
-
-   `(org-verbatim
-     ((t :inherit (shadow fixed-pitch-serif))))
 
    `(font-lock-comment-face
      ((t :slant italic)))
@@ -3956,7 +4176,7 @@ in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-set
        '("#dc322f" "#cb4b16" "#b58900"))
 
 ;; Enable custom theme
-(add-to-list 'custom-enabled-themes 'atom-one-dark-mods)
+;; (add-to-list 'custom-enabled-themes 'atom-one-dark-mods)
 
 #+END_SRC
 
@@ -4184,6 +4404,7 @@ is on.
 (use-package soundcloud
   :straight t)
 #+END_SRC
+
 
 * Completion
 ** Company
@@ -5631,7 +5852,7 @@ Tabs are the bane of humanity[fn:17]. [[http://www.urbandictionary.com/define.ph
 <<hl-highlight-symbol>>
 <<hl-prettify-symbol>>
 #+END_SRC
-«
+
 **** Hlsexp
 
 Minor mode to highlight sexp.
@@ -5669,7 +5890,6 @@ the absence of a window system. I'll check for the latter for now.
 (when (display-graphic-p)
   (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
-
 
 *** Code Folding
 **** Origami.el
