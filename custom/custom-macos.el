@@ -162,7 +162,8 @@
  '(bibtex-autokey-titleword-separator "-")
  '(bibtex-autokey-titlewords 2)
  '(bibtex-autokey-titlewords-stretch 1)
- '(bibtex-autokey-year-title-separator "-"))
+ '(bibtex-autokey-year-title-separator "-")
+ '(safe-local-variable-values '((eval sh-set-shell "zsh"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

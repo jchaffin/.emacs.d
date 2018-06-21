@@ -2051,11 +2051,11 @@ org-mode buffers.
 #+NAME: org-ui-fill
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(defun chaffin--org-mode-vfc-hook ()
+(defun chaffin--vfc-hook ()
   (visual-fill-column-mode 1)
   (visual-line-mode 1))
 
-(add-hook 'org-mode-hook #'chaffin--org-mode-vfc-hook)
+(add-hook 'org-mode-hook #'chaffin--vfc-hook)
 
 
 #+END_SRC
@@ -3626,7 +3626,10 @@ for exporting org-mode documents to various formats.
 (use-package ox-linguistics
   :straight (ox-linguistics :host github
                             :repo "wyleyr/ox-linguistics"
-                            :files ("lisp/*.el")))
+                            :files ("lisp/*.el"))
+  :after (ox)
+  :demand t
+)
 
 #+END_SRC
 
@@ -7796,9 +7799,7 @@ local file system.
 )
   :config
   (progn
-    (add-to-hooks (lambda ()
-                    (visual-line-mode t)
-                    (auto-fill-mode t))
+    (add-to-hooks #'chaffin--vfc-hook
                   '(markdown-mode-hook gfm-mode-hook))))
 #+END_SRC
 
