@@ -139,6 +139,8 @@
     - [[#engine-mode][Engine Mode]]
   - [[#email][Email]]
     - [[#mu][Mu]]
+  - [[#cloud-integration][Cloud Integration]]
+    - [[#org-onenote][Org OneNote]]
 - [[#prose][Prose]]
   - [[#prose-keymap][Prose Keymap]]
   - [[#spelling-and-grammar][Spelling and Grammar]]
@@ -5522,6 +5524,22 @@ Interactively.
                                                     "Linguistics and Computer Science\n"
                                                     "jchaffin@ucla.edu\n"
                                                     "(650)-380-3288\n"))))))))
+#+END_SRC
+
+** Cloud Integration
+
+#+NAME: cloud-integraton-spec
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<cloud-integration-onenote>>
+#+END_SRC
+
+*** Org OneNote
+
+Work account is for office portal, not a Microsoft account. I need integration or authorization via office.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-onenote
+  :straight t)
 #+END_SRC
 
 * Prose
