@@ -3842,6 +3842,14 @@ Adds extensions and functionality to dired mode.
   :straight t)
 #+END_SRC
 
+***** Open With
+
+#+NAME: open-with-spec
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package openwith
+  :straight t)
+#+END_SRC
+
 ** Startup
 *** Initial Buffer
 
@@ -4361,7 +4369,6 @@ This disables Emacs asking questions about loading a new theme.
   (expand-file-name "themes" user-emacs-directory))
 #+END_SRC
 
-
 **** Org Beautify Theme
 :PROPERTIES:
 :ID:       4612DA55-904D-44D4-9E3D-98E6D7AF72E2
@@ -4407,7 +4414,6 @@ This disables Emacs asking questions about loading a new theme.
   :straight t)
 #+END_SRC
 
-
 **** Load Theme
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4441,6 +4447,7 @@ This disables Emacs asking questions about loading a new theme.
 (add-hook 'after-init-hook #'chaffin/load-theme)
 
 #+END_SRC
+
 *** Modeline
 **** Display Time
 
@@ -5563,7 +5570,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
 (define-prefix-command 'prose-keymap)
 (define-key 'chaffin-keymap "p" 'prose-keymap)
 #+END_SRC
-
 
 ** Spelling and Grammar
 
