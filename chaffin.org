@@ -7350,7 +7350,8 @@ CIDER eldoc information.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun emacs-lisp-style ()
   (paredit-mode 1)
-  (highlight-symbol-mode 1))
+  (highlight-symbol-mode 1)
+  (setq-local lisp-indent-function #'common-lisp-indent-function))
 
 (defun macos-dash-elisp-docsets ()
   (setq-local dash-plugin-keywords '("elisp")))
