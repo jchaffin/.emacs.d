@@ -99,9 +99,9 @@
   - [[#user-interface][User Interface]]
     - [[#cursor][Cursor]]
     - [[#fonts][Fonts]]
-    - [[#theme][Theme]]
     - [[#modeline][Modeline]]
-    - [[#all-the-icons][All The Icons]]
+    - [[#theme][Theme]]
+    - [[#icons][Icons]]
     - [[#scrolling][Scrolling]]
     - [[#redisplay][Redisplay]]
     - [[#emojis][Emojis]]
@@ -124,12 +124,12 @@
   - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
   - [[#shell][Shell]]
   - [[#tramp][Tramp]]
+    - [[#default-method][Default Method]]
     - [[#anything-tramp][Anything Tramp]]
 - [[#web][Web]]
   - [[#browsing][Browsing]]
-    - [[#domains][Domains]]
     - [[#webkit-xwidget][Webkit xwidget]]
-    - [[#set-the-default-browser][Set the default browser.]]
+    - [[#browse-url][Browse url]]
     - [[#browser-utilities-on-macos][Browser utilities on macOS]]
     - [[#google-search-at-point][Google search at point]]
     - [[#search-web][Search Web]]
@@ -200,7 +200,6 @@
     - [[#groovy][Groovy]]
     - [[#java][Java]]
     - [[#javascript][JavaScript]]
-    - [[#markdown][Markdown]]
     - [[#python][Python]]
     - [[#ruby][Ruby]]
     - [[#scala][Scala]]
@@ -258,6 +257,8 @@ interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun goto-repo (&optional build-dir)
+  "Go to a straight repository directory. If BUILD-DIR, then go to
+the build directory for that repository instead."
   (interactive "P")
   (let* ((dir (-> user-emacs-directory
                   (f-join "straight"
@@ -277,6 +278,7 @@ interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun straight-browse-on-github (&optional package)
+  "Open a straight recipe on GitHub in the `browse-url-default-browser.'"
   (interactive "P")
   (let* ((pkg (if (interactive-p)
                   (completing-read
@@ -316,7 +318,6 @@ directory.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq user-emacs-directory "~/.emacs.d/")
 #+END_SRC
-
 
 ** Core
 *** Libraries
@@ -429,19 +430,23 @@ Clojure-like =if-not= macro in elisp.
 #+END_SRC
 
 **** Major Mode
-***** =with-major-mode=
+***** With major mode macro
 
+#+NAME: with-major-mod
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defmacro with-major-mode (mode &rest body)
+  "If the current major-mode is MODE, then execute BODY."
   (declare (indent defun))
   `(when (equal major-mode ',mode)
      ,@body))
 #+END_SRC
 
-***** =if-major-mode=
+***** If-Else Major Mode Macro
 
+#+NAME: if-major-mode
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defmacro if-major-mode (mode then-form &rest rest-forms)
+  "If MODE, then execute THEN-FORM, else execute REST-FORMS."
   (declare (indent defun))
   `(progn
      (if (equal major-mode ',mode)
@@ -450,26 +455,33 @@ Clojure-like =if-not= macro in elisp.
 #+END_SRC
 
 *** Functions
-**** Reload Initialization File
+**** Straight-compatible reload init file.
 
-#+NAME: chaffin-reload-init
+#+NAME: straight-reload-init
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun straight-reload-init ()
-  "Reload init.el"
-  (interactive)
+
+(defun straight-reload-init (&optional debug)
+  "Reload init file using straight transaction system."
+  (interactive "P")
   (straight-transaction
     (straight-mark-transaction-as-init)
     (message "Reloading initialization file...")
+    (when debug
+      (set (make-local-variable 'use-literate-p) nil)
+      (set (make-local-variable 'user-init-file)
+	   (expand-file-name "init.el" user-emacs-directory)))
     (load user-init-file nil 'nomessage)
     (message "Reloading initialization file...done.")))
+
+
 #+END_SRC
 
 **** Eval Buffer using =straight.el= transaction system.
 
+#+NAME: straight-eval-buffer
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun straight-eval-buffer ()
-  "Evaluate current buffer using the `straight'
-   transaction system."
+  "Evaluate current buffer using the straight transaction system."
   (interactive)
   (message "Evaluating %s..." (buffer-name))
   (straight-transaction
@@ -488,52 +500,67 @@ Clojure-like =if-not= macro in elisp.
 
 See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#7398216]]
 
+#+NAME: add-to-hooks-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun add-to-hooks (fun hooks)
-  "Add function to hooks"
+  "Add function FUN to HOOKS."
   (dolist (hook hooks)
     (add-hook hook fun)))
+
 #+END_SRC
 
 **** Join Strings with Separator
 
+#+NAME: join-strings
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun join (lst sep)
-  (mapconcat 'identity lst sep))
+
+(defun join (seq sep)
+  "Concatenate SEQ with SEP as combinator."
+  (mapconcat 'identity seq sep))
+
 #+END_SRC
 
 **** Buffer List Names
 
+#+NAME: buffer-list-names-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun buffer-list-names ()
-  "Get list of buffer names"
+  "Get list of buffer names."
   (let ((f (lambda (b) (buffer-name b)))
 	(buffer-alist (buffer-list)))
     (mapcar f buffer-alist)))
+
 #+END_SRC
 
 **** Count Windows
 
 #+NAME: window-count
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun window-count ()
   "Count number of windows in the current frame."
   (interactive)
   (length (window-list)))
+
 #+END_SRC
 
 #+NAME: window-count-unique
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun window-count-unique ()
   "Count number of unique windows in the current frame"
   (interactive)
   (length (cl-delete-duplicates (mapcar #'window-buffer (window-list)))))
+
 #+END_SRC
 
 **** Copy File Path
 
 A useful utility function for copying the file path to the buffer.
 
+#+NAME: copy-file-path
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun copy-file-path (func)
 
@@ -542,18 +569,21 @@ function FUNC. To copy the file path to the kill-ring, use the interactive
 function `copy-file-path-as-kill'."
 
   (destructuring-bind (file dir)
-      (if-major-mode dired-mode
-        (list (substring-no-properties (thing-at-point 'symbol))
-              dired-directory)
-        (mapcar (lambda (f)
-                  (funcall f buffer-file-name))
-                '(file-name-nondirectory file-name-directory )))
+      (cond ((eq major-mode 'dired-mode)
+             (list (substring-no-properties (thingp-at-point 'symbol))
+                   dired-directory))
+            ((stringp buffer-file-name)
+             (mapcar (lambda (f) (funcall f buffer-file-name))
+                     '(file-name-nondirectory file-name-directory)))
+            (t  (list (buffer-name (current-buffer)) default-directory)))
     (funcall func (expand-file-name file dir))))
 #+END_SRC
 
 ***** Copy File Path as New Kill
 
+#+NAME: copy-file-path-as-kill
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun copy-file-path-as-kill ()
   "Copies the file path of the current dired directory or file buffer to the kill-ring."
   (interactive)
@@ -564,22 +594,26 @@ function `copy-file-path-as-kill'."
 #+END_SRC
 
 ***** Copy File Path As Region Kill
-And just for the fun of it, a function that copies the current file path using a temporary
-buffer.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-(defun copy-file-path-as-region-kill (s)
+And just for the fun of it, a function that copies the current file path using a temporary buffer.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun copy-file-path-as-region-kill (file-path)
+  "Copy file-path using a temporary buffer."
   (interactive)
-  (copy-file-path (lambda (s)
+  (copy-file-path 
+    (lambda (file-path)
 		    (with-temp-buffer
 		      (insert s)
 		      (kill-region (point-min) (point-max))))))
 #+END_SRC
 
-**** List Directory Contents without wildcards
+**** Remove wildcards from directory files list
 
+#+NAME: directory-files-no-wildcards
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun directory-files-no-wildcards (directory &optional full nosort)
+   "List directory contents without wildcards"
   (seq-filter (lambda (x)
 		(not
 		 (or (string-empty-p (string-trim x))
@@ -592,41 +626,36 @@ buffer.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun resolve-path (&rest paths)
-  (let* ((ms-file-path-separator "\\")
-         (nix-file-path-separator "/")
-         (file-path-separator
-          (if (eq system-name 'windows)
-              ms-file-path-separator
-            nix-file-path-separator))
-         (paths* (mapcar #'directory-file-name paths)))
-    (mapconcat 'identity paths* file-path-separator)))
+  "Concatenate path segments."
+  (let ((paths- (mapcar #'directory-file-name paths)))
+    (mapconcat 'identity paths- "/")))
 #+END_SRC
 
 ***** Resolve to Emacs Directory
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun emacs-directory-resolve-path (&rest path)
+
+(defun emacs-directory (&rest path)
   "Resolve a file path relative to the `user-emacs-directory.'
-  PATH is a destructured list of path segments. The file path
-  separator is determined based on the current operating system
-  in `resolve-path'."
-  (let* ((separators (if (eq system-name 'windows)
-                         "\\" "/"))
-        (emacs-directory-path-segments (split-string user-emacs-directory separators t))
-        (path-segments (seq-concatenate 'list emacs-directory-path-segments path)))
+  PATH is a destructured list of path segments."
+  (let* ((initial-path-segments (split-string user-emacs-directory "/" t))
+         (path-segments (seq-concatenate 'list initial-path-segments path)))
     (apply #'resolve-path path-segments)))
 
 #+END_SRC
 
-**** ssl-p
+**** Check if HTTPS is supports 
 
-From the melpa installation 
-
+From the melpa installation:
+ 
+#+NAME: ssl-p
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun ssl-p ()
   "Determine whether https protocol is supported."
   (and (not (memq system-type '(windows-nt ms-dos)))
        (gnutls-available-p)))
+
 #+END_SRC
 
 *** Extending the Global Keymap
@@ -810,15 +839,20 @@ This might come back to bite me one day but I never use them.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun goto-init ()
   (interactive)
-  (find-file user-init-file))
+  (find-file (expand-file-name "init.el") user-emacs-directory))
 
 (defun goto-literate ()
   (interactive)
   (find-file user-literate-init-file))
 
+(defun goto-tangled-init ()
+  (interactive)
+  (find-file
+    (concat (file-name-sans-extension user-literate-init-file) ".el")))
+
 (define-key goto-map "i" #'goto-init)
 (define-key goto-map "l" #'goto-literate)
-
+(define-key goto-map "t" #'goto-tangled-init)
 
 #+END_SRC
 
@@ -1238,6 +1272,24 @@ running macOS.
     (define-key 'macos-keymap "a" 'counsel-osx-app)))
 
  #+END_SRC
+
+**** Get Active Minor Modes
+
+#+NAME: active-minor-modes
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun list-enabled-minor-modes (&optional buf)
+  "The minor modes enabled in the current buffer."
+  (let ((auto-save-mode nil)
+        (buf (or buf (current-buffer))))
+    (cl-loop for mode being the element of minor-mode-list
+             when (boundp mode)
+             when (symbol-value mode)
+             collect mode)))
+
+
+(defvar minor-modes-enabled-list (list-enabled-minor-modes)
+  "The list of enabled minor modes")
+#+END_SRC
 
 * LaTeX and Org Mode
 ** LaTeX
@@ -2474,7 +2526,6 @@ Embed YouTube Links in iframe.
 #+NAME: org-taskmgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<org-taskmgr-agenda>>
-<<org-taskmgr-projectile>>
 <<org-taskmgr-pomodoro>>
 <<org-taskmgr-gcal>>
 <<org-taskmgr-coclock>>
@@ -2621,7 +2672,7 @@ miscellaneous or arbitrary tasks.
   :config
   (progn
     (defalias #'org-pomodoro-path
-      (apply-partially #'emacs-directory-resolve-path "resources" "wav"))
+      (apply-partially #'emacs-directory "resources" "wav"))
 
     (setq org-pomodoro-audio-player "/usr/bin/afplay"
           org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
@@ -3695,7 +3746,7 @@ interactive tree .
   :config
   (progn
     (append projectile-globally-ignored-directories
-            '("gradle" "target" ".meghanada" ".gradle" "build" "bin"))
+            '("gradle" "target" ".meghanada" ".gradle" "build" "bin" "node_modules"))
     (defvar chaffin/ignored-project-directories
       '("~/.emacs.d/straight"))
     (defun projectile-ignore-projects-in-directory (project-root)
@@ -3941,6 +3992,7 @@ so we'll leave it there.
 (scroll-bar-mode -1)
 (unless *is-mac*
   (menu-bar-mode -1))
+(display-time-mode 1)
 #+END_SRC
 
 **** Default Frame Appearance
@@ -4161,8 +4213,9 @@ different window configurations.
    ("C-c m" . vr/mc-mark)))
 #+END_SRC
 
-**** Visit file+ :bug:
+**** Visit file+
 
+#+NAME: read-only
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defvar read-only-directories '()
   "A list of directories for which all files and subdirectories 
@@ -4358,6 +4411,113 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 ***** TODO Write Macro to define =-default-font= vars with templated docstring
 
+*** Modeline
+
+#+NAME: modeline-deps
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+(defvar halidom-modeline nil)
+
+<<spaceline-spec>>
+<<sml-spec>>
+
+<<modeline-spec>>
+#+END_SRC
+
+
+**** Set the modeline format
+
+#+NAME: modeline-spec
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(setq halidom-modeline 'spaceline)
+
+(defun modeline-setup ()
+  "Setup the modeline."
+  (pcase halidom-modeline
+    (`spaceline (ml-spaceline-setup))
+    (`powerline (ml-powerline-setup))
+    (`sml (ml-smline-setup))))
+
+(add-hook 'after-init-hook 'modeline-setup)
+(add-hook 'after-make-frame-functions 'modeline-setup)
+#+END_SRC
+
+**** Spacemacs
+
+#+NAME: spaceline-spec
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<spaceline-base>>
+<<spaceline-icons>>
+<<spaceline-setup>>
+#+END_SRC
+
+
+***** Spaceline
+
+#+NAME: spaceline-base
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package spaceline
+  :straight t
+ )
+#+END_SRC
+
+***** Spaceline All the Icons
+
+#+NAME: spaceline-icons
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package spaceline-all-the-icons
+  :straight t
+  :after (:all all-the-icons spaceline))
+#+END_SRC
+
+***** Spaceline setup
+
+#+NAME: spaceline-setup
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun ml-spaceline-setup ()
+  "Setup the modeline for spaceline."
+  (setq spaceline-all-the-icons-separator-type 'arrow)
+  (require 'spaceline)
+  (require 'spaceline-segments)
+  (require 'spaceline-config)
+  (require 'all-the-icons)
+  (require 'spaceline-all-the-icons)
+  (spaceline-all-the-icons--setup-neotree)
+  (spaceline-all-the-icons-theme 'org-pomodoro)
+  (spaceline-toggle-all-the-icons-flycheck-status-off))
+#+END_SRC
+
+**** Smart Mode Line
+
+#+NAME: sml-spec
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<sml-setup>>
+<<sml-mode-icons>>
+#+END_SRC
+
+#+NAME: sml-setup
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package smart-mode-line
+  :straight t
+  :config
+  (defvar sml-setup-hook nil)
+  (defun ml-smline-setup ()
+    (setq sml/no-confirm-load-theme t)
+    (setq sml/theme 'respectful)
+    (sml/setup)
+    (run-hooks 'sml-setup-hook)))
+#+END_SRC
+
+#+NAME: sml-mode-icons
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package mode-icons
+  :straight t
+  :if (display-graphic-p)
+  :init
+  (add-hook 'sml-setup-hook #'mode-icons-mode))
+#+END_SRC
+
 *** Theme
 **** Enable Custom Themes
 
@@ -4406,7 +4566,7 @@ This disables Emacs asking questions about loading a new theme.
   :straight t)
 #+END_SRC
 
-**** Dark Theme
+****n Dark Theme
 
 #+NAME: dark-theme-cfg
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4417,7 +4577,12 @@ This disables Emacs asking questions about loading a new theme.
 **** Load Theme
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq-default custom-enabled-themes '(one-dark-beautify))
+(straight-use-package 'base16-theme)
+
+(defvar halidom-default-theme 'base16-oceanicnext)
+(defvar halidom-term-theme 'zenburn)
+
+(setq-default custom-enabled-themes '(base16-oceanicnext))
 
 (defun remove-themes ()
   "Forcibly load the themes listed in `custom-enabled-themes'."
@@ -4430,11 +4595,11 @@ This disables Emacs asking questions about loading a new theme.
   (remove-themes)
   (if (display-graphic-p)
       (progn
-        (load-theme 'one-dark-beautify)
+        (load-theme halidom-default-theme)
         (run-hooks 'chaffin/load-theme-hook))
 
     (progn
-      (load-theme 'zenburn))))
+      (load-theme halidom-term-theme))))
 
 
 (defun chaffin-theme-load-update-buffer ()
@@ -4448,81 +4613,14 @@ This disables Emacs asking questions about loading a new theme.
 
 #+END_SRC
 
-*** Modeline
-**** Display Time
-
-Show the time in the modeline.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(display-time-mode 1)
-#+END_SRC
-
-**** Spaceline
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package spaceline
-  :straight t
- )
-#+END_SRC
-
-***** Spaceline All the Icons
-
-#+NAME: all-the-icons-spaceline
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-(use-package spaceline-all-the-icons
-  :straight t
-  :demand t
-  :config
-  (progn
-      (setq spaceline-all-the-icons-separator-type 'arrow)
-      (require 'spaceline)
-      (require 'spaceline-segments)
-      (require 'spaceline-config)
-      (require 'all-the-icons)
-      (require 'spaceline-all-the-icons)
-      (spaceline-all-the-icons--setup-neotree)
-      (spaceline-all-the-icons-theme 'org-pomodoro)))
-
-#+END_SRC
-
-***** Spaceline Segments
-****** Flycheck Segment
-
-By default, =spacleine-all-the-icons= theme displays the flycheck
-status no matter what. I only want this enabled when =flycheck-mode=
-is on.
-
-#+NAME: spaceline-segment-flycheck
-#+BEGIN_SRC emacs-lisp :tangle no
-
-(spaceline-toggle-all-the-icons-flycheck-status-off)
-(add-hook 'flycheck-mode-hook
-	  (lambda ()
-	    (spaceline-toggle-all-the-icons-flycheck-status)))
-
-#+END_SRC
-
-**** Mode Icons
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package mode-icons
-  :straight t
-  :if (display-graphic-p)
-  :after (smart-mode-line)
-  :config
-  (mode-icons-mode))
-#+END_SRC
-
-*** All The Icons
+*** Icons
 
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (display-graphic-p)
-  <<all-the-icons-setup>>
-  <<all-the-icons-dired>>
-  <<all-the-icons-ivy>>
-  <<all-the-icons-spaceline>>)
+<<all-the-icons-setup>>
+<<all-the-icons-dired>>
+<<all-the-icons-ivy>>
 #+END_SRC
 
 #+NAME: all-the-icons-setup
@@ -4536,17 +4634,6 @@ is on.
     (if-not (member "all-the-icons.ttf" (directory-files macos-font-directory))
         (all-the-icons-install-fonts))))
 
-#+END_SRC
-
-**** Ivy All the Icons
-
-#+NAME: all-the-icons-ivy
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package all-the-icons-ivy
-  :straight t
-  :after (ivy)
-  :init
-  (all-the-icons-ivy-setup))
 #+END_SRC
 
 *** Scrolling
@@ -4804,7 +4891,7 @@ snippets corresponding to the major mode of the current buffer mode.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<minibuffer-prompt>>
-<<ivy-config>>
+<<ivy-spec>>
 <<counsel-config>>
 <<swiper-config>>
 <<smex-config>>
@@ -4825,10 +4912,11 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 *** Ivy (Counsel)
 **** Ivy
 
-#+NAME: ivy-config
+#+NAME: ivy-spec
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<ivy-base>>
 <<ivy-prescient-config>>
+<<ivy-ui>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -4935,12 +5023,24 @@ Turn Ivy mode on if ARG is positive, off othherwise.
 
 #+END_SRC
 
+***** Ivy icons
+
+#+NAME: ivy-ui
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package all-the-icons-ivy
+  :straight t
+  :after (:all ivy all-the-icons)
+  :init
+  (all-the-icons-ivy-setup))
+
+#+END_SRC
+
 **** Counsel
 
 #+NAME: counsel-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<counsel-base>>
-<<counsel-projectile-config>>
 <<counsel-ggtags-config>>
 <<counsel-itunes-config>>
 <<counsel-spotify-config>>
@@ -5124,10 +5224,12 @@ documentation browser.
 
 #+NAME: swiper-config
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package swiper
   :straight t
   :bind
   (("\C-s" . swiper)))
+
 #+END_SRC
 
 *** Smex
@@ -5143,9 +5245,19 @@ A smart M-x enhancement for Emacs.
 #+END_SRC
 
 * Terminal
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<term-with-editor>>
+<<term-multiterm>>
+<<term-xterm>>
+<<term-zsh-macfix>>
+<<term-tramp>>
+#+END_SRC
+
 ** With Editor
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: terminal-with-editor
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package with-editor
   :straight t
   :config
@@ -5158,8 +5270,8 @@ A smart M-x enhancement for Emacs.
 
 ** Multi-Term
 
-#+NAME: multi-term-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: term-multiterm
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package multi-term
   :straight t
   :bind
@@ -5182,8 +5294,8 @@ A smart M-x enhancement for Emacs.
 
 ** xterm
 
-#+NAME: xterm-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: term-xterm
+#+BEGIN_SRC emacs-lisp :tangle no
 (xterm-mouse-mode 1)
 #+END_SRC
 
@@ -5204,7 +5316,8 @@ A smart M-x enhancement for Emacs.
 
 Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: term-zsh-macfix
+#+BEGIN_SRC emacs-lisp :tangle no
 (when *is-mac*
   (setq explicit-shell-file-name "/bin/sh"
 	shell-file-name "sh")
@@ -5213,12 +5326,22 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
 ** Tramp
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: term-tramp
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<tramp-default>>
+<<tramp-any>>
+#+END_SRC
+
+*** Default Method
+
+#+NAME: tramp-default
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq tramp-default-method "ssh")
 #+END_SRC
 
 *** Anything Tramp
 
+#+NAME: tramp-any
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package anything-tramp
   :straight t
@@ -5226,20 +5349,43 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 #+END_SRC
 
 * Web
+
+#+NAME: web-spec
+#+BEGIN_SRC emacs-lisp :tangle yes:noweb yes
+<<web-browser>>
+<<web-email>>
+<<web-cloud>>
+#+END_SRC
+
 ** Browsing
-*** Domains
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-
+#+NAME: web-browser
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<browser-xwidget>>
+<<browser-url>>
+<<browser-macos>>
+<<browser-google>>
+<<browser-search>>
+<<browser-org-advise>>
+<<browser-gitremote>>
+<<browser-default>>
+<<browser-engine>>
 #+END_SRC
 
 *** Webkit xwidget
+
+#+NAME: browser-xwidget
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes 
+<<xwidget-ns>>
+<<xwidget-xwid>>
+#+END_SRC
+
 **** nsxwidget
 
 See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webkit][veshboo/emacs]].
 
-#+NAME: nsxwidget-webkit-xwidget
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: xwidget-ns
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package xwidget
   :if (> emacs-major-version 26)
   :init
@@ -5269,23 +5415,27 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 
 **** xwidgete
 
-#+NAME: nsxwidget-xwidgete
+#+NAME: xwidget-xwid
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package xwidgete
   :straight t
   :after (xwidget))
 #+END_SRC
 
-*** Set the default browser.
+
+*** Browse url
 
 - [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: browser-url
+#+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package browse-url
   :config
   (progn
     (when (not (display-graphic-p))
       (setq browse-url-browser-function 'eww-browse-url))))
+
 #+END_SRC
 
 *** Browser utilities on macOS
@@ -5293,7 +5443,8 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 The =osx-browse= library provides several useful commands for using the
 Google Chrome, Safari, and Firefox web browsers on macOS.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: browser-macos
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package osx-browse
   :straight t
   :if *is-mac*
@@ -5306,7 +5457,8 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 *** Google search at point
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: browser-google
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun google-search-query-at-point (&optional edit-query)
   "Search for the expression at point in the default web browser.
 If the optional prefix EDIT-QUERY is specified,
@@ -5332,8 +5484,8 @@ the user will be prompted to edit the search string first."
 
 *** Search Web
 
-#+NAME: search-web-xwidget
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: browser-search
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package search-web
   :straight t
   :bind (("C-c w" . search-web)))
@@ -5347,8 +5499,8 @@ the user will be prompted to edit the search string first."
 
 This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-open-at-point= to allow choosing different browsers.
 
-#+NAME: org-open-at-point-advise
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: browser-org-advise
+#+BEGIN_SRC emacs-lisp :tangle no
 (defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
   (let ((browse-url-browser-function
          (cond ((equal (ad-get-arg 0) '(4))
@@ -5366,6 +5518,7 @@ This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-
 
 *** Browse at remote
 
+#+NAME: browser-gitremote
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package browse-at-remote
   :straight t
@@ -5380,8 +5533,8 @@ This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-
 
 Interactively.
 
-#+NAME: browse-set-default-browser
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: browse-default
+#+BEGIN_SRC emacs-lisp :tangle no
 (defvar browse-url-browser-alist
       '(("chrome" . browse-url-chrome)
         ("firefox" . browse-url-firefox)
@@ -5406,7 +5559,8 @@ Interactively.
 
 *** Engine Mode
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: browser-engine
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package engine-mode
   :straight t
   :init
@@ -5473,10 +5627,15 @@ Interactively.
 #+END_SRC
 
 ** Email
+#+NAME: web-email
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<email-mu>>
+#+END_SRC
+
 *** Mu
 
-#+NAME: mu-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: email-mu
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package mu4e
   :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
   :config
@@ -5538,15 +5697,16 @@ Interactively.
 
 ** Cloud Integration
 
-#+NAME: cloud-integraton-spec
+#+NAME: web-cloud
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-<<cloud-integration-onenote>>
+<<cloud-onenote>
 #+END_SRC
 
 *** Org OneNote
 
 Work account is for office portal, not a Microsoft account. I need integration or authorization via office.
 
+#+NAME: cloud-onenote
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-onenote
   :straight t)
@@ -6069,21 +6229,43 @@ school's WLAN.
 ** Error checking
 *** Flycheck
 
-#+NAME: flycheck-config
+#+NAME: flycheck-spec
 #+BEGIN_SRC :tangle yes :noweb yes :exports none
-<<flycheck-settings>>
-<<flycheck-color-mode-line-config>>
+<<flycheck-base>>
 #+END_SRC
 
 [[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
 
-#+NAME: flycheck-settings
+#+NAME: flycheck-base
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
   (use-package flycheck
     :straight t
+    :commands (halidom/enable-flycheck)
+    :init
+    (defun halidom/enable-flycheck (mode)
+      "Use flycheck in MODE."
+      (push mode flycheck-global-modes))
+
+    (defun halidom/toggle-flycheck-error-list ()
+      "Toggle flycheck's error list window. 
+If the error list is visible hide the window. Else display the buffer."
+      (interactive)
+      (-if-let (window (flycheck-get-error-list-window))
+          (quit-window nil window)
+        (flycheck-list-errors)))
+
+    (defun halidom/goto-flycheck-error-list ()
+      "Open and go to the error list buffer."
+      (interactive)
+      (unless (get-buffer-window (get-buffer flycheck-error-list-buffer))
+        (flycheck-list-errors)
+        (switch-to-buffer-other-window flycheck-error-list-buffer)))
+
     :config
     (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
-                  flycheck-emacs-lisp-load-path 'inherit))
+                  flycheck-emacs-lisp-load-path 'inherit)
+
+)
 #+END_SRC
 
 *** Flycheck Color Mode Line
@@ -7570,25 +7752,13 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 
 *** JavaScript
 
-#+NAME: js-config
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-(when (or (proglang-enabled-p 'javascript)
-          (proglang-enabled-p 'web-mode))
-    <<js-js2>>
-    <<js-json-mode>>
-)
-
-
-(when (proglang-enabled-p 'javascript)
-  <<js-rjx>>
-  <<js-npm-mode>>
-  <<js-nvm>>
-  <<js-js-comint>>
-  <<js-coffee-mode>>
-  <<js-typescript>>
-  <<js-tern>>
-  <<js-company-tern>>)
-
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+<<js-js2>>
+<<js-json>>
+<<js-tide>>
+<<js-rjsx>>
+<<js-cofee>>
+<<js-node>>
 #+END_SRC
 
 **** js2-mode
@@ -7597,96 +7767,20 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package js2-mode
   :straight t
-  :mode (("\\.js\\'" . js2-mode))
-  :config
-  (progn
-    (setq js-indent-level 2)
-    (add-hook 'js2-mode-hook #'flycheck-mode)
-    (when *is-mac*
-      (defun macos-dash-js-docsets ()
-        (set (make-local-variable 'dash-plugin-keywords)
-             (if *is-mac*
-               '("javascript" "react" "jquery"
-                 "jqueryui" "jquerym" "angularjs"
-                 "backbone" "bootstrap" "moo" "prototype"
-                 "marionette" "meteor" "sproutcore"
-                 "foundation" "lodash" "underscore"
-                 "ember" "sencha" "extjs" "titanium"
-                 "knockdown" "zepto" "yui" "d3"
-                 "svg" "dojo" "coffee" "nodejs" "express"
-                 "nodejs" "express" "grunt" "mongoos"
-                 "moment" "require" "awsjs" "jasmine"
-                 "sails" "sinon" "chai" "html" "cordova"
-                 "css" "cordova" "phonegap" "unity3d"
-                 "webpack"))))
-      (add-hook 'js2-mode-hook #'macos-dash-js-docsets))))
-#+END_SRC
-
-**** Js Comint
-
-Run an inferior Node process using =comint-mode=.
-
-#+NAME: js-js-comint
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package js-comint
-  :straight t
-  :bind ("C-c M-j" . run-js))
-  #+END_SRC
-
-**** rjsx-mode
-
-Real jsx support.
-
-#+NAME: js-rjsx
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package rjsx-mode
-  :straight t
-  :mode "\\.jsx\\'")
-#+END_SRC
-
-**** Tern
-
-[[https://github.com/proofit404/company-tern][Tern]] is a code-analysis engine for JavaScript.
-
-Before install, make sure the =tern= executable can be found on your
-local file system.
-
-#+NAME: js-tern
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package tern
-  :if (executable-find "tern")
-  :straight t
-  :init
-  (progn
-    (add-hook 'js2-mode-hook 'tern-mode)))
-#+END_SRC
-
-***** Company Tern
-
-[[https://github.com/proofit404/company-tern][Company Tern]] provides code completion using tern company backed.
-
-#+NAME: js-company-tern
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-tern
-  :straight t
-  :after (:all tern company)
+  :mode (("\\.js\\'" . js2-mode)
+         ("\\.mjs\\'" . js2-mode))
   :demand t
-  :init
-  (progn
-    (add-to-list 'company-backends 'company-tern))
   :config
   (progn
-    (setq company-tern-property-marker nil
-          company-tern-meta-as-single-line t)))
+    (setq js-indent-level 2)))
 #+END_SRC
 
 **** JSON
 
-#+NAME: js-json-mode
+#+NAME: js-json
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package json-mode
   :straight t
-  :demand t
   :mode (("\\.json\\'" . json-mode))
   :config
   (progn
@@ -7698,8 +7792,8 @@ local file system.
 
 **** TypeScript
 
-#+NAME: js-typescript
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: js-tide
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package tide
   :straight t
   :config
@@ -7720,18 +7814,49 @@ local file system.
     (add-hook 'typescript-mode-hook #'setup-tide-mode)))
 #+END_SRC
 
+**** rjsx-mode
+
+Real jsx support.
+
+#+NAME: js-rjsx
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package rjsx-mode
+  :straight t
+  :after flycheck
+  :demand t
+  :mode "\\.jsx\\'")
+#+END_SRC
+
 **** Coffee
 
-#+NAME: js-coffee-mode
+#+NAME: js-coffee
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package coffee-mode
   :straight t
   :mode ("\\.coffee\\'" . coffee-mode))
 #+END_SRC
 
-**** Add Node Modules Path
+**** Node JS
 
-#+NAME: js-add-node-modules-path
+#+NAME: js-node
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Node Modules
+<<node-modules-path>>
+
+;; Npm
+<<node-npm>>
+
+;; Yarn
+<<node-yarn>>
+
+;; Node Version Manager (nvm)
+<<node-nvm>>
+
+#+END_SRC
+
+***** Add Node Modules Path
+
+#+NAME: node-modules-path
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package add-node-modules-path
   :if (executable-find "node")
@@ -7741,9 +7866,9 @@ local file system.
     (add-hook 'js2-mode-hook #'add-node-modules-path)))
 #+END_SRC
 
-**** NPM Mode
+***** NPM Mode
 
-#+NAME: js-npm-mode
+#+NAME: node-npm
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
   :straight t
@@ -7753,92 +7878,23 @@ local file system.
   (add-hook 'json-mode-hook 'npm-mode)))
 #+END_SRC
 
-**** Yarn mode
+***** Yarn mode
 
-#+NAME: js-yarn-mode
+#+NAME: node-yarn
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package yarn-mode
   :straight t)
 #+END_SRC
 
-**** NVM
+***** NVM
 
-#+NAME: js-nvm
+#+NAME: node-nvm
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package nvm
   :if (executable-find "nvm")
-  :straight t
-  :demand t)
-#+END_SRC
-
-*** Markdown
-
-#+NAME: markdown-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'markdown)
-  <<markdown-mode-config>>
-  <<markdown-mode-plus-config>>
-  <<markdown-toc-config>>
-  <<markdownfmt-config>>
-)
-#+END_SRC
-
-**** Markdown Mode
-
-- See https://jblevins.org/projects/markdown-mode/
-
-#+NAME markdown-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package markdown-mode
-  :straight t
-  :defines (markdown-command markdown-mode-hook)
-  :mode
-  (("README\\.md\\'" . gfm-mode)
-	 ("\\.md\\'" . markdown-mode)
-	 ("\\.markdown\\'" . markdown-mode))
-  :init
-  (progn
-    (setq markdown-command "multimarkdown")
-    (add-hook 'markdown-mode-hook)
-    (if (fboundp 'macos-open-with-default-app)
-        (setq markdown-open-command macos-open-with-default-app)
-      (setq browse-url-browser-function #'xwidget-webkit-open-file))
-)
-  :config
-  (progn
-    (add-to-hooks #'chaffin--vfc-hook
-                  '(markdown-mode-hook gfm-mode-hook))))
-#+END_SRC
-
-**** markdown-mode+
-
-#+NAME: markdown-mode-plus-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package markdown-mode+
   :straight t)
-#+END_SRC
 
-**** markdown-toc
-
-#+NAME: markdown-toc-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package markdown-toc
-  :straight t
-  :defer t)
-#+END_SRC
-
-**** markdownfmt
-
-#+NAME: markdownfmt-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package markdownfmt
-  :straight t
-  :defer t
-  :commands (markdown-format-buffer markdownfmt-enable-on-save)
-  :bind (:map markdown-mode-map
-	      ("C-c C-f" . markdown-format-buffer))
-  :config
-  (add-hook 'markdown-mode-hook #'markdownfmt-enable-on-save))
 #+END_SRC
 
 *** Python
@@ -8026,13 +8082,20 @@ local file system.
 
 #+NAME: web-config
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
+;; Begin Web
 (when (proglang-enabled-p 'web)
+   ;; Web Mode
    <<web-mode-config>>
-   <<tagedit-mode-config>>
+   ;; Tagedit Mode
+   <<tagedit-mode-config>> 
+   ;; CSS Mode
    <<css-mode-config>>
+   ;; Emmet Mode
    <<emmet-mode-config>>
+   ;; Company Web
    <<company-web-config>>
-   <<htmlize-config>>)
+   ;; htmlize
+   <<htmlize-config>>) ;; End Web
 #+END_SRC
 
 **** Web Mode
@@ -8218,7 +8281,6 @@ and slim-mode using company.
            '(company-tern company-web-html company-yasnippet company-files)))
 
     (add-hook 'web-mode-hook #'chaffin--company-web-mode-hook)
-
     ;; Enable JavaScript completion between <script>...</script> etc.
     (defadvice company-tern (before web-mode-set-up-ac-sources activate)
       "Set `tern-mode' based on current language before running company-tern."

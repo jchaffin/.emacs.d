@@ -138,19 +138,39 @@ configure an alist of PROFILES with CURRENT as the initial profile in use."
 
 (defun halidom/literate (&optional config-file init-server)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
-Else use the value of `halidom--literate-config-file'."
-  (let* ((file (or config-file halidom--literate-config-file))
-         (dir (or user-emacs-directory default-directory))
-	 (path (expand-file-name file dir)))
-    (when init-server
-      (require 'server)
-      (start-server))
-    
-    (if (file-exists-p path)
-        (org-babel-load-file path)
-      (error "%s" "No configuration file."))))
+Else use the value of `literate-config-file'."
+  (let ((target-file (or user-config-file literate-config-file))
+        (target-dir (or user-emacs-directory default-directory)))
+    (if init-server
+	(require 'server)
+	(start-server))
+    (if target-file
+        (org-babel-load-file
+         (expand-file-name target-file target-dir))
+      (error "%s not found, cannot tangle." target-file))))
 
+;; Debug
+(defvar literate-debug-blocks
+  '("read-only" "ivy-base" "if-not" "counsel-base" "readview-fc" "org-ui-fill"))
 
-;; Initialize
-(when use-straight-p (halidom/straight))
-(when use-literate-p (halidom/literate))
+(defun literate-tangle-src-block (name)
+  (let ((buf (find-file-noselect (expand-file-name "chaffin.org" user-emacs-directory))))
+    (with-current-buffer literate-config-file
+      (org-element-map (org-element-parse-buffer) 'src-block
+	(lambda (block)
+	  (if (string= name (org-element-property :name block))
+	      (let ((code (org-element-property :value block)))
+		(with-temp-buffer
+		  (insert code)
+		  (eval-buffer)))))))
+    (kill-buffer buf)))
+
+(defun literate-debug-enabled ()
+  (interactive)
+  (mapcar #'literate-tangle-src-block literate-debug-blocks))
+
+;; Initialization
+(if use-literate-p 
+    (load-literate literate-config-file t)
+  (literate-debug-enabled))
+
