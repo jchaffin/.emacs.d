@@ -2,7 +2,7 @@
 # name: org-src-elisp-noweb
 # key: <sew
 # --
-
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-$1
+#+NAME: $1
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+$2
 #+END_SRC

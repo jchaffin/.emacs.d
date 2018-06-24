@@ -190,9 +190,29 @@ Else use the value of `literate-config-file'."
     (if target-file
         (org-babel-load-file
          (expand-file-name target-file target-dir))
-      (message "No configuration file set, not extracting source code."))))
+      (error "%s not found, cannot tangle." target-file))))
 
-(load-literate literate-config-file t)
+;; Debug
+(defvar literate-debug-blocks
+  '("read-only" "ivy-base" "if-not" "counsel-base" "readview-fc" "org-ui-fill"))
 
+(defun literate-tangle-src-block (name)
+  (let ((buf (find-file-noselect (expand-file-name "chaffin.org" user-emacs-directory))))
+    (with-current-buffer literate-config-file
+      (org-element-map (org-element-parse-buffer) 'src-block
+	(lambda (block)
+	  (if (string= name (org-element-property :name block))
+	      (let ((code (org-element-property :value block)))
+		(with-temp-buffer
+		  (insert code)
+		  (eval-buffer)))))))
+    (kill-buffer buf)))
 
+(defun literate-debug-enabled ()
+  (interactive)
+  (mapcar #'literate-tangle-src-block literate-debug-blocks))
 
+;; Initialization
+(if use-literate-p 
+    (load-literate literate-config-file t)
+  (literate-debug-enabled))
