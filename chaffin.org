@@ -1,6 +1,6 @@
-#+TITLE: Jacob Chaffin's Literate Emacs Configuration
-#+LANGUAGE: en
- #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
+#+title: Jacob Chaffin's Literate Emacs Configuration
+#+language: en
+#+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: /Users/jacobchaffin/.emacs.d/straight/repos/org-html-themes/setup/theme-readtheorg.setup
 
 * Table Of Contents :TOC_3_gh:noexport:
@@ -69,12 +69,13 @@
     - [[#ox-extra][Ox Extra]]
     - [[#ox-publish][Ox Publish]]
 - [[#customizing-emacs][Customizing Emacs]]
+  - [[#customization-group][Customization Group]]
   - [[#search-and-navigation][Search and Navigation]]
     - [[#the-buffer][The buffer]]
     - [[#the-project][The project]]
     - [[#the-file-system][The file system]]
     - [[#searching][Searching]]
-  - [[#startup][Startup]]
+  - [[#initial-display][Initial Display]]
     - [[#initial-buffer][Initial Buffer]]
     - [[#initial-scratch][Initial Scratch]]
     - [[#initial-frame][Initial Frame]]
@@ -204,6 +205,7 @@
     - [[#ruby][Ruby]]
     - [[#scala][Scala]]
     - [[#web-programming][Web Programming]]
+  - [[#lsp-mode][Lsp Mode]]
 - [[#footnotes][Footnotes]]
 
 * Preface
@@ -218,7 +220,7 @@ This document contains my entire configuration for the GNU Emacs text editor. It
 Where as a program is traditionally presented in a tree structure, a programmer implementing literate techniques arranges parts and forms the relations of these parts in the order of human logic.
 
 A literate program is then structured like an essay or other work of literature, where ideas are connected in the form of a web rather than the unidirectional order of interpretation that is characteristic of a
-compiler. 
+compiler.
 
 ** Influences
 
@@ -587,26 +589,13 @@ function `copy-file-path-as-kill'."
 (defun copy-file-path-as-kill ()
   "Copies the file path of the current dired directory or file buffer to the kill-ring."
   (interactive)
-  (let ((func (lambda (s) (progn
-			    (kill-new s)
-			    (message "%s" s)))))
+  (let ((func (lambda (s) 
+                (progn
+			            (kill-new s)
+			            (message "%s" s)))))
     (copy-file-path func)))
 #+END_SRC
 
-***** Copy File Path As Region Kill
-
-And just for the fun of it, a function that copies the current file path using a temporary buffer.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun copy-file-path-as-region-kill (file-path)
-  "Copy file-path using a temporary buffer."
-  (interactive)
-  (copy-file-path 
-    (lambda (file-path)
-		    (with-temp-buffer
-		      (insert s)
-		      (kill-region (point-min) (point-max))))))
-#+END_SRC
 
 **** Remove wildcards from directory files list
 
@@ -644,10 +633,10 @@ And just for the fun of it, a function that copies the current file path using a
 
 #+END_SRC
 
-**** Check if HTTPS is supports 
+**** Check if HTTPS is supports
 
 From the melpa installation:
- 
+
 #+NAME: ssl-p
 #+BEGIN_SRC emacs-lisp :tangle yes
 
@@ -757,6 +746,23 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
   (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>")))
 #+END_SRC
 
+**** Unadvise
+:PROPERTIES:
+:ID:       5699F8BF-4FBD-4CA0-8191-693197553DCC
+:END:
+
+- [[https://emacs.stackexchange.com/questions/24657/unadvise-a-function-remove-all-advice-from-it][Remove advice]]
+
+#+NAME: unadvise-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(defun unadvise (sym)
+  "Remove all advices from symbol SYM."
+  (interactive "aFunction symbol: ")
+  (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
+
+#+END_SRC
+
 *** Default Setup
 **** Garbage Collection
 
@@ -789,6 +795,7 @@ contributing to the solution.
 (add-hook 'minibuffer-setup-hook #'chaffin/rev-up-gc)
 (add-hook 'minibuffer-exit-hook 'chaffin/rev-down-gc)
 #+END_SRC
+
 
 **** Files
 ***** Custom File
@@ -833,6 +840,14 @@ This might come back to bite me one day but I never use them.
 (setq make-backup-files nil)
 #+END_SRC
 
+***** Lockfiles
+
+Causes a conflict with ~lsp-mode~.
+
+#+NAME: lockfiles-spec
+#+BEGIN_SRC emacs-lisp :tangle yes :comments org
+(setq create-lockfiles nil)
+#+END_SRC
 
 ***** Shortcuts
 
@@ -1039,7 +1054,7 @@ package manager.
 (use-package system-packages
   :straight (system-packages :host gitlab
                              :repo "jabranham/system-packages"))
- 
+
 #+END_SRC
 
 *** Prodigy
@@ -1212,7 +1227,7 @@ provide comparable functionality to [[https://github.com/xuchunyang/osx-dictiona
 running macOS.
 
 #+NAME: macos-dictionary
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no 
 (use-package osx-dictionary
   :straight t
   :if *is-mac*
@@ -1276,7 +1291,7 @@ running macOS.
 **** Get Active Minor Modes
 
 #+NAME: active-minor-modes
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (defun list-enabled-minor-modes (&optional buf)
   "The minor modes enabled in the current buffer."
   (let ((auto-save-mode nil)
@@ -1287,8 +1302,11 @@ running macOS.
              collect mode)))
 
 
-(defvar minor-modes-enabled-list (list-enabled-minor-modes)
+(defvar minor-modes-enabled-list (list-enabled-minor-modes (current-buffer))
   "The list of enabled minor modes")
+
+(defun minor-mode-enabled-p (mode)
+  (member mode (list-enabled-minor-modes (current-buffer))))
 #+END_SRC
 
 * LaTeX and Org Mode
@@ -1555,8 +1573,8 @@ save.
 
 #+NAME: org-preview-xelatex
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-format-xelatex-header 
-      "\\documentclass{article} 
+(setq org-format-xelatex-header
+      "\\documentclass{article}
         \\usepackage[usenames]{xcolor}
         [PACKAGES]
         [NO-DEFAULT-PACKAGES]
@@ -1580,7 +1598,7 @@ save.
         \\setlength{\\topmargin}{1.5cm}
         \\addtolength{\\topmargin}{-2.54cm}
 
-        % some defaults based on personal preference 
+        % some defaults based on personal preference
         \\usepackage{adjustbox}
         \\usepackage[linguistics,edges]{forest}")
 
@@ -1597,7 +1615,7 @@ save.
         :latex-compiler ("xelatex -interaction nonstopmode -output-directory %o %f")
         :image-converter  ("convert -density %D -trim -antialias %f -quality 200 %O")))
 
-        
+
 (add-to-list 'org-preview-latex-process-alist org-preview-xemagick)
 
 (defun org-preview-xemagick-fragments ()
@@ -1643,7 +1661,7 @@ save.
                  'luamagick)))) nil t))
 
 (setq org-format-lualatex-header
-      "\\documentclass{article} 
+      "\\documentclass{article}
         \\usepackage[usenames,dvipsnames,svgnames]{xcolor}
         [PACKAGES]
         [DEFAULT-PACKAGES]
@@ -1704,15 +1722,15 @@ save.
 (defun org-preview--complement-bg ()
   (with-eval-after-load 'color
     (substring
-       (apply #'color-rgb-to-hex 
-         (color-complement 
+       (apply #'color-rgb-to-hex
+         (color-complement
       	   (frame-parameter nil 'background-color))) 0 7)))
 
 ;; (setq org-format-latex-options
 ;;       (plist-put org-format-latex-options
 ;;                  :background nil))
 
-;; (setq org-format-latex-options 
+;; (setq org-format-latex-options
 ;;       (plist-put org-format-latex-options
 ;;                  :foreground (org-preview--complement-bg)))
 
@@ -1733,14 +1751,14 @@ The justification is set by :justify in
 line are justified."
   (cond
    ;; Centered justification
-   ((and (eq 'center (plist-get org-format-latex-options :justify)) 
+   ((and (eq 'center (plist-get org-format-latex-options :justify))
          (= beg (line-beginning-position)))
     (let* ((img (create-image image 'imagemagick t))
            (width (car (image-size img)))
            (offset (floor (- (/ (window-text-width) 2) (/ width 2)))))
       (overlay-put (ov-at) 'before-string (make-string offset ? ))))
    ;; Right justification
-   ((and (eq 'right (plist-get org-format-latex-options :justify)) 
+   ((and (eq 'right (plist-get org-format-latex-options :justify))
          (= beg (line-beginning-position)))
     (let* ((img (create-image image 'imagemagick t))
            (width (car (image-display-size (overlay-get (ov-at) 'display))))
@@ -1787,10 +1805,10 @@ line are justified."
         (setq options (plist-put options
                          :background (org-preview--complement-bg))))
     (setf (nth 2 args) options)
-    
+
     (apply orig-func args)))
 
-;; (advice-add 'org-create-formula-image 
+;; (advice-add 'org-create-formula-image
 ;;   :around #'org-preview-algorithm-environment)
 ;; (advice-remove 'org-create-formula-image
 ;;    #'org-preview-algorithm-environment)
@@ -1901,7 +1919,7 @@ Prettify dedicated org-mode latex buffers.
 
 **** Unicode Math mode
 #+NAME: latex-math-unicode
-#+BEGIN_SRC emacs-lisp :tangle 
+#+BEGIN_SRC emacs-lisp :tangle
 (use-package latex-unicode-math-mode
   :straight t
   :init
@@ -1983,6 +2001,9 @@ Entered on [2018-06-13 Wed 11:42]
 #+END_SRC
 
 ** Org Mode
+:PROPERTIES:
+:ID:       C2106106-C5F8-4B9B-815D-058678CB9242
+:END:
 
 #+NAME: org-mode-settings
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
@@ -2228,6 +2249,9 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+END_SRC
 
 **** Org radiobutton
+:PROPERTIES:
+:ID:       EA7D1F8C-6A3E-4154-B1ED-581F8B5446C3
+:END:
 
 The [[https://github.com/Fuco1/org-radiobutton][org-radiobutton]] package a minor mode which automates the property
 requirements for radiobutton lists.
@@ -2454,12 +2478,17 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 <<org-links-mac>>
 <<org-links-cliplink>>
 <<org-links-elisp-help>>
+<<org-links-minor>>
+
 #+END_SRC
 
 ***** Org Man
+:PROPERTIES:
+:ID:       28D48CC9-4CAD-4B8C-85B9-9E2275BB338D
+:END:
 
 #+NAME: org-links-manpage
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :comments noweb
 (use-package org-man
   :straight org)
 #+END_SRC
@@ -2520,6 +2549,16 @@ Embed YouTube Links in iframe.
      (latex (format "\href{%s}{%s}"
                     path (or desc "video"))))))
 #+END_SRC
+
+***** Org Link Minor Mode
+
+#+NAME: org-link-minor
+#+BEGIN_SRC emacs-lisp :tangle no :comments noweb
+(use-package org-link-minor-mode
+  :straight t
+  :config (org-link-minor-mode +1))
+#+END_SRC
+
 
 *** Task Management
 
@@ -2778,6 +2817,9 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 #+END_SRC
 
 *** Org Hacks
+:PROPERTIES:
+:ID:       872F7F61-7971-42E4-BC24-FEA9D67634D2
+:END:
 
 From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks.html#sec-1-8-5][org hacks]]
 
@@ -2806,7 +2848,7 @@ Extract hyperlink
 
 
 (defun browse-url-extract-org-link (orig-fun &rest args)
-  "If `thing-at-point' is a org-link, then call `org-extract-link' 
+  "If `thing-at-point' is a org-link, then call `org-extract-link'
 and apply ORIG-FUN with the extracted url in the car of original ARGS."
   (when (and (eq major-mode 'org-mode)
              (string= (car (org-thing-at-point)) "link"))
@@ -3711,6 +3753,17 @@ and subtrees of the ignored headlines will be retained.
 #+END_SRC
 
 * Customizing Emacs
+** Customization Group
+
+#+NAME: customization-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+;; Customization Group
+(defgroup halidom nil
+  "Customization group for the `halidom' Emacs configuration."
+  :group 'applications
+  :prefix "halidom-")
+#+END_SRC
+
 ** Search and Navigation
 *** The buffer
 **** Avy
@@ -3901,7 +3954,7 @@ Adds extensions and functionality to dired mode.
   :straight t)
 #+END_SRC
 
-** Startup
+** Initial Display
 *** Initial Buffer
 
 #+NAME: startup-initial-buffer
@@ -4218,7 +4271,7 @@ different window configurations.
 #+NAME: read-only
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defvar read-only-directories '()
-  "A list of directories for which all files and subdirectories 
+  "A list of directories for which all files and subdirectories
 should open in `read-only-mode'.")
 
 (defvar read-only-file-extensions '("\\.gz\\'")
@@ -4240,7 +4293,7 @@ should open in `read-only-mode'.")
          (file-writable-p bf))))
 
 (defun chaffin/open-buffer-as-read-only (file)
-  "All buffers from `read-only-directories' or 
+  "All buffers from `read-only-directories' or
 `read-only-file-extensions' are set to read-only."
   (let ((bd (and buffer-file-name (file-name-directory file))))
     (if (read-only-directory-p bd) (read-only-mode 1))))
@@ -4280,8 +4333,7 @@ should open in `read-only-mode'.")
 
 ** User Interface
 
-Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes
-really fantastic Emacs UI libraries and enhancements.
+Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
 
 *** Cursor
 **** Vertical Bar
@@ -4290,10 +4342,10 @@ Set the cursor to a bar. The default is too thin for my liking.
 Set the width to 4px. Also remove the cursor in inactive windows.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq-default cursor-in-non-selected-windows 'nil
-              x-stretch-cursor t)
+(setq-default cursor-in-non-selected-windows nil
+              x-stretch-cursor nil)
 
-(modify-all-frames-parameters (list (cons 'cursor-type 'bar)))
+(modify-all-frames-parameters (list (cons 'cursor-type '(bar . 4))))
 #+END_SRC
 
 **** Disable Blink
@@ -4396,7 +4448,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 (if *is-hal*
     (setq macos-default-font
-	  "Operator Mono:pixelsize=12:weight=light:slant=normal:width=normal:spacing=100:scalable=true"))
+	  "Operator Mono:pixelsize=13:weight=light:slant=normal:width=normal:spacing=100:scalable=true"))
 
 
 (cond (*is-linux*
@@ -4413,22 +4465,35 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 *** Modeline
 
-#+NAME: modeline-deps
+#+NAME: modeline-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
-(defvar halidom-modeline nil)
+(defcustom halidom-modeline nil
+  "When non-nil, the modeline framework to use at startup. 
+Options are 'spaceline, 'sml, and 'powerline."
+  :type '(choice
+          (const :tag "Use the default modeline." nil)
+          (const :tag "Use smart-mode-line" sml)
+          (const :tag "Use powerline" powerline))
+  :initialize 'custom-initialize-default)
 
-<<spaceline-spec>>
+;; sml
 <<sml-spec>>
 
-<<modeline-spec>>
+;; Spaceline
+<<spaceline-spec>>
+
+;; Powerline
+<<powerline-spec>>
+
+;; Setup the modeline
+<<modeline-setup>>
 #+END_SRC
 
 
 **** Set the modeline format
 
-#+NAME: modeline-spec
+#+NAME: modeline-setup
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (setq halidom-modeline 'spaceline)
 
 (defun modeline-setup ()
@@ -4442,17 +4507,18 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 (add-hook 'after-make-frame-functions 'modeline-setup)
 #+END_SRC
 
-**** Spacemacs
+**** Spaceline
 
 #+NAME: spaceline-spec
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<spaceline-base>>
-<<spaceline-icons>>
+;; Spaceline icons
+<<spaceline-icons>> 
+;; setup spaceline
 <<spaceline-setup>>
 #+END_SRC
 
-
-***** Spaceline
+***** Spaceline Base
 
 #+NAME: spaceline-base
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4518,14 +4584,66 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   (add-hook 'sml-setup-hook #'mode-icons-mode))
 #+END_SRC
 
+**** Powerline
+
+#+NAME: powerline-spec
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<powerline-base>>
+<<powerline-setup>>
+#+END_SRC
+
+#+NAME: powerline-base
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package powerline
+    :straight t)
+#+END_SRC
+
+#+NAME: powerline-setup
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun ml-powerline-setup ()
+  "Setup the modeline for powerline."
+  (require 'powerline)
+  (powerline-default-theme))
+#+END_SRC
+
 *** Theme
+**** Theme Defaults
+
+#+NAME: theme-spec
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+(defcustom halidom-default-theme-mode 'dark
+  "The default theme mode. Only symbols 'dark and 'light are considered."
+  :type '(choice
+          (const :tag "Use a dark theme by default." dark)
+          (const :tag "Use a light theme by default" light)
+          (const :tag "Ignore the value of this variable" nil)))
+
+(defcustom halidom-default-term-theme 'wombat
+  "The default term theme."
+  :type 'symbol)
+
+(defcustom halidom-default-light-theme 'tsdh-light
+  "The default light theme."
+  :type 'symbol)
+
+(defcustom halidom-default-dark-theme 'tsdh-dark
+  "The default dark theme."
+  :type 'symbol)
+
+(defcustom halidom-default-theme 'tsdh-dark
+  "The default theme to load."
+  :type 'string)
+
+
+#+END_SRC
+
 **** Enable Custom Themes
 
 This disables Emacs asking questions about loading a new theme.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq custom-safe-themes t)
-(setq custom-theme-directory 
+(setq custom-theme-directory
   (expand-file-name "themes" user-emacs-directory))
 #+END_SRC
 
@@ -4544,7 +4662,10 @@ This disables Emacs asking questions about loading a new theme.
              :host github
              :repo "jchaffin/org-beautify-theme"
              :files ("org-beautify-theme.el"))
-
+  :init
+  (defun org-beautify-load-theme ()
+    (add-to-list 'custom-enabled-themes 'org-beautify)
+    (load-theme 'org-beautify))
   :config
   (progn
     (setq org-beautify-theme-use-box-hack nil)
@@ -4553,64 +4674,108 @@ This disables Emacs asking questions about loading a new theme.
 
 **** Zenburn Theme
 
-#+NAME: zenburn-theme-cfg
+#+NAME: theme-zenburn
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package zenburn-theme
   :straight t)
 #+END_SRC
 
-**** Light Theme
+**** Poet Theme
 
+#+NAME: theme-poet
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package poet-theme
-  :straight t)
+  :straight t
+  :init
+  (setq halidom-default-light-theme 'poet))
 #+END_SRC
 
-****n Dark Theme
+**** Base16 Themes
 
-#+NAME: dark-theme-cfg
+#+NAME: theme-dark
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package atom-one-dark-theme
-  :straight t)
+(use-package base16-theme
+  :straight t
+  :init
+  (setq halidom-default-dark-theme 'base16-oceanicnext))
 #+END_SRC
 
 **** Load Theme
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(straight-use-package 'base16-theme)
-
-(defvar halidom-default-theme 'base16-oceanicnext)
-(defvar halidom-term-theme 'zenburn)
-
-(setq-default custom-enabled-themes '(base16-oceanicnext))
+(setq-default custom-enabled-themes (list halidom-default-theme))
 
 (defun remove-themes ()
   "Forcibly load the themes listed in `custom-enabled-themes'."
   (mapc #'disable-theme custom-enabled-themes))
 
-(defvar chaffin/load-theme-hook nil)
+(defvar halidom/load-theme-hook nil)
 
-(defun chaffin/load-theme ()
+
+(defun halidom/load-theme ()
   (interactive)
   (remove-themes)
   (if (display-graphic-p)
       (progn
         (load-theme halidom-default-theme)
-        (run-hooks 'chaffin/load-theme-hook))
+        (run-hooks 'halidom/load-theme-hook))
 
     (progn
       (load-theme halidom-term-theme))))
 
+(setq halidom-default-theme
+      (cond ((eq halidom-default-theme-mode 'dark)
+             halidom-default-dark-theme)
+            ((eq halidom-default-theme-mode 'light)
+             halidom-default-light-theme)
+            (t nil)))
 
-(defun chaffin-theme-load-update-buffer ()
+(defun halidom/org-faces (&optional theme)
+  (custom-theme-set-faces (or theme halidom-default-theme)
+    `(org-block
+      ((t :foreground ,(face-foreground 'default nil 'default))))
+    `(org-level-1
+      ((t
+        :font "Sans Serif"
+        :height 1.4
+        :inherit outline-1)))
+    `(org-level-2
+      ((t
+        :font "Sans Serif"
+        :height 1.2
+        :inherit outline-2)))
+    `(org-level-3
+      ((t
+        :font "Sans Serif"
+        :height 1.0
+        :inherit outline-3)))
+    `(org-block-begin-line
+      ((t (:background "#35373E"
+           :foreground "#ABB2BF"
+           :inherit (org-meta-line default)))))
+    `(org-end-of-line ((t (:inherit org-block-begin-line))))
+    `(org-document-title
+      ((t (:inherit org-level-1
+           :height 1.5
+           :underlinep nil
+           :foreground ,(face-foreground 'default nil 'default)))))
+    `(org-document-info-keyword
+      ((t (:foreground "#ABB2BF" :slant italic :inherit org-document-info-face))))
+    `(font-lock-keyword-face
+      ((t (:foreground "#C678DD" :slant italic :weight normal)))))
+)
+
+
+(defun halidom-theme-load-update-buffer ()
   (auto-revert-mode)
   (setq-local buffer-stale-function
               #'(lambda (&optional noconfirm) 'fast)))
 
-(add-hook 'chaffin/load-theme-hook #'chaffin-theme-load-update-buffer)
+(when (display-graphic-p)
+  (add-hook 'halidom/load-theme-hook #'halidom/org-faces))
 
-(add-hook 'after-init-hook #'chaffin/load-theme)
-
+(add-hook 'halidom/load-theme-hook #'halidom-theme-load-update-buffer)
+(add-hook 'after-init-hook #'halidom/load-theme)
 #+END_SRC
 
 *** Icons
@@ -4752,7 +4917,7 @@ This disables Emacs asking questions about loading a new theme.
 ** Company
 
 #+NAME: company-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+BEGIN_SRC ess-noweb :language emacs :tangle yes :noweb yes :exports none
 <<company-company>>
 <<company-quick-help>>
 <<company-statistics-config>>
@@ -4953,7 +5118,7 @@ Turn Ivy mode on if ARG is positive, off othherwise.
 
   Global bindings:
   \\{ivy-mode-map}
-  
+
   Minibuffer bindings:
   \\{ivy-minibuffer-map}"
 
@@ -5170,7 +5335,7 @@ friends.
 (use-package counsel-projectile
   :straight t
   :after (:all projectile counsel)
-  :demand t 
+  :demand t
   :init
   (counsel-projectile-mode t))
 #+END_SRC
@@ -5375,7 +5540,7 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 *** Webkit xwidget
 
 #+NAME: browser-xwidget
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes 
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<xwidget-ns>>
 <<xwidget-xwid>>
 #+END_SRC
@@ -5534,7 +5699,7 @@ This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-
 Interactively.
 
 #+NAME: browse-default
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (defvar browse-url-browser-alist
       '(("chrome" . browse-url-chrome)
         ("firefox" . browse-url-firefox)
@@ -5881,7 +6046,7 @@ whistles, it makes up for in compatibility and hackability [fn:16].
 [[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
 
 #+NAME: notes-deft
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :comments org
 (use-package deft
   :if *is-mac*
   :straight t
@@ -5954,22 +6119,22 @@ whistles, it makes up for in compatibility and hackability [fn:16].
 
 (defun toggle-variable-pitch-font ()
   (interactive)
-  (let ((spec '(default variable-pitch :family "Bookmania"))) 
-    (set (make-local-variable 'face-remapping-alist) 
-         (if (member spec face-remapping-alist) 
-             (delete spec face-remapping-alist) 
+  (let ((spec '(default variable-pitch :family "Bookmania")))
+    (set (make-local-variable 'face-remapping-alist)
+         (if (member spec face-remapping-alist)
+             (delete spec face-remapping-alist)
            (cons spec face-remapping-alist)))))
 
-(defun org-toggle-variable-pitch () 
-  "Toggle use of face `variable-pitch'. 
-This works by frobbing `face-remapping-alist'." 
-  (interactive) 
+(defun org-toggle-variable-pitch ()
+  "Toggle use of face `variable-pitch'.
+This works by frobbing `face-remapping-alist'."
+  (interactive)
   (if-not face-remapping-alist
       (progn
         (face-remap-add-relative 'variable-pitch :family org-variable-pitch-font)
         (face-remap-add-relative 'default 'variable-pitch)
-        (->> org-fixed-pitch-faces 
-            (mapcar (lambda (x) (list x :family org-fixed-pitch-font))) 
+        (->> org-fixed-pitch-faces
+            (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
             (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
     (setq face-remapping-alist nil)))
 
@@ -5978,7 +6143,6 @@ This works by frobbing `face-remapping-alist'."
 ;; (when (local-variable-if-set-p 'org-use-variable-pitch)
 ;;   (add-hook 'org-mode-hook #'org-toggle-variable-pitch))
 #+END_SRC
-
 
 *** Centered Cursor Mode
 
@@ -6034,7 +6198,7 @@ This works by frobbing `face-remapping-alist'."
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package justify-kp
   :straight (:host github
-                   :repo "Fuco1/justify-kp")) 
+                   :repo "Fuco1/justify-kp"))
 #+END_SRC
 
 *** Nov
@@ -6135,8 +6299,7 @@ This works by frobbing `face-remapping-alist'."
 ** Graphics
 *** Artist Mode
 
-Artist mode is a built-in Emacs package. I'm hoping to expand this
-configuration block as I learn how to use it.
+Artist mode is a built-in Emacs package. 
 
 #+NAME: artist-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -6247,7 +6410,7 @@ school's WLAN.
       (push mode flycheck-global-modes))
 
     (defun halidom/toggle-flycheck-error-list ()
-      "Toggle flycheck's error list window. 
+      "Toggle flycheck's error list window.
 If the error list is visible hide the window. Else display the buffer."
       (interactive)
       (-if-let (window (flycheck-get-error-list-window))
@@ -6474,17 +6637,15 @@ Disabling for now.
 #+END_SRC
 
 *** Gtags
+:PROPERTIES:
+:ID:       0E4B8051-2EB4-454F-BBB0-BD57A5AEAFA6
+:END:
 
 #+NAME: ggtags
 #+BEGIN_SRC emacs-lisp :tangle yes
 (if (getenv "GTAGSLABEL")
 (use-package ggtags
-  :straight t
-  :init
-  (add-hook 'c-mode-common-hook
-            (lambda ()
-              (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-                (ggtags-mode 1))))))
+  :straight t))
 #+END_SRC
 
 ** Version Control
@@ -6952,206 +7113,52 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 *** C/C++
 
-#+NAME: c-cxx-config
+#+NAME: c-cxx-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (when (proglang-enabled-p 'c-c++)
-  <<cc-function-args>>
-  (when (executable-find "cmake")
-    <<cc-irony-mode>>
-    <<cc-cmake-mode>>)
-  <<cc-hooks>>)
-#+END_SRC
-
-**** C/C++ Mode Hooks
-
-#+NAME: cc-hooks
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<cc-hooks-compile-command>>
-<<cc-hooks-flycheck-include-headers>>
-#+END_SRC
-
-***** Per-File Compile Command
-
-#+NAME: cc-hooks-compile-command
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin--compile-hook (compiler)
-  (unless (file-exists-p "Makefile")
-    (set (make-local-variable 'compile-command)
-         (let ((file (file-name-sans-extension buffer-file-name)))
-           (format "%s %s -o %s" compiler buffer-file-name file)))))
-
-#+END_SRC
-
-***** Add Project Headers to Flycheck Clang Include Path
-
-#+NAME: cc-hooks-flycheck-include-headers
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun c-cxx-project-header-files ()
-  (funcall #'c-cxx-locate-makefile #'c-cxx-makefile-include-directive))
-
-(defun c-cxx-locate-makefile (&optional func)
-  (let ((has-makefile (file-exists-p "Makefile")))
-    (if has-makefile
-        (let ((buf (or (get-buffer "Makefile")
-                       (find-file-noselect
-                        (expand-file-name "Makefile" default-directory)))))
-          (if func
-              (funcall func buf)
-            (buffer-file-name buf))))))
-
-(defun c-cxx-makefile-include-directive (buffer)
-  (expand-file-name "include" default-directory))
-
-
-
-(defun c-cxx-flycheck-include-headers-hook ()
-  (let ((f (lambda (elt) (not (eq elt 'nil)))))
-    (set (make-local-variable 'flycheck-clang-include-path)
-         (seq-filter f `(,(c-cxx-project-header-files))))))
-
-
-(add-to-hooks #'flycheck-mode '(c-mode-hook
-                                c++-mode-hook))
-
-
-(add-to-hooks #'c-cxx-flycheck-include-headers-hook
-              '(c-mode-hook
-                c++-mode-hook))
-
-
-#+END_SRC
-
-**** Function Args
-
-CDET enhancements for showing inline function arguments.
-
-#+NAME: cc-function-args
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package function-args
-  :straight t
-  :init
-  (fa-config-default)
-  :commands (fa-config-default)
-  :mode ("\\.hpp\\'" . c++-mode)
-  :config
-  (add-hook 'c++-mode-hook
-	    (lambda ()
-	      (setq semantic-case-fold t))))
-#+END_SRC
-
-**** Irony Mode
-:PROPERTIES:
-:ID:       A8CD300F-F34E-4628-98F0-883109589168
-:CUSTOM_ID: irony-mode
-:END:
-
-Using Irony Mode on macOS is a bitch, not so much because Irony Mode
-is a bitch but because macOS doesn't include clang-c header files by
-default, and successfully compiling [[http://llvm.org/][llvm]] without conflicting with the
-system compiler is non-trivial. I tried to build llvm via
-homebrew using the =--with-toolchain= compiler flag. After an hour
-with the same "make" dialog I said eff it and =^Z='d on out of there.
-
-
-/#applefanboyproblems/
-
-
-#+NAME: cc-irony-mode
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<cc-irony-mode-config>>
-<<cc-irony-company-irony>>
-<<cc-irony-flycheck-irony>>
-#+END_SRC
-
-
-- [[https://oremacs.com/2017/03/28/emacs-cpp-ide/][oremacs.com - Using Emacs as a C++ IDE]]
-
-#+NAME: cc-irony-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package irony
-  :straight t
-  :init
-  (progn
-    (add-hook 'c++-mode-hook 'irony-mode)
-    (add-hook 'c-mode-hook 'irony-mode)
-    (add-hook 'objc-mode-hook 'irony-mode))
-  :commands (irony-cdb-autosetup-compile-options irony-install-server)
-  :config
-  (progn
-    (setq irony-additional-clang-options
-          '("-std=c++11"
-            "-Isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/"
-            "-stdlib=libc++"))
-
-    (defun irony-mode-map-hook ()
-      (define-key irony-mode-map
-	    [remap completion-at-point] 'counsel-irony)
-      (define-key irony-mode-map
-	    [remap complete-symbol] 'counsel-irony))
-
-    (add-hook 'irony-mode-hook 'irony-mode-map-hook)
-    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)))
-#+END_SRC
-
-***** Company Irony
-
-Company backend for C/C++ files using irony mode.
-
-#+NAME: cc-irony-company-irony
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<cc-irony-company-irony-c-cxx>>
-<<cc-irony-company-irony-c-headers>>
-#+END_SRC
-
-#+NAME: cc-irony-company-irony-c-cxx
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-irony
-  :straight t
-  :after (:all company irony)
-  :defines (company-irony)
-  :demand t
-  :init
-  (progn
-    (add-to-list 'company-backends 'company-irony)
-    (setq company-backends (delete 'company-semantic company-backends))
-    (set 'company-clang-arguments (list "-std=c++11"))))
-#+END_SRC
-
-****** Company Irony C Headers
-
-#+NAME: cc-irony-company-irony-c-headers
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-irony-c-headers
-  :straight t
-  :after (:all company irony company-irony)
-  :defines (company-irony-c-headers)
-  :demand t
-  :init
-  (add-to-list 'company-backends 'company-irony-c-headers))
-#+END_SRC
-
-***** Flycheck Irony
-
-#+NAME: cc-irony-flycheck-irony
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-irony
-  :straight t
-  :after (:all flycheck irony)
-  :demand t
-  :commands (flycheck-irony-setup)
-  :init
-  (with-eval-after-load 'flycheck
-    '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
+  <<c-cxx-cmake>>)
 #+END_SRC
 
 **** Cmake Mode
 
-#+NAME: cc-cmake-mode
+#+NAME: c-cxx-cmake
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cmake-mode
   :straight t
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
-         ("\\.cmake\\'" . cmake-mode)))
+         ("\\.cmake\\'" . cmake-mode))
+  :init
+  (defun cmake-build-compilation-database ()
+    (interactive)
+    (let* ((project-directory (cond ((-non-nil projectile-project-root)
+                                     projectile-project-root)
+                                    ((eq 'major-mode 'dired-mode)
+                                     dired-directory)
+                                    (t default-directory)))
+           (build-directory (f-join project-directory "build"))
+           (compiledb (f-join project-directory "compile_commands.json")))
+      (when (f-exists? (f-join project-directory "CMakeLists.txt"))
+        (if-not (f-exists? build-directory)
+            (mkdir build-directory))
+        (with-temp-buffer
+          (shell-command "make clean")
+          (cd build-directory)
+          (cmake-command-run "-DCMAKE_EXPORT_COMPILE_COMMANDS=YES .."))
+        (if (f-exists? compiledb)
+          (make-symbolic-link compiledb (f-slash build-directory) t))))))
+
+
+
+#+END_SRC
+
+**** Make commands
+
+#+NAME: c-cxx-make
+#+BEGIN_SRC emacs-lisp :tangle np
+(defun make-command (command)
+  (interactive "P")
+  (compilation-start (read-shell-command "Make command: " "make " command)))
+
 #+END_SRC
 
 *** Common Lisp
@@ -7533,7 +7540,8 @@ CIDER eldoc information.
 (defun emacs-lisp-style ()
   (paredit-mode 1)
   (highlight-symbol-mode 1)
-  (setq-local lisp-indent-function #'common-lisp-indent-function))
+  (setq lisp-indent-function 'common-lisp-indent-function)
+)
 
 (defun macos-dash-elisp-docsets ()
   (setq-local dash-plugin-keywords '("elisp")))
@@ -7904,7 +7912,9 @@ Real jsx support.
 (when (proglang-enabled-p 'python)
   <<py-python-settings>>
   <<py-pyenv>>
-  <<py-anaconda>>)
+  <<py-anaconda>>
+  <<py-pip-requirements>>
+  <<py-pydoc>>)
 #+END_SRC
 
 **** Python Settings
@@ -8004,6 +8014,22 @@ Real jsx support.
     `(add-to-list company-backends 'company-anaconda)))
 #+END_SRC
 
+**** Pip Requirements
+
+#+NAME: py-pip-requirements
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pip-requirements
+    :straight t)
+#+END_SRC
+
+**** Pydoc
+
+#+NAME: py-pydoc
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pydoc
+    :straight t)
+#+END_SRC
+
 *** Ruby
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
@@ -8087,7 +8113,7 @@ Real jsx support.
    ;; Web Mode
    <<web-mode-config>>
    ;; Tagedit Mode
-   <<tagedit-mode-config>> 
+   <<tagedit-mode-config>>
    ;; CSS Mode
    <<css-mode-config>>
    ;; Emmet Mode
@@ -8291,6 +8317,86 @@ and slim-mode using company.
                     (string= web-mode-cur-language "jsx"))
                 (unless tern-mode (tern-mode))
               (if tern-mode (tern-mode -1))))))))
+#+END_SRC
+
+** Lsp Mode
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package lsp-mode
+    :straight t
+    :config
+    (setq lsp-message-project-root-warning t))
+
+(use-package lsp-ui
+    :straight t
+    :init (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+    :config
+    (setq lsp-ui-doc-include-signature nil)  ; don't include type signature in the child frame
+    (setq lsp-ui-sideline-show-symbol nil))
+
+(use-package company-lsp
+    :straight t
+    :after company
+    :init
+    (push 'company-lsp company-backends)
+    :config
+    (setq company-transformers nil
+          company-lsp-async t
+          company-lsp-cache-candidates nil))
+
+(use-package ivy-xref
+    :straight t)
+
+(defun cquery//enable ()
+  (condition-case nil
+      (lsp-cquery-enable)
+    (user-error "%s" "cquery didn't work")))
+
+(use-package cquery
+    :straight t
+    :commands lsp-cquery-enable
+    :init
+    (add-hook 'c-mode-common-hook #'cquery//enable)
+    :config
+    (progn
+      (setq cquery-executable "/usr/local/bin/cquery")
+      (setq cquery-extra-init-params
+            '(:index (:comments 2)
+              :cacheFormat "msgpack"
+              :completion (:detailedLabel t)))
+      ;; Alternatively, use lsp-ui-peek interface
+      ;; (lsp-ui-peek-find-custom 'base "$cquery/base")
+      ;; (lsp-ui-peek-find-custom 'callers "$cquery/callers")
+      (defun setup-cquery ()
+        (when (fboundp 'flycheck-mode)
+          (flycheck-mode +1))) 
+
+      (add-hook 'c-mode-hook #'setup-cquery)
+      (add-hook 'c++-mode-hook #'setup-cquery)
+
+      (setq cquery-sem-highlight-method 'font-lock)
+      ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
+      
+      ;; For rainbow semantic highlighting
+      (cquery-use-default-rainbow-sem-highlight)
+      (with-eval-after-load 'projectile
+        (setq projectile-project-root-files-top-down-recurring
+              (append '("compile_commands.json"
+                        ".cquery")
+                      projectile-project-root-files-top-down-recurring)))))
+
+
+(use-package lsp-python
+    :straight t
+    :commands lsp-python-enable
+    :init
+    (add-hook 'python-mode-hook #'lsp-python-enable)
+    :config
+    (defun python//enable-flycheck ()
+      (when (fboundp 'flycheck-mode)
+        (flycheck-mode +1)))
+    
+    (add-hook 'python-mode-hook 'python//enable-flycheck))
 #+END_SRC
 
 * Footnotes

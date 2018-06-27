@@ -2,7 +2,7 @@
 # name: org-src-elisp-tangle
 # key: <set
 # --
-
+#+NAME: $1
 #+BEGIN_SRC emacs-lisp :tangle yes
-$1
+$2
 #+END_SRC
