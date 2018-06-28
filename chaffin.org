@@ -854,7 +854,7 @@ Causes a conflict with ~lsp-mode~.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun goto-init ()
   (interactive)
-  (find-file (expand-file-name "init.el") user-emacs-directory))
+  (find-file (expand-file-name "init.el" user-emacs-directory)))
 
 (defun goto-literate ()
   (interactive)
@@ -3796,10 +3796,14 @@ interactive tree .
   :straight t
   :init
   (setq projectile-completion-system 'ivy)
+
   :config
+
   (progn
+
     (append projectile-globally-ignored-directories
-            '("gradle" "target" ".meghanada" ".gradle" "build" "bin" "node_modules"))
+            '("gradle" "target" ".meghanada" ".gradle" "build" "bin" "node_modules"
+              "CMakeFiles" ".cquery_cached_index"))
     (defvar chaffin/ignored-project-directories
       '("~/.emacs.d/straight"))
     (defun projectile-ignore-projects-in-directory (project-root)
@@ -4046,6 +4050,7 @@ so we'll leave it there.
 (unless *is-mac*
   (menu-bar-mode -1))
 (display-time-mode 1)
+
 #+END_SRC
 
 **** Default Frame Appearance
@@ -4697,7 +4702,9 @@ This disables Emacs asking questions about loading a new theme.
 (use-package base16-theme
   :straight t
   :init
-  (setq halidom-default-dark-theme 'base16-oceanicnext))
+  (setq halidom-default-dark-theme 'base16-oceanicnext)
+  :config
+  (setq base16-distinct-fringe-background nil))
 #+END_SRC
 
 **** Load Theme
@@ -5334,7 +5341,7 @@ friends.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-projectile
   :straight t
-  :after (:all projectile counsel)
+  :after projectile
   :demand t
   :init
   (counsel-projectile-mode t))
@@ -6451,6 +6458,10 @@ Tabs are the bane of humanity[fn:17]. [[http://www.urbandictionary.com/define.ph
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default tab-width 2
               indent-tabs-mode nil)
+
+(when (>= emacs-major-version 26)
+  (add-hook 'prog-mode-hook #'display-line-numbers-mode))
+
 #+END_SRC
 
 *** Symbol Highlighting
@@ -7122,7 +7133,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 **** Cmake Mode
 
 #+NAME: c-cxx-cmake
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package cmake-mode
   :straight t
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
@@ -8322,21 +8333,30 @@ and slim-mode using company.
 ** Lsp Mode
 
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (use-package lsp-mode
     :straight t
     :config
-    (setq lsp-message-project-root-warning t))
+    (setq lsp-message-project-root-warning t)
+)
+
+(use-package ivy-xref
+    :straight t
+)
 
 (use-package lsp-ui
     :straight t
     :init (add-hook 'lsp-mode-hook 'lsp-ui-mode)
     :config
     (setq lsp-ui-doc-include-signature nil)  ; don't include type signature in the child frame
-    (setq lsp-ui-sideline-show-symbol nil))
+    (setq lsp-ui-sideline-show-symbol nil)
+    (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+    (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references))
 
 (use-package company-lsp
     :straight t
     :after company
+    :demand t
     :init
     (push 'company-lsp company-backends)
     :config
@@ -8344,8 +8364,6 @@ and slim-mode using company.
           company-lsp-async t
           company-lsp-cache-candidates nil))
 
-(use-package ivy-xref
-    :straight t)
 
 (defun cquery//enable ()
   (condition-case nil
@@ -8378,7 +8396,13 @@ and slim-mode using company.
       ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
       
       ;; For rainbow semantic highlighting
+      (with-eval-after-load 'lsp-ui-mode
+        (lsp-ui-peek-find-custom 'base "$cquery/base")
+        (lsp-ui-peek-find-custom 'callers "$cquery/callers")
+        (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
+
       (cquery-use-default-rainbow-sem-highlight)
+
       (with-eval-after-load 'projectile
         (setq projectile-project-root-files-top-down-recurring
               (append '("compile_commands.json"
@@ -8391,12 +8415,13 @@ and slim-mode using company.
     :commands lsp-python-enable
     :init
     (add-hook 'python-mode-hook #'lsp-python-enable)
-    :config
     (defun python//enable-flycheck ()
       (when (fboundp 'flycheck-mode)
         (flycheck-mode +1)))
-    
     (add-hook 'python-mode-hook 'python//enable-flycheck))
+
+
+
 #+END_SRC
 
 * Footnotes
