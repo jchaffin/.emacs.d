@@ -380,19 +380,21 @@ common prefix.
 *** General
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package general
-    :init 
-    (general-define-key
-        :states '(normal insert emacs)
-        :prefix halidom-prefix-leader
-        :prefix-command 'halidom-prefix-command
-        :prefix-map 'halidom-prefix-map)
-    (general-define-key
-     :keymaps 'halidom-prefix-map
-     :prefix "r"
-     "i" 'straight-reload-init
-     "e" 'eval-region
-     "b" 'straight-eval-buffer))
+  (use-package general
+      :config	     
+      (general-define-key
+       :states '(normal insert emacs)
+       :keymaps 'global
+       :prefix "M-m"
+       :prefix-command 'halidom-prefix-command
+       :prefix-map 'halidom-prefix-map)
+      (general-define-key
+       :keymaps 'halidom-prefix-map
+       :prefix "r"
+       :prefix-map 'reload-eval-map
+       "i" 'straight-reload-init
+       "e" 'eval-region
+       "b" 'straight-eval-buffer))
 
 #+END_SRC
 
@@ -4721,17 +4723,6 @@ This disables Emacs asking questions about loading a new theme.
                 halidom-light-theme)
                (t halidom-term-theme))))
   (remove-themes)
-
-  (setq halidom-theme theme)
-;; (halidom-base-16-p theme)  
-  (if (halidom--base16-p theme)
-      (setq halidom-theme-colors
-            (symbol-value
-             (intern
-              (eval
-               `(concat
-                 ,(symbol-name (symbol-value 'halidom-theme)) "-colors")))))
-    (setq halidom-theme-colors nil))
   
   (if (display-graphic-p)
       (progn
