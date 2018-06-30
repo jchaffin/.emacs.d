@@ -16,7 +16,8 @@
   - [[#keybindings][Keybindings]]
     - [[#hydra][Hydra]]
     - [[#smartrep][Smartrep]]
-    - [[#general][General]]
+    - [[#personal-keymap][Personal Keymap]]
+    - [[#reload-eval-keymap][Reload Eval Keymap]]
   - [[#core][Core]]
     - [[#libraries][Libraries]]
     - [[#constants][Constants]]
@@ -156,7 +157,7 @@
     - [[#proselint][Proselint]]
   - [[#text-completion][Text Completion]]
     - [[#company-dict][Company Dict]]
-    - [[#dictionaryel][Dictionary.el]]
+    - [[#dictionaryela][Dictionary.ela]]
   - [[#taking-notes][Taking Notes]]
     - [[#deft][Deft]]
     - [[#org-velocity][Org Velocity]]
@@ -377,25 +378,43 @@ common prefix.
     :straight t)
 #+END_SRC
 
-*** General
+*** Personal Keymap
+
+#+NAME: personal-global-keymap
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+;; Make personal keymap
+(define-prefix-command 'chaffin-keymap)
+(global-set-key "\M-m" 'chaffin-keymap)
+
+#+END_SRC
+
+*** Reload Eval Keymap
+
+
+
+#+NAME: user-emacs-keybindings
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+;; Make `chaffin-reload-eval-keymap'
+(define-prefix-command 'reload-eval-keymap)
+(define-key 'chaffin-keymap "r" 'reload-eval-keymap)
+(define-key 'reload-eval-keymap "i"  #'straight-reload-init)
+(define-key 'reload-eval-keymap "b"  #'straight-eval-buffer)
+(define-key 'reload-eval-keymap "r"  #'eval-region)
+(define-key 'reload-eval-keymap "f"  #'eval-defun)
+
+#+END_SRC
+
+***** Restart Emacs
+
+The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
+from within Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package general
-      :config	     
-      (general-define-key
-       :states '(normal insert emacs)
-       :keymaps 'global
-       :prefix "M-m"
-       :prefix-command 'halidom-prefix-command
-       :prefix-map 'halidom-prefix-map)
-      (general-define-key
-       :keymaps 'halidom-prefix-map
-       :prefix "r"
-       :prefix-map 'reload-eval-map
-       "i" 'straight-reload-init
-       "e" 'eval-region
-       "b" 'straight-eval-buffer))
-
+(use-package restart-emacs
+  :bind ((:map reload-eval-keymap
+               ("q" . restart-emacs))))
 #+END_SRC
 
 ** Core
@@ -780,14 +799,14 @@ Also sets terminal coding system to "utf-8".
       ns-function-modifier 'hyper)
 
 (when *is-mac*
-  (general-define-key
-   "s-=" 'text-scale-increase
-   "s--" 'text-scale-decrease
-   "s-[" 'previous-buffer
-   "s-]" 'next-buffer
-   "s-}" 'ns-next-frame
-   "s-{" 'ns-prev-frame
-   "s-L" 'mark-sexp))
+  (global-set-key (kbd "s-=" ) 'text-scale-increase)
+  (global-set-key (kbd "s--")  'text-scale-decrease)
+  ;; Default is <XF86Back> .. C-x <right>
+  (global-set-key (kbd "s-[")  'previous-buffer)
+  (global-set-key (kbd "s-]")  'next-buffer)
+  (global-set-key (kbd "s-}")  'ns-next-frame)
+  (global-set-key (kbd "s-{")  'ns-prev-frame)
+  (global-set-key (kbd "s-L")   'mark-sexp))
 
 #+END_SRC
 
@@ -795,12 +814,8 @@ Also sets terminal coding system to "utf-8".
 
 #+NAME: macos-prefix-cmd
 #+BEGIN_SRC emacs-lisp :tangle no
-(general-define-key
- :keymaps 'halidom-prefix-map
- :prefix-command 'macos-prefix-command
- :prefix-map 'macos-prefix-map
- :prefix "m"
- )
+(define-prefix-command 'macos-keymap)
+(define-key 'chaffin-keymap "m" 'macos-keymap)
 #+END_SRC
 
 ****** Generate =<mouse-2>= on trackpad
@@ -1200,34 +1215,42 @@ editors and various other applications on macOS.
 
 #+NAME: macos-dev-utils
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package macos-dev-utils
-    :straight
-    (macos-dev-utils
-     :host github
-     :repo "jchaffin/macos-dev-utils")
-    :demand t
-    :config
-
-    (progn
-      (general-define-key
-       :keymaps 'macos-prefix-map
-       :prefix "o"
-       "o" 'open-with-default-app)
-       "s" 'open-with-sublime-text
-       "a" 'open-with-atom
-       "v" 'open-with-vscode
-       "b" 'open-with-bbedit
-       "c" 'open-with-coda
-       "t" 'open-with-tower)
-
-    (general-define-key
-     :keymaps 'macos-prefix-map
-     :prefix "t"
-     "g" 'iterm-goto-filedir-or-home
-     "f" 'iterm-focus
-     "s" 'iterm-shell-command))
-
-
+(use-package macos-dev-utils
+  :straight
+  (macos-dev-utils
+   :host github
+   :repo "jchaffin/macos-dev-utils")
+  :demand t
+  :config
+  (progn
+    (define-prefix-command 'macos-open-with-keymap)
+    (define-prefix-command 'macos-iterm-keymap)
+    (define-key 'macos-keymap
+        "o" 'macos-open-with-keymap)
+    (define-key 'macos-keymap
+        "t" 'macos-iterm-keymap)
+    ;; macos-open-with keybindings
+    (define-key 'macos-open-with-keymap
+        "o" 'macos-open-with-default-app)
+    (define-key 'macos-open-with-keymap
+        "s" 'open-with-sublime-text)
+    (define-key 'macos-open-with-keymap
+        "a" 'open-with-atom)
+    (define-key 'macos-open-with-keymap
+        "v" 'open-with-vscode)
+    (define-key 'macos-open-with-keymap
+        "b" 'open-with-bbedit)
+    (define-key 'macos-open-with-keymap
+        "c" 'open-with-coda)
+    (define-key 'macos-open-with-keymap
+        "t" 'open-with-tower)
+    ;; macos-iterm keymap
+    (define-key 'macos-iterm-keymap
+        "g" 'iterm-goto-filedir-or-home)
+    (define-key 'macos-iterm-keymap
+        "f" 'iterm-focus)
+    (define-key 'macos-iterm-keymap
+        "s" 'iterm-shell-command)))
 
 #+END_SRC
 
@@ -1310,7 +1333,18 @@ running macOS.
     (defun osx-dictionary-open-dictionary-app-at-point ()
       (interactive)
       "Open `word' at point in Dictionary.app."
-      (shell-command (format "open dict://%s" (thing-at-point 'word))))))
+
+      (shell-command (format "open dict://%s" (thing-at-point 'word))))
+    (define-prefix-command 'osx-dictionary-keymap)
+    (define-key 'macos-keymap
+        "d" 'osx-dictionary-keymap)
+    (define-key 'osx-dictionary-keymap
+        "d" 'osx-dictionary-search-word-at-point)
+    (define-key 'osx-dictionary-keymap
+        "s" 'osx-dictionary-search-input)
+    (define-key 'osx-dictionary-keymap
+        "o" 'osx-dictionary-open-dictionary-app-at-point)))
+
 #+END_SRC
 
 **** OSX Trash
@@ -1344,7 +1378,11 @@ running macOS.
 (use-package counsel-osx-app
   :if *is-mac*
   :after (:all ivy)
-  :commands (counsel-osx-app))
+  :demand t
+  :commands counsel-osx-app
+  :config
+    (progn
+      (define-key 'macos-keymap "a" 'counsel-osx-app)))
  #+END_SRC
 
 **** Get Active Minor Modes
@@ -4491,15 +4529,15 @@ Options are 'spaceline, 'sml, and 'powerline."
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq halidom-modeline 'spaceline)
 
-(defun modeline-setup ()
+(defun halidom/modeline-setup ()
   "Setup the modeline."
   (pcase halidom-modeline
     (`spaceline (ml-spaceline-setup))
     (`powerline (ml-powerline-setup))
     (`sml (ml-smline-setup))))
 
-(add-hook 'after-init-hook 'modeline-setup)
-(add-hook 'after-make-frame-functions 'modeline-setup)
+(add-hook 'after-init-hook 'halidom/modeline-setup)
+
 #+END_SRC
 
 **** Spaceline
@@ -4556,14 +4594,14 @@ Options are 'spaceline, 'sml, and 'powerline."
 
 #+NAME: sml-setup
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package smart-mode-line
-  :config
-  (defvar sml-setup-hook nil)
-  (defun ml-smline-setup ()
-    (setq sml/no-confirm-load-theme t)
-    (setq sml/theme 'respectful)
-    (sml/setup)
-    (run-hooks 'sml-setup-hook)))
+(use-package smart-mode-line)
+
+(defun ml-smline-setup ()
+  (require 'smart-mode-line)
+  (setq sml/no-confirm-load-theme t)
+  (setq sml/theme 'respectful)
+  (sml/setup)
+  (run-hooks 'sml-setup-hook))
 #+END_SRC
 
 #+NAME: sml-mode-icons
@@ -5329,21 +5367,22 @@ replacements. "
    :host github
    :repo "jchaffin/counsel-itunes")
 
-  :init
-    (general-define-key
-     :keymaps 'halidom-prefix-map
-     :prefix "i"
-     "-" 'counsel-itunes-volume-down
-     "+" 'counsel-itunes-volume-up
-     "t" 'counsel-itunes-tracklist
-     "p" 'counsel-itunes-play-pause
-     "c" 'counsel-itunes-current-track
-     "P" 'counsel-itunes-playlist
-     "n" 'counsel-itunes-next-track
-     "b" 'counsel-itunes-previous-track
-     "s" 'counsel-itunes-shuffle)
   :demand t
-  :after (:all counsel ivy))
+  :after (:all counsel ivy)
+  :init
+   ;; make prefix command
+   (define-prefix-command 'counsel-itunes-keymap)
+   (define-key 'chaffin-keymap "i" 'counsel-itunes-keymap)
+   ;; define keymap
+   (define-key 'counsel-itunes-keymap "-" #'counsel-itunes-volume-down)
+   (define-key 'counsel-itunes-keymap "+" #'counsel-itunes-volume-up)
+   (define-key 'counsel-itunes-keymap "t" #'counsel-itunes-tracklist)
+   (define-key 'counsel-itunes-keymap "p" #'counsel-itunes-play-pause)
+   (define-key 'counsel-itunes-keymap "c" #'counsel-itunes-current-track)
+   (define-key 'counsel-itunes-keymap "P" #'counsel-itunes-playlist)
+   (define-key 'counsel-itunes-keymap "n" #'counsel-itunes-next-track)
+   (define-key 'counsel-itunes-keymap "b" #'counsel-itunes-previous-track)
+   (define-key 'counsel-itunes-keymap "s" #'counsel-itunes-shuffle))
 
 #+END_SRC
 
@@ -5930,13 +5969,8 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 #+NAME: prose-define-keymap
 #+BEGIN_SRC emacs-lisp :tangle no
-
-(general-define-key
- :keymaps 'halidom-prefix-map
- :prefix "p"
- :prefix-command 'prose-prefix-command
- :prefix-map 'prose-keymap)
-
+(define-prefix-command 'prose-keymap)
+(define-key 'chaffin-keymap "p" 'prose-keymap)
 #+END_SRC
 
 ** Spelling and Grammar
@@ -6056,7 +6090,7 @@ checking for natural language.
         company-dict-enable-yasnippet t))
 #+END_SRC
 
-*** Dictionary.el
+*** Dictionary.ela
 :PROPERTIES:
 :ID:       98EF59F6-66E8-47B3-A437-B1D53A74832A
 :CUSTOM_ID: dictionary-el
@@ -6071,8 +6105,9 @@ whistles, it makes up for in compatibility and hackability [fn:16].
 (use-package dictionary
   :commands (dictionary-lookup-definition)
   :init
-  (progn
-    (define-prefix-command 'dictionary-keymap)))
+  (define-prefix-command 'dictionary-keymap)
+  (define-key 'prose-keymap "d" 'dictionary-keymap)
+  (define-key 'dictionary-keymap "i" 'dictionary-lookup-definition))
 #+END_SRC
 
 ** Taking Notes
