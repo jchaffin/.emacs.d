@@ -12,6 +12,11 @@
   - [[#package-management][Package Management]]
     - [[#straight][Straight]]
   - [[#user-information][User Information]]
+  - [[#customization-group][Customization Group]]
+  - [[#keybindings][Keybindings]]
+    - [[#hydra][Hydra]]
+    - [[#smartrep][Smartrep]]
+    - [[#general][General]]
   - [[#core][Core]]
     - [[#libraries][Libraries]]
     - [[#constants][Constants]]
@@ -69,11 +74,6 @@
     - [[#ox-extra][Ox Extra]]
     - [[#ox-publish][Ox Publish]]
 - [[#customizing-emacs][Customizing Emacs]]
-  - [[#customization-group][Customization Group]]
-  - [[#keybindings][Keybindings]]
-    - [[#hydra][Hydra]]
-    - [[#smartrep][Smartrep]]
-    - [[#general][General]]
   - [[#search-and-navigation][Search and Navigation]]
     - [[#the-buffer][The buffer]]
     - [[#the-project][The project]]
@@ -381,20 +381,19 @@ common prefix.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package general
-  :demand t)
+    :init 
+    (general-define-key
+        :states '(normal insert emacs)
+        :prefix halidom-prefix-leader
+        :prefix-command 'halidom-prefix-command
+        :prefix-map 'halidom-prefix-map)
+    (general-define-key
+     :keymaps 'halidom-prefix-map
+     :prefix "r"
+     "i" 'straight-reload-init
+     "e" 'eval-region
+     "b" 'straight-eval-buffer))
 
-(require 'general)
-(general-define-key
-    :states '(normal insert emacs)
-    :prefix halidom-prefix-leader
-    :prefix-command 'halidom-prefix-command
-    :prefix-map 'halidom-prefix-map)
-(general-define-key
- :keymaps 'halidom-prefix-map
- :prefix "r"
- "i" 'straight-reload-init
- "e" 'eval-region
- "b" 'straight-eval-buffer)
 #+END_SRC
 
 ** Core
@@ -597,7 +596,10 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 
 #+END_SRC
 
-**** Buffer List Names
+
+**** Buffers
+***** Buffer 
+***** Buffer List Names
 
 #+NAME: buffer-list-names-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -610,7 +612,7 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 
 #+END_SRC
 
-**** Count Windows
+**** Windows
 
 #+NAME: window-count
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -619,8 +621,8 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
   "Count number of windows in the current frame."
   (interactive)
   (length (window-list)))
-
 #+END_SRC
+
 
 #+NAME: window-count-unique
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -630,6 +632,28 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
   (interactive)
   (length (cl-delete-duplicates (mapcar #'window-buffer (window-list)))))
 
+#+END_SRC
+
+#+NAME: window-buffer-list
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun window-buffer-list ()
+  "Get list of buffers in an open window."
+  (let ((windows))
+    (dolist (frame (frame-list) windows)
+      (with-selected-frame frame
+        (setq windows (append (window-list) windows))))
+    (map 'seq-uniq (lambda (w) (window-buffer w)) windows)))
+#+END_SRC
+
+#+NAME: window-buffer-list-modes
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun buffer-list-modes ()
+  "Restart org-mode in all org buffers in open windows."
+  (let ((modes))
+    (dolist (buf (window-buffer-list) modes)
+      (with-current-buffer buf
+        (setq modes (push major-mode modes))))
+    (seq-uniq modes)))
 #+END_SRC
 
 **** Copy File Path
@@ -4576,30 +4600,36 @@ Options are 'spaceline, 'sml, and 'powerline."
 
 #+NAME: theme-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
-(defcustom halidom-default-theme-mode 'dark
+(defcustom halidom--theme-style 'dark
   "The default theme mode. Only symbols 'dark and 'light are considered."
   :type '(choice
           (const :tag "Use a dark theme by default." dark)
           (const :tag "Use a light theme by default" light)
           (const :tag "Ignore the value of this variable" nil)))
 
-(defcustom halidom-default-term-theme 'wombat
+(defcustom halidom-term-theme 'wombat
   "The default term theme."
   :type 'symbol)
 
-(defcustom halidom-default-light-theme 'tsdh-light
-  "The default light theme."
+(defcustom halidom-prose-theme 'tsdh-light
+   "The default theme for writing text."
+   :type 'symbol)
+
+(defcustom halidom-light-theme 'tsdh-light
+  "The light theme."
   :type 'symbol)
 
-(defcustom halidom-default-dark-theme 'tsdh-dark
-  "The default dark theme."
+(defcustom halidom-dark-theme 'tsdh-dark
+  "The dark theme."
   :type 'symbol)
 
-(defcustom halidom-default-theme 'tsdh-dark
+(defcustom halidom-theme 'tsdh-dark
   "The default theme to load."
   :type 'string)
 
-
+(defcustom halidom-theme-colors nil
+  "plist of colors for the current theme."
+  :type '(plist :key-type symbol value-type sexp))
 #+END_SRC
 
 **** Enable Custom Themes
@@ -4627,14 +4657,11 @@ This disables Emacs asking questions about loading a new theme.
              :host github
              :repo "jchaffin/org-beautify-theme"
              :files ("org-beautify-theme.el"))
-  :init
-  (defun org-beautify-load-theme ()
-    (add-to-list 'custom-enabled-themes 'org-beautify)
-    (load-theme 'org-beautify))
   :config
-  (progn
+  (defun org-beautify-load-theme ()
     (setq org-beautify-theme-use-box-hack nil)
-    (add-to-list 'custom-enabled-themes 'org-beautify)))
+    (add-to-list 'custom-enabled-themes 'org-beautify)
+    (load-theme 'org-beautify)))
 #+END_SRC
 
 **** Zenburn Theme
@@ -4651,7 +4678,7 @@ This disables Emacs asking questions about loading a new theme.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package poet-theme
   :init
-  (setq halidom-default-light-theme 'poet))
+  (setq halidom-light-theme 'poet))
 #+END_SRC
 
 **** Base16 Themes
@@ -4659,16 +4686,25 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: theme-dark
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package base16-theme
-  :init
-  (setq halidom-default-dark-theme 'base16-oceanicnext)
-  :config
-  (setq base16-distinct-fringe-background nil))
+    :defines halidom--base16-p base16-oceanicnext-colors
+    :init
+    (setq halidom-dark-theme 'base16-oceanicnext
+          halidom-light-theme 'base16-default-light)
+    (defun halidom--base16-p (&optional theme)
+      (let ((theme (or theme halidom-theme "")))
+        (string-prefix-p "base16-" (symbol-name theme))))
+    (add-to-list 'custom-theme-load-path
+                 (expand-file-name "straight/build/base16-theme"
+                                   user-emacs-directory))
+    :config
+    (setq base16-distinct-fringe-background nil))
+
 #+END_SRC
 
 **** Load Theme
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(setq-default custom-enabled-themes (list halidom-default-theme))
+(setq-default custom-enabled-themes (list halidom-theme))
 
 (defun remove-themes ()
   "Forcibly load the themes listed in `custom-enabled-themes'."
@@ -4676,71 +4712,109 @@ This disables Emacs asking questions about loading a new theme.
 
 (defvar halidom/load-theme-hook nil)
 
-
 (defun halidom/load-theme ()
   (interactive)
+  (let ((theme
+         (cond ((eq halidom--theme-style 'dark)
+                halidom-dark-theme)
+               ((eq halidom--theme-style 'light)
+                halidom-light-theme)
+               (t halidom-term-theme))))
   (remove-themes)
+
   (if (display-graphic-p)
       (progn
-        (load-theme halidom-default-theme)
+        (load-theme theme)
+        (setq halidom-theme theme)
+        (if (halidom--base16-p theme)
+            (setq halidom-theme-colors
+                  (symbol-value
+                   (intern
+                    (eval
+                     `(concat
+                       ,(symbol-name (symbol-value 'halidom-theme)) "-colors")))))
+          (setq halidom-theme-colors nil))
         (run-hooks 'halidom/load-theme-hook))
 
+
     (progn
-      (load-theme halidom-term-theme))))
+      (load-theme halidom-term-theme)))))
 
-(setq halidom-default-theme
-      (cond ((eq halidom-default-theme-mode 'dark)
-             halidom-default-dark-theme)
-            ((eq halidom-default-theme-mode 'light)
-             halidom-default-light-theme)
-            (t nil)))
+(defun halidom--toggle-theme-style ()
+  (interactive)
+  (if (eq halidom--theme-style 'dark)
+      (setq halidom--theme-style 'light)
+    (setq halidom--theme-style 'dark)))
 
-(defun halidom/org-faces (&optional theme)
-  (custom-theme-set-faces (or theme halidom-default-theme)
-    `(org-block
-      ((t :foreground ,(face-foreground 'default nil 'default))))
-    `(org-level-1
-      ((t
-        :font "Sans Serif"
-        :height 1.4
-        :inherit outline-1)))
-    `(org-level-2
-      ((t
-        :font "Sans Serif"
-        :height 1.2
-        :inherit outline-2)))
-    `(org-level-3
-      ((t
-        :font "Sans Serif"
-        :height 1.0
-        :inherit outline-3)))
-    `(org-block-begin-line
-      ((t (:background "#35373E"
-           :foreground "#ABB2BF"
-           :inherit (org-meta-line default)))))
-    `(org-end-of-line ((t (:inherit org-block-begin-line))))
-    `(org-document-title
-      ((t (:inherit org-level-1
-           :height 1.5
-           :underlinep nil
-           :foreground ,(face-foreground 'default nil 'default)))))
-    `(org-document-info-keyword
-      ((t (:foreground "#ABB2BF" :slant italic :inherit org-document-info-face))))
-    `(font-lock-keyword-face
-      ((t (:foreground "#C678DD" :slant italic :weight normal)))))
-)
+(defun halidom--set-theme-colrs ()
+  (if halidom-theme))
 
 
-(defun halidom-theme-load-update-buffer ()
-  (auto-revert-mode)
-  (setq-local buffer-stale-function
-              #'(lambda (&optional noconfirm) 'fast)))
+(defun halidom/toggle-theme ()
+  (interactive)
+  (halidom--toggle-theme-style)
+  (halidom/load-theme))
 
-(when (display-graphic-p)
-  (add-hook 'halidom/load-theme-hook #'halidom/org-faces))
 
-(add-hook 'halidom/load-theme-hook #'halidom-theme-load-update-buffer)
+(defun halidom/org-faces ()
+  (let ((fg (face-foreground 'default nil 'default))
+        (fg2 (plist-get halidom-theme-colors :base04))
+        (bg2 (plist-get halidom-theme-colors :base01))
+        (header-font "Sans Serif"))
+    (if (and fg2 bg2)
+        (progn
+          (set-face-attribute 'org-level-1 nil
+                             :family header-font
+                             :height 1.4
+                             :inherit 'outline-1)
+          (set-face-attribute 'org-level-2 nil
+                             :family header-font
+                             :height 1.2
+                             :inherit 'outline-2)
+          (set-face-attribute 'org-level-3 nil
+                              :family header-font
+                              :height 1.0
+                              :slant 'normal
+                              :inherit 'outline-3)
+
+          (set-face-attribute 'org-document-title nil
+                              :height 1.5
+                              :underline nil
+                              :foreground fg
+                              :inherit 'org-level-1)
+
+          (set-face-attribute 'org-document-info-keyword nil
+                              :foreground fg2
+                              :slant 'italic
+                              :inherit 'org-document-info-face)
+
+          (set-face-attribute 'org-block nil
+                              :foreground fg)
+
+          (set-face-attribute 'org-block-begin-line nil
+                              :foreground fg2
+                              :background bg2
+                              :inherit 'org-meta-line)
+
+          (set-face-attribute 'org-block-end-line nil
+                              :inherit 'org-block-begin-line)
+
+
+          (set-face-attribute 'font-lock-keyword-face nil
+                              :foreground "#C678DD"
+                              :slant 'italic
+                              :weight 'normal)))))
+
+(defun halidom--org-restart ()
+  (let ((org-buffers (org-buffer-list)))
+    (dolist (buf org-buffers)
+      (with-current-buffer buf
+        (org-mode-restart)))))
+
 (add-hook 'after-init-hook #'halidom/load-theme)
+(add-hook 'halidom/load-theme-hook #'halidom/org-faces)
+;; https://github.com/syl20bnr/spacemacs/pull/7667
+(add-hook 'halidom/load-theme-hook #'halidom--org-restart)
 #+END_SRC
 
 *** Icons
