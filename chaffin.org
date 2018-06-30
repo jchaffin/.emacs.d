@@ -4722,8 +4722,20 @@ This disables Emacs asking questions about loading a new theme.
                (t halidom-term-theme))))
   (remove-themes)
 
+  (setq halidom-theme theme)
+;; (halidom-base-16-p theme)  
+  (if (halidom--base16-p theme)
+      (setq halidom-theme-colors
+            (symbol-value
+             (intern
+              (eval
+               `(concat
+                 ,(symbol-name (symbol-value 'halidom-theme)) "-colors")))))
+    (setq halidom-theme-colors nil))
+  
   (if (display-graphic-p)
       (progn
+
         (load-theme theme)
         (setq halidom-theme theme)
         (if (halidom--base16-p theme)
