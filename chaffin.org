@@ -4536,7 +4536,16 @@ Options are 'spaceline, 'sml, and 'powerline."
     (`powerline (ml-powerline-setup))
     (`sml (ml-smline-setup))))
 
+(defun halidom/modeline-setup-frame (frame)
+  (with-selected-frame frame
+    (when (daemonp)
+      (if (display-graphic-p)
+          (halidom/modeline-setup)
+        (ml-smline-setup)))))
+
 (add-hook 'after-init-hook 'halidom/modeline-setup)
+(add-hook 'after-make-frame-functions 'halidom/modeline-setup-frame)
+
 
 #+END_SRC
 
@@ -4589,7 +4598,6 @@ Options are 'spaceline, 'sml, and 'powerline."
 #+NAME: sml-spec
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<sml-setup>>
-<<sml-mode-icons>>
 #+END_SRC
 
 #+NAME: sml-setup
@@ -4602,15 +4610,6 @@ Options are 'spaceline, 'sml, and 'powerline."
   (setq sml/theme 'respectful)
   (sml/setup)
   (run-hooks 'sml-setup-hook))
-#+END_SRC
-
-#+NAME: sml-mode-icons
-#+BEGIN_SRC emacs-lisp :tangle no
-
-(use-package mode-icons
-  :if (display-graphic-p)
-  :init
-  (add-hook 'sml-setup-hook #'mode-icons-mode))
 #+END_SRC
 
 **** Powerline
@@ -4743,6 +4742,8 @@ This disables Emacs asking questions about loading a new theme.
 
 **** Load Theme
 
+
+
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default custom-enabled-themes (list halidom-theme))
 
@@ -4751,6 +4752,7 @@ This disables Emacs asking questions about loading a new theme.
   (mapc #'disable-theme custom-enabled-themes))
 
 (defvar halidom/load-theme-hook nil)
+
 
 (defun halidom/load-theme ()
   (interactive)
@@ -4781,14 +4783,16 @@ This disables Emacs asking questions about loading a new theme.
     (progn
       (load-theme halidom-term-theme)))))
 
+(defun halidom/load-theme-with-frame (frame)
+  (with-selected-frame frame
+    (when (daemonp)
+      (halidom/load-theme))))
+
 (defun halidom--toggle-theme-style ()
   (interactive)
   (if (eq halidom--theme-style 'dark)
       (setq halidom--theme-style 'light)
     (setq halidom--theme-style 'dark)))
-
-(defun halidom--set-theme-colrs ()
-  (if halidom-theme))
 
 
 (defun halidom/toggle-theme ()
@@ -4856,6 +4860,7 @@ This disables Emacs asking questions about loading a new theme.
 (add-hook 'halidom/load-theme-hook #'halidom/org-faces)
 ;; https://github.com/syl20bnr/spacemacs/pull/7667
 (add-hook 'halidom/load-theme-hook #'halidom--org-restart)
+(add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
 #+END_SRC
 
 *** Icons
@@ -4871,7 +4876,6 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: all-the-icons-setup
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package all-the-icons
-  :if (display-graphic-p)
   :config
   (progn
     (setq macos-font-directory "~/Library/Fonts")
@@ -4912,9 +4916,9 @@ This disables Emacs asking questions about loading a new theme.
   :after (:all magit org-mode markdown-mode)
   :init
   (progn
-      (add-hook 'org-mode-hook 'emojify-mode-hook)
-      (add-hook 'markdown-mode-hook 'emojify-mode-hook)
-      (add-hook 'magit-status-mode-hook 'emojify-mode-hook)))
+      (add-hook 'org-mode-hook 'emojify-mode)
+      (add-hook 'markdown-mode-hook 'emojify-mode)
+      (add-hook 'magit-status-mode-hook 'emojify-mode)))
 #+END_SRC
 
 **** Company Emoji
@@ -7203,7 +7207,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 **** Make commands
 
 #+NAME: c-cxx-make
-#+BEGIN_SRC emacs-lisp :tangle np
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun make-command (command)
   (interactive "P")
   (compilation-start (read-shell-command "Make command: " "make " command)))

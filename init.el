@@ -218,7 +218,7 @@ Else use the value of `literate-config-file'."
   (mapcar #'literate-tangle-src-block literate-debug-blocks))
 
 ;; Initialization
-(if use-literate-p 
-    (load-literate literate-config-file t)
+(if use-literate-p
+    (load-literate literate-config-file)
   (literate-debug-enabled))
 
