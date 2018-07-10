@@ -18,6 +18,7 @@ site-lisp/*
 !/resources/**/
 
 !/init.el
+!/early-init.el
 !/chaffin.org
 
 !/docs/
