@@ -2,5 +2,4 @@
 # name: use-package
 # key: up
 # --
-(use-package $1
-  :straight $2)
+(use-package $1)

@@ -165,7 +165,14 @@
  '(bibtex-autokey-year-title-separator "-")
  '(debug-on-error t)
  '(safe-local-variable-values
-   '((projectile-project-compilation-cmd . "clj --main cljs.main --compile nodejs-clj.core --repl")
+   '((org-src-preserve-indentation)
+     (eval and
+      (require 'ox-extra nil t)
+      (ox-extras-activate
+       '(ignore-headlines)))
+     (eval require 'ox-texinfo+ nil t)
+     (eval require 'org-man nil t)
+     (projectile-project-compilation-cmd . "clj --main cljs.main --compile nodejs-clj.core --repl")
      (elisp-lint-indent-specs
       (if-let* . 2)
       (when-let* . 1)

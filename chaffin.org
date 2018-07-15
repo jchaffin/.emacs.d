@@ -129,6 +129,10 @@
   - [[#multi-term][Multi-Term]]
   - [[#xterm][xterm]]
   - [[#run-bash-on-windowspc][Run Bash On Windows/PC]]
+  - [[#eshell][Eshell]]
+    - [[#eshell-bookmark][Eshell Bookmark]]
+    - [[#eshell-z][Eshell Z]]
+    - [[#eshell-prompt-extras][Eshell Prompt Extras]]
   - [[#shell][Shell]]
   - [[#tramp][Tramp]]
     - [[#default-method][Default Method]]
@@ -739,6 +743,20 @@ function `copy-file-path-as-kill'."
   "Concatenate path segments."
   (let ((paths- (mapcar #'directory-file-name paths)))
     (mapconcat 'identity paths- "/")))
+#+END_SRC
+
+***** Resolve to User Home Directory
+
+#+NAME: user-home-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun user-home (&rest path-segments)
+  (let ((root-separator "/"))
+    (--> (getenv "HOME")
+         (f-split it)
+         (append it path-segments)
+         (cdr it)
+         (cons (concat root-separator (car it) )(cdr it))
+         (apply #'resolve-path it))))
 #+END_SRC
 
 ***** Resolve to Emacs Directory
@@ -2356,20 +2374,33 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+NAME: org-docmgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Begin Org Doc Manager Section
+
+;; Org Capture
 <<org-docmgr-capture>>
+;; Org Journal
 <<org-docmgr-journal>>
+;; Org ID
 <<org-docmgr-id>>
+;; Org Download
 <<org-docmgr-download>>
+;; Org Links
 <<org-docmgr-links>>
-<<org-docmgr-links>>
+;; Org Bookmark
+<<org-docmgr-bookmark>>
+
+;; End Org Doc Manager
 #+END_SRC
 
 **** Org Capture
 
 #+NAME: org-docmgr-capture
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; org capture templates
 <<org-capture-templates>>
+;; org capture html
 <<org-capture-html>>
+;; org capture contacts
 <<org-capture-contacts>>
 #+END_SRC
 
@@ -2640,6 +2671,16 @@ Embed YouTube Links in iframe.
   :config (org-link-minor-mode +1))
 #+END_SRC
 
+
+**** Org Bookmark
+:PROPERTIES:
+:ID:       B7904803-C4A6-439D-BD21-E449CF0B79F5
+:END:
+
+#+NAME: org-docmgr-bookmark
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-bookmark-heading)
+#+END_SRC
 
 *** Task Management
 
@@ -2987,10 +3028,10 @@ Export to datetree
             (goto-char (point-min))
             (command-execute 'outline-next-visible-heading)
             ;; disable (message) that org-set-tags generates
-            (flet ((message (&rest ignored) nil))
-              (org-set-tags 1 t))
+            (cl-flet ((message (&rest ignored) nil))
+            (org-set-tags 1 t))
             (set-buffer-modified-p b-m-p))
-        (error nil)))))
+            (error nil)))))
 
 (defun ba/org-adjust-tags-column-now ()
   "Right-adjust `org-tags-column' value, then reset tag position."
@@ -3675,7 +3716,6 @@ My custom mla-style LaTeX class.
       '(headline-numbering-filter
         section-title-filter))
 #+END_SRC
-
 
 *** Ox Bibtex
 
@@ -5406,9 +5446,9 @@ replacements. "
 friends.
 
 #+NAME: counsel-projectile-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package counsel-projectile
-  :after projectile
+  :after (:all projectile counsel)
   :demand t
   :init
   (counsel-projectile-mode t))
@@ -5520,7 +5560,7 @@ A smart M-x enhancement for Emacs.
     (add-to-hooks #'with-editor-export-editor
                   '(shell-mode-hook
                     term-exec-hook
-                    eshell-modehook))))
+                    eshell-mode-hook))))
 #+END_SRC
 
 ** Multi-Term
@@ -5566,6 +5606,64 @@ A smart M-x enhancement for Emacs.
     (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)))
 #+END_SRC
 
+** Eshell
+
+#+NAME: eshell-spec
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Begin Eshell 
+
+;; eshell bookmark
+<<esh-bookmark>>
+
+;; eshell z
+<<esh-z>>
+
+;; eshell prompt extras
+<<esh-prompt-extras>>
+
+;; End Eshell
+#+END_SRC
+
+*** Eshell Bookmark
+
+#+NAME: esh-bookmark
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package eshell-bookmark
+    :config (add-hook 'eshell-mode-hook 'eshell-bookmark-setup))
+#+END_SRC
+
+*** Eshell Z
+
+#+NAME: esh-z
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package eshell-z
+    :init
+    (defun eshell-z-hook ()
+      (require 'eshell-z))
+    (add-hoook 'eshell-mode-hook #'eshell-z-hook))
+
+#+END_SRC
+
+*** Eshell Prompt Extras
+
+#+NAME: esh-prompt-extras
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package eshell-prompt-extras
+    :after virtualenvwrapper
+    :demand t
+    :custom
+    (setq eshell-modify-global-environment t)
+    :config
+    (with-eval-after-load "esh-opt"
+      (when (require 'virtualenvwrapper)
+        (venv-initialize-interactive-shells)
+        (venv-initialize-eshell))
+      (setq eshell-highlight-prompt t
+            eshell-prompt-function #'epe-theme-lambda)))
+#+END_SRC
+
+
 ** Shell
 
 Zsh is whack when running the emacs =shell= function. This fixes that problem.
@@ -5600,6 +5698,7 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 (use-package anything-tramp
   :bind (("C-c s" . anything-tramp)))
 #+END_SRC
+
 
 * Web
 
@@ -7016,6 +7115,23 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 #+END_SRC
 
 **** Docker
+
+#+NAME: devops-docker
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<docker-cmds>>
+<<docker-dockerfile>>
+<<docker-docker-compose>>
+<<docker-docker-tramp>>
+#+END_SRC
+
+***** Docker commands
+
+#+NAME: docker-cmds
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package docker
+    :bind ("C-c d" . docker))
+#+END_SRC
+
 ***** Dockerfile mode
 
 #+NAME: devops-docker
@@ -7024,8 +7140,18 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
   :mode ( "Dockerfile\\'" .  dockerfile-mode))
 #+END_SRC
 
+***** Docker Compose
+
+#+NAME: docker-docker-compose
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package docker-compose-mode
+    :mode ("docker-compose.yml\\'" . docker-compose-mode))
+
+#+END_SRC
+
 ***** Docker Tramp
 
+#+NAME: docker-docker-tramp
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package docker-tramp
   :straight t)
@@ -7963,64 +8089,90 @@ Real jsx support.
 
 #+NAME: py-python
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Begin Python 
 (when (proglang-enabled-p 'python)
+
+  ;; Python Settings
   <<py-python-settings>>
+  ;; Pyenv Mode
   <<py-pyenv>>
+  ;; Pyenv Mode Auto
+  <<py-pyenv-auto>>
+  ;; Virtualenvwrapper
+  <<py-virtualenvwrapper>>
+  ;; Pyvenv
+  <<py-pyvenv>>
+  ;; Anaconda
   <<py-anaconda>>
+  ;; Pip Requirements
   <<py-pip-requirements>>
-  <<py-pydoc>>)
+  ;; Pydoc
+  <<py-pydoc>>) ;; End Python
+
 #+END_SRC
 
 **** Python Settings
 
-#+NAME: py-python-settings
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<py-python-settings-keymap>>
-<<python-settings-sh-interpreter>>
-<<python-settings-dash>>
+#+NAME: py-python
+#+BEGIN_SRC emacs-lisp
+(use-package python-mode
+  :init
+  (when (executable-find "ipython3")
+    (setenv "IPY_TEST_SIMPLE_PROMPT" "1")
+    (setq python-shell-interpreter "ipython3"
+          python-shell-interpreter-args "-i"))
+  :config
+  (defun python-dash-docsets ()
+    (setq-local dash-plugin-keywords
+                '("python" "django" "twisted" "sphinx"
+                  "flask" "tornado" "sqlalchemy" "numpy"
+                  "scipy" "salt" "pandas" "matplotlib"
+                  "cvp")))
+  (when *is-mac*
+    (add-hook #'python-dash-docsets)))
+
 #+END_SRC
 
-***** Python Prefix Command
 
-#+NAME: py-python-settings-keymap
+**** Elpy
+
+#+NAME: py-elpy
 #+BEGIN_SRC emacs-lisp :tangle no
-(define-prefix-command 'python-keymap)
-#+END_SRC
+(use-package elpy
+    :config
+  (elpy-rpc-backend "jedi"))
 
-***** Python Shell Interpreter
-
-#+NAME: python-settings-sh-interpreter
-#+BEGIN_SRC emacs-lisp :tangle no
-(when (executable-find "ipython3")
-  (setenv "IPY_TEST_SIMPLE_PROMPT" "1")
-  (setq python-shell-interpreter "ipython3"
-        python-shell-interpreter-args "-i"))
-#+END_SRC
-
-***** Add Dash Docsets
-
-#+NAME: python-settings-dash
-#+BEGIN_SRC emacs-lisp :tangle no
-(when *is-mac*
-  (add-hook 'python-mode-hook
-            (lambda ()
-              (setq-local dash-plugin-keywords
-                          '("python" "django" "twisted" "sphinx"
-                            "flask" "tornado" "sqlalchemy" "numpy"
-                            "scipy" "salt" "pandas" "matplotlib"
-                            "cvp")))))
 #+END_SRC
 
 **** Pyenv Mode
 
 #+NAME: py-pyenv
 #+BEGIN_SRC emacs-lisp :tangle no
-(when (executable-find "pyenv")
-  (use-package pyenv-mode
+(use-package pyenv-mode
+    :if (executable-find "pyenv")
     :init
+    (add-to-list 'exec-path (user-home ".pyenv" "shims"))
+    (setenv "WORKON_HOME" (file-name-as-directory (user-home ".pyenv" "versions")))
     (pyenv-mode)
-    :commands (pyenv-mode-set pyenv-mode-unset pyenv-mode-versions)
+    :bind
+    ("C-x p e" . pyenv-activate-current-project)
+    :commands
+
+    (pyenv-mode-set pyenv-mode-unset pyenv-mode-versions)
+
     :config
+
+    (defvar pyenv-current-version nil nil)
+
+    (defun pyenv-init()
+      "Initialize pyenv's current version to the global one."
+      (let ((global-pyenv (replace-regexp-in-string "\n" "" (shell-command-to-string "pyenv global"))))
+        (message (concat "Setting pyenv version to " global-pyenv))
+        (pyenv-mode-set global-pyenv)
+        (setq pyenv-current-version global-pyenv)))
+
+   (add-hook 'after-init-hook 'pyenv-init)
+
     (progn
       (with-eval-after-load 'projectile
         (defun projectile-pyenv-mode-set ()
@@ -8028,15 +8180,62 @@ Real jsx support.
           (let ((project (projectile-project-name)))
             (if (member project (pyenv-mode-versions))
                 (pyenv-mode-set project)
-              (pyenv-mode-unset)))))
+              (pyenv-mode-unset))))
 
-      (add-hook 'projectile-after-switch-project-hook
-                'projectile-pyenv-mode-set))))
+        (add-hook 'projectile-after-switch-project-hook
+                  'projectile-pyenv-mode-set))
+
+      ;; http://rakan.me/emacs/python-dev-with-emacs-and-pyenv/
+     (defun pyenv-activate-current-project ()
+       "Automatically activates pyenv version if .python-version file exists."
+       (interactive)
+       (let ((python-version-directory (locate-dominating-file (buffer-file-name) ".python-version")))
+         (if python-version-directory
+             (let* ((pyenv-version-path (f-expand ".python-version" python-version-directory))
+                    (pyenv-current-version (s-trim (f-read-text pyenv-version-path 'utf-8))))
+               (pyenv-mode-set pyenv-current-version)
+               (message (concat "Setting virtualenv to " pyenv-current-version))))))))
 #+END_SRC
+
+**** Pyenv Auto Set
+
+#+NAME: py-pyenv-auto
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pyenv-mode-auto)
+#+END_SRC
+
+**** Virtualenv Wrapper
+
+#+NAME: py-virtualenvwrapper
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package virtualenvwrapper
+    :init
+    (setq venv-dirlookup-names '(".pyenv" ".venv"))
+    (setq venv-location (getenv "WORKON_HOME"))
+    :config
+    (when (fboundp 'projectile-mode)
+      (setq projectile-switch-project-action
+            '(lambda ()
+              (venv-projectile-auto-workon)
+              (projectile-find-file)))))
+
+#+END_SRC
+
+**** Pyvenv
+
+#+NAME: py-pyvenv
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pyvenv
+    :requires virtualenvwrapper
+    :init
+  (pyvenv-mode))
+#+END_SRC
+
+
 
 **** Anaconda
 
-#+NAME: py-anaconda>>
+#+NAME: py-anaconda
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<python-anaconda-mode>>
 <<python-anaconda-company>>
@@ -8089,6 +8288,7 @@ Real jsx support.
     :config
     (setq ein:use-smartrep t))
 #+END_SRC
+
 
 *** Ruby
 
