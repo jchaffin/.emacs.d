@@ -134,6 +134,7 @@
     - [[#default-method][Default Method]]
     - [[#anything-tramp][Anything Tramp]]
 - [[#web][Web]]
+  - [[#web-servers-and-utilities][Web Servers and Utilities]]
   - [[#browsing][Browsing]]
     - [[#webkit-xwidget][Webkit xwidget]]
     - [[#browse-url][Browse url]]
@@ -211,6 +212,7 @@
     - [[#ruby][Ruby]]
     - [[#scala][Scala]]
     - [[#web-programming][Web Programming]]
+    - [[#markdown][Markdown]]
   - [[#lsp-mode][Lsp Mode]]
 - [[#footnotes][Footnotes]]
 
@@ -4930,10 +4932,10 @@ This disables Emacs asking questions about loading a new theme.
   :demand t
   :config
   (defun company-emoji-setup ()
-    (setq-local company-backend
+    (setq-local company-backends
                 (add-to-list 'company-backends 'company-emoji)))
-  (add-hook 'org-mode-hook 'company-emoji-setup)
-  (add-hook 'markdown-mode-hook 'company-emoji-setup))
+  (add-hook 'markdown-mode-hook #'company-emoji-setup))
+
 
 (use-package unicode-fonts
   :init
@@ -5602,10 +5604,29 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 * Web
 
 #+NAME: web-spec
-#+BEGIN_SRC emacs-lisp :tangle yes:noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 <<web-browser>>
 <<web-email>>
 <<web-cloud>>
+#+END_SRC
+
+** Web Servers and Utilities
+
+#+NAME: emacs-web-serve
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package simple-httpd
+    :straight (simple-httpd
+               :type git
+               :host github
+               :repo "skeeto/emacs-web-server"
+               :local-repo "simple-httpd"))
+
+(use-package websocket)
+
+(use-package uuidgen)
+
+(use-package web-server)
+
 #+END_SRC
 
 ** Browsing
@@ -5945,7 +5966,7 @@ Interactively.
 
 #+NAME: web-cloud
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
-<<cloud-onenote>
+<<cloud-onenote>>
 #+END_SRC
 
 *** Org OneNote
@@ -7395,24 +7416,24 @@ Two options:
 #+NAME: clojure-interactive-cider
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cider
-  :after (company)
-  :config
-  (progn
-    (setq cider-repl-history-file "~/.emacs.d/cider-history"
-          cider-repl-use-clojure-font-lock t
-          cider-repl-result-prefix ";; => "
-          cider-repl-wrap-history t
-          cider-repl-history-size 3000
-          cider-show-error-buffer nil
-          nrepl-hide-special-buffers t)
-    (add-hook 'cider-mode-hook #'eldoc-mode)
-    (add-hook 'cider-mode-hook #'company-mode)
-    (add-hook 'cider-repl-mode-hook #'company-mode)
-    (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
-    (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
-    (add-hook 'cider-repl-mode-hook #'subword-mode)
-    (add-to-hooks (lambda () (run-hooks 'prog-mode-hook))
-                  '(cider-mode-hook cider-repl-mode-hook))))
+    :init
+    (with-eval-after-load 'clojure-mode
+      (add-hook 'clojure-mode-hook 'cider-mode))
+    :config
+    (progn
+      (setq cider-repl-history-file "~/.emacs.d/cider-history"
+            cider-repl-use-clojure-font-lock t
+            cider-repl-result-prefix ";; => "
+            cider-repl-wrap-history t
+            cider-repl-history-size 3000
+            cider-show-error-buffer nil
+            nrepl-hide-special-buffers t)
+      (add-hook 'cider-mode-hook #'eldoc-mode)
+      (add-hook 'cider-mode-hook #'company-mode)
+      (add-hook 'cider-repl-mode-hook #'company-mode)
+      (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
+      (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
+      (add-hook 'cider-repl-mode-hook #'subword-mode)))
 #+END_SRC
 
 ***** Inf Clojure
@@ -7841,22 +7862,22 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 #+NAME: js-tide
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tide
-  :config
-  (progn
-    (defun setup-tide-mode ()
-      (interactive)
-      (tide-setup)
-      (when (fboundp 'flycheck-mode)
-        (flycheck-mode +1))
+    :config
+    (progn
+      (defun setup-tide-mode ()
+        (interactive)
+        (tide-setup)
+        (when (fboundp 'flycheck-mode)
+          (flycheck-mode +1))
+        
+        (setq flycheck-check-syntax-automatically '(save mode-enabled))
+        (eldoc-mode +1)
+        (tide-hl-identifier-mode +1))
 
-      (setq flycheck-check-syntax-automatically '(save mode-enabled))
-      (eldoc-mode +1)
-      (tide-hl-identifier-mode +1))
-
-    ;; Formats buffer before saving
-    (add-hook 'before-save-hook #'tide-format-before-save)
-
-    (add-hook 'typescript-mode-hook #'setup-tide-mode)))
+      ;; Formats buffer before saving
+      (add-hook 'before-save-hook #'tide-format-before-save)
+      
+      (add-hook 'typescript-mode-hook #'setup-tide-mode)))
 #+END_SRC
 
 **** rjsx-mode
@@ -8348,6 +8369,90 @@ and slim-mode using company.
               (if tern-mode (tern-mode -1))))))))
 #+END_SRC
 
+*** Markdown
+
+#+NAME: markdown-config
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+(when (proglang-enabled-p 'markdown)
+  <<markdown-mode-config>>
+  <<markdown-mode-plus-config>>
+  <<markdown-toc-config>>
+  <<markdownfmt-config>>
+  <<md-livedown>>
+)
+#+END_SRC
+
+**** Markdown Mode
+
+- See https://jblevins.org/projects/markdown-mode/
+
+#+NAME markdown-mode-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdown-mode
+  :straight t
+  :defines (markdown-command markdown-mode-hook)
+  :mode
+  (("README\\.md\\'" . gfm-mode)
+	 ("\\.md\\'" . markdown-mode)
+	 ("\\.markdown\\'" . markdown-mode))
+  :init
+  (progn
+    (setq markdown-command "multimarkdown")
+    (add-hook 'markdown-mode-hook)
+    (if (fboundp 'macos-open-with-default-app)
+        (setq markdown-open-command macos-open-with-default-app)
+      (setq browse-url-browser-function #'xwidget-webkit-open-file))
+)
+  :config
+  (progn
+    (add-to-hooks (lambda ()
+                    (visual-line-mode t)
+                    (auto-fill-mode t))
+                  '(markdown-mode-hook gfm-mode-hook))))
+#+END_SRC
+
+**** markdown-mode+
+
+#+NAME: markdown-mode-plus-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdown-mode+
+  :straight t)
+#+END_SRC
+
+**** markdown-toc
+
+#+NAME: markdown-toc-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdown-toc
+  :straight t
+  :defer t)
+#+END_SRC
+
+**** markdownfmt
+
+#+NAME: markdownfmt-config
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package markdownfmt
+  :straight t
+  :defer t
+  :commands (markdown-format-buffer markdownfmt-enable-on-save)
+  :bind (:map markdown-mode-map
+	      ("C-c C-f" . markdown-format-buffer))
+  :config
+  (add-hook 'markdown-mode-hook #'markdownfmt-enable-on-save))
+#+END_SRC
+
+**** Livedown
+
+#+NAME: md-livedown
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package livedown
+    :straight (livedown
+               :type git
+               :host github
+               :repo "shime/emacs-livedown"))
+#+END_SRC
+
 ** Lsp Mode
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -8355,9 +8460,6 @@ and slim-mode using company.
 (use-package lsp-mode
     :config
     (setq lsp-message-project-root-warning t)
-)
-
-(use-package ivy-xref
 )
 
 (use-package lsp-ui
@@ -8432,6 +8534,15 @@ and slim-mode using company.
         (flycheck-mode +1)))
     (add-hook 'python-mode-hook 'python//enable-flycheck))
 
+
+(use-package lsp-javascript-typescript
+    :if (executable-find "javascript-typescript-langserver")
+    :commands lsp-javascript-typescript-enable
+    :init
+    (add-hook 'js-mode-hook #'lsp-javascript-typescript-enable)
+    (add-hook 'js2-mode-hook #'lsp-javascript-typescript-enable)
+    (add-hook 'typescript-mode-hook #'lsp-javascript-typescript-enable)
+    (add-hook 'rjsx-mode #'lsp-javascript-typescript-enable))
 
 
 #+END_SRC
