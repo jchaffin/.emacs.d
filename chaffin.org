@@ -110,7 +110,7 @@
     - [[#icons][Icons]]
     - [[#scrolling][Scrolling]]
     - [[#redisplay][Redisplay]]
-    - [[#emojis][Emojis]]
+    -  [[#unicode-and-emojis][Unicode and Emojis]]
   - [[#multimedia][Multimedia]]
     - [[#emms][emms]]
     - [[#soundcloud][soundcloud]]
@@ -162,36 +162,36 @@
     - [[#proselint][Proselint]]
   - [[#text-completion][Text Completion]]
     - [[#company-dict][Company Dict]]
-    - [[#dictionaryela][Dictionary.ela]]
+    - [[#dictionaryel][Dictionary.el]]
   - [[#taking-notes][Taking Notes]]
     - [[#deft][Deft]]
     - [[#org-velocity][Org Velocity]]
     - [[#generating-dummy-text][Generating Dummy Text]]
   - [[#writing-mode][Writing mode]]
-    - [[#variable-pitch][Variable Pitch]]
     - [[#centered-cursor-mode][Centered Cursor Mode]]
+    - [[#variable-pitch][Variable Pitch]]
     - [[#olivetti][Olivetti]]
     - [[#writeroom][Writeroom]]
-  - [[#reading-and-viewing-prose][Reading and viewing prose]]
+  - [[#reading-and-viewing][Reading and viewing]]
     - [[#justify-kp][Justify Kp]]
     - [[#nov][Nov]]
-    - [[#adaptive-wrap][Adaptive Wrap]]
     - [[#visual-fill-column][Visual Fill Column]]
     - [[#fill-column-indicator][Fill Column Indicator]]
+    - [[#adaptive-wrap][Adaptive Wrap]]
   - [[#graphics][Graphics]]
     - [[#artist-mode][Artist Mode]]
     - [[#uml-diagrams][UML Diagrams]]
-    - [[#graphs][Graphs]]
+    - [[#graphviz][Graphviz]]
     - [[#thesaurus][Thesaurus]]
 - [[#code][Code]]
   - [[#error-checking][Error checking]]
     - [[#flycheck][Flycheck]]
-    - [[#flycheck-color-mode-line][Flycheck Color Mode Line]]
   - [[#code-style][Code Style]]
-    - [[#indentation][Indentation]]
+    - [[#default-editor-view][Default Editor View]]
     - [[#symbol-highlighting][Symbol Highlighting]]
     - [[#code-folding][Code Folding]]
     - [[#editorconfig][Editorconfig]]
+    - [[#google-c-style][Google C Style]]
   - [[#code-completion][Code Completion]]
     - [[#pair-matching][Pair Matching]]
     - [[#gtags][Gtags]]
@@ -207,7 +207,7 @@
     - [[#asm][ASM]]
     - [[#cc][C/C++]]
     - [[#common-lisp][Common Lisp]]
-    - [[#clojurescript][Clojure(Script)]]
+    - [[#clojure][Clojure]]
     - [[#emacs-lisp][Emacs Lisp]]
     - [[#groovy][Groovy]]
     - [[#java][Java]]
@@ -4950,62 +4950,78 @@ This disables Emacs asking questions about loading a new theme.
 (setq redisplay-dont-pause t)
 #+END_SRC
 
-*** Emojis
+***  Unicode and Emojis
 
-#+NAME: emojify-mode-config
+**** Unicode Fonts
+
+#+NAME: emoji-unicode-fonts
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package unicode-fonts
+  :init
+  (unicode-fonts-setup))
+#+END_SRC
+
+**** Unicode Emoticons
+
+#+NAME: emoji-unicode-emoticons
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package unicode-emoticons)
+#+END_SRC
+
+**** Emojify Mode
+
+#+NAME: emoji-emojify-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package emojify
-  :after (:all magit org-mode markdown-mode)
   :init
-  (progn
-      (add-hook 'org-mode-hook 'emojify-mode)
-      (add-hook 'markdown-mode-hook 'emojify-mode)
-      (add-hook 'magit-status-mode-hook 'emojify-mode)))
+  (add-to-hooks #'emojify-mode
+                '(org-mode-hook
+                  markdown-mode-hook
+                  magit-status-mode-hook)))
 #+END_SRC
 
 **** Company Emoji
 
-
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: emoji-company
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-emoji
-  :after (company)
+  :after (:all company emojify-mode)
   :demand t
+  :init
+    ;; https://github.com/dunn/company-emoji#emoji-font-support
+  (defun --set-emoji-font (frame)
+    "Adjust the font settings of FRAME so Emacs can display emoji properly."
+    (if (eq system-type 'darwin)
+        ;; For NS/Cocoa
+        (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") frame 'prepend)
+      ;; For Linux
+      (set-fontset-font t 'symbol (font-spec :family "Symbola") frame 'prepend)))
+
+  (--set-emoji-font nil)
+
+  ;; Hook for when a frame is created with emacsclient
+  (add-hook 'after-make-frame-functions '--set-emoji-font)
+
   :config
   (defun company-emoji-setup ()
-    (setq-local company-backends
-                (add-to-list 'company-backends 'company-emoji)))
-  (add-hook 'markdown-mode-hook #'company-emoji-setup))
+    (let ((backends (cons 'company-emoji company-backends)))
+      (set (make-local-variable 'company-backends) backends)))
 
-
-(use-package unicode-fonts
-  :init
-  (unicode-fonts-setup))
-
-
-(use-package unicode-emoticons
-  :straight t)
-
-
-;; https://github.com/dunn/company-emoji#emoji-font-support
-(defun --set-emoji-font (frame)
-  "Adjust the font settings of FRAME so Emacs can display emoji properly."
-  (if (eq system-type 'darwin)
-      ;; For NS/Cocoa
-      (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") frame 'prepend)
-    ;; For Linux
-    (set-fontset-font t 'symbol (font-spec :family "Symbola") frame 'prepend)))
-
-(--set-emoji-font nil)
-
-;; Hook for when a frame is created with emacsclient
-(add-hook 'after-make-frame-functions '--set-emoji-font)
+  (add-hook 'emojify-mode-hook #'company-emoji-setup))
 
 #+END_SRC
 
 ** Multimedia
+
+#+NAME: media-spec
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+<<media-emms>>
+<<media-soundcloud>>
+#+END_SRC
+
 *** emms
 
-#+NAME: emms-config
+#+NAME: media-emms
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package emms
   :if *is-mac*
@@ -5027,6 +5043,7 @@ This disables Emacs asking questions about loading a new theme.
 
 *** soundcloud
 
+#+NAME: media-soundcloud
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package soundcloud
   :straight t)
@@ -5641,7 +5658,7 @@ A smart M-x enhancement for Emacs.
     :init
     (defun eshell-z-hook ()
       (require 'eshell-z))
-    (add-hoook 'eshell-mode-hook #'eshell-z-hook))
+    (add-hook 'eshell-mode-hook #'eshell-z-hook))
 
 #+END_SRC
 
@@ -5698,7 +5715,6 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 (use-package anything-tramp
   :bind (("C-c s" . anything-tramp)))
 #+END_SRC
-
 
 * Web
 
@@ -5757,31 +5773,27 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 
 #+NAME: xwidget-ns
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package xwidget
-  :if (> emacs-major-version 26)
-  :init
-  (progn
-    (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
-    (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
-    (require 'bookmark)
-    (add-hook 'pre-command-hook
-              (lambda ()
+(when (require 'xwidget)
+  (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
+  (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
+
+  (require 'bookmark)
+
+  (add-hook 'pre-command-hook
+            (lambda ()
                 (if (eq this-command #'bookmark-bmenu-list)
                     (if-not (eq major-mode 'xwidget-webkit-mode)
                         (setq xwidget-webkit-bookmark-jump-new-session t)
                       (setq xwidget-webkit-bookmark-jump-new-session nil)
-                      (setq xwidget-webkit-last-session-buffer (current-buffer)))))))
-  :bind ((:map xwidget-webkit-mode-map
-               ("w" . xwidget-current-url-message-kill)))
-  :config
-  (progn
-    (defun xwidget-webkit-open-file (&optional file)
-      "Render FILE using xwidget-webkit"
-      (interactive "fFile: ")
-      (xwidget-webkit-browse-url
-       (concat "file://"
-               (and (memq system-type '(windows-nt ms-dos)) "/")
-               (expand-file-name (or file (buffer-file-name))))))))
+                      (setq xwidget-webkit-last-session-buffer (current-buffer))))))
+
+  (defun xwidget-webkit-open-file (&optional file)
+    "Render FILE using xwidget-webkit"
+    (interactive "fFile: ")
+    (xwidget-webkit-browse-url
+     (concat "file://"
+             (and (memq system-type '(windows-nt ms-dos)) "/")
+             (expand-file-name (or file (buffer-file-name)))))))
 #+END_SRC
 
 **** xwidgete
@@ -6080,13 +6092,22 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 * Prose
 
-#+NAME: prose-config
+#+NAME: prose-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Begin Prose
+
+;; Prose Keymap
 <<prose-define-keymap>>
+;; Spellcheck
 <<prose-spellcheck>>
+;; Completion
 <<prose-completion>>
+;; Notes
 <<prose-notes>>
+;; Readview
 <<prose-readview>>
+
+;; End Prose
 #+END_SRC
 
 ** Prose Keymap
@@ -6214,7 +6235,7 @@ checking for natural language.
         company-dict-enable-yasnippet t))
 #+END_SRC
 
-*** Dictionary.ela
+*** Dictionary.el
 :PROPERTIES:
 :ID:       98EF59F6-66E8-47B3-A437-B1D53A74832A
 :CUSTOM_ID: dictionary-el
@@ -6287,17 +6308,28 @@ whistles, it makes up for in compatibility and hackability [fn:16].
 
 #+NAME:  prose-writing
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+;; Centered Cursor
+<<writing-centered-cursor>>
+;; Olivetti Mode
 <<writing-olivetti>>
-<<writing-writerrom>>
+;; Writeroom Mode
+<<writing-writeroom>>
+;: Org Variable Pitch Face Font
 <<writing-variable-pitch>>
 #+END_SRC
 
+*** Centered Cursor Mode
+
+#+NAME: writing-centered-cursor
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package centered-cursor-mode)
+#+END_SRC
 
 *** Variable Pitch
 
 #+NAME: writing-variable-pitch
 #+BEGIN_SRC emacs-lisp :tangle no
-(defvar org-fixed-pitch-faces
+(defcustom halidom-org-fixed-pitch-faces
   '(org-table
     org-code
     org-special-keyword
@@ -6308,7 +6340,8 @@ whistles, it makes up for in compatibility and hackability [fn:16].
     org-block-end-line
     org-done
     org-document-info-keyword)
-  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’.")
+  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
+  :type '(list symbol))
 
 (defvar org-fixed-pitch-font
   (face-attribute 'fixed-pitch :family))
@@ -6317,11 +6350,13 @@ whistles, it makes up for in compatibility and hackability [fn:16].
   (face-attribute 'variable-pitch :family))
 
 (setq org-fixed-pitch-font "Monospace")
-(setq org-variable-pitch-font "Bookmania")
+
+(if *is-mac*
+  (setq org-variable-pitch-font "Bookmania"))
 
 (defun toggle-variable-pitch-font ()
   (interactive)
-  (let ((spec '(default variable-pitch :family "Bookmania")))
+  (let ((spec `(default variable-pitch :family ,org-variable-pitch-font)))
     (set (make-local-variable 'face-remapping-alist)
          (if (member spec face-remapping-alist)
              (delete spec face-remapping-alist)
@@ -6335,7 +6370,7 @@ This works by frobbing `face-remapping-alist'."
       (progn
         (face-remap-add-relative 'variable-pitch :family org-variable-pitch-font)
         (face-remap-add-relative 'default 'variable-pitch)
-        (->> org-fixed-pitch-faces
+        (->> halidom-org-fixed-pitch-faces
             (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
             (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
     (setq face-remapping-alist nil)))
@@ -6346,27 +6381,19 @@ This works by frobbing `face-remapping-alist'."
 ;;   (add-hook 'org-mode-hook #'org-toggle-variable-pitch))
 #+END_SRC
 
-*** Centered Cursor Mode
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package centered-cursor-mode
-  :straight t)
-#+END_SRC
-
 *** Olivetti
 
 #+NAME:  writing-olivetti
 #+BEGIN_SRC emacs-lisp :tangle no
 
 (use-package olivetti
-  :after centered-cursor-mode
-  :demand t
   :config
-  (progn
-    (add-hook 'olivetti-mode-hook (lambda ()
-                                    (auto-fill-mode -1)))
+  (defun halidom/olivetti-mode-setup ()
+    (auto-fill-mode -1)
+    (when (fboundp 'centered-cursor-mode)
+      (centered-cursor-mode)))
 
-    (add-hook 'olivetti-mode-hook 'centered-cursor-mode)))
+  (add-hook 'olivetti-mode-hook #'halidom/olvetti-mode-setup))
 
 #+END_SRC
 
@@ -6376,19 +6403,25 @@ This works by frobbing `face-remapping-alist'."
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package writeroom-mode
   :config
-  (progn
-    (add-hook 'writeroom-mode-hook 'org-toggle-variable-pitch)
-    (add-hook 'writeroom-mode-hook (lambda () (auto-fill-mode -1)))))
+  (defun halidom/writeroom-mode-hook ()
+    (org-toggle-variable-pitch)
+    (auto-fill-mode -1))
+  (add-hook 'writeroom-mode #'halidom/writeroom-mode-hook))
 #+END_SRC
 
-** Reading and viewing prose
+** Reading and viewing
 
 #+NAME: prose-readview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<readview-epub>>
-<<readview-fc>>
+;; Justify Kp
 <<readview-justify>>
+;; Nov
+<<readview-epub>>
+;; Visual Fill Column
+<<readview-fc>>
+;; Fill Column Indicator
 <<readview-fc-indicator>>
+;; Adaptive Wrap
 <<readview-adaptive-wrap>>
 #+END_SRC
 
@@ -6451,14 +6484,6 @@ This works by frobbing `face-remapping-alist'."
     (add-hook 'nov-post-html-render-hook 'my-nov-post-html-render-hook)))
 #+END_SRC
 
-*** Adaptive Wrap
-
-#+NAME: readview-adaptive-wrap
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package adaptive-wrap
-  :straight t)
-#+END_SRC
-
 *** Visual Fill Column
 
 #+NAME: readview-fc
@@ -6493,12 +6518,19 @@ This works by frobbing `face-remapping-alist'."
   (setq fci-rule-use-dashes nil))
 #+END_SRC
 
+*** Adaptive Wrap
+
+#+NAME: readview-adaptive-wrap
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package adaptive-wrap
+  :straight t)
+#+END_SRC
+
 ** Graphics
 *** Artist Mode
 
 Artist mode is a built-in Emacs package.
 
-#+NAME: artist-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package artist-mode
   :bind ((:map artist-mode-map
@@ -6506,24 +6538,32 @@ Artist mode is a built-in Emacs package.
 #+END_SRC
 
 *** UML Diagrams
+
+#+NAME: uml-spec
+#+BEGIN_SRC emacs-lisp :tangle no
+<<uml-plantuml>>
+#+END_SRC
+
 **** Ditaa
 
-#+NAME: ditaa-config
+#+NAME: uml-ditaa
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (when (and *is-mac*
            (executable-find "brew")
            (executable-find "ditaa"))
-  (let ((ditaa-path  (replace-regexp-in-string
-                      "\n"  ""
-                      (shell-command-to-string
-                       "realpath $(brew --prefix ditaa)/libexec/*.jar"))))
+  (let ((ditaa-path (replace-regexp-in-string
+                     "\n"  ""
+                     (shell-command-to-string
+                      "realpath $(brew --prefix ditaa)/libexec/*.jar"))))
     (setq org-ditaa-jar-path ditaa-path)))
 
 #+END_SRC
 
 **** PlantUML
-#+NAME: plantuml-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+
+#+NAME: uml-plantuml
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package plantuml-mode
   :if (executable-find "plantuml")
   :defines (org-plantuml-jar-path plantuml-jar-path)
@@ -6539,31 +6579,35 @@ Artist mode is a built-in Emacs package.
         (setq plantuml-jar-path (chaffin/plantuml-resolve-jar-path)))))
 #+END_SRC
 
-*** Graphs
-**** Graphviz
+
+*** Graphviz
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package graphviz-dot-mode
   :if (executable-find "dot")
-  :mode (("\\.dot\\'" . graphviz-dot-mode))
-  :defines (graphiz-dot-program-set)
+  :mode "\\.dot\\'"
+  :defines graphiz-dot-program-set
   :bind ((:map graphviz-dot-mode-map
                ("M-s g" . graphviz-dot-program-set)))
   :config
-  (progn
-    (defun graphviz-dot-program-set (&optional program)
-      (interactive)
-      (let ((dot-program (or program (completing-read "Process: " graphviz-dot-layout-programs))))
-        (setq graphviz-dot-dot-program dot-program)))))
+  (defun graphviz-dot-program-set (&optional program)
+    "Set the process for `graphviz-dot-dot-program' interactively."
+    (interactive)
+    (let ((dot-program (or program (completing-read "Process: " graphviz-dot-layout-programs))))
+      (setq graphviz-dot-dot-program dot-program)))
 
-(with-eval-after-load 'graphviz-dot-mode
-  ;; https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/graphviz/packages.el
-  (define-key graphviz-dot-mode-map "{" nil)
-  (define-key graphviz-dot-mode-map "}" nil)
-  (add-to-list 'org-babel-load-languages '(dot . t))
-  (setq org-src-lang-modes
-        (append '(("dot" . graphviz-dot))
-                 (delete '("dot" . fundamental) org-src-lang-modes))))
+  (defun halidom/graphviz-dot-mode-setup ()
+    "Setup graphviz dot mode."
+    (define-key graphviz-dot-mode-map "{" nil) 
+    (define-key graphviz-dot-mode-map "}" nil)
+    (add-to-list 'org-babel-load-languages '(dot . t))
+    (setq org-src-lang-modes
+          (append '(("dot" . graphviz-dot))
+                  (delete '("dot" . fundamental) org-src-lang-modes))))
+  
+  (with-eval-after-load 'graphviz-dot-mode
+    (halidom/graphviz-dot-mode-setup)))
+ 
 #+END_SRC
 
 *** Thesaurus
@@ -6587,16 +6631,8 @@ school's WLAN.
 *** Flycheck
 
 #+NAME: flycheck-spec
-#+BEGIN_SRC :tangle yes :noweb yes :exports none
-<<flycheck-base>>
-#+END_SRC
-
-[[https://github.com/Flycheck/Flycheck][On the fly]] syntax highlighting.
-
-#+NAME: flycheck-base
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package flycheck
-    :commands (halidom/enable-flycheck)
     :init
     (defun halidom/enable-flycheck (mode)
       "Use flycheck in MODE."
@@ -6624,26 +6660,15 @@ If the error list is visible hide the window. Else display the buffer."
 )
 #+END_SRC
 
-*** Flycheck Color Mode Line
-
-Colors the modeline according to current Flycheck state of buffer.
-
-#+NAME: flycheck-color-modeline-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-color-mode-line
-  :init
-  (add-hook 'flycheck-mode 'flycheck-color-mode-line-mode))
-     #+END_SRC
-
 ** Code Style
-*** Indentation
-
-Tabs are the bane of humanity[fn:17]. [[http://www.urbandictionary.com/define.php?term=dont%20%40%20me][Don't @ me]].
+*** Default Editor View
 
 #+BEGIN_SRC emacs-lisp :tangle yes
+;; Disable tabs
 (setq-default tab-width 2
               indent-tabs-mode nil)
 
+; Line Numbering
 (when (>= emacs-major-version 26)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode))
 
@@ -6653,9 +6678,13 @@ Tabs are the bane of humanity[fn:17]. [[http://www.urbandictionary.com/define.ph
 
 #+NAME: symbol-hl
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Highlight Sexp
 <<hl-hl-sexp>>
+;; Highlight Todos
 <<hl-hl-todo>>
+;; Highlight Symbol
 <<hl-highlight-symbol>>
+;; Prettify Symbols
 <<hl-prettify-symbol>>
 #+END_SRC
 
@@ -6705,17 +6734,36 @@ the absence of a window system. I'll check for the latter for now.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package origami
-  :after (:all dash s)
+  :requires (dash s)
   :init
-  (progn
-    (global-origami-mode nil)))
+  (global-origami-mode nil))
 #+END_SRC
 
 *** Editorconfig
 
 #+BEGIN_SRC emacs-lisp :tangle yes
+;; Editorconfig
 (use-package editorconfig
-  :straight t)
+  :if (executable-find "editorconfig")
+  :init (editorconfig-mode 1))
+#+END_SRC
+
+*** Google C Style
+
+#+NAME: google-c-styleguide
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package google-c-style
+  :straight
+  (google-c-style
+   :host github
+   :repo "google/styleguide"
+   :branch "gh-pages")
+  :config
+  (defun halidom/google-c-style ()
+    (google-set-c-style)
+    (google-make-newline-indent))
+
+  (add-hook 'prog-mode-hook #'halidom/google-c-style))
 #+END_SRC
 
 ** Code Completion
@@ -6829,43 +6877,48 @@ Disabling for now.
 :ID:       0E4B8051-2EB4-454F-BBB0-BD57A5AEAFA6
 :END:
 
-#+NAME: ggtags
+#+NAME: ggtags-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
-(if (getenv "GTAGSLABEL")
 (use-package ggtags
-  :straight t))
+  :if (and (getenv "GTAGSLABEL") (executable-find "global")))
 #+END_SRC
 
 ** Version Control
 
-#+NAME: vc-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<vcs-svn-alist>>
-
-(when (and (member 'hg chaffin-vcs-svn-alist)
-           (executable-find "hg"))
-  <<vcs-hg>>)
-
-(when (and (member 'git chaffin-vcs-svn-alist)
-           (executable-find "git"))
-  <<vcs-git>>)
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defcustom halidom-vcs-svn-list '(git)
+  "List of VCS-SVNs for which libraries and tooling should be installed.
+  Options are `git' and/or `hg' (mercurial) as symbols in a list, else nil."
+  :type '(list symbol))
 #+END_SRC
 
-#+NAME: vcs-svn-alist
-#+BEGIN_SRC emacs-lisp :tangle no
-(defvar chaffin-vcs-svn-alist '(git)
-  "List of VCS-SVNs for which libraries and tooling should be installed.
-   Currently supports only `git' and `hg' as alist alues.")
+#+NAME: vcs-spec
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Hg (Mercurial)
+(when (and (member 'hg halidom-vcs-svn-list)
+           (executable-find "hg"))
+  <<vcs-hg>>
+)
+;; Git
+(when (and (member 'git halidom-vcs-svn-list)
+           (executable-find "git"))
+  <<vcs-git>>
+)
 #+END_SRC
 
 *** Git
 
 #+NAME: vcs-git
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Magit
 <<git-magit>>
+;; Gist
 <<git-gist>>
+;; Git Timemachine
 <<git-git-timemachine>>
+;; Git Messenger
 <<git-git-messenger>>
+;; Git Modes
 <<git-git-modes>>
 #+END_SRC
 
@@ -6877,12 +6930,18 @@ Disabling for now.
 
 #+NAME: git-magit
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Magit Kill Buffers
 <<magit-kill-buffers>>
-<<magit-config>>
+;; Magit mode
+<<magit-magit-mode>>
+;; Magithub
 <<magit-magithub>>
+;; Orgit
 <<magit-orgit>>
+;; Topgit
 <<magit-topgit-config>>
-<<magit-stgit-config>>
+;; Stgit
+<<magit-stgit-config>> 
 #+END_SRC
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
@@ -6897,7 +6956,7 @@ Magit would not be very good at that.
 As a git client though, magit is awesome.
 
 
-#+NAME: magit-config
+#+NAME: magit-magit-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit
   :defines (magit-mode-hook)
@@ -6952,7 +7011,7 @@ git config --global --add magit.extension stgit
   :after (magit))
 #+END_SRC
 
-***** Killing Magit Buffers
+***** Kill some magit buffers
 
 #+NAME: magit-kill-buffers
 #+BEGIN_SRC emacs-lisp :tangle yes :exports none :noweb yes
@@ -7079,27 +7138,29 @@ Pop-up feature for viewing the last git commit.
 
 #+NAME: vcs-hg
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; hg-monky
 <<hg-monky>>
+;; hg-ahg
 <<hg-ahg>>
 #+END_SRC
 
 **** Monky
+
 Monky provides an interactive interface for mercurial. It's
 essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 #+NAME: hg-monky
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package monky
-  :config
-  (setq monky-process-type 'cmdserver))
+  :custom
+  (monky-process-type 'cmdserver))
 #+END_SRC
 
 **** ahg
 
 #+NAME: hg-ahg
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ahg
-  :straight t)
+(use-package ahg)
 #+END_SRC
 
 ** Prog Tools
@@ -7109,7 +7170,6 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Docker
 <<devops-docker>>
-
 ;; AWS
 <<devops-aws>>
 #+END_SRC
@@ -7118,9 +7178,13 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 #+NAME: devops-docker
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+;; Docker
 <<docker-cmds>>
+;; Dockerfile Mode
 <<docker-dockerfile>>
+;; Docker Compose Mode
 <<docker-docker-compose>>
+;; Docker Tramp
 <<docker-docker-tramp>>
 #+END_SRC
 
@@ -7183,12 +7247,13 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
     (add-hook 'prog-mode-hook 'wakatime-mode)
     :config
     (progn
-      (setq wakatime-cli-path
-            (expand-file-name
-            "~/.local/lib/python3.6/site-packages/wakatime/cli.py")
-            wakatime-python-bin
-            (expand-file-name "~/.pyenv/shims/python"))
-       ;; from spacemacs wakatime layer
+      (if *is-mac*
+          (setq wakatime-cli-path
+                (f-expand "~/.local/lib/python3.6/site-packages/wakatime/cli.py")
+                wakatime-python-bin
+                (f-expand "~/.pyenv/shims/python")))
+
+      ;; from spacemacs wakatime layer
       (defun wakatime-dashboard ()
         (interactive)
         (browse-url "https://wakatime.com/dashboard"))))
@@ -7211,23 +7276,29 @@ Opt-in to programming languages. A very simplified version of
 Spacemacs =dotspacemacs-configuration-layers=.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defvar proglang-enabled-list '()
+
+(defcustom halidom-proglang-enabled-list nil
   "List of languages for which straight should install respective tooling,
-   syntax-highlighting, and peripherals.")
+   syntax-highlighting, and peripherals."
+  :type '(list symbol))
 
 
-(defun proglang-enabled-p (lang)
-  (member lang proglang-enabled-list))
+(defun halidom/proglang-enabled-p (lang)
+  "Returns non-nil if LANG is an enabled language spec."
+  (member lang halidom-proglang-enabled-list))
 
-(defun add-to-list-proglang-enabled (&rest langs)
+(defun halidom/enable-langs (&rest langs)
+  "Enable LANGS."
   (mapcar (lambda (lang)
-            (setq proglang-enabled-list (cons lang proglang-enabled-list)))
+            (setq halidom-proglang-enabled-list
+                  (cons lang halidom-proglang-enabled-list)))
           langs))
 
 (when *is-mac*
-  (add-to-list-proglang-enabled 'asm 'common-lisp 'clojure 'groovy 'java
-                                'javascript 'markdown 'scala 'python 'ruby
-                                'web))
+  (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy 
+                        'java 'javascript 'markdown 'scala 'python 
+                        'ruby 'web))
+
 #+END_SRC
 
 ** Programming Languages
@@ -7237,33 +7308,39 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+NAME: asm-config
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'asm)
+;; Begin ASM
+(when (halidom/proglang-enabled-p 'asm)
+  ;; ASM Hooks
   <<asm-asm-hooks>>
+  ;; ASM Mode
   <<asm-asm-mode>>
-  <<asm-asm-init-x86-lookup>>)
+  ;; NASM Mode
+  <<asm-nasm-mode>>
+  ;; ASM x86 Lookup
+  <<asm-asm-init-x86-lookup>>) ;; End ASM
 #+END_SRC
 
 **** ASM Hook Functions
 
 #+NAME: asm-asm-hooks
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin-asm-setup ()
+(defun halidom/asm-setup ()
   (setq tab-stopp-list (number-sequence 2 60 2)))
 
 (defvar asm-colon-has-space nil)
 
-(defun chaffin-asm-colon-check-space ()
+(defun halidom/asm-colon-check-space ()
   (setq asm-colon-has-space nil)
   (when (and (not (null (char-after)))
              (member (string (char-after)) '(" " "\t")))
     (setq asm-colon-has-space t)))
 
-(defun chaffin-asm-colon-delete-space ()
+(defun halidom/asm-colon-delete-space ()
   (unless asm-colon-has-space
     (call-interactively 'delete-horizontal-space)))
 
-(advice-add 'asm-colon :before 'chaffin-asm-colon-check-space)
-(advice-add 'asm-colon :after  'chaffin-asm-colon-delete-space)
+(advice-add 'asm-colon :before 'halidom/asm-colon-check-space)
+(advice-add 'asm-colon :after  'halidom/asm-colon-delete-space)
 #+END_SRC
 
 **** ASM Mode
@@ -7285,15 +7362,13 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+NAME: asm-nasm-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package nasm-mode
+  :init
+  (add-hook 'nasm-mode-hook #'halidom/asm-setup)
   :mode
   (("\\.[n]*\\(asm\\|s\\)\\'" . nasm-mode))
-  :init
-  (progn
-    (add-hook 'nasm-mode-hook #'chaffin-asm-setup))
-  :config
-  (progn
-    (define-key nasm-mode-map (kbd "C-j") 'newline)
-    (define-key nasm-mode-map (kbd ":") 'asm-colon)))
+  :bind ((:map nasm-mode-map
+               ("C-j" . newline)
+               (":" . asm-colon))))
 
 #+END_SRC
 
@@ -7316,8 +7391,9 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+NAME: c-cxx-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'c-c++)
-  <<c-cxx-cmake>>)
+(when (halidom/proglang-enabled-p 'c-c++)
+  <<c-cxx-cmake>>
+  <<c-cxx-make>>)
 #+END_SRC
 
 **** Cmake Mode
@@ -7363,35 +7439,43 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 *** Common Lisp
 
-#+NAME: common-lisp
+#+NAME: cl-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'common-lisp)
-  <<common-lisp-hooks>>
-  <<common-lisp-slime>>
-)
+;; Begin CLisp
+(when (halidom/proglang-enabled-p 'common-lisp)
+  ;; CL Hooks
+  <<cl-hooks>>
+  ;; Slime
+  <<cl-slime>>
+) ;; End CLisp
 #+END_SRC
 
-Configuration for common-lisp
+Configuration for common-lisp.
 
-#+NAME: common-lisp-hooks
+#+NAME: cl-hooks
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
-(with-eval-after-load 'paredit
-  (add-hook 'lisp-mode-hook #'paredit-mode)
-  (add-hook 'lisp-mode-hook #'highlight-symbol-mode)
-  (when *is-mac*
-    (add-hook 'lisp-mode-hook
-              (setq-local dash-plugin-keywords '("lisp")))))
+(defun common-lisp-style ()
+  "Styleguide for common lisp."
+  (if (fboundp 'paredit-mode)
+      (paredit-mode +1))
+  (if (fboundp 'highlight-symbol-mode)
+      (highlight-symbol-mode +1))
+  (if *is-mac*
+      (setq-local dash-plugin-keywords '("lisp"))))
+
+(add-hook 'lisp-mode-hook #'common-lisp-style)
 #+END_SRC
 
 **** Slime
 
 [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
 
-#+NAME: common-lisp-slime
+#+NAME: cl-slime
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package slime
   :commands slime
-  :defines (slime-complete-symbol*-fancy slime-completion-at-point-functions)
+  :defines (slime-complete-symbol*-fancy
+            slime-completion-at-point-functions)
   :init
   (progn
     (setq slime-contribs
@@ -7400,10 +7484,10 @@ Configuration for common-lisp
 			        slime-indentation
       			  slime-sbcl-exts
       			  slime-scratch)
-	        inferior-lisp-program "sbcl"
-      	  ;; enable fuzzy matching in code buffer and SLIME REPL
-      	  slime-complete-symbol*-fancy t
-      	  slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
+	          inferior-lisp-program "sbcl"
+      	    ;; enable fuzzy matching in code buffer and SLIME REPL
+      	    slime-complete-symbol*-fancy t
+      	    slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
 
     (defun slime-disable-smartparens ()
       (smartparens-strict-mode -1)
@@ -7412,123 +7496,118 @@ Configuration for common-lisp
     (add-hook 'slime-repl-mode-hook #'slime-disable-smartparens)))
 #+END_SRC
 
-*** Clojure(Script)
+*** Clojure
 
+#+NAME: clj-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'clojure)
-  <<clojure-mode>>
-  <<clojure-leiningen>>
-  <<clojure-interactive>>)
+;; Begin Clojure
+(when (halidom/proglang-enabled-p 'clojure)
+  ;; Clojure Mode
+  <<clj-clojure-mode>>
+  ;; Clojure Mode Extra Font Locking
+  <<clj-extra-font-locking>>
+  ;; IDE Widget
+  <<clj-ide>>
+  ;; CIDER
+  <<clj-cider>>
+  ;; Inf Clojure
+  <<clj-inf-clojure>>
+  ;; Clj Refactor
+  <<clj-refactor>>
+  ;; Leiningen
+  <<clj-lein>>
+) ;; End Clojure
 #+END_SRC
 
 **** Clojure Mode
+:PROPERTIES:
+:ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
+:END:
 
 Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
 before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
 
-[INSERT GIF HERE]
-
-#+NAME: clojure-mode
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-<<clojure-mode-config-base>>
-<<clojure-mode-extra-font-locking>>
-
-(with-eval-after-load 'clojure-mode
-  <<clojure-mode-config-compojure>>
-  <<clojure-mode-config-om-next>>
-  (add-hook 'clojure-mode-hook
-            (lambda ()
-              (setq-local dash-plugin-keywords '("clojure")))))
-#+END_SRC
-
 Provides key bindings and font-locking for Clojure.
 
-#+NAME: clojure-mode-config-base
+#+NAME: clj-clojure-mode
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 (use-package clojure-mode
+  :custom (clojure-indent-style :always-indent)
+
   :mode (("\\.edn$"   . clojure-mode)
          ("\\.cljs$"  . clojurescript-mode)
          ("\\.cljx$"  . clojurex-mode)
          ("\\.cljsc$" . clojurec-mode))
+
+  :hook ((clojure-mode . enable-paredit-mode)
+         (clojure-mode . show-paren-mode))
+
   :config
-  (progn
-    (setq clojure-indent-style :always-indent)
-    (add-hook 'clojure-mode-hook #'enable-paredit-mode)
-    (add-hook 'clojure-mode-hook #'show-paren-mode)))
+
+  (defun halidom/clj-dash-docsets ()
+    "Keywords for Clojure Docsets via Dash.app."
+    (setq-local dash-plugin-keywords '("clojure")))
+
+  (defun halidom/clj-style-compojure ()
+    "Indendation for macros defined in compojure routing framework.
+   
+     See https://github.com/weavejester/compojure/wiki/Emacs-indentation."
+
+    (define-clojure-indent
+        (defroutes 'defun)
+        (GET 2)
+        (POST 2)
+        (PUT 2)
+        (DELETE 2)
+        (HEAD 2)
+        (ANY 2)
+        (OPTIONS 2)
+        (PATCH 2)
+        (rfn 2)
+        (let-routes 1)
+        (context 2)))
+  
+
+  (defun halidom/clj-style-om-next ()
+    "Indendation for om-next macros."
+      (put-clojure-indent 'defui '(1 nil nil (1)))
+      (put-clojure-indent 'dom/div 1))
+
+  (defun halidom/clj-style-guide ()
+    "Styleguide for clojure."
+    (halidom/clj-style-compojure)
+    (halidom/clj-style-om-next))
+
+  (add-hook 'clojure-mode-hook #'halidom/clj-dash-docsets)
+  (add-hook 'clojure-mode-hook #'halidom/clj-style-guide))
 #+END_SRC
 
 ***** Clojure Mode Extra Font Locking
 
 Additional syntax highlighting for ~clojure-mode~.
 
-#+NAME: clojure-mode-extra-font-locking
+#+NAME: clj-extra-font-locking
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package clojure-mode-extra-font-locking
-  :straight t)
+  :requires clojure-mode
+  :config
+  (defun halidom/clj-extra-font-locking ()
+    (require 'clojure-mode-extra-font-locking))
+  
+  (add-hook 'clojure-mode-hook #'halidom/clj-extra-font-locking))
 #+END_SRC
 
-***** Emacs Indentation for Popular Libraries
-****** Compojure
+**** Clojure IDE
 
-[[https://github.com/weavejester/compojure][Compojure]] is a web framework for Clojure and Clojurescript
-applications. This snippet is taken from the [[https://github.com/weavejester/compojure/wiki/Emacs-indentation][Emacs Indentation]] page of
-the repository wiki to provide better indentation for compojure macros.
-
-#+NAME: clojure-mode-config-compojure
-#+BEGIN_SRC emacs-lisp :tangle no
-(define-clojure-indent
-  (defroutes 'defun)
-  (GET 2)
-  (POST 2)
-  (PUT 2)
-  (DELETE 2)
-  (HEAD 2)
-  (ANY 2)
-  (OPTIONS 2)
-  (PATCH 2)
-  (rfn 2)
-  (let-routes 1)
-  (context 2))
-#+END_SRC
-
-****** Om Next
-
-#+NAME: clojure-mode-config-om-next
-#+BEGIN_SRC emacs-lisp :tangle no
-(put-clojure-indent 'defui '(1 nil nil (1)))
-(put-clojure-indent 'dom/div 1)
-#+END_SRC
-
-**** Clojure Interactive Development Environments
-
-#+NAME: clojure-interactive
+#+NAME: clj-ide
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<clojure-interactive-ide>>
-(cond ((eq clojure-ide 'cider)
-       <<clojure-interactive-cider>>)
-      ((eq clojure-ide 'inf-clojure)
-       <<clojure-interactive-inf-clojure>>)
-      (t (message (concat "Clojure IDE not set. "
-			  "Set `clojure-ide' to an appropriate value "
-			  "to activate"))))
-#+END_SRC
-
-*****  Select Clojure IDE
-
-Two options:
-- [[#cider][CIDER]]
-- [[#inf-clojure][inf-clojure]]
-
-#+NAME: clojure-interactive-ide
-#+BEGIN_SRC emacs-lisp :tangle no
-(defcustom clojure-ide 'cider
+(defcustom halidom-clojure-ide 'cider
   "Select the interactive development environment to use
    in clojure mode. Note that Emacs must be restarted when
    the value of this variable is modified for the change
    to take effect."
   :type '(symbol)
-  :options '(cider inf-clojure)
-  :group 'clojure)
+  :options '(cider inf-clojure))
 #+END_SRC
 
 ***** CIDER
@@ -7539,27 +7618,26 @@ Two options:
 
 [[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
 
-#+NAME: clojure-interactive-cider
+#+NAME: clj-cider
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cider
-    :init
-    (with-eval-after-load 'clojure-mode
-      (add-hook 'clojure-mode-hook 'cider-mode))
-    :config
-    (progn
-      (setq cider-repl-history-file "~/.emacs.d/cider-history"
-            cider-repl-use-clojure-font-lock t
-            cider-repl-result-prefix ";; => "
-            cider-repl-wrap-history t
-            cider-repl-history-size 3000
-            cider-show-error-buffer nil
-            nrepl-hide-special-buffers t)
-      (add-hook 'cider-mode-hook #'eldoc-mode)
-      (add-hook 'cider-mode-hook #'company-mode)
-      (add-hook 'cider-repl-mode-hook #'company-mode)
-      (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
-      (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
-      (add-hook 'cider-repl-mode-hook #'subword-mode)))
+  :if (eq halidom-clojure-ide 'cider)
+  :init
+  (with-eval-after-load 'clojure-mode
+    (add-hook 'clojure-mode-hook 'cider-mode))
+  :custom
+  (cider-repl-history-file "~/.emacs.d/cider-history")
+  (cider-repl-use-clojure-font-lock t)
+  (cider-repl-result-prefix ";; => ")
+  (cider-repl-wrap-history t)
+  (cider-repl-history-size 3000)
+  (cider-show-error-buffer nil)
+  (nrepl-hide-special-buffers t)
+  :hook (((cider-mode cider-repl-mode) . eldoc-mode)
+         ((cider-mode cider-repl-mode) . company-mode)
+         ((cider-mode cider-repl-mode) .
+          cider-company-enable-fuzzy-completion)
+         (cider-repl-mode . subword-mode)))
 #+END_SRC
 
 ***** Inf Clojure
@@ -7567,13 +7645,6 @@ Two options:
 :ID:       D1642BA7-3A2F-40CA-8B80-D28927627A91
 :CUSTOM_ID: inf-clojure
 :END:
-
-#+NAME: clojure-interactive-inf-clojure
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<inf-clojure-config>>
-(with-eval-after-load 'inf-clojure
-  <<inf-clojure-figwheel>>)
-#+END_SRC
 
 
  [[https://github.com/clojure-emacs/inf-clojure][inf-clojure]] is a drop-in replacement for CIDER that provides basic
@@ -7583,148 +7654,69 @@ Two options:
  to load files, switch namespaces, evaluate expressions, show
  documentation, and do macro-expansion.
 
-
-#+NAME: inf-clojure-config
+#+NAME: clj-inf-clojure
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package inf-clojure
+  :if (eq halidom-clojure-ide 'inf-clojure)
   :init
-  (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
+  (with-eval-after-load 'clojure-mode
+    (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode))
+  :config
+  (defun figwheel-repl ()
+    (interactive)
+    (inf-clojure "lein figwheel")))
 #+END_SRC
 
- Now lets write a simple function to run Figwheel as a Clojure
- subprocess.
+**** Clojure Refactor
 
- #+NAME: inf-clojure-figwheel
- #+BEGIN_SRC emacs-lisp :tangle no
-(defun figwheel-repl ()
-  (interactive)
-  (inf-clojure "lein figwheel"))
- #+END_SRC
+#+NAME: clj-refactor
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package clj-refactor
+  :init
+  (defun halidom/clj-refactor-enable ()
+    "Enable clj-refactor in clojure-mode."
+    (clj-refactor-mode 1)
+    ;; For adding reuire/use/import statements
+    (yas-minor-mode 1)
+    ;; Unbinds `cider-macroexpand-1'
+    (cljr-add-keybindings-with-prefix "C-c C-m"))
+
+  :hook ((clojure-mode) . halidom/clj-refactor-enable))
+
+#+END_SRC
 
 **** Leiningen
 
-#+NAME: clojure-leiningen
+#+NAME: clj-lein
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<lein-cljsbuild-config>>
-<<elein-config>>
-#+END_SRC
-
-***** Lein Cljsbuild
-
-Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
-
-#+NAME: lein-cljsbuild-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package cljsbuild-mode
-  :init
-  (add-to-hooks #'cljsbuild-mode
-                 '(clojure-mode clojurescript-mode)))
+;; Elein
+<<lein-elein>>
+;; Cljsbuild
+<<lein-cljsbuild>>
 #+END_SRC
 
 ***** elein
 
 [[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
 
-#+NAME: elein-config
+#+NAME: lein-elein
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package elein
+  :if (executable-find "lein")
   :straight t)
 #+END_SRC
 
-**** Clojure Syntax Checking
+***** Cljsbuild
 
-#+NAME: clojure-syntax-checking
-#+BEGIN_SRC emacs-lisp :tangle no :exports none
-<<flycheck-pos-tip>>
-#+END_SRC
+Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
 
-***** Flycheck Clojure
-The [[https://github.com/clojure-emacs/squiggly-clojure][flycheck-clojure]] package allows syntax checking for Clojure(Script).
-It uses [[https://github.com/jonase/eastwood][eastwood]], [[http://typedclojure.org/][core.typed]] and [[https://github.com/jonase/kibit][kibit]] to lint Clojure(Script) through CIDER.
-
-#+NAME: flycheck-clojure
+#+NAME: lein-cljsbuild
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-clojure
-  :after (cider flycheck)
-  :config
-  (flycheck-clojure-setup))
+(use-package cljsbuild-mode
+  :if (executable-find "lein")
+  :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
 #+END_SRC
 
-Okay. There's been some snares getting this package to work, but with
-the help of this [[http://blog.podsnap.com/squiggly.html][blogpost]] from the ~flycheck-clojure~ repo. (note to
-self: READMEs are friends), I'm beginning to make progress.
-
-After cloning the project repo from my local file system, my debugging
-process has consisted of the following:
-
-1. Navigate to the [[https://github.com/clojure-emacs/squiggly-clojure/tree/master/sample-project][sample-project]] in the ~squiggly-clojure~ project repo.
-2. Open ~core.clj~
-2. Launch an nrepl with Cider.
-3. See ~flycheck-clojure~ being weird.
-4. Annoyed Google search.
-5. Edit my ~clojure~ configuration based on the last blog post.
-6. Restart Emacs.
-7. Repeat.
-
-After running into problems documented in issues [[https://github.com/clojure-emacs/squiggly-clojure/issues/45][#45]], [[https://github.com/clojure-emacs/squiggly-clojure/issues/13][#13]], and [[https://github.com/clojure-emacs/squiggly-clojure/issues/46][#46,]]
-+I finally was able to get ~flycheck-clojure~ to stop doing weird things+.
-
-+It's now doing nothing at all.+
-
-The project maintainers provide an [[https://github.com/clojure-emacs/example-config][example-config]] for setting up
-emacs, cider, flycheck, and friends. I messed around with this config
-for about half an hour and the latency issues and general
-inconsistency are the same.
-
-I'm guessing I need to actually include the linters in my project's
-~project.clj~, but it's weird this package worked at all for bits and
-stretches if the dependencies need to be installed manually.
-
-***** Typed Clojure
-
-Let's give this [[https://github.com/typedclojure/typed-clojure-mode][guy]] a try.
-
-#+NAME: typed-clojure-mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package typed-clojure-mode
-  :after (clojure-mode)
-  :init
-  (add-hook 'clojure-mode-hook 'typed-clojure-mode))
-#+END_SRC
-
-
-~java.lang.GoEFUrself~!
-
- #+BEGIN_EXAMPLE sh
-   # CompilerException java.lang.RuntimeException: Unable to resolve symbol: sym in this context, compiling:(clojure/core/types.clj:1170:5)
- #+END_EXAMPLE
-
- I've now stumbled upon ~cider--debug-mode~.
-
- This mode cannot be called manually, but with ~C-u C-M-x~ instead,
- and now =flycheck-clojure= +appears to be sort of working+.
-
-3 months later...
-
-The above strikethrough denotes the point in time where I officially
-said [[https://www.si.com/nba/2017/05/16/steve-kerr-sneakers-message][FI]].
-
-***** Flycheck-Pos-Tip
-
-The ~flycheck-clojure~ repository recommendeds to install
-[[https://github.com/flycheck/flycheck-pos-tip][flycheck-pos-tip]] to keep linting and type errors from clashing with
-CIDER eldoc information.
-
-#+NAME: flycheck-pos-tip
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-pos-tip
-  :after (flycheck)
-  :init
-  (flycheck-pos-tip-mode)
-  :config
-  (setq flycheck-display-errors-function
-	#'flycheck-pos-tip-error-messages))
-#+END_SRC
 
 *** Emacs Lisp
 
@@ -7732,59 +7724,51 @@ CIDER eldoc information.
 (defun emacs-lisp-style ()
   (paredit-mode 1)
   (highlight-symbol-mode 1)
-  (setq lisp-indent-function 'common-lisp-indent-function)
-)
+  (setq lisp-indent-function 'common-lisp-indent-function))
 
-(defun macos-dash-elisp-docsets ()
+(defun halidom/elisp-dash-docsets ()
   (setq-local dash-plugin-keywords '("elisp")))
 
 (add-hook 'emacs-lisp-mode-hook #'emacs-lisp-style)
-(add-hook 'emacs-lisp-mode-hook #'macos-dash-elisp-docsets)
+(add-hook 'emacs-lisp-mode-hook #'halidom/elisp-dash-docsets)
 
 #+END_SRC
 
 *** Groovy
 
-#+NAME: java-groovy
+#+NAME: groovy-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package groovy-mode
-  :mode ("\\.gradle\\'" . groovy-mode)
+  :mode  "\\.gradle\\'"
   :config
-  (progn
-    (defun groovy-style ()
-      (setq groovy-indent-offset 2
-            tab-width 4
-            indent-tabs-mode nil
-            c-indent-comments-syntactically-p t))
-    (add-hook 'groovy-mode-hook #'groovy-style)))
+  (defun groovy-style ()
+    (setq groovy-indent-offset 2
+          tab-width 4
+          indent-tabs-mode nil
+          c-indent-comments-syntactically-p t)) 
+  (add-hook 'groovy-mode-hook #'groovy-style))
 #+END_SRC
 
 *** Java
 
-#+NAME: chaffin-java-backend
-#+BEGIN_SRC emacs-lisp :tangle no
-(defcustom chaffin--java-backend 'meghanada
-  "Select a backend to use when opening a *.java file."
-  :type '(symbol)
-  :options '(meghanada ensime eclim)
-  :group 'programming)
-#+END_SRC
-
-#+NAME: java-config
+#+NAME: java-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'java)
-  <<chaffin-java-backend>>
+;; Begin Java
+(when (halidom/proglang-enabled-p 'java)
+  ;; Java Backend
+  <<java-backend>>
+  ;; Java Hooks
   <<java-hooks>>
-  <<java-autodisass-java-bytecode>>
+  ;; Eclim
+  <<java-eclim>>
+  ;; Meghanada
+  <<java-meghanada>>
+  ;; Autodisass Java Bytecode
+  <<java-disass>>
+  ;; Gradle Mode
   <<java-gradle>>
-  <<java-google-c-style>>
-  (cond ((eq chaffin--java-backend 'meghanada)
-         (progn
-           <<java-meghanada>>))
-        ((eq chaffin--java-backend 'ensime)
-         <<java-ensime>>)
-        ((eq chaffin--java-backend 'eclim)
-         <<java-eclim>>)))
+) ;;End Java
+
 #+END_SRC
 
 #+NAME: java-hooks
@@ -7800,27 +7784,9 @@ CIDER eldoc information.
 
 ;; Enable Hooks
 (add-hook 'java-mode-hook 'java-mode-style)
+
 (with-system darwin
   (add-hook 'java-mode-hook 'java-mode-dash-docsets-hook))
-#+END_SRC
-
-**** Eclim
-#+NAME: java-eclim
-#+BEGIN_SRC emacs-lisp :tangle no
-
-(use-package eclim
-  :if *is-mac*
-  ;; load my forked version
-  ;; :load-path "site-lisp/emacs-eclim/"
-  :config
-  (setq eclim-eclipse-dirs '("/Applications/Eclipse.app/Contents/Eclipse")
-        eclim-executable "/Applications/Eclipse.app/Contents/Eclipse/eclim"
-        eclimd-executable "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
-        eclimd-default-workspace "~/Developer/Projects/Java/Workspace"
-        eclimd-autostart-with-default-workspace t
-        eclim-autostart nil
-        eclim-wait-for-process t))
-
 #+END_SRC
 
 **** Gradle Mode
@@ -7829,47 +7795,69 @@ CIDER eldoc information.
 :CUSTOM_ID: gradle-mode
 :END:
 
-
 Gradle is a build tool for Java. It's awesome.
 
 #+NAME: java-gradle
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package gradle-mode
   :if (executable-find "gradle")
-  :init
-  (add-hook 'java-mode-hook
-            (lambda ()
-              (gradle-mode 1))))
+  :hook
+  ((java-mode . gradle-mode)))
 #+END_SRC
 
-**** Meghanada
+**** Java Backends
+
+#+NAME: java-backend
+#+BEGIN_SRC emacs-lisp :tangle no
+(defcustom halidom-java-backend 'meghanada
+  "Select a backend to use when opening a *.java file."
+  :type '(symbol)
+  :options '(meghanada ensime eclim lsp))
+#+END_SRC
+
+
+***** Eclim
+
+#+NAME: java-eclim
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package eclim
+  :if (eq halidom-java-backend 'eclim)
+
+  :custom
+  (eclimd-autostart-with-default-workspace t)
+  (eclim-autostart nil)
+  (eclim-wait-for-process t))
+
+#+END_SRC
+
+***** Meghanada
 
 #+NAME: java-meghanada
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb 
 (use-package meghanada
-  :commands (meghanada-mode meghanada-code-beautify-before-save)
-  :bind
-  (:map meghanada-mode-map
-	      ("C-S-t" . meghanada-switch-testcase)
-	      ("M-RET" . meghanada-local-variable)
-	      ("M-r"   . meghanada-reference)
-	      ("M-t"   . meghanada-typeinfo)
-	      ("C-z"   . hydra-meghanada/body))
-  :init
-  (add-hook 'java-mode-hook
-	    (lambda ()
-	      ;; enable meghanada mode
-	      (meghanada-mode t)))
-  (add-hook 'java-mode-hook 'flycheck-mode)
+  :if (eq halidom-java-backend 'meghanada)
 
+  :commands meghanada-mode
+
+  :bind
+  ((:map meghanada-mode-map
+	       ("C-S-t" . meghanada-switch-testcase)
+	       ("M-RET" . meghanada-local-variable)
+	       ("M-r"   . meghanada-reference)
+	       ("M-t"   . meghanada-typeinfo)
+	       ("C-z"   . hydra-meghanada/body)))
+
+  :hook
+  ((java-mode . meghanada-mode)
+   (java-mode . flycheck-mode))
+
+  :custom
+  (meghanada-server-remote-debug t)
+  (meghanada-javac-xlint "-Xlint:all,-processing")
 
   :config
-  (progn
-    (setq meghanada-server-remote-debug t
-          meghanada-javac-xlint "-Xlint:all,-processing")
-
-    (defhydra hydra-meghanada (:hint nil :exit t)
-      "
+  (defhydra hydra-meghanada (:hint nil :exit t)
+    "
        ^Edit^                          ^Tast or Task^
        ^^^^^^---------------------------------------------
        _f_: meghanada-compile-file     _m_: meghanada-restart
@@ -7898,21 +7886,21 @@ Gradle is a build tool for Java. It's awesome.
       ("r"  meghanada-reference)
 
       ("q" exit)
-      ("z" nil "leave"))))
+      ("z" nil "leave")))
 
 
 #+END_SRC
 
-**** Ensime
+***** Ensime
 
 #+NAME: java-ensime
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ensime
-  :straight
-  (ensime
-   :host github
-   :repo "ensime/ensime-emacs"
-   :branch "2.0"))
+  :if (eq halidom-java-backend 'ensime)
+  :straight (ensime
+             :host github
+             :repo "ensime/ensime-emacs"
+             :branch "2.0"))
 #+END_SRC
 
 **** Autodisass Java Bytecode
@@ -7920,40 +7908,30 @@ Gradle is a build tool for Java. It's awesome.
 The [[https://github.com/gbalats/autodisass-java-bytecode][autodisass-java-bytecode]] package enables automatic disassembly of
 Java bytecode inside Emacs buffers.
 
-#+NAME: java-autodisass-java-bytecode
+#+NAME: java-disass
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package autodisass-java-bytecode
-  :defer t)
-#+END_SRC
-
-**** Google C Style
-
-Use Google's Java [[https://google.github.io/styleguide/javaguide.html][styleguide]].
-
-#+NAME: java-google-c-style
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package google-c-style
-  :straight
-  (google-c-style
-   :host github
-   :repo "google/styleguide"
-   :branch "gh-pages")
-   :config
-   (add-hook 'java-mode-hook
-            (lambda ()
-              (google-set-c-style)
-              (google-make-newline-indent))))
+(use-package autodisass-java-bytecode)
 #+END_SRC
 
 *** JavaScript
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
-<<js-js2>>
-<<js-json>>
-<<js-tide>>
-<<js-rjsx>>
-<<js-cofee>>
-<<js-node>>
+;; Begin JavaScript
+(when (halidom/proglang-enabled-p 'javascript)
+  ;; js2 mode
+  <<js-js2>>
+  ;; JSON Mode
+  <<js-json>>
+  ;; RJSX Mode
+  <<js-rjsx>>
+  ;; Tide Mode
+  <<js-tide>>
+  ;; Coffeescript
+  <<js-cofee>>
+  ;; Node.js
+  <<js-node>>
+) ;; End JavaScript
+
 #+END_SRC
 
 **** js2-mode
@@ -7961,12 +7939,10 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 #+NAME: js-js2
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package js2-mode
+  :custom
+  (js-indent-level 2)
   :mode (("\\.js\\'" . js2-mode)
-         ("\\.mjs\\'" . js2-mode))
-  :demand t
-  :config
-  (progn
-    (setq js-indent-level 2)))
+         ("\\.mjs\\'" . js2-mode)))
 #+END_SRC
 
 **** JSON
@@ -7974,13 +7950,14 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 #+NAME: js-json
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package json-mode
-  :mode (("\\.json\\'" . json-mode))
+  :mode "\\.json\\'"
   :config
-  (progn
-    (add-hook 'json-mode-hook
-          (lambda ()
-            (make-local-variable 'js-indent-level)
-            (setq js-indent-level 2)))))
+  (defun json-mode-style ()
+    "Styleguide for JSON Mode."
+    (set (make-local-variable 'js-indent-level) 2))
+
+  (add-hook 'json-mode-hook 'json-mode-style))
+
 #+END_SRC
 
 **** TypeScript
@@ -7988,22 +7965,22 @@ Use Google's Java [[https://google.github.io/styleguide/javaguide.html][stylegui
 #+NAME: js-tide
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tide
-    :config
-    (progn
-      (defun setup-tide-mode ()
-        (interactive)
-        (tide-setup)
-        (when (fboundp 'flycheck-mode)
-          (flycheck-mode +1))
-        
-        (setq flycheck-check-syntax-automatically '(save mode-enabled))
-        (eldoc-mode +1)
-        (tide-hl-identifier-mode +1))
+  :init
+  ;; Formats buffer before saving
+  (add-hook 'before-save-hook #'tide-format-before-save)
 
-      ;; Formats buffer before saving
-      (add-hook 'before-save-hook #'tide-format-before-save)
+  (defun setup-tide-mode ()
+    "Enable Tide Mode for Typescript."
+    (interactive)
+    (tide-setup)
+    (when (fboundp 'flycheck-mode)
+      (flycheck-mode +1)
+      (setq flycheck-check-syntax-automatically '(save mode-enabled)))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1))
+
       
-      (add-hook 'typescript-mode-hook #'setup-tide-mode)))
+  (add-hook 'typescript-mode-hook #'setup-tide-mode))
 #+END_SRC
 
 **** rjsx-mode
@@ -8018,7 +7995,7 @@ Real jsx support.
   :mode "\\.jsx\\'")
 #+END_SRC
 
-**** Coffee
+**** CoffeeScript
 
 #+NAME: js-coffee
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -8060,10 +8037,9 @@ Real jsx support.
 #+NAME: node-npm
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package npm-mode
-  :init
-  (progn
-  (add-hook 'js2-mode-hook 'npm-mode)
-  (add-hook 'json-mode-hook 'npm-mode)))
+    :if (executable-find "npm")
+    :init
+    (npm-global-mode))
 #+END_SRC
 
 ***** Yarn mode
@@ -8071,29 +8047,25 @@ Real jsx support.
 #+NAME: node-yarn
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package yarn-mode
-  :straight t)
+    :if (executable-find "yarn"))
 #+END_SRC
 
 ***** NVM
 
 #+NAME: node-nvm
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (use-package nvm
-  :if (executable-find "nvm")
-  :straight t)
-
+  :if (executable-find "nvm"))
 #+END_SRC
 
 *** Python
 
-#+NAME: py-python
+#+NAME: py-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Python 
-(when (proglang-enabled-p 'python)
-
-  ;; Python Settings
-  <<py-python-settings>>
+(when (halidom/proglang-enabled-p 'python)
+  ;; Python Mode
+  <<py-python>>
   ;; Pyenv Mode
   <<py-pyenv>>
   ;; Pyenv Mode Auto
@@ -8107,14 +8079,16 @@ Real jsx support.
   ;; Pip Requirements
   <<py-pip-requirements>>
   ;; Pydoc
-  <<py-pydoc>>) ;; End Python
+  <<py-pydoc>>
+  ;; EIN
+  <<py-ein>>) ;; End Python
 
 #+END_SRC
 
-**** Python Settings
+**** Python Mode
 
 #+NAME: py-python
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package python-mode
   :init
   (when (executable-find "ipython3")
@@ -8130,17 +8104,6 @@ Real jsx support.
                   "cvp")))
   (when *is-mac*
     (add-hook #'python-dash-docsets)))
-
-#+END_SRC
-
-
-**** Elpy
-
-#+NAME: py-elpy
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package elpy
-    :config
-  (elpy-rpc-backend "jedi"))
 
 #+END_SRC
 
@@ -8231,13 +8194,12 @@ Real jsx support.
   (pyvenv-mode))
 #+END_SRC
 
-
-
 **** Anaconda
 
 #+NAME: py-anaconda
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<python-anaconda-mode>>
+;; Anaconda company
 <<python-anaconda-company>>
 #+END_SRC
 
@@ -8246,10 +8208,10 @@ Real jsx support.
 #+NAME: python-anaconda-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package anaconda-mode
-  :init
-  (progn
-    (add-hook 'python-mode-hook 'anaconda-mode)
-    (add-hook 'python-mode-hook 'anaconda-eldoc-mode)))
+  :requires python-mode
+  :hook
+  ((python-mode . anaconda-mode)
+   (python-mode . anaconda-eldoc-mode)))
 #+END_SRC
 
 ***** Company Anaconda
@@ -8257,11 +8219,11 @@ Real jsx support.
 #+NAME: python-anaconda-company
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-anaconda
-  :demand t
-  :after (:all anaconda-mode company)
   :init
   (with-eval-after-load 'company
-    `(add-to-list company-backends 'company-anaconda)))
+    `(add-to-list company-backends 'company-anaconda))
+  :demand t
+  :after (:all anaconda-mode company))
 #+END_SRC
 
 **** Pip Requirements
@@ -8282,65 +8244,133 @@ Real jsx support.
 
 **** EIN
 
-#+NAME: ein-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
+The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]] client.
+
+#+NAME: py-ein
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ein
     :config
     (setq ein:use-smartrep t))
 #+END_SRC
 
-
 *** Ruby
 
+#+NAME: ruby-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'ruby)
-  <<ruby-mode-config>>
-  <<rvm-config>>)
+;; Begin Ruby
+(when (halidom/proglang-enabled-p 'ruby)
+  ;; Ruby Mode
+  <<ruby-ruby-mode>>
+  ;; Enhanced Ruby Mode
+  <<ruby-enh-ruby-mode>>
+  ;; RVM
+  <<ruby-rvm>>
+  ;; Robe Mode
+  <<ruby-robe>>
+  ;; Yard Mode
+  <<ruby-yard>> ) ;; End Ruby
 #+END_SRC
 
-**** ruby-mode
+**** Ruby Mode
 
-#+NAME: ruby-mode-config
+#+NAME: ruby-ruby-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ruby-mode
   :mode "\\.rb\\'"
   :interpreter "ruby"
   :config
-  (progn
-    (defun chaffin/ruby-mode-hook ()
-      (require 'inf-ruby)
-      (inf-ruby-keys))
 
-    (add-hook #'ruby-mode-hook #'chaffin/ruby-mode-hook)
-    (when *is-mac*
-      (add-hook 'ruby-mode-hook
-                (setq-local dash-plugin-keywords
-                            '("ruby" "rails"))))))
+  (defun halidom/ruby-dash-docsets ()
+    (setq-local dash-plugin-keywords '("ruby" "rails")))
+
+
+  (add-hook 'ruby-mode-hook #'halidom/ruby-dash-docsets))
+
 #+END_SRC
 
-**** rvm
+**** Enhanced Ruby Mode
 
-#+NAME: rvm-config
+#+NAME: ruby-enh-ruby-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package enh-ruby-mode
+    :after ruby-mode
+    :demand t
+    :mode "\\.rb\\'"
+    :config
+    (add-hook 'enh-ruby-mode-hook #'halidom/ruby-dash-docsets))
+#+END_SRC
+
+**** Inf ruby
+
+#+NAME: ruby-inf-ruby
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package inf-ruby
+    :after (:all ruby-mode ruby-enh-ruby-mode)
+    :init
+    (add-to-hooks #'inf-ruby-minor-mode '(ruby-mode-hook enh-ruby-mode-hook))
+    (add-hook 'compilation-filter-hook 'inf-ruby-auto-enter))
+
+#+END_SRC
+
+
+**** Ruby Version Manager (RVM)
+
+#+NAME: ruby-rvm
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package rvm
-  :commands (rvm-use-default)
-  :config
+  :init
   (rvm-use-default))
 #+END_SRC
 
-**** TODO enhanced ruby mode
+**** Robe
+
+#+NAME: ruby-robe
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package robe
+    :after (:all ruby-mode rvm enh-ruby-mode)
+    :demand t
+    :init
+  ;; https://github.com/dgutov/robe#integration-with-rvmel
+    (defadvice inf-ruby-console-auto (before
+                                      activate-rvm-for-robe
+                                      activate)
+      (rvm-activate-corresponding-ruby))
+  (defun halidom/robe-mode-enable ()
+    (robe-mode)
+    (with-eval-after-load 'company
+      (push 'company-robe company-backends)))
+  (add-to-hooks #'halidom/robe-mode-enable
+                '(ruby-mode-hook enh-ruby-mode-hook)))
+ 
+#+END_SRC
+
+**** Yard Mode
+
+#+NAME: ruby-yard
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package yard-mode
+    :after (:all ruby-mode enh-ruby-mode)
+    :demand t
+    :init
+    (add-to-hooks #'yard-mode '(ruby-mode-hook enh-ruby-mode-hook))
+    (add-to-hooks #'eldoc-mode '(ruby-mode-hook enh-ruby-mode-hook)))
+
+#+END_SRC
 
 *** Scala
 
-#+NAME: scala-config
+#+NAME: scala-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'scala)
-  <<scala-mode-config>>
-  <<scala-sbt-mode-config>>)
+;; Begin Scala 
+(when (halidom/proglang-enabled-p 'scala)
+  ;; Scala Mode
+  <<scala-scala-mode>>
+  ;; Scala SBT Mode
+  <<scala-sbt-mode>> ) ;: End Scala
 #+END_SRC
 
 **** Scala Mode
-#+NAME: scala-mode-config
+#+NAME: scala-scala-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package scala-mode
   :interpreter
@@ -8349,7 +8379,7 @@ Real jsx support.
 
 **** Sbt
 
-#+NAME: scala-sbt-mode-config
+#+NAME: scala-sbt-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package sbt-mode
   :commands (sbt-start sbt-command)
@@ -8364,27 +8394,30 @@ Real jsx support.
 
 *** Web Programming
 
-#+NAME: web-config
+#+NAME: web-spec
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-;; Begin Web
-(when (proglang-enabled-p 'web)
+;; Begin Web Configuration
+(when (halidom/proglang-enabled-p 'web)
    ;; Web Mode
-   <<web-mode-config>>
+   <<web-web-mode>>
    ;; Tagedit Mode
-   <<tagedit-mode-config>>
-   ;; CSS Mode
-   <<css-mode-config>>
+   <<web-tagedit>>
+   ;; Htmlize
+   <<web-htmlize>>
+   ;; CSS 
+   <<web-css>>
    ;; Emmet Mode
-   <<emmet-mode-config>>
+   <<web-emmet>>
+   ;; Company Tern
+   <<web-tern>>
    ;; Company Web
-   <<company-web-config>>
-   ;; htmlize
-   <<htmlize-config>>) ;; End Web
+   <<web-company>>
+) ;; End Web Configuration
 #+END_SRC
 
 **** Web Mode
 
-#+NAME: web-mode-config
+#+NAME: web-web-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package web-mode
   :bind (:map web-mode-map
@@ -8409,82 +8442,87 @@ Real jsx support.
    ("\\.djhtml\\'"     . web-mode))
 
   :config
-  (progn
-    (setq web-mode-engines-alist
-          '(("php" . "\\.phtml\\'")
-            ("blade" . "\\.blade\\'")))
+  (setq web-mode-engines-alist
+        '(("php" . "\\.phtml\\'")
+          ("blade" . "\\.blade\\'")))
 
-    (defun chaffin--web-mode-enable ()
-      (setq web-mode-enable-auto-pairing t
-            web-mode-enable-css-colorization t
-            web-mode-enable-block-face t
-            web-mode-enable-part-face t
-            web-mode-enable-comment-keywords t
-            web-mode-enable-heredoc-fontification t
-            web-mode-enable-current-element-highlight t
-            web-mode-enable-current-column-highlight t))
+  (defun halidom/web-mode-enable ()
+    "Enabled web-mode options."
+    (setq web-mode-enable-auto-pairing t
+          web-mode-enable-css-colorization t
+          web-mode-enable-block-face t
+          web-mode-enable-part-face t
+          web-mode-enable-comment-keywords t
+          web-mode-enable-heredoc-fontification t
+          web-mode-enable-current-element-highlight t
+          web-mode-enable-current-column-highlight t))
 
-    (add-hook 'web-mode-hook #'chaffin--web-mode-enable)
+  (defun halidom/web-mode-indent ()
+    "Indentation settings for web-mode."
+    (setq web-mode-markup-indent-offset 2
+          web-mode-code-indent-offset 2
+          web-mode-style-padding 1
+          web-mode-script-padding 1
+          web-mode-block-padding 0
+          web-mode-comment-style 2))
 
+  (defun halidom/web-mode-style ()
+    "Styleguide for web-mode."
+    (halidom/web-mode-enable)
+    (halidom/web-mode-indent))
 
-    (defun chaffin--web-mode-indent ()
-      (setq web-mode-markup-indent-offset 2
-            web-mode-code-indent-offset 2
-            web-mode-style-padding 1
-            web-mode-script-padding 1
-            web-mode-block-padding 0
-            web-mode-comment-style 2))
+  (add-hook 'web-mode-hook #'halidom/webmode-style)
 
-    (add-hook 'web-mode-hook #'chaffin--web-mode-indent)
-
-    (when *is-mac*
-      (add-hook 'web-mode-hook
-                (lambda ()
-                  (setq-local dash-plugin-keywords
-                              '("css" "html" "javascript"
-                                "react")))))))
+  (defun halidom/web-dash-docsets ()
+    (setq-local dash-plugin-keywords
+                '("css" "html" "javascript" "react")))
+  (when *is-mac*
+    (add-hook 'web-mode-hook #'halidom/web-dash-docsets)))
 #+END_SRC
 
-**** Emmet
+**** Tag Edit
 
-#+NAME: emmet-mode-config
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package emmet-mode
-  :defer t
-  :init
-  (add-to-hooks 'emmet-mode
-   '(css-mode-hook
-     html-mode-hook
-     web-mode-hook)))
-#+END_SRC
-
-**** HTML
-***** Tag Edit
-
-#+NAME: tagedit-mode-config
+#+NAME: web-tagedit
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tagedit
-  :diminish tagedit-mode
-  :config
-  (progn
+  :init
+  (defun halidom/tagedit-enable ()
     (tagedit-add-experimental-features)
-    (add-hook 'html-mode-hook (lambda () (tagedit-mode 1)))))
+    (tagedit-mode +1))
+
+  (add-hook 'html-mode-hook #'halidom/tagedit-enable)
+
+  :diminish tagedit-mode)
 #+END_SRC
 
-***** Htmlize
-#+NAME: htmlize-config
+**** Htmlize
+
+#+NAME: web-htmlize
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package htmlize
   :straight t)
 #+END_SRC
 
 **** CSS
+
+#+NAME: web-css
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+;; CSS Mode
+<<css-css-mode>>
+;; Less Mode
+<<css-less-mode>>
+;; Sass Mode
+<<css-sass-mode>>
+;; SCSS Mode
+<<css-scss-mode>>
+#+END_SRC
+
 ***** CSS Mode
 
-#+NAME: css-mode-config
+#+NAME: css-css-mode
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package css-mode
-  :after (web-mode)
   :commands (css-expand-statment css-contrac-statement)
   :init
   (progn
@@ -8519,24 +8557,46 @@ Real jsx support.
 
 #+NAME: css-less-mode
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package css-less-mode
-  :mode ("\\.less\\'" . less-css-mode))
+(use-package less-mode
+    :mode "\\.less\\'")
 #+END_SRC
 
 ***** SASS
 
-#+NAME: sass-mode
+#+NAME: css-sass-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package sass-mode
-  :mode ("\\.sass\\'" . sass-mode))
+  :mode "\\.sass\\'")
 #+END_SRC
 
 ***** SCSS
 
-#+NAME: scss-mode
+#+NAME: css-scss-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package scss-mode
-  :mode ("\\.scss\\'" . scss-mode))
+    :mode "\\.scss\\'")
+#+END_SRC
+
+**** Emmet
+
+#+NAME: web-emmet
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package emmet-mode
+  :init
+  (add-to-hooks 'emmet-mode
+                '(css-mode-hook html-mode-hook web-mode-hook)))
+#+END_SRC
+
+**** Tern
+
+#+NAME: web-tern
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package tern
+    :if (executable-find "tern"))
+
+(use-package company-tern
+    :after (:all company tern)
+    :demand t)
 #+END_SRC
 
 **** Company Web
@@ -8544,49 +8604,57 @@ Real jsx support.
 [[https://github.com/osv/company-web][Company Web]] provides code completion for html-mode, web-mode, jade-mode,
 and slim-mode using company.
 
-#+NAME: company-web-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+NAME: web-company
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-web
+  :after (:all company web-mode)
   :demand t
-  :after (:all company web-mode tern company-tern)
   :init
-  (progn
-    (defun chaffin--company-web-mode-hook ()
-      "Autocompletion hook for web-mode"
-      (set (make-local-variable 'company-backends)
-           '(company-tern company-web-html company-yasnippet company-files)))
+  (defun halidom/company-web-mode-enable ()
+    "Enable company web-mode backends."
+    (let ((backends '(company-web-html company-yasnippet company-files)))
+      (when (featurep 'company-tern)
+        (advice-add 'company-tern :before
+                    #'(lambda (&rest _)
+                        (if (equal major-mode 'web-mode)
+                            (let ((web-mode-cur-language
+                                   (web-mode-language-at-pos)))
+                              (if (or (string= web-mode-cur-language "javascript")
+                                      (string= web-mode-cur-language "jsx"))
+                                  (unless tern-mode (tern-mode))
+                                (if tern-mode (tern-mode -1)))))))
+        (setq backends (push 'company-tern backends)))
+      (set (make-local-variable 'company-backends) backends)))
 
-    (add-hook 'web-mode-hook #'chaffin--company-web-mode-hook)
-    ;; Enable JavaScript completion between <script>...</script> etc.
-    (defadvice company-tern (before web-mode-set-up-ac-sources activate)
-      "Set `tern-mode' based on current language before running company-tern."
-      (if (equal major-mode 'web-mode)
-          (let ((web-mode-cur-language
-                 (web-mode-language-at-pos)))
-            (if (or (string= web-mode-cur-language "javascript")
-                    (string= web-mode-cur-language "jsx"))
-                (unless tern-mode (tern-mode))
-              (if tern-mode (tern-mode -1))))))))
+
+  (add-hook 'web-mode-hook #'halidom/company-web-enable))
+
 #+END_SRC
 
 *** Markdown
 
-#+NAME: markdown-config
+#+NAME: md-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-(when (proglang-enabled-p 'markdown)
-  <<markdown-mode-config>>
-  <<markdown-mode-plus-config>>
-  <<markdown-toc-config>>
-  <<markdownfmt-config>>
+;; Begin Markdown Configuration
+(when (halidom/proglang-enabled-p 'markdown)
+  ;; Markdown Mode
+  <<md-markdown-mode>>
+  ;; Markdown-Mode+
+  <<md-markdown-mode-plus>>
+  ;; Markdown Toc
+  <<md-markdown-toc>>
+  ;; Markdownfmt
+  <<md-markdownfmt>>
+  ;; Livedown
   <<md-livedown>>
-)
+) ;; End Markdown Configuration
 #+END_SRC
 
 **** Markdown Mode
 
 - See https://jblevins.org/projects/markdown-mode/
 
-#+NAME markdown-mode-config
+#+NAME md-markdown-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package markdown-mode
   :straight t
@@ -8613,7 +8681,7 @@ and slim-mode using company.
 
 **** markdown-mode+
 
-#+NAME: markdown-mode-plus-config
+#+NAME: md-markdown-mode-plus
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package markdown-mode+
   :straight t)
@@ -8621,7 +8689,7 @@ and slim-mode using company.
 
 **** markdown-toc
 
-#+NAME: markdown-toc-config
+#+NAME: md-markdown-toc
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package markdown-toc
   :straight t
@@ -8630,7 +8698,7 @@ and slim-mode using company.
 
 **** markdownfmt
 
-#+NAME: markdownfmt-config
+#+NAME: md-markdownfmt
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package markdownfmt
   :straight t
@@ -8655,6 +8723,7 @@ and slim-mode using company.
 
 ** Lsp Mode
 
+#+NAME: lsp-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
 
 (use-package lsp-mode
