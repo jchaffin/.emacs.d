@@ -2154,11 +2154,17 @@ Entered on [2018-06-13 Wed 11:42]
 #+NAME: org-mode-settings
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 (with-eval-after-load 'org
+  ;; Org Babel
   <<org-ob>>
+  ;; Org UI
   <<org-ui>>
+  ;; Org docmgr
   <<org-docmgr>>
+  ;; Org taskmgr
   <<org-taskmgr>>
+  ;; Org ideamgr
   <<org-ideamgr>>
+  ;; Org export
   <<org-export>>
 )
 #+END_SRC
@@ -2167,8 +2173,11 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+NAME: org-ob
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Org Babel HTTP
 <<org-ob-http>>
+;; Org Babel CLJS
 <<org-ob-cljs>>
+
 <<org-ob-load-langs>>
 #+END_SRC
 
@@ -3062,6 +3071,7 @@ Fix problem with saveplace.el which puts point back in a folded position.
 Extract hyperlink
 
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun org-extract-link ()
   "Extract the link location at point and put it on the killring."
   (interactive)
@@ -7027,7 +7037,8 @@ Disabling for now.
 #+NAME: ggtags-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package ggtags
-  :if (and (getenv "GTAGSLABEL") (executable-find "global")))
+  :if (and (getenv "GTAGSLABEL") (executable-find "global"))
+  :custom (ggtags-highlight-tag nil))
 #+END_SRC
 
 ** Version Control
