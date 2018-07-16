@@ -111,8 +111,8 @@
 ;; And enable by default.
 (setq straight-use-package-by-default t)
 ;; TODO: Figure out what this is doing
-(setq straight-built-in-pseudo-packages
-      '(emacs browse-url artist-mode winner-mode xwidget))
+;; (setq straight-built-in-pseudo-packages
+;;       '(emacs browse-url artist-mode winner-mode xwidget))
 ;; Defer by default
 (setq use-package-always-defer t)
 
@@ -189,7 +189,9 @@ Else use the value of `literate-config-file'."
         (target-dir (or user-emacs-directory default-directory)))
     (when init-server
 	    (require 'server)
-      (if (not (server-running-p))
+      (unless (server-running-p)
+          (setq server-socket-dir
+                (expand-file-name "server" user-emacs-directory))
           (server-start)))
     (if target-file
         (org-babel-load-file

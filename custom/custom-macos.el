@@ -163,9 +163,21 @@
  '(bibtex-autokey-titlewords 2)
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-title-separator "-")
+ '(cider-repl-history-file "~/.emacs.d/cider-history" t)
+ '(cider-repl-history-size 3000 t)
+ '(cider-repl-result-prefix ";; => " t)
+ '(cider-repl-use-clojure-font-lock t t)
+ '(cider-repl-wrap-history t t)
+ '(cider-show-error-buffer nil t)
+ '(clojure-indent-style :always-indent t)
  '(debug-on-error t)
+ '(js-indent-level 2)
+ '(meghanada-javac-xlint "-Xlint:all,-processing" t)
+ '(meghanada-server-remote-debug t t)
+ '(nrepl-hide-special-buffers t t)
  '(safe-local-variable-values
-   '((org-src-preserve-indentation)
+   '((eval sh-set-shell zsh)
+     (org-src-preserve-indentation)
      (eval and
       (require 'ox-extra nil t)
       (ox-extras-activate

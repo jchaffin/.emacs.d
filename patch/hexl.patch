@@ -1,0 +1,12 @@
+diff --git a/lisp/hexl.el b/lisp/hexl.el
+index f37be9d410..6b316dd707 100644
+--- a/lisp/hexl.el
++++ b/lisp/hexl.el
+@@ -1000,6 +1000,7 @@ hexl-follow-ascii-mode
+ When following is enabled, the ASCII character corresponding to the
+ element under the point is highlighted.
+ The default activation is controlled by `hexl-follow-ascii'."
++  :init-value hexl-follow-ascii
+   (if hexl-follow-ascii-mode
+       ;; turn it on
+       (progn

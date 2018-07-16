@@ -184,8 +184,11 @@
     - [[#graphviz][Graphviz]]
     - [[#thesaurus][Thesaurus]]
 - [[#code][Code]]
-  - [[#error-checking][Error checking]]
-    - [[#flycheck][Flycheck]]
+  - [[#language-server-protocol-lsp][Language Server Protocol (LSP)]]
+    - [[#lsp-mode][LSP Mode]]
+    - [[#lsp-ui-mode][LSP UI Mode]]
+    - [[#company-lsp][Company LSP]]
+  - [[#flycheck][Flycheck]]
   - [[#code-style][Code Style]]
     - [[#default-editor-view][Default Editor View]]
     - [[#symbol-highlighting][Symbol Highlighting]]
@@ -217,7 +220,6 @@
     - [[#scala][Scala]]
     - [[#web-programming][Web Programming]]
     - [[#markdown][Markdown]]
-  - [[#lsp-mode][Lsp Mode]]
 - [[#footnotes][Footnotes]]
 
 * Preface
@@ -625,7 +627,7 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 
 
 **** Buffers
-***** Buffer 
+***** Buffer
 ***** Buffer List Names
 
 #+NAME: buffer-list-names-spec
@@ -683,7 +685,15 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
     (seq-uniq modes)))
 #+END_SRC
 
-**** Copy File Path
+**** Copying things
+
+#+NAME: copy-prefix-map
+#+BEGIN_SRC emacs-lisp :tangle yes
+(define-prefix-command 'copy-prefix-map)
+(define-key 'chaffin-keymap "c" 'copy-prefix-map)
+#+END_SRC
+
+***** File Paths
 
 A useful utility function for copying the file path to the buffer.
 
@@ -697,13 +707,14 @@ function `copy-file-path-as-kill'."
 
   (destructuring-bind (file dir)
       (cond ((eq major-mode 'dired-mode)
-             (list (substring-no-properties (thingp-at-point 'symbol))
+             (list (substring-no-properties (thingat-point 'symbol))
                    dired-directory))
             ((stringp buffer-file-name)
              (mapcar (lambda (f) (funcall f buffer-file-name))
                      '(file-name-nondirectory file-name-directory)))
             (t  (list (buffer-name (current-buffer)) default-directory)))
     (funcall func (expand-file-name file dir))))
+
 #+END_SRC
 
 ***** Copy File Path as New Kill
@@ -719,7 +730,10 @@ function `copy-file-path-as-kill'."
 			            (kill-new s)
 			            (message "%s" s)))))
     (copy-file-path func)))
+
+(define-key 'copy-prefix-map "f" 'copy-file-path-as-kill)
 #+END_SRC
+
 
 
 **** Remove wildcards from directory files list
@@ -736,41 +750,62 @@ function `copy-file-path-as-kill'."
 	      (directory-files directory full nil nosort)))
 #+END_SRC
 
+****  Unix-style =basename=
+
+The Elisp =file-name-base= function has somewhat misleading nomenclature. The name seems to suggest that it would have the same behavior of the UNIX =basename= command, but the Emacs function actually behaves quites differently:
+
+1. If the given file path is a directory, the Unix implementation discards the trailing slash and operates on the directory component as if it were a regular file. In Emacs, the same input will return an empty string.
+2. The Emacs function removes the extension from the file - that is, the substring from the last-most '.' character to the end of the string.
+
+As discussed in this 2011[[https://lists.gnu.org/archive/html/emacs-devel/2011-01/msg01217.html][ thread]] from the =emacs-devel= mailing list, it would be nice if Emacs also had a function that behaved similarly to the Unix command.
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun basename (pathname)
+  "Return the filename or directory portion of PATHNAME"
+  (if (or (file-directory-p pathname)
+          (string-match "/$" pathname))
+      (let ((dirname (directory-file-name pathname)))
+        (file-name-nondirectory dirname))
+    (file-name-nondirectory pathname)))
+#+END_SRC
+
+
 **** Resolve Path
 
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (defun resolve-path (&rest paths)
   "Concatenate path segments."
   (let ((paths- (mapcar #'directory-file-name paths)))
     (mapconcat 'identity paths- "/")))
+
 #+END_SRC
 
-***** Resolve to User Home Directory
+***** User Directories
 
 #+NAME: user-home-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun user-home (&rest path-segments)
+  "Resolves the absolute path formed PATH-SEGMENTS to the
+   user home directory."
   (let ((root-separator "/"))
     (--> (getenv "HOME")
          (f-split it)
          (append it path-segments)
          (cdr it)
          (cons (concat root-separator (car it) )(cdr it))
-         (apply #'resolve-path it))))
+         (apply #'resolve-path it)
+         (f-slash it))))
 #+END_SRC
 
-***** Resolve to Emacs Directory
+***** Emacs Directories
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-
-(defun emacs-directory (&rest path)
-  "Resolve a file path relative to the `user-emacs-directory.'
-  PATH is a destructured list of path segments."
-  (let* ((initial-path-segments (split-string user-emacs-directory "/" t))
-         (path-segments (seq-concatenate 'list initial-path-segments path)))
-    (apply #'resolve-path path-segments)))
-
+(defalias #'emacs-dir (apply-partially #'user-home ".emacs.d"))
+(defalias #'straight-dir (apply-partially #'emacs-dir "straight"))
 #+END_SRC
+
 
 **** Check if HTTPS is supports
 
@@ -1638,6 +1673,9 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 #+END_SRC
 
 *** LaTeX Extra
+:PROPERTIES:
+:ID:       3D058D68-FED6-43C9-B48B-E9280E6F2016
+:END:
 
 #+NAME: latex-latex-extra
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2398,6 +2436,8 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; org capture templates
 <<org-capture-templates>>
+;; org protocol handler
+<<org-protocol-mac>>
 ;; org capture html
 <<org-capture-html>>
 ;; org capture contacts
@@ -2414,6 +2454,71 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
   :PROPERTIES:
   :CREATED: %U
   :END:")
+#+END_SRC
+
+***** Org Protocol Handler
+
+#+NAME: org-protocol-handler
+#+BEGIN_SRC emacs-lisp :tangle no
+(require 'org-protocol)
+
+(defun org-protocol-handler-install ()
+  (interactive)
+  (let* ((apps-dir (f-join user-emacs-directory "apps"))
+         (op-app-path (f-join apps-dir "org-protocol-handler" "Org Protocol Handler.app"))
+         (url-type (if (ssl-p) "https" "http"))
+         (git-repo apps-dir))
+    (unwind-protect
+        (if-not (f-dir-p apps-dir)
+            (progn
+              (f-mkdir apps-dir)
+              (git-clone
+               "https://github.com/aaronbieber/org-protocol-handler.git")
+              (f-symlink op-app-path "/Applications/"))))))
+
+(with-eval-after-load 'server
+  (unless (server-running-p)
+    ;; (setq server-socket-dir (f-expand "server" user-emacs-directory))
+    (server-start))
+
+	(if (and *is-mac* (server-running-p))
+	    (org-protocol-handler-install)))
+
+(add-to-list 'org-capture-templates
+             '("l" "A link, for reading later." entry
+               (file+headline "notes.org" "Reading List")
+               "* %:description\n%u\n\n%c\n\n%i"
+               :empty-lines 1))
+#+END_SRC
+
+***** Org Mac Protocol
+
+#+NAME: org-protocol-mac
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-mac-protocol
+    :config
+  (defun org-mac-protocol-install ()
+    (interactive)
+     "Install system dependencies provided by org-mac-protocol."
+     (cl-flet ((f (file)
+                 (let ((app-dir (emacs-dir "apps" "org-mac-protocol"))
+                       (script-dir (user-home "Library" "Scripts"))
+                       (file-path (concat (straight-dir "repos" "org-mac-protocol") file)))
+                   (if-not (file-directory-p app-dir)
+                       (progn
+                         (mkdir app-dir)
+                         (message "Created directory %s" app-dir)))
+                   (cond ((and (file-directory-p file-path)
+                               (not (file-directory-p
+                                     (concat script-dir (file-name-base file-path)))))
+                          (copy-directory file-path script-dir))
+                         ((string= (file-name-extension file-path) "scpt")
+                          (copy-file file-path script-dir t))
+                         ((string= (file-name-extension file-path) "applescript")
+                          (copy-file file-path app-dir t))))))
+       (let ((files (remove ".git" (directory-files-no-wildcards
+                                    (straight-dir "repos" "org-mac-protocol")))))
+         (mapcar #'f files)))))
 #+END_SRC
 
 ***** Org Protocol Capture HTML
@@ -3957,10 +4062,9 @@ interactive tree .
 (use-package async
   :after (dired)
   :commands (dired-async-mode async-smtpmail-send-it)
-  :config
-  (progn
-    (dired-async-mode 1)
-    (setq message-send-mail-function 'async-smtpmail-send-it)))
+  :custom (message-send-mail-function 'async-smtpmail-send-it)
+  :init
+  (dired-async-mode 1))
 #+END_SRC
 
 ***** Reuse dired buffer when moving to parent directory
@@ -3975,10 +4079,9 @@ buffer.
 
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(add-hook 'dired-mode-hook
-	  (lambda ()
-	    (define-key dired-mode-map (kbd "^")
-	      (lambda () (interactive) (find-alternate-file "..")))))
+(defun halidom/dired-reuse-buffer-hook ()
+	(define-key dired-mode-map (kbd "^")
+	  (lambda () (interactive) (find-alternate-file ".."))))
 #+END_SRC
 
 ***** Use other dired buffer as default directory
@@ -4017,8 +4120,7 @@ Adds extensions and functionality to dired mode.
 **** Treemacs
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package treemacs
-  :straight t)
+(use-package treemacs)
 #+END_SRC
 
 *** Searching
@@ -4200,6 +4302,7 @@ different window configurations.
 #+NAME: winner-mode-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package winner-mode
+  :straight nil
   :init
   (when (fboundp 'winner-mode)
     (winner-mode 1)))
@@ -4304,32 +4407,27 @@ different window configurations.
 **** Rainbow Mode
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package rainbow-mode
-  :straight t)
+(use-package rainbow-mode)
 #+END_SRC
 
 **** Col Highlight
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package col-highlight
-  :straight t)
+(use-package col-highlight)
 #+END_SRC
 
 *** Frame-fns
 
 #+NAME: frame-fns-config
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package frame-fns
-  :straight t)
+(use-package frame-fns)
 #+END_SRC
 
 *** posframe
 
 #+NAME: posframe-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package posframe
-    :straight t)
-
+(use-package posframe)
 #+END_SRC
 
 *** Visual Replace
@@ -4357,11 +4455,12 @@ should open in `read-only-mode'.")
   (length (f-split dir)))
 
 (defun halidom//dir-or-subdir-p (d1 d2)
+  "If non-nil, then directory D1 is subdirectory or the same directory as D2."
   (cond ((< (dir-level d1) (dir-level d2)) nil)
         ((string= d1 d2) t)
-        (t
-         (halidom//dir-or-subdir-p
-          (file-name-directory (directory-file-name d1)) d2))))
+        (t (halidom//dir-or-subdir-p
+            (--> d1 basename file-name-as-directory (string-remove-suffix it d1))
+            d2))))
 
 (defun read-only-directory-p (bf)
   (cl-flet ((f (d) (funcall #'halidom//dir-or-subdir-p bf d)))
@@ -4377,8 +4476,8 @@ should open in `read-only-mode'.")
 (defun halidom/find-file-read-only-hook ()
   (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
 
-(setq read-only-directories '("/Users/jacobhalidom/.emacs.d/straight/"
-                              "/usr/local/Cellar/emacs-plus/"))
+(setq read-only-directories `(,(straight-dir) "/usr/local/"))
+
 
 (add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
 
@@ -4389,11 +4488,9 @@ should open in `read-only-mode'.")
 
 #+NAME: thingatpt-plus
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package thingatpt+
-  :straight t)
+(use-package thingatpt+)
 
-(use-package misc-fns
-  :straight t)
+(use-package misc-fns)
 #+END_SRC
 
 ** Bug Tracking
@@ -4805,7 +4902,7 @@ This disables Emacs asking questions about loading a new theme.
                 halidom-light-theme)
                (t halidom-term-theme))))
   (remove-themes)
-  
+
   (if (display-graphic-p)
       (progn
 
@@ -5237,7 +5334,7 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
   :init
   ;; Lazy Load Ivy
   ;; [1] https://github.com/raxod502/el-patch#lazy-loading-packages
-  ;; [2] https://github.com/raxod502/radian/blob/develop/radian-emacs/radian-completion.el#L25
+  ;; [2] https://github.com/raxod502/radian/blob/develop/radian-emacs/radian-coxompletion.el#L25
   (el-patch-feature ivy)
   (el-patch-defvar ivy-mode-map
     (let ((map (make-sparse-keymap)))
@@ -5584,23 +5681,13 @@ A smart M-x enhancement for Emacs.
 
 #+NAME: term-multiterm
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package multi-term
+(use-package sane-term
   :bind
-  (("C-c M-RET t" . multi-term)
-   ("C-c M-RET b" . multi-term-prev)
-   ("C-c M-RET n" . multi-term-next)
-   ("C-c M-RET o" . multi-term-dedicated-toggle))
+  (("C-c M-RET t" . sane-term)
+   ("C-c M-RET T" . sane-term-create))
   :config
-  (progn
-    (setq multi-term-program
-          (if (string= shell-file-name "/bin/sh")
-              "/bin/bash"
-            "/bin/zsh"))
-    (add-to-list 'term-bind-key-alist
-                 '("C-x C-j" . term-line-mode))
-    (add-to-list 'term-bind-key-alist
-                 '("C-c C-k" . term-char-mode))))
-
+  (when *is-mac*
+    (setq sane-term-shell-command "/bin/zsh")))
 #+END_SRC
 
 ** xterm
@@ -5627,7 +5714,7 @@ A smart M-x enhancement for Emacs.
 
 #+NAME: eshell-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Begin Eshell 
+;; Begin Eshell
 
 ;; eshell bookmark
 <<esh-bookmark>>
@@ -5868,7 +5955,7 @@ the user will be prompted to edit the search string first."
 #+NAME: browser-search
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package search-web
-  :bind (("C-c w" . search-web)))
+  :bind (("M-m w" . search-web)))
 #+END_SRC
 
 *** Advise =org-open-at-point=
@@ -6533,6 +6620,7 @@ Artist mode is a built-in Emacs package.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package artist-mode
+  :straight nil
   :bind ((:map artist-mode-map
                ("C-c C-a p" . artist-select-op-pen-line))))
 #+END_SRC
@@ -6598,16 +6686,16 @@ Artist mode is a built-in Emacs package.
 
   (defun halidom/graphviz-dot-mode-setup ()
     "Setup graphviz dot mode."
-    (define-key graphviz-dot-mode-map "{" nil) 
+    (define-key graphviz-dot-mode-map "{" nil)
     (define-key graphviz-dot-mode-map "}" nil)
     (add-to-list 'org-babel-load-languages '(dot . t))
     (setq org-src-lang-modes
           (append '(("dot" . graphviz-dot))
                   (delete '("dot" . fundamental) org-src-lang-modes))))
-  
+
   (with-eval-after-load 'graphviz-dot-mode
     (halidom/graphviz-dot-mode-setup)))
- 
+
 #+END_SRC
 
 *** Thesaurus
@@ -6627,37 +6715,96 @@ school's WLAN.
 #+END_SRC
 
 * Code
-** Error checking
-*** Flycheck
+** Language Server Protocol (LSP)
+
+#+NAME: lsp-spec
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+;; LSP Mode
+<<lsp-lsp-mode>>
+;; LSP UI Mode
+<<lsp-lsp-ui-mode>>
+;; Company LSP
+<<lsp-company-lsp>>
+#+END_SRC
+
+*** LSP Mode
+
+#+NAME: lsp-lsp-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-mode
+    :custom
+  (lsp-message-project-root-warning t))
+#+END_SRC
+
+*** LSP UI Mode
+
+#+NAME: lsp-lsp-ui-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-ui
+    :bind
+    (:map lsp-ui-mode-map
+     ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+     ([remap xref-find-references]  . lsp-ui-peek-find-references))
+
+    :custom
+    (lsp-ui-doc-include-signature nil)
+    (lsp-ui-sideline-show-symbol nil)
+
+    :hook ((lsp-mode . lsp-ui-mode)))
+
+#+END_SRC
+
+*** Company LSP
+
+#+NAME: lsp-company-lsp
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-lsp
+    :after company
+    :demand t
+    :init
+    (push 'company-lsp company-backends)
+    :config
+    (setq company-transformers nil
+          company-lsp-async t
+          company-lsp-cache-candidates nil))
+#+END_SRC
+
+
+** Flycheck
 
 #+NAME: flycheck-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package flycheck
-    :init
-    (defun halidom/enable-flycheck (mode)
-      "Use flycheck in MODE."
-      (push mode flycheck-global-modes))
+      :custom
+      (flycheck-global-modes nil)
+      (flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+      (flycheck-emacs-lisp-load-path 'inherit)
 
-    (defun halidom/toggle-flycheck-error-list ()
-      "Toggle flycheck's error list window.
-If the error list is visible hide the window. Else display the buffer."
-      (interactive)
-      (-if-let (window (flycheck-get-error-list-window))
-          (quit-window nil window)
-        (flycheck-list-errors)))
+      :init
 
-    (defun halidom/goto-flycheck-error-list ()
-      "Open and go to the error list buffer."
-      (interactive)
-      (unless (get-buffer-window (get-buffer flycheck-error-list-buffer))
-        (flycheck-list-errors)
-        (switch-to-buffer-other-window flycheck-error-list-buffer)))
+      (defun halidom/flycheck-enable (mode)
+        "Use flycheck in MODE."
+        (push mode flycheck-global-modes))
 
-    :config
-    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)
-                  flycheck-emacs-lisp-load-path 'inherit)
+      (defun halidom/flycheck-enable-hook ()
+        "Enable Flycheck as a hook."
+        (when (fboundp 'flycheck-mode)
+          (flycheck-mode +1)))
 
-)
+      (defun halidom/toggle-flycheck-error-list ()
+        "Toggle flycheck's error list window.
+  If the error list is visible hide the window. Else display the buffer."
+        (interactive)
+        (-if-let (window (flycheck-get-error-list-window))
+            (quit-window nil window)
+          (flycheck-list-errors)))
+
+      (defun halidom/goto-flycheck-error-list ()
+        "Open and go to the error list buffer."
+        (interactive)
+        (unless (get-buffer-window (get-buffer flycheck-error-list-buffer))
+          (flycheck-list-errors)
+          (switch-to-buffer-other-window flycheck-error-list-buffer))))
 #+END_SRC
 
 ** Code Style
@@ -6941,7 +7088,7 @@ Disabling for now.
 ;; Topgit
 <<magit-topgit-config>>
 ;; Stgit
-<<magit-stgit-config>> 
+<<magit-stgit-config>>
 #+END_SRC
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
@@ -7193,15 +7340,15 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 #+NAME: docker-cmds
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package docker
-    :bind ("C-c d" . docker))
+    :bind ("M-m d" . docker))
 #+END_SRC
 
 ***** Dockerfile mode
 
-#+NAME: devops-docker
+#+NAME: docker-dockerfile
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package dockerfile-mode
-  :mode ( "Dockerfile\\'" .  dockerfile-mode))
+  :mode "Dockerfile\\'")
 #+END_SRC
 
 ***** Docker Compose
@@ -7295,8 +7442,8 @@ Spacemacs =dotspacemacs-configuration-layers=.
           langs))
 
 (when *is-mac*
-  (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy 
-                        'java 'javascript 'markdown 'scala 'python 
+  (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy
+                        'java 'javascript 'markdown 'scala 'python
                         'ruby 'web))
 
 #+END_SRC
@@ -7391,9 +7538,14 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+NAME: c-cxx-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Begin C/C++
 (when (halidom/proglang-enabled-p 'c-c++)
+  ;; Cmake
   <<c-cxx-cmake>>
-  <<c-cxx-make>>)
+  ;; Make Comint
+  <<c-cxx-make>>
+  ;; Cquery
+  <<c-cxx-cquery>>)
 #+END_SRC
 
 **** Cmake Mode
@@ -7427,14 +7579,65 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+END_SRC
 
-**** Make commands
+**** Make Comint
 
 #+NAME: c-cxx-make
 #+BEGIN_SRC emacs-lisp :tangle no
 (defun make-command (command)
   (interactive "P")
-  (compilation-start (read-shell-command "Make command: " "make " command)))
+  (compilation-start
+   (read-shell-command "Make command: " "make " command)))
 
+#+END_SRC
+
+**** Cquery
+
+#+NAME: c-cxx-cquery
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package cquery
+    :commands lsp-cquery-enable
+    :custom
+    (cquery-executable (executable-find "cquery"))
+    (cquery-extra-init-params '(:index (:comments 2)
+                                :cacheFormat "msgpack"
+                                :completion (:detailedLabel t)))
+    :init
+
+    (defun cquery//enable ()
+      (condition-case nil
+          (lsp-cquery-enable)
+        (user-error "%s" "cquery didn't work")))
+    (add-hook 'c-mode-common-hook #'cquery//enable)
+
+    :config
+
+      ;; Alternatively, use lsp-ui-peek interface
+      ;; (lsp-ui-peek-find-custom 'base "$cquery/base")
+      ;; (lsp-ui-peek-find-custom 'callers "$cquery/callers")
+
+      (defun setup-cquery ()
+        (when (fboundp 'flycheck-mode)
+          (flycheck-mode +1)))
+
+      (add-hook 'c-mode-hook #'setup-cquery)
+      (add-hook 'c++-mode-hook #'setup-cquery)
+
+      (setq cquery-sem-highlight-method 'font-lock)
+      ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
+
+      ;; For rainbow semantic highlighting
+      (with-eval-after-load 'lsp-ui-mode
+        (lsp-ui-peek-find-custom 'base "$cquery/base")
+        (lsp-ui-peek-find-custom 'callers "$cquery/callers")
+        (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
+
+      (cquery-use-default-rainbow-sem-highlight)
+
+      (with-eval-after-load 'projectile
+        (setq projectile-project-root-files-top-down-recurring
+              (append '("compile_commands.json" ".cquery")
+                      projectile-project-root-files-top-down-recurring))))
 #+END_SRC
 
 *** Common Lisp
@@ -7550,7 +7753,7 @@ Provides key bindings and font-locking for Clojure.
 
   (defun halidom/clj-style-compojure ()
     "Indendation for macros defined in compojure routing framework.
-   
+
      See https://github.com/weavejester/compojure/wiki/Emacs-indentation."
 
     (define-clojure-indent
@@ -7566,7 +7769,7 @@ Provides key bindings and font-locking for Clojure.
         (rfn 2)
         (let-routes 1)
         (context 2)))
-  
+
 
   (defun halidom/clj-style-om-next ()
     "Indendation for om-next macros."
@@ -7593,7 +7796,7 @@ Additional syntax highlighting for ~clojure-mode~.
   :config
   (defun halidom/clj-extra-font-locking ()
     (require 'clojure-mode-extra-font-locking))
-  
+
   (add-hook 'clojure-mode-hook #'halidom/clj-extra-font-locking))
 #+END_SRC
 
@@ -7745,7 +7948,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
     (setq groovy-indent-offset 2
           tab-width 4
           indent-tabs-mode nil
-          c-indent-comments-syntactically-p t)) 
+          c-indent-comments-syntactically-p t))
   (add-hook 'groovy-mode-hook #'groovy-style))
 #+END_SRC
 
@@ -7833,7 +8036,7 @@ Gradle is a build tool for Java. It's awesome.
 ***** Meghanada
 
 #+NAME: java-meghanada
-#+BEGIN_SRC emacs-lisp :tangle no :noweb 
+#+BEGIN_SRC emacs-lisp :tangle no :noweb
 (use-package meghanada
   :if (eq halidom-java-backend 'meghanada)
 
@@ -7918,6 +8121,8 @@ Java bytecode inside Emacs buffers.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 ;; Begin JavaScript
 (when (halidom/proglang-enabled-p 'javascript)
+  ;; Set up backend
+  <<js-backend>>
   ;; js2 mode
   <<js-js2>>
   ;; JSON Mode
@@ -7934,15 +8139,160 @@ Java bytecode inside Emacs buffers.
 
 #+END_SRC
 
+**** JS Backend
+
+#+NAME: js-backend
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+<<js-backend-interface>>
+;; Tern
+<<js-backend-tern>>
+;; LSP
+<<js-backend-lsp>>
+;; Setup backend
+<<js-backend-setup>>
+#+END_SRC
+
+***** Backend Interface
+
+#+NAME: js-backend-interface
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defcustom halidom-js-backend 'lsp
+  "The backend to use with JavaScript and friends.
+Supported symbols are `tern' and `lsp'. If enabled,
+the `halidom-js-lsp-clients' variable can be used to
+customize the enabled clients."
+  :type '(choice
+          (const :tag "Use tern." tern)
+          (const :tag "Use lsp." lsp)
+          (const :tag "I don't like nice things." nil)))
+
+(defcustom halidom-js-lsp-clients '(javascript-typescript)
+  "List of defined stdio LSP clients to enable for use in JavaScript.
+Supported values are `javascript-typescript', `javascript-flow',
+and `typescript'.
+By default, only `javascript-typescript' is enabled. This is because
+it's the only one of the three I've gotten to work so far."
+  :type '(list symbol))
+
+(defcustom halidom-js-lsp-modes '(js typescript rjsx)
+  "List of JavaScript major modes which should support `lsp-mode'."
+  :type '(list symbol))
+
+
+#+END_SRC
+
+***** Tern Backend
+
+#+NAME: js-backend-tern
+#+BEGIN_SRC emacs-lisp :tangle no
+;; Tern Backend
+(use-package tern)
+
+(use-package company-tern
+    :requires (tern company))
+
+(defun js-setup-tern ()
+  "Setup the JS backend for Tern."
+  (let ((completion-backends '(company-tern)))
+    (if-not (executable-find "tern")
+        (error "%s" "Executable `tern' could not be found in PATH.")
+      (require 'tern)
+      (require 'company-tern)
+      (set (make-local-variable 'company-backends) completion-backends)
+      (message "%s" "Using Tern backend for JavaScript."))))
+#+END_SRC
+
+***** LSP Backend
+
+#+NAME: js-backend-lsp
+#+BEGIN_SRC emacs-lisp :tangle no
+
+;; LSP Backend
+
+;; LSP JS Typescript
+(use-package lsp-javascript-typescript
+    :if (executable-find "javascript-typescript-langserver")
+    :commands lsp-javascript-typescript-enable)
+
+;; LSP JS Flow
+(use-package lsp-javascript-flow
+    :if (executable-find "flow-language-server")
+    :commands lsp-javascript-flow-enable)
+
+;; LSP Typescript
+(use-package lsp-typescript
+    :straight (lsp-typescript
+               :type git
+               :files ("lsp-typescript.el")
+               :host github
+               :repo "emacs-lsp/lsp-javascript")
+    :if (executable-find "typescript-language-server")
+    :commands lsp-typescript-enable)
+
+(defun js-company-transformer (candidates)
+  (let ((completion-ignore-case t))
+    (all-completions (company-grab-symbol) candidates)))
+
+(defun js-setup-lsp ()
+  "Set up the JS backend for LSP.
+
+More specifically, enable lsp clients listed in `halidom-js-lsp-clients'
+for major modes listed in `halidom-js-lsp-modes'."
+
+  (cl-flet ((lsp-client-function (client)
+              (intern (concat "lsp-" (symbol-name client) "-enable")))
+            (lsp-client-req-pkg (client)
+              (require `,(intern (concat "lsp-" (symbol-name client))))))
+
+    ;;  Fix issue with `javascript-typescript-langserver' completion.
+    (when (member 'javascript-typescript halidom-js-lsp-clients)
+      (make-local-variable 'company-transformers)
+      (push 'js-company-transformer company-transformers))
+
+    (cl-loop
+       for lsp-client in halidom-js-lsp-clients
+       for enable-func = (lsp-client-function lsp-client)
+       do
+         (lsp-client-req-pkg lsp-client)
+         (funcall enable-func))))
+#+END_SRC
+
+***** Setup Backend
+
+#+NAME: js-backend-setup
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(defun js-setup-backend-function ()
+  "Return the setup function corresponding to the symbol
+  assigned to `halidom-js-backend.' "
+  (pcase halidom-js-backend
+    (`tern #'js-setup-tern)
+    (`lsp  #'js-setup-lsp)))
+
+(defun js-setup-backend ()
+  "Set up the JavaScript Backend."
+  (let ((backend-function (js-setup-backend-function)))
+    (funcall backend-function)))
+
+
+#+END_SRC
+
+
 **** js2-mode
 
 #+NAME: js-js2
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package js2-mode
   :custom
   (js-indent-level 2)
   :mode (("\\.js\\'" . js2-mode)
-         ("\\.mjs\\'" . js2-mode)))
+         ("\\.mjs\\'" . js2-mode))
+  :interpreter "node"
+  :init 
+
+  :hook ((js-mode . js-setup-backend)
+         (js-mode . halidom/flycheck-enable-hook)))
 #+END_SRC
 
 **** JSON
@@ -7977,10 +8327,11 @@ Java bytecode inside Emacs buffers.
       (flycheck-mode +1)
       (setq flycheck-check-syntax-automatically '(save mode-enabled)))
     (eldoc-mode +1)
-    (tide-hl-identifier-mode +1))
+    (tide-hl-identifier-mode +1)
 
-      
-  (add-hook 'typescript-mode-hook #'setup-tide-mode))
+    :hook
+    ((typescript-mode-hook . setup-tide-mode)
+     (typescript-mode-hook . js-setup-backend))))
 #+END_SRC
 
 **** rjsx-mode
@@ -7990,9 +8341,9 @@ Real jsx support.
 #+NAME: js-rjsx
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package rjsx-mode
-  :after flycheck
-  :demand t
-  :mode "\\.jsx\\'")
+  :mode "\\.jsx\\'"
+  :hook ((rjsx-mode-hook . js-setup-backend)
+         (rjsx-mode-hook . halidom/flycheck-enable-hook)))
 #+END_SRC
 
 **** CoffeeScript
@@ -8009,13 +8360,10 @@ Real jsx support.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Node Modules
 <<node-modules-path>>
-
 ;; Npm
 <<node-npm>>
-
 ;; Yarn
 <<node-yarn>>
-
 ;; Node Version Manager (nvm)
 <<node-nvm>>
 
@@ -8029,7 +8377,7 @@ Real jsx support.
   :if (executable-find "node")
   :init
   (progn
-    (add-hook 'js2-mode-hook #'add-node-modules-path)))
+    (add-hook 'js-mode-hook #'add-node-modules-path)))
 #+END_SRC
 
 ***** NPM Mode
@@ -8039,6 +8387,11 @@ Real jsx support.
 (use-package npm-mode
     :if (executable-find "npm")
     :init
+    (el-patch-feature npm-mode)
+    (el-patch-defun npm-mode--exec-process (cmd)
+      "Execute a process running CMD."
+      (message (concat "Running " cmd))
+      (compile cmd (el-patch-add t)))
     (npm-global-mode))
 #+END_SRC
 
@@ -8058,11 +8411,12 @@ Real jsx support.
   :if (executable-find "nvm"))
 #+END_SRC
 
+
 *** Python
 
 #+NAME: py-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Begin Python 
+;; Begin Python
 (when (halidom/proglang-enabled-p 'python)
   ;; Python Mode
   <<py-python>>
@@ -8074,8 +8428,11 @@ Real jsx support.
   <<py-virtualenvwrapper>>
   ;; Pyvenv
   <<py-pyvenv>>
-  ;; Anaconda
-  <<py-anaconda>>
+  ;; LSP Python
+  <<py-lsp>>
+
+  ;; Anaconda (Not Tangled)
+
   ;; Pip Requirements
   <<py-pip-requirements>>
   ;; Pydoc
@@ -8194,18 +8551,36 @@ Real jsx support.
   (pyvenv-mode))
 #+END_SRC
 
+**** LSP Python
+
+#+NAME: py-lsp
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-python
+    :commands lsp-python-enable
+    ;; Requires python-language-server
+    :if (executable-find "pyls")
+    :init
+    (add-hook 'python-mode-hook #'lsp-python-enable)
+
+    (defun python//enable-flycheck ()
+      (when (fboundp 'flycheck-mode)
+        (flycheck-mode +1)))
+
+    (add-hook 'python-mode-hook 'python//enable-flycheck))
+#+END_SRC
+
 **** Anaconda
 
 #+NAME: py-anaconda
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<python-anaconda-mode>>
+<<py-anaconda-mode>>
 ;; Anaconda company
-<<python-anaconda-company>>
+<<py-anaconda-company>>
 #+END_SRC
 
 ***** Anaconda Mode
 
-#+NAME: python-anaconda-mode
+#+NAME: py-anaconda-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package anaconda-mode
   :requires python-mode
@@ -8216,7 +8591,7 @@ Real jsx support.
 
 ***** Company Anaconda
 
-#+NAME: python-anaconda-company
+#+NAME: py-anaconda-company
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-anaconda
   :init
@@ -8341,7 +8716,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
       (push 'company-robe company-backends)))
   (add-to-hooks #'halidom/robe-mode-enable
                 '(ruby-mode-hook enh-ruby-mode-hook)))
- 
+
 #+END_SRC
 
 **** Yard Mode
@@ -8361,7 +8736,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: scala-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Begin Scala 
+;; Begin Scala
 (when (halidom/proglang-enabled-p 'scala)
   ;; Scala Mode
   <<scala-scala-mode>>
@@ -8404,7 +8779,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
    <<web-tagedit>>
    ;; Htmlize
    <<web-htmlize>>
-   ;; CSS 
+   ;; CSS
    <<web-css>>
    ;; Emmet Mode
    <<web-emmet>>
@@ -8713,107 +9088,12 @@ and slim-mode using company.
 **** Livedown
 
 #+NAME: md-livedown
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package livedown
     :straight (livedown
                :type git
                :host github
                :repo "shime/emacs-livedown"))
-#+END_SRC
-
-** Lsp Mode
-
-#+NAME: lsp-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
-
-(use-package lsp-mode
-    :config
-    (setq lsp-message-project-root-warning t)
-)
-
-(use-package lsp-ui
-    :init (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-    :config
-    (setq lsp-ui-doc-include-signature nil)  ; don't include type signature in the child frame
-    (setq lsp-ui-sideline-show-symbol nil)
-    (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-    (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references))
-
-(use-package company-lsp
-    :after company
-    :demand t
-    :init
-    (push 'company-lsp company-backends)
-    :config
-    (setq company-transformers nil
-          company-lsp-async t
-          company-lsp-cache-candidates nil))
-
-
-(defun cquery//enable ()
-  (condition-case nil
-      (lsp-cquery-enable)
-    (user-error "%s" "cquery didn't work")))
-
-(use-package cquery
-    :commands lsp-cquery-enable
-    :init
-    (add-hook 'c-mode-common-hook #'cquery//enable)
-    :config
-    (progn
-      (setq cquery-executable "/usr/local/bin/cquery")
-      (setq cquery-extra-init-params
-            '(:index (:comments 2)
-              :cacheFormat "msgpack"
-              :completion (:detailedLabel t)))
-      ;; Alternatively, use lsp-ui-peek interface
-      ;; (lsp-ui-peek-find-custom 'base "$cquery/base")
-      ;; (lsp-ui-peek-find-custom 'callers "$cquery/callers")
-      (defun setup-cquery ()
-        (when (fboundp 'flycheck-mode)
-          (flycheck-mode +1)))
-
-      (add-hook 'c-mode-hook #'setup-cquery)
-      (add-hook 'c++-mode-hook #'setup-cquery)
-
-      (setq cquery-sem-highlight-method 'font-lock)
-      ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
-
-      ;; For rainbow semantic highlighting
-      (with-eval-after-load 'lsp-ui-mode
-        (lsp-ui-peek-find-custom 'base "$cquery/base")
-        (lsp-ui-peek-find-custom 'callers "$cquery/callers")
-        (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
-
-      (cquery-use-default-rainbow-sem-highlight)
-
-      (with-eval-after-load 'projectile
-        (setq projectile-project-root-files-top-down-recurring
-              (append '("compile_commands.json"
-                        ".cquery")
-                      projectile-project-root-files-top-down-recurring)))))
-
-
-(use-package lsp-python
-    :commands lsp-python-enable
-    :init
-    (add-hook 'python-mode-hook #'lsp-python-enable)
-    (defun python//enable-flycheck ()
-      (when (fboundp 'flycheck-mode)
-        (flycheck-mode +1)))
-    (add-hook 'python-mode-hook 'python//enable-flycheck))
-
-
-(use-package lsp-javascript-typescript
-    :if (executable-find "javascript-typescript-langserver")
-    :commands lsp-javascript-typescript-enable
-    :init
-    (add-hook 'js-mode-hook #'lsp-javascript-typescript-enable)
-    (add-hook 'js2-mode-hook #'lsp-javascript-typescript-enable)
-    (add-hook 'typescript-mode-hook #'lsp-javascript-typescript-enable)
-    (add-hook 'rjsx-mode #'lsp-javascript-typescript-enable))
-
-
 #+END_SRC
 
 * Footnotes
