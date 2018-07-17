@@ -86,8 +86,9 @@
     - [[#initial-frame][Initial Frame]]
   - [[#window-manager][Window Manager]]
     - [[#window-resize][Window Resize]]
-    - [[#popwin][Popwin]]
     - [[#winner-mode][Winner Mode]]
+    - [[#popwin][Popwin]]
+    - [[#poporg][Poporg]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
   - [[#copy-and-paste][Copy and Paste]]
@@ -205,6 +206,7 @@
     - [[#devops][DevOps]]
     - [[#time-tracking][Time Tracking]]
     - [[#debugging][Debugging]]
+    - [[#logview][Logview]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#asm][ASM]]
@@ -4296,14 +4298,6 @@ accessible for you [fn:14].
 (global-set-key (kbd "C-s-<up>") 'enlarge-window)
 #+END_SRC
 
-*** Popwin
-
-#+NAME: popwin-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package popwin
-  :config (popwin-mode 1))
-#+END_SRC
-
 *** Winner Mode
 
 [[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
@@ -4316,6 +4310,21 @@ different window configurations.
   :init
   (when (fboundp 'winner-mode)
     (winner-mode 1)))
+#+END_SRC
+
+*** Popwin
+
+#+NAME: popwin-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package popwin
+  :config (popwin-mode 1))
+#+END_SRC
+
+*** Poporg
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package poporg
+      :bind (("C-c /" . poporg-dwim)))
 #+END_SRC
 
 *** Golden Ratio
@@ -5483,9 +5492,11 @@ Turn Ivy mode on if ARG is positive, off othherwise.
                  (yank-pop . counsel-yank-pop)
                  (info-lookup-symbol . counsel-info-lookup-symbol)
                  (pop-to-mark-command . counsel-mark-ring)
-                 (bookmark-jump . counsel-bookmark)))
-        (define-key map (vector 'remap (car binding)) (cdr binding)))
-      map)
+                 (bookmark-jump . counsel-bookmark)
+                 (org-capture . counsel-org-capture)
+                 (org-tag . counsel-org-tag)))
+        (define-key map
+            (vector 'remap (car binding)) (cdr binding))) map)
     "Map for `counsel-mode'.
 Remaps built-in functions to counsel replacements.")
 
@@ -5521,6 +5532,7 @@ replacements. "
 
   :config
   (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
+  (setq counsel-mode-override-describe-bindings t)
 
   :diminish counsel-mode)
 
@@ -5870,6 +5882,28 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 
 #+NAME: xwidget-ns
 #+BEGIN_SRC emacs-lisp :tangle no
+(el-patch-feature xwidget)
+(with-eval-after-load 'xwidget
+  (el-patch-defun xwidget-webkit-new-session (url)
+    "Create a new webkit session buffer with URL."
+    (let*
+        ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
+         xw)
+      (setq xwidget-webkit-last-session-buffer
+            ((el-patch-swap switch-to-buffer switch-to-buffer-other-window)
+             (get-buffer-create bufname)))
+      ;; The xwidget id is stored in a text property, so we need to have
+      ;; at least character in this buffer.
+      ;; Insert invisible url, good default for next `g' to browse url.
+      (insert url)
+      (put-text-property 1 (+ 1 (length url)) 'invisible t)
+      (setq xw (xwidget-insert 1 'webkit bufname
+                               (xwidget-window-inside-pixel-width (selected-window))
+                               (xwidget-window-inside-pixel-height (selected-window))))
+      (xwidget-put xw 'callback 'xwidget-webkit-callback)
+      (xwidget-webkit-mode)
+      (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url))))
+
 (when (require 'xwidget)
   (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
   (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
@@ -5891,6 +5925,7 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
      (concat "file://"
              (and (memq system-type '(windows-nt ms-dos)) "/")
              (expand-file-name (or file (buffer-file-name)))))))
+
 #+END_SRC
 
 **** xwidgete
@@ -6019,12 +6054,15 @@ Interactively.
 
 (if *is-mac*
     (progn
-      (setf (cdr (assoc "chrome" browse-url-browser-alist)) #'osx-browse-url-chrome)
-      (setf (cdr (assoc "firefox" browse-url-browser-alist)) #'osx-browse-url-firefox)
-      (add-to-list 'browse-url-browser-alist '("safari" . osx-browse-url-safari))))
-
+      (setf (cdr (assoc "chrome" browse-url-browser-alist))
+            #'osx-browse-url-chrome)
+      (setf (cdr (assoc "firefox" browse-url-browser-alist))
+            #'osx-browse-url-firefox)
+      (add-to-list 'browse-url-browser-alist
+                   '("safari" . osx-browse-url-safari))))
 
 (defun set-browser-function ()
+  "Interactively set the browser used by `browse-url'. "
   (interactive)
   (let ((browser (assoc (completing-read "Browser: " browse-url-browser-alist)
                         browse-url-browser-alist)))
@@ -6465,7 +6503,8 @@ This works by frobbing `face-remapping-alist'."
   (interactive)
   (if-not face-remapping-alist
       (progn
-        (face-remap-add-relative 'variable-pitch :family org-variable-pitch-font)
+        (face-remap-add-relative 'variable-pitch
+                                 :family org-variable-pitch-font)
         (face-remap-add-relative 'default 'variable-pitch)
         (->> halidom-org-fixed-pitch-faces
             (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
@@ -6743,7 +6782,8 @@ school's WLAN.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lsp-mode
     :custom
-  (lsp-message-project-root-warning t))
+  (lsp-message-project-root-warning t)
+  (lsp-inhibit-message t))
 #+END_SRC
 
 *** LSP UI Mode
@@ -6778,7 +6818,6 @@ school's WLAN.
           company-lsp-async t
           company-lsp-cache-candidates nil))
 #+END_SRC
-
 
 ** Flycheck
 
@@ -7426,6 +7465,13 @@ A front-end for interacting with external debuggers in Emacs.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package realgud
   :straight t)
+#+END_SRC
+
+*** Logview
+
+#+NAME: logview-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package logview)
 #+END_SRC
 
 ** Prog Lang API
@@ -8317,6 +8363,12 @@ for major modes listed in `halidom-js-lsp-modes'."
     "Styleguide for JSON Mode."
     (set (make-local-variable 'js-indent-level) 2))
 
+  (defun json-mode-faces ()
+    (let ((foreground (face-foreground 'font-lock-variable-name-face)))
+      (face-remap-add-relative 'font-lock-keyword-face
+                               `(:slant normal :foreground ,foreground))))
+
+  (add-hook 'json-mode-hook #'json-mode-faces)
   (add-hook 'json-mode-hook 'json-mode-style))
 
 #+END_SRC
@@ -8403,6 +8455,7 @@ Real jsx support.
       "Execute a process running CMD."
       (message (concat "Running " cmd))
       (compile cmd (el-patch-add t)))
+    :config
     (npm-global-mode))
 #+END_SRC
 
@@ -9104,7 +9157,12 @@ and slim-mode using company.
     :straight (livedown
                :type git
                :host github
-               :repo "shime/emacs-livedown"))
+               :repo "shime/emacs-livedown")
+    :custom (livedown-open nil)
+    :init
+    (when (featurep 'xwidget)
+      (defadvice livedown-preview (after livedown-preview-after activate)
+         (xwidget-webkit-browse-url "http://localhost:1337"))))
 #+END_SRC
 
 * Footnotes
