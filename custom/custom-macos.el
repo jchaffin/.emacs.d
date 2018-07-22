@@ -170,11 +170,35 @@
  '(cider-repl-wrap-history t t)
  '(cider-show-error-buffer nil t)
  '(clojure-indent-style :always-indent t)
+ '(company-box-enable-icon nil)
+ '(cquery-executable "/usr/local/bin/cquery" t)
+ '(cquery-extra-init-params
+   '(:index
+     (:comments 2)
+     :cacheFormat "msgpack" :completion
+     (:detailedLabel t)) t)
+ '(css-indent-offset nil t)
  '(debug-on-error t)
- '(js-indent-level 2)
+ '(eshell-modify-global-environment t)
+ '(flycheck-disabled-checkers '(emacs-lisp-checkdoc) t)
+ '(flycheck-emacs-lisp-load-path 'inherit t)
+ '(flycheck-global-modes nil t)
+ '(ggtags-highlight-tag nil t)
+ '(js-indent-level 2 t)
+ '(livedown-open nil t)
+ '(lsp-inhibit-message t)
+ '(lsp-message-project-root-warning t t)
+ '(lsp-project-blacklist '("^/ssh:"))
+ '(lsp-render-markdown-content 'gfm-view-mode t)
+ '(lsp-ui-doc-include-signature t t)
+ '(lsp-ui-peek-always-show t t)
+ '(lsp-ui-sideline-show-symbol t t)
  '(meghanada-javac-xlint "-Xlint:all,-processing" t)
  '(meghanada-server-remote-debug t t)
+ '(message-send-mail-function 'async-smtpmail-send-it)
  '(nrepl-hide-special-buffers t t)
+ '(org-agenda-files '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org"))
+ '(projectile-completion-system 'ivy)
  '(safe-local-variable-values
    '((eval sh-set-shell zsh)
      (org-src-preserve-indentation)
@@ -206,11 +230,12 @@
      (checkdoc-package-keywords-flag)
      (cider-default-cljs-repl . fm)
      (eval cider-register-cljs-repl-type 'fm "(require 'figwheel.main)(figwheel.main/start \"dev\")" 'cider-verify-piggieback-is-present)
-     (eval sh-set-shell "zsh"))))
+     (eval sh-set-shell "zsh")))
+ '(typescript-indent-level 2 t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(lsp-ui-sideline-symbol-info ((t (:height 0.99)))))
 

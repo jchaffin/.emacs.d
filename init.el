@@ -182,6 +182,9 @@
 
      (add-hook 'org-mode-hook 'chaffin--unbind-org-mode-map-keys)))
 
+
+;; Literate 
+
 (defun load-literate (&optional user-config-file init-server)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
 Else use the value of `literate-config-file'."
@@ -201,7 +204,32 @@ Else use the value of `literate-config-file'."
 ;; Debug
 
 (defvar literate-debug-blocks
-  '("read-only" "ivy-base" "if-not" "counsel-base" "readview-fc" "org-ui-fill"))
+  '("core-functions" "read-only" "ivy-base" "if-not" "counsel-base" "readview-fc" "org-ui-fill"))
+
+
+(defun literate-src-parameter-string->alist (parameters)
+  "Convert src block parameter string into a plist."
+  (let ((params-list (split-string parameters " " t)))
+    (cl-loop for x in params-list
+	     for i from 1 to (length params-list)
+	     if (cl-oddp i)
+	     collect (intern x) into odds
+	     else
+	     collect x into evens
+	     end
+	     finally (return (seq-mapn #'cons odds evens)))))
+
+
+(defun literate-src-block-noweb-p (parameters)
+  (let ((params-alist (literate-src-parameter-string->alist parameters)))
+    (string= "yes" (cdr (assoc :noweb params-alist)))))
+
+
+(defun sanitize-no-web-block (code)
+  (let ((sx (split-string code "\n" t)))
+    (cl-flet ((func (s)
+		  (replace-regexp-in-string "<<\\(.*?\\)>>" "\\1" s)))
+      (mapcar #'func sx))))
 
 (defun literate-tangle-src-block (name)
   (let ((buf (find-file-noselect (expand-file-name "chaffin.org" user-emacs-directory))))
@@ -209,10 +237,16 @@ Else use the value of `literate-config-file'."
       (org-element-map (org-element-parse-buffer) 'src-block
 	(lambda (block)
 	  (if (string= name (org-element-property :name block))
-	      (let ((code (org-element-property :value block)))
-		(with-temp-buffer
-		  (insert code)
-		  (eval-buffer)))))))
+	      (let ((code (org-element-property :value block))
+		    (params (org-element-property :parameters block))
+		    (noweb-p (literate-src-block-noweb-p
+			       (org-element-property :parameters block))))
+
+		(if noweb-p
+		    (mapcar #'literate-tangle-src-block (sanitize-no-web-block code))
+		  (with-temp-buffer
+		   (insert code)
+		   (eval-buffer))))))))
     (kill-buffer buf)))
 
 (defun literate-debug-enabled ()
