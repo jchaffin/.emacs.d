@@ -258,3 +258,5 @@ Else use the value of `literate-config-file'."
     (load-literate literate-config-file)
   (literate-debug-enabled))
 
+;;;; init.el ends here
+

@@ -9,6 +9,7 @@
   - [[#literate-programming][Literate Programming]]
   - [[#influences][Influences]]
 - [[#base-configuration][Base Configuration]]
+  -  [[#tangle-file][Tangle File]]
   - [[#package-management][Package Management]]
     - [[#straight][Straight]]
   - [[#user-information][User Information]]
@@ -253,6 +254,7 @@
     - [[#scala][Scala]]
     - [[#web-programming][Web Programming]]
     - [[#markdown][Markdown]]
+- [[#prologue][Prologue]]
 - [[#footnotes][Footnotes]]
 
 * Preface
@@ -277,6 +279,47 @@ compiler.
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
 
 * Base Configuration
+**  Tangle File
+:PROPERTIES:
+:ID:       E291C00A-151B-4B37-B771-2E71B7CF937A
+:CUSTOM_ID: tangle-file
+:END:
+
+#+NAME: comment-block
+#+BEGIN_SRC emacs-lisp :tangle yes
+;;; chaffin.el -- Emacs Configuration File
+;;
+;; Copyright (c) 2017 Jacob Chaffin
+;;
+;; Author: Jacob Chaffin <jchaffin@ucla.edu>
+;; Keywords: emacs, .emacs.d, elisp, straight-el
+;; Homepage: https://github.com/jchaffin/.emacs.d
+;; Package-Requires: ((emacs "25"))
+;;
+;; This file is not part of GNU Emacs.
+;;
+;;; License: GPLv3
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;; Commentary:
+;; This file was tangled using `org-babel'. See [[file:chaffin.org::#tangle-file][chaffin.org]] for the source.
+
+;;; Code:
+#+END_SRC
+
 ** Package Management
 *** Straight
 :PROPERTIES:
@@ -1319,7 +1362,7 @@ external programs.
 <<macos-mouse-2>>
 #+END_SRC
 
-***** Prefix Map
+**** Prefix Map
 
 #+NAME: macos-prefix
 #+BEGIN_SRC emacs-lisp :tangle no 
@@ -1328,7 +1371,7 @@ external programs.
 (which-key-add-prefix-title "M-m m" "macOS")
 #+END_SRC
 
-***** Modifier Keys
+**** Modifier Keys
 
 macOS specific settings[fn:5].
 
@@ -1354,7 +1397,7 @@ Also sets terminal coding system to "utf-8".
 
 #+END_SRC
 
-***** Generate =<mouse-2>= on trackpad
+**** Generate =<mouse-2>= on trackpad
 
 As far as I know, there is no trackpad gesture to trigger the
 =<mouse-2>= event in Emacs. The following snippet uses
@@ -1402,7 +1445,8 @@ editors and various other applications on macOS.
   (macos-dev-utils
    :host github
    :repo "jchaffin/macos-dev-utils")
-  :init
+  :defines (macos-iterm-command-map macos-open-with-command-map)
+  :config
   (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
   (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)
   (which-key-add-key-based-replacements "M-m m t"
@@ -2048,7 +2092,6 @@ line are justified."
 ;;    #'org-preview-algorithm-environment)
 #+END_SRC
 
-
 *** Company AucTeX
 
 #+NAME: latex-company-auctex
@@ -2061,15 +2104,13 @@ line are justified."
 #+END_SRC
 
 *** Company Reftex
+
 #+NAME: latex-company-reftex
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-reftex
   :demand t
-  :after (:all company tex)
-  :init
-  (add-to-list 'company-backends 'company-reftex))
+  :after (:all company reftex))
 #+END_SRC
-
 
 *** cdlatex
 
@@ -2156,8 +2197,9 @@ Prettify dedicated org-mode latex buffers.
 #+END_SRC
 
 **** Unicode Math mode
+
 #+NAME: latex-math-unicode
-#+BEGIN_SRC emacs-lisp :tangle
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-unicode-math-mode
   :init
   (add-hook 'LaTeX-mode-hook 'latex-unicode-math-mode))
@@ -2167,8 +2209,7 @@ Prettify dedicated org-mode latex buffers.
 
 #+NAME: latex-math-symbols
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package math-symbols
-    :straight t)
+(use-package math-symbols)
 #+END_SRC
 
 **** Logical Symbols
@@ -2224,18 +2265,20 @@ Entered on [2018-06-13 Wed 11:42]
     (interactive)
     (logic/insert "()"))
 
-  ;; (global-set-key (kbd "M-m l o") #'logic/insert-or)
-  ;; (global-set-key (kbd "M-m l (") #'logic/insert-paren)
-  ;; (global-set-key (kbd "M-m l )") #'logic/insert-rparen)
-  ;; (global-set-key (kbd "M-m l p") #'logic/insert-p)
-  ;; (global-set-key (kbd "M-m l q") #'logic/insert-q)
-  ;; (global-set-key (kbd "M-m l a") #'logic/insert-and)
-  ;; (global-set-key (kbd "M-m l n") #'logic/insert-neg)
-  ;; (global-set-key (kbd "M-m l i") #'logic/insert-if)
-  ;; (global-set-key (kbd "M-m l I") #'logic/insert-iff)
 
-  ;; (global-set-key (kbd "M-m l l") #'math-symbols-insert)
+  (define-key LaTeX-mode-map (kbd "M-m l o") #'logic/insert-or)
+  (define-key LaTeX-mode-map (kbd "M-m l (") #'logic/insert-paren)
+  (define-key LaTeX-mode-map (kbd "M-m l )") #'logic/insert-rparen)
+  (define-key LaTeX-mode-map (kbd "M-m l p") #'logic/insert-p)
+  (define-key LaTeX-mode-map (kbd "M-m l q") #'logic/insert-q)
+  (define-key LaTeX-mode-map (kbd "M-m l a") #'logic/insert-and)
+  (define-key LaTeX-mode-map (kbd "M-m l n") #'logic/insert-neg)
+  (define-key LaTeX-mode-map (kbd "M-m l i") #'logic/insert-if)
+  (define-key LaTeX-mode-map (kbd "M-m l I") #'logic/insert-iff)
+
+  (define-key LaTeX-mode-mapl (kbd "M-m l l") #'math-symbols-insert)
 #+END_SRC
+
 
 ** Org Mode
 :PROPERTIES:
@@ -2369,7 +2412,6 @@ org-mode buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 
 (defun chaffin--vfc-hook ()
-  (visual-fill-column-mode 1)
   (visual-line-mode 1))
 
 (add-hook 'org-mode-hook #'chaffin--vfc-hook)
@@ -2793,13 +2835,18 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 
 #+NAME: org-docmgr-links
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-links-youtube>>
+;; Org Man
 <<org-links-manpage>>
+;; Org Mac LInk
 <<org-links-mac>>
+;; Cliplink
 <<org-links-cliplink>>
+;; Org elisp help
 <<org-links-elisp-help>>
+;; Org YouTube
+<<org-links-youtube>>
+;; Org links minor mode
 <<org-links-minor>>
-
 #+END_SRC
 
 ***** Org Man
@@ -2871,10 +2918,10 @@ Embed YouTube Links in iframe.
 
 ***** Org Link Minor Mode
 
-#+NAME: org-link-minor
-#+BEGIN_SRC emacs-lisp :tangle no :comments noweb
+#+NAME: org-links-minor
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-link-minor-mode
-  :config (org-link-minor-mode +1))
+  :hook (prog-mode . org-link-minor-mode))
 #+END_SRC
 
 
@@ -4864,17 +4911,22 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 (if *is-hal*
     (setq macos-default-font
-	  "Operator Mono:pixelsize=13:weight=light:slant=normal:width=normal:spacing=100:scalable=true"))
+	        "Operator Mono:pixelsize=13:weight=light:slant=normal:width=normal:spacing=100:scalable=true"))
 
+(defun halidom/font-setup (&optional frame)
+  (cond
+    (*is-linux*   
+     (set-frame-font "Ubuntu Mono 12" frame t))
+    (*is-windows*
+     (set-frame-font "Lucida Sans Typewriter 12" frame t))
+    (*is-mac*
+     (set-frame-font macos-default-font frame t))
+    (t
+     (set-frame-font "Menlo 12" frame t))))
 
-(cond (*is-linux*
-       (set-frame-font "Ubuntu Mono 12" nil t))
-      (*is-windows*
-       (set-frame-font "Lucida Sans Typewriter 12" nil t))
-      (*is-mac*
-       (set-frame-font macos-default-font nil t))
-      (t
-       (set-frame-font "Menlo 12" nil t)))
+(add-hook 'after-init-hook 'halidom/font-setup)
+(add-hook 'after-make-frame-functions 'halidom/font-setup)
+
 #+END_SRC
 
 ** Modeline
@@ -5009,7 +5061,6 @@ Options are 'spaceline, 'sml, and 'powerline."
 
 (add-hook 'after-init-hook 'halidom/modeline-setup)
 (add-hook 'after-make-frame-functions 'halidom/modeline-setup-frame)
-
 
 #+END_SRC
 
@@ -9227,6 +9278,12 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
     (halidom/web-mode-enable)
     (halidom/web-mode-indent))
 
+  (defun halidom/web-mode-flycheck ()
+    (when (fboundp 'flycheck-mode)
+      (flycheck-mode +1)))
+
+  (add-hook 'web-mode-hook #'halidom/web-mode-flycheck)
+
   (add-hook 'web-mode-hook #'halidom/web-mode-style)
   
   (defun halidom/web-dash-docsets ()
@@ -9265,7 +9322,14 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lsp-html
     :if (executable-find "html-languageserver")
-    :hook (html-mode . lsp-html-enableb))
+    :init
+    (defun html-lsp-setup ()
+      (when (string-equal "html" (file-name-extension buffer-file-name))
+        (lsp-html-enable)
+        (flycheck-add-mode 'html-tidy 'web-mode)))
+    :hook (web-mode . html-lsp-setup))
+
+
 #+END_SRC
 
 **** CSS
@@ -9426,7 +9490,7 @@ and slim-mode using company.
       (set (make-local-variable 'company-backends) backends)))
 
 
-  (add-hook 'web-mode-hook #'halidom/company-web-enable))
+  (add-hook 'web-mode-hook #'halidom/company-web-mode-enable))
 
 #+END_SRC
 
@@ -9456,7 +9520,6 @@ and slim-mode using company.
 #+NAME md-markdown-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package markdown-mode
-  :straight t
   :defines (markdown-command markdown-mode-hook)
   :mode
   (("README\\.md\\'" . gfm-mode)
@@ -9477,6 +9540,7 @@ and slim-mode using company.
                     (auto-fill-mode t))
                   '(markdown-mode-hook gfm-mode-hook))))
 #+END_SRC
+
 
 **** markdown-mode+
 
@@ -9521,8 +9585,17 @@ and slim-mode using company.
     :custom (livedown-open nil)
     :init
     (when (featurep 'xwidget)
+      (require 'xwidget)
       (defadvice livedown-preview (after livedown-preview-after activate)
          (xwidget-webkit-browse-url "http://localhost:1337"))))
+#+END_SRC
+
+* Prologue
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+;;; chaffin.el ends here
+
 #+END_SRC
 
 * Footnotes
@@ -9567,5 +9640,6 @@ dialects of Lisp.
 [fn:17] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
 
 [fn:18] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+
 
 
