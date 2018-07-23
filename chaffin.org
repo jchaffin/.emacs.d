@@ -16,6 +16,7 @@
   - [[#customization-group][Customization Group]]
   - [[#core][Core]]
     - [[#libraries][Libraries]]
+    - [[#el-patch][El Patch]]
     - [[#constants][Constants]]
     - [[#macros][Macros]]
     - [[#functions][Functions]]
@@ -163,6 +164,8 @@
     - [[#eshell-z][Eshell Z]]
     - [[#eshell-prompt-extras][Eshell Prompt Extras]]
   - [[#shell][Shell]]
+    - [[#zsh-macfix][ZSH Macfix]]
+    - [[#shell-command-to-list][Shell Command to list]]
   - [[#remote][Remote]]
     - [[#ssh][SSH]]
     - [[#scp][SCP]]
@@ -232,6 +235,7 @@
     - [[#pair-matching][Pair Matching]]
     - [[#gtags][Gtags]]
   - [[#version-control][Version Control]]
+    - [[#vcs-customize-interface][VCS Customize Interface]]
     - [[#git][Git]]
     - [[#mercurial][Mercurial]]
   - [[#prog-tools][Prog Tools]]
@@ -239,6 +243,7 @@
     - [[#time-tracking][Time Tracking]]
     - [[#debugging][Debugging]]
     - [[#logging][Logging]]
+    - [[#diffing][Diffing]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#asm][ASM]]
@@ -467,6 +472,22 @@ The string manipulation library.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package s)
+#+END_SRC
+
+*** El Patch
+Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to advice system and package lazy-loading.
+
+#+NAME: elpatch-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package el-patch
+    :init
+  (defun el-patch-remove-feature ()
+    (interactive)
+    (let ((feature (completing-read "Feature: " el-patch-pre-validate-hook))
+          (patch (call-interactively #'el-patch-unpatch)))
+      (remove-hook 'el-patch-pre-validate-hook (intern feature))
+      (remhash patch el-patch--patches))))
+
 #+END_SRC
 
 *** Constants
@@ -858,7 +879,6 @@ function FUNC. To copy the file path to the kill-ring, use the
 (defalias #'straight-dir (apply-partially #'emacs-dir "straight"))
 #+END_SRC
 
-
 *** Default Setup
 **** Garbage Collection
 
@@ -963,9 +983,11 @@ Causes a conflict with ~lsp-mode~.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (when (and (executable-find "gpg") *is-mac*)
   (if-not (string-empty-p
-	   (shell-command-to-string
-	    (concat "gpg --list-keys | grep " user-mail-address)))
-      (load-library (emacs-dir "secrets" "secrets.el.gpg"))
+       (shell-command-to-string
+	      (concat "gpg --list-keys | grep " user-mail-address)))
+      (progn
+        (add-to-list 'load-path (emacs-dir "secrets"))
+        (require 'secrets))
     (print (format "GPG key(s) for %s not found"
                    (or user-full-name user-mail-address)))))
 #+END_SRC
@@ -1233,7 +1255,7 @@ from within Emacs.
 (let ((map reload-eval-prefix-map))
   (define-key map "i" 'straight-reload-init)
   (define-key map "b" 'straight-eval-buffer)
-  (define-key map "r" 'straight-eval-region)
+  (define-key map "r" 'eval-region)
   (define-key map "f" 'straight-eval-defun)
   (define-key map "q" 'restart-emacs))
 
@@ -4887,7 +4909,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   "Set the custom FONT with completion"
   (interactive)
   (let* ((font (or font (assoc
-			 (completing-read "Font: " font-list nil nil)
+			 (completing-readxo "Font: " font-list nil nil)
 			 font-list)))
 	 (family (car font))
 	 (weight (cdr font)))
@@ -5306,11 +5328,14 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: all-the-icons-setup
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package all-the-icons
-  :config
+  :init
   (progn
     (setq macos-font-directory "~/Library/Fonts")
     (if-not (member "all-the-icons.ttf" (directory-files macos-font-directory))
-        (all-the-icons-install-fonts))))
+        (all-the-icons-install-fonts)))
+  :config
+  (let ((props (cdr (assoc "\\.node" all-the-icons-icon-alist))))
+    (add-to-list 'all-the-icons-icon-alist (cons "\\.mjs" props))))
 #+END_SRC
 
 *** Scrolling
@@ -5967,9 +5992,9 @@ A smart M-x enhancement for Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<term-with-editor>>
-<<term-multiterm>>
+<<term-sane>>
 <<term-xterm>>
-<<term-zsh-macfix>>
+<<term-shell>>
 <<term-tramp>>
 #+END_SRC
 
@@ -5988,7 +6013,7 @@ A smart M-x enhancement for Emacs.
 
 ** Sane Term
 
-#+NAME: term-multiterm
+#+NAME: term-sane
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package sane-term
   :bind
@@ -6012,7 +6037,10 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
   "Escape ANSI color sequence in the compilation buffer."
   (let ((inhibit-read-only t))
     (ansi-color-apply-on-region (point-min) (point-max))))
+
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+(add-hook 'comint-output-filter-functions 'ansi-color-process-output)
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
 #+END_SRC
 
@@ -6087,14 +6115,40 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 
 ** Shell
 
+#+NAME: term-shell
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; ZSH Shell Fix
+<<shell-zsh-macfix>>
+;; Shell Command to List
+<<shell-cmd-to-list>>
+#+END_SRC
+
+*** ZSH Macfix
+
 Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
-#+NAME: term-zsh-macfix
+#+NAME: shell-zsh-macfix
 #+BEGIN_SRC emacs-lisp :tangle no
 (when *is-mac*
   (setq explicit-shell-file-name "/bin/sh"
 	      shell-file-name "sh")
   (setenv "SHELL" shell-file-name))
+#+END_SRC
+
+*** Shell Command to list
+
+#+NAME: shell-cmd-to-list
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun shell-command-to-list (command)
+    "Store stdout as an elisp list."
+    (interactive "sCommand: " )
+
+    (--> command
+         (shell-command-to-string it) 
+         (split-string it)
+         (if (interactive-p)
+             (message "%s" it)
+           it)))
 #+END_SRC
 
 ** Remote
@@ -6263,6 +6317,10 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 #+BEGIN_SRC emacs-lisp :tangle no
 
 (use-package browse-url
+    :custom (browse-url-chromium-program
+             (if *is-mac*
+                 "/Applications/Chromium.app/Contents/MacOS/Chromium"
+               "chromium"))
   :config
   (progn
     (when (not (display-graphic-p))
@@ -7099,11 +7157,9 @@ school's WLAN.
 #+NAME: lsp-lsp-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lsp-mode
-    :custom
-  (lsp-message-project-root-warning t)
-  (lsp-inhibit-message t)
-  (lsp-render-markdown-content 'gfm-view-mode)
-  (lsp-project-blacklist '("^/ssh:") ))
+  :init
+  (setq lsp-inhibit-message t)
+  (setq lsp-message-project-root-warning t))
 #+END_SRC
 
 *** LSP UI Mode
@@ -7117,11 +7173,10 @@ school's WLAN.
      ([remap xref-find-references]  . lsp-ui-peek-find-references))
 
     :custom
-    (lsp-ui-doc-include-signature t)
-    (lsp-ui-sideline-show-symbol t)
-    (lsp-ui-peek-always-show t)
+    (lsp-ui-doc-include-signature nil)
+    (lsp-ui-sideline-show-symbol nil)
 
-    :hook ((lsp-mode . lsp-ui-mode)))
+    :hook (lsp-mode . lsp-ui-mode))
 
 #+END_SRC
 
@@ -7411,15 +7466,11 @@ Disabling for now.
 
 ** Version Control
 
-#+BEGIN_SRC emacs-lisp :tangle yes
-(defcustom halidom-vcs-svn-list '(git)
-  "List of VCS-SVNs for which libraries and tooling should be installed.
-  Options are `git' and/or `hg' (mercurial) as symbols in a list, else nil."
-  :type '(list symbol))
-#+END_SRC
-
 #+NAME: vcs-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+
+<<vcs-interface>>
+
 ;; Hg (Mercurial)
 (when (and (member 'hg halidom-vcs-svn-list)
            (executable-find "hg"))
@@ -7430,6 +7481,16 @@ Disabling for now.
            (executable-find "git"))
   <<vcs-git>>
 )
+#+END_SRC
+
+*** VCS Customize Interface
+
+#+NAME: vcs-interface
+#+BEGIN_SRC emacs-lisp :tangle no 
+(defcustom halidom-vcs-svn-list '(git)
+  "List of VCS-SVNs for which libraries and tooling should be installed.
+  Options are `git' and/or `hg' (mercurial) as symbols in a list, else nil."
+  :type '(list symbol))
 #+END_SRC
 
 *** Git
@@ -7811,6 +7872,16 @@ A front-end for interacting with external debuggers in Emacs.
 #+NAME: lognav
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package lognav-mode)
+#+END_SRC
+
+*** Diffing
+
+#+NAME: ediff-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package ediff
+    :custom
+  (ediff-diff-options "-w"))
+
 #+END_SRC
 
 ** Prog Lang API
@@ -8531,6 +8602,8 @@ Java bytecode inside Emacs buffers.
   <<js-cofee>>
   ;; Node.js
   <<js-node>>
+  ;; Indium 
+  <<js-indium>>
 ) ;; End JavaScript
 
 #+END_SRC
@@ -8687,8 +8760,8 @@ for major modes listed in `halidom-js-lsp-modes'."
   :interpreter "node"
   :init
 
-  :hook ((js-mode . js-setup-backend)
-         (js-mode . halidom/flycheck-enable-hook)))
+  :hook ((js2-mode . js-setup-backend)
+         (js2-mode . halidom/flycheck-enable-hook)))
 #+END_SRC
 
 **** JSON
@@ -8697,7 +8770,7 @@ for major modes listed in `halidom-js-lsp-modes'."
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package json-mode
   :mode "\\.json\\'"
-  :config
+  :init
   (defun json-mode-style ()
     "Styleguide for JSON Mode."
     (set (make-local-variable 'js-indent-level) 2))
@@ -8706,9 +8779,13 @@ for major modes listed in `halidom-js-lsp-modes'."
     (let ((foreground (face-foreground 'font-lock-variable-name-face)))
       (face-remap-add-relative 'font-lock-keyword-face
                                `(:slant normal :foreground ,foreground))))
+  (defun json-inhibit-message ()
+      (set (make-local-variable 'inhibit-message) t))
 
-  (add-hook 'json-mode-hook #'json-mode-faces)
-  (add-hook 'json-mode-hook 'json-mode-style))
+  :hook
+  (json-mode . json-mode-style)
+  (json-mode . json-mode-faces)
+  (json-mode . json-inhibit-message))
 
 #+END_SRC
 
@@ -8720,7 +8797,8 @@ for major modes listed in `halidom-js-lsp-modes'."
     :custom
     (typescript-indent-level 2)
     :hook
-    (typescript-mode subword-mode))
+    (typescript-mode . subword-mode)
+    (typescript-mode . js-setup-backend))
 
 
 (use-package tide
@@ -8742,9 +8820,7 @@ for major modes listed in `halidom-js-lsp-modes'."
       (tide-hl-identifier-mode +1)
 
       :hook
-      ((typescript-mode-hook . setup-tide-mode)
-       (typescript-mode . tide-hl-identifier-mode)
-       (typescript-mode-hook . js-setup-backend))))
+      (typescript-mode . setup-tide-mode)))
 #+END_SRC
 
 **** rjsx-mode
@@ -8811,7 +8887,10 @@ Real jsx support.
       (npm-mode--exec-process (format "npm i -g %s" dep)))
 
     :config
-    (npm-global-mode))
+    (npm-global-mode)
+
+    :hook
+    (js-mode . npm-mode))
 #+END_SRC
 
 ***** Yarn mode
@@ -8830,6 +8909,67 @@ Real jsx support.
   :if (executable-find "nvm"))
 #+END_SRC
 
+
+**** Indium
+
+#+NAME: js-indium
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package indium
+    :bind (:map indium-interaction-mode-map
+                ("C-M-b" . indium-eval-buffer))
+    :init
+    (el-patch-feature indium-nodejs)
+    (with-eval-after-load 'indium-nodejs
+      (el-patch-defun indium-nodejs--process-filter (process output)
+        "Filter function for PROCESS.
+Append OUTPUT to the PROCESS buffer, and parse it to detect the
+socket URL to connect to."
+        ;; Append output to the process buffer
+        (with-current-buffer (process-buffer process)
+          (goto-char (point-max))
+          (insert output)
+          (goto-char (point-min))
+          (el-patch-add (ansi-color-apply-on-region (point-min) (point-max))))
+        
+        (when (string-match-p "Debugger listening on" output)
+          (ignore-errors
+            (indium-nodejs--connect-to-process process output)))))
+
+
+    (cl-defun chrome-debugger-launch (&optional (port "3000") (host "localhost") (type "http") )
+      "Launch a chromium debugger process on HOST using PORT and protocol TYPE. 
+
+    Note this will kill any running instances of Chromium."
+        (interactive (list
+                      (read-string "Port: " "3000")
+                      (read-string "Host: " "localhost")
+                      (read-string "Type: " "http")))
+        (if-not (featurep 'secrets)
+            (require 'secrets))
+
+        (if (boundp 'google-api-key)
+            (setenv "GOOGLE_API_KEY" google-api-key))
+        (if (boundp 'google-api-key)
+            (setenv "GOOGLE_DEFAULT_CLIENT_ID" google-default-client-id))
+        (if (boundp 'google-default-client-secret)
+            (setenv "GOOGLE_DEFAULT_CLIENT_SECRET" google-default-client-secret))
+
+        (let ((process-names (--> (process-list)
+                                  (mapcar (lambda (p) (process-name p)) it)))
+              (process (get-process "chromium"))
+              (ip (concat type "://" host ":" port))
+              (chromium-program browse-url-chromium-program))
+          (if (shell-command-to-list "pgrep \"Chromium\"")
+              (shell-command "killall Chromium"))
+          (if (process-live-p process)
+              (kill-process process))
+          (start-process "chromium" (get-buffer-create "chromium")
+                         chromium-program "--remote-debugging-port=9222" ip)))
+  :hook
+  (js-mode . indium-interaction-mode))
+
+
+#+END_SRC
 
 *** Python
 

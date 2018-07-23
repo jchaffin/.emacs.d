@@ -116,7 +116,7 @@
 ;; Defer by default
 (setq use-package-always-defer t)
 
-;; Advice system and package lazy-loading
+
 ;; [1] https://github.com/raxod502/el-patch#lazy-loading-packages
 (straight-use-package 'el-patch)
 
