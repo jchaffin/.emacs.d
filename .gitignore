@@ -35,3 +35,4 @@ site-lisp/*
 
 .DS_Store
 
+!requirements.txt
