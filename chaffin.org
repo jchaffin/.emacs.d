@@ -753,12 +753,15 @@ From the melpa installation:
 <<fd-copy>>
 ;; Directory Files no wildcards
 <<fd-no-wildcards>>
+;; Read File
+<<fd-read-file>>
 ;; Resolve Path
 <<fd-resolve-path>>
 ;; User Directories
 <<fd-user>>
 ;; Emacs Directories
 <<fd-emacs>>
+
 #+END_SRC
 
 ***** Unix-style =basename=
@@ -824,6 +827,40 @@ function FUNC. To copy the file path to the kill-ring, use the
 		     (or (string= "." x)
 			 (string= ".." x)))))
 	      (directory-files directory full nil nosort)))
+#+END_SRC
+
+***** Read File Contents
+
+From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
+
+#+NAME: fd-read-file
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; As String
+<<read-file-as-string>>
+;; As list
+<<read-file-lines>>
+#+END_SRC
+
+****** As String
+
+#+NAME: read-file-as-string
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun read-file-contents (file)
+  "Return contents of FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (buffer-string)))
+#+END_SRC
+
+****** As List of Lines
+
+#+NAME: read-file-lines
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun read-lines (file)
+  "Return a list of lines in FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (split-string (buffer-string) "\n" t)))
 #+END_SRC
 
 ***** Resolve Path
@@ -1467,10 +1504,11 @@ editors and various other applications on macOS.
   (macos-dev-utils
    :host github
    :repo "jchaffin/macos-dev-utils")
-  :defines (macos-iterm-command-map macos-open-with-command-map)
-  :config
-  (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
-  (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)
+  :commands (macos-iterm-command-map macos-open-with-command-map)
+  :bind (:map macos-prefix-map
+              ("t" . macos-iterm-command-map)
+              ("o" . macos-open-with-command-map))
+  :init
   (which-key-add-key-based-replacements "M-m m t"
       '("iTerm" . "iTerm keys"))
   (which-key-add-key-based-replacements "M-m m o"
@@ -2434,7 +2472,9 @@ org-mode buffers.
 #+BEGIN_SRC emacs-lisp :tangle no
 
 (defun chaffin--vfc-hook ()
+  (visual-fill-column-mode 1)
   (visual-line-mode 1))
+
 
 (add-hook 'org-mode-hook #'chaffin--vfc-hook)
 
@@ -4242,9 +4282,11 @@ interactive tree .
 (use-package async
   :after dired
   :commands (dired-async-mode async-smtpmail-send-it)
-  :custom (message-send-mail-function 'async-smtpmail-send-it)
   :init
-  (dired-async-mode 1))
+  (with-eval-after-load 'async
+    (require 'smtpmail-async)
+    (setq message-send-mail-function 'async-smtpmail-send-it)
+    (dired-async-mode 1)))
 #+END_SRC
 
 ***** Reuse dired buffer when moving to parent directory
@@ -6202,6 +6244,7 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 #+NAME: web-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 <<web-browser>>
+;; Mu
 <<web-email>>
 <<web-cloud>>
 #+END_SRC
@@ -6526,62 +6569,82 @@ Interactively.
 #+NAME: email-mu
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package mu4e
-  :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
-  :config
-  (progn
-    (setq mu4e-maildir (expand-file-name "~/.mail")
-          mu4e-context-policy 'pick-first
-          mu4e-compose-policy nil
-          mu4e-get-mail-command "offlineimap -q -u quiet"
-          mu4e-show-images t
-          mu4e-show-addresses t)
+    :straight nil
+    :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
+    :init
+    (require 'mu4e)
+    (with-eval-after-load 'mu4e
+      (progn
+        (setq mu4e-maildir (expand-file-name "~/.mail")
+              mu4e-context-policy 'pick-first
+              mu4e-compose-policy nil
+              mu4e-get-mail-command "offlineimap -q -u quiet"
+              mu4e-show-images t
+              mu4e-show-addresses t)
 
-     ;; smtp settings
-     (setq mu4e-send-mail-function 'smtp-mail-send-it
-           mu4e-default-smtp-server "smtp.gmail.com"
-           smtpmail-smtp-service 587
-           smtp-mail-smtp-stream-type 'ssl)
+         ;; smtp settings
+         (setq mu4e-send-mail-function 'smtp-mail-send-it
+               mu4e-default-smtp-server "smtp.gmail.com"
+               smtpmail-smtp-service 587
+               smtp-mail-smtp-stream-type 'ssl)
 
 
-     (setq mu4e-contexts
-           `( ,(make-mu4e-context
-                :name "private"
-                :match-func (lambda (msg)
-                              (when msg
-                                mu4e-message-contact-field-matches msg
-                                :to "jchaffin57@gmail.com"))
-                :leave-func (lambda ()
-                              (mu4e-message "Leaving Gmail Account"))
-                :vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
-                         ( user-mail-address . "jchaffin57@gmail.com" )
-                         ( user-full-name . "Jacob Chaffin" )
-                         ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
-                         ( mu4e-sent-folder . "/private/[Gmail].Sent Mail" )
-                         ( mu4e-refile-folder . "/archived")
-                         ( mu4e-compose-signature .
-                                                  (concat
-                                                   "Jacob Chaffin\n"
-                                                   "UCLA 19\n"
-                                                   "Linguistics and Computer Science\n"
-                                                   "jchaffin@ucla.edu\n"))))
+         (setq mu4e-contexts
+               `( ,(make-mu4e-context
+                    :name "private"
+                    :match-func (lambda (msg)
+                                  (when msg
+                                    mu4e-message-contact-field-matches msg
+                                    :to "jchaffin57@gmail.com"))
+                    :leave-func (lambda ()
+                                  (mu4e-message "Leaving Gmail Account"))
+                    :vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
+                             ( user-mail-address . "jchaffin57@gmail.com" )
+                             ( user-full-name . "Jacob Chaffin" )
+                             ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
+                             ( mu4e-sent-folder . "/private/[Gmail].Sent Mail" )
+                             ( mu4e-refile-folder . "/archived")
+                             ( mu4e-compose-signature .
+                                                      (concat
+                                                       "Jacob Chaffin\n"
+                                                       "UCLA 19\n"
+                                                       "Linguistics and Computer Science\n"
+                                                       "jchaffin@ucla.edu\n"))))
 
-              ,(make-mu4e-context
-                :name "school"
-                :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
-                :leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
-                :match-func  (lambda (msg)
-                               (when msg
-                                 (mu4e-message-contact-field-matches msg :to (or
-                                                                              "jchaffin@ucla.edu"
-                                                                              "jchaffin@g.ucla.edu"))))
-                :vars '( (user-mail-address . "jchaffin@ucla.edu" )
-                         (user-full-name . "Jacob Chaffin" )
-                         (mu4e-compose-signature . (concat
-                                                    "Jacob Chaffin\n"
-                                                    "UCLA 19\n"
-                                                    "Linguistics and Computer Science\n"
-                                                    "jchaffin@ucla.edu\n"
-                                                    "(650)-380-3288\n"))))))))
+                   ,(make-mu4e-context
+                     :name "work"
+                     :enter-func (lambda () (mu4e-message "Switching to Work"))
+                     :leave-func (lambda () (mu4e-message "Leaving Work"))
+                     :match-func  (lambda (msg)
+                                   (when msg
+                                     (mu4e-message-contact-field-matches msg :to "jchaffin@wavecomp.com")))
+                     :vars '((user-mail-address . "jchaffin@wavecomp.com")
+                             (user-full-name . "Jacob Chaffin")
+                             (mu4e-sent-folder . "/work/Sent Items")
+                             (mu4e-refile-folder . "/work/Archive")
+                             (mu4e-drafts-folder .  "/work/Drafts")
+                             (mu4e-compose-signature . (concat "<#part type=text/html>"
+                                                        (read-file-contents
+                                                         (user-home "dotfiles" "mail" "work-signature.html")) 
+                                                        "<#/part>"))))
+
+                   ,(make-mu4e-context
+                    :name "school"
+                    :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
+                    :leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
+                    :match-func  (lambda (msg)
+                                   (when msg
+                                     (mu4e-message-contact-field-matches msg :to (or
+                                                                                  "jchaffin@ucla.edu"
+                                                                                  "jchaffin@g.ucla.edu"))))
+                    :vars '( (user-mail-address . "jchaffin@ucla.edu" )
+                             (user-full-name . "Jacob Chaffin" )
+                             (mu4e-compose-signature . (concat
+                                                        "Jacob Chaffin\n"
+                                                        "UCLA 19\n"
+                                                        "Linguistics and Computer Science\n"
+                                                        "jchaffin@ucla.edu\n"
+                                                        "(650)-380-3288\n")))))))))
 #+END_SRC
 
 ** Cloud Integration
