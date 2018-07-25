@@ -5068,7 +5068,7 @@ Options are 'spaceline, 'sml, and 'powerline."
   (require 'all-the-icons)
   (require 'spaceline-all-the-icons)
   (spaceline-all-the-icons--setup-neotree)
-  (spaceline-all-the-icons-theme 'org-pomodoro)
+  (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
   (spaceline-toggle-all-the-icons-flycheck-status-off))
 #+END_SRC
 
@@ -6577,6 +6577,7 @@ Interactively.
 #+END_SRC
 
 ** Email
+
 #+NAME: web-email
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<email-mu>>
@@ -6585,14 +6586,40 @@ Interactively.
 *** Mu
 
 #+NAME: email-mu
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<mu-mu4e>>
+<<mu-alert>>
+#+END_SRC
+
+**** Mu4e
+
+#+NAME: mu-mu4e
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package mu4e
     :straight nil
     :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
-    :init
+    :config
     (require 'mu4e)
     (with-eval-after-load 'mu4e
       (progn
+
+         (require 'mu4e-contrib)
+         (setq mu4e-html2text-command 'mu4e-shr2text)
+
+        (require 'gnus-dired)
+        (defun gnus-dired-mail-buffers ()
+          "Return a list of active message buffers."
+          (let ((buffers))
+            (save-current-buffer 
+              (dolist (buffer (buffer-list t))
+                (set-buffer buffer)
+                (when (and (derived-mode-p 'message-mode)
+                           (null message-sent-message-via))
+                  (push (buffer-name buffers) buffers))))
+            (nreverse buffers)))
+        (setq gnus-dired-mail-mode 'mu4e-user-agent)
+        (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
+
         (setq mu4e-maildir (expand-file-name "~/.mail")
               mu4e-context-policy 'pick-first
               mu4e-compose-policy nil
@@ -6601,10 +6628,71 @@ Interactively.
               mu4e-show-addresses t)
 
          ;; smtp settings
-         (setq mu4e-send-mail-function 'smtp-mail-send-it
-               mu4e-default-smtp-server "smtp.gmail.com"
+         (setq message-send-mail-function 'async-smtpmail-send-it
+               smtpmail-default-smtp-server "smtp.gmail.com"
+               smtpmail-smtp-server "smtp.gmail.com"
+               smtpmail-local-domain "gmail.com"
                smtpmail-smtp-service 587
-               smtp-mail-smtp-stream-type 'ssl)
+               smtpmail-stream-type 'ssl)
+
+
+         (defun mail/htmlize-signature ()
+           (let ((message-signature-separator "^-- $")
+                 beg end
+                 contents
+                 (html-p nil))
+             (save-excursion
+               (goto-char (point-max))
+               (when (re-search-backward message-signature-separator nil t)
+                 (forward-line 2)
+                 (setq beg (point-at-bol))
+                 (goto-char (point-max))
+                 (previous-line 2)
+                 (setq end (point-at-eol))))
+             (setq contents (buffer-substring beg end))
+
+             (with-temp-buffer
+               (insert contents)
+               (goto-char (point-min))
+               (if (re-search-forward "<html>" nil t)
+                   (setq html-p t)))
+             (message "%s" html-p)
+             (if html-p
+                 (save-excursion
+                   (shr-render-region beg end)))))
+
+         (defun mail/revert-signature ()
+           (let ((html-p nil)
+                 beg end)
+             (with-temp-buffer
+               (insert (eval `,mu4e-compose-signature))
+               (goto-char (point-min))
+               (if (re-search-forward "<#part" nil t)
+                   (setq html-p t)))
+             (if html-p
+                 (save-excursion
+                   (goto-char (point-max))
+                   (when (re-search-backward message-signature-separator)
+                     (forward-line)
+                     (setq beg (point-at-bol)))
+                   (goto-char (point-min))
+                   (when (re-search-forward "<#/part>" nil t)
+                     (setq end (point-at-eol)))
+                   (delete-region beg end)
+                   (goto-char beg)
+                   (insert (eval `,mu4e-compose-signature))))))
+
+         (add-hook 'mu4e-compose-mode-hook 'mail/htmlize-signature)
+         (add-hook 'message-send-hook 'mail/revert-signature)
+
+         (setq mu4e-completing-read-function 'ivy)
+         (setq mu4e-view-show-images t)
+
+         (when (fboundp 'imagemagick-register-types)
+           (imagemagick-register-types))
+
+         (setq mu4e-view-prefer-html t)
+
 
 
          (setq mu4e-contexts
@@ -6612,36 +6700,41 @@ Interactively.
                     :name "private"
                     :match-func (lambda (msg)
                                   (when msg
-                                    mu4e-message-contact-field-matches msg
-                                    :to "jchaffin57@gmail.com"))
-                    :leave-func (lambda ()
-                                  (mu4e-message "Leaving Gmail Account"))
-                    :vars '( (mu4e-reply-to-address "jchaffin@ucla.edu")
-                             ( user-mail-address . "jchaffin57@gmail.com" )
-                             ( user-full-name . "Jacob Chaffin" )
-                             ( mu4e-drafts-folder . "/private/[Gmail].Drafts" )
-                             ( mu4e-sent-folder . "/private/[Gmail].Sent Mail" )
-                             ( mu4e-refile-folder . "/archived")
-                             ( mu4e-compose-signature .
-                                                      (concat
-                                                       "Jacob Chaffin\n"
-                                                       "UCLA 19\n"
-                                                       "Linguistics and Computer Science\n"
-                                                       "jchaffin@ucla.edu\n"))))
+                                    (mu4e-message-contact-field-matches msg
+                                    :to "jchaffin57@gmail.com")))
+                    :enter-func (lambda () (mu4e-message "Switching Personal Gmail."))
+                    :leave-func (lambda () (mu4e-message "Leaving Personal Gmail."))
+                    :vars '((mu4e-reply-to-address "jchaffin@ucla.edu")
+                            (user-mail-address . "jchaffin57@gmail.com" )
+                            (user-full-name . "Jacob Chaffin" )
+                            (mu4e-drafts-folder . "/private/[Gmail].Drafts" )
+                            (mu4e-sent-folder . "/private/[Gmail].Sent Mail" )
+                             (mu4e-refile-folder . "/archived")
+                            (mu4e-compose-signature .
+                             (concat
+                              "Jacob Chaffin\n"
+                              "UCLA 19\n"
+                              "Linguistics and Computer Science\n"
+                              "jchaffin@ucla.edu\n"))))
 
                    ,(make-mu4e-context
                      :name "work"
-                     :enter-func (lambda () (mu4e-message "Switching to Work"))
-                     :leave-func (lambda () (mu4e-message "Leaving Work"))
+                     :enter-func (lambda () (mu4e-message "Switching to Wavecomp"))
+                     :leave-func (lambda () (mu4e-message "Leaving Wavecomp."))
                      :match-func  (lambda (msg)
                                    (when msg
                                      (mu4e-message-contact-field-matches msg :to "jchaffin@wavecomp.com")))
-                     :vars '((user-mail-address . "jchaffin@wavecomp.com")
+                     :vars '((mu4e-reply-to-address "jchaffin@wavecomp.com")
+                             (user-mail-address . "jchaffin@wavecomp.com")
                              (user-full-name . "Jacob Chaffin")
                              (mu4e-sent-folder . "/work/Sent Items")
+                             (smtpmail-smtp-server . "smtp-mail.outlook.com")
+                             (smtpmail-local-domain . "outlook.com")
+                             (smtpmail-stream-type . starttls)
                              (mu4e-refile-folder . "/work/Archive")
                              (mu4e-drafts-folder .  "/work/Drafts")
-                             (mu4e-compose-signature . (concat "<#part type=text/html>"
+                             (message-signature-file "~/dotfiles/mail/work-signature.html")
+                             (mu4e-compose-signature . (concat "<#part type=text/html> \n "
                                                         (read-file-contents
                                                          (user-home "dotfiles" "mail" "work-signature.html")) 
                                                         "<#/part>"))))
@@ -6655,14 +6748,26 @@ Interactively.
                                      (mu4e-message-contact-field-matches msg :to (or
                                                                                   "jchaffin@ucla.edu"
                                                                                   "jchaffin@g.ucla.edu"))))
-                    :vars '( (user-mail-address . "jchaffin@ucla.edu" )
-                             (user-full-name . "Jacob Chaffin" )
-                             (mu4e-compose-signature . (concat
-                                                        "Jacob Chaffin\n"
-                                                        "UCLA 19\n"
-                                                        "Linguistics and Computer Science\n"
-                                                        "jchaffin@ucla.edu\n"
-                                                        "(650)-380-3288\n")))))))))
+                    :vars '((user-mail-address . "jchaffin@ucla.edu" )
+                            (user-full-name . "Jacob Chaffin" )
+                            (mu4e-compose-signature .
+                             (concat
+                              "Jacob Chaffin\n"
+                              "UCLA 19\n"
+                              "Linguistics and Computer Science\n"
+                              "jchaffin@ucla.edu\n"
+                              "(650)-380-3288\n")))))))))
+#+END_SRC
+
+**** Mu Notifications
+
+#+NAME: mu-alert
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package mu4e-alert
+    :init
+  (with-eval-after-load 'mu4e
+    (mu4e-alert-enable-notifications)))
+
 #+END_SRC
 
 ** Cloud Integration
@@ -8789,7 +8894,8 @@ for major modes listed in `halidom-js-lsp-modes'."
   (cl-flet ((lsp-client-function (client)
               (intern (concat "lsp-" (symbol-name client) "-enable")))
             (lsp-client-req-pkg (client)
-              (require `,(intern (concat "lsp-" (symbol-name client))))))
+              (require `,(intern
+                          (concat "lsp-" (symbol-name client))))))
 
     ;;  Fix issue with `javascript-typescript-langserver' completion.
     (when (member 'javascript-typescript halidom-js-lsp-clients)
@@ -9540,7 +9646,9 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lsp-html
     :if (executable-find "html-languageserver")
+    :commands (lsp-html-enable)
     :init
+    (require 'lsp-html)
     (defun html-lsp-setup ()
       (when (string-equal "html" (file-name-extension buffer-file-name))
         (lsp-html-enable)
