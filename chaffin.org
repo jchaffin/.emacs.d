@@ -29,6 +29,7 @@
     - [[#which-key][Which Key]]
     - [[#prefix-map][Prefix Map]]
     - [[#reload-eval][Reload Eval]]
+    - [[#speed-type][Speed Type]]
   - [[#system][System]]
     - [[#use-emacs-terminfo][Use Emacs terminfo]]
     - [[#utf-8-encoding][UTF-8 Encoding]]
@@ -986,9 +987,8 @@ This might come back to bite me one day but I never use them.
 ***** Lockfiles
 
 Causes a conflict with ~lsp-mode~.
-
 #+NAME: lockfiles-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :comments org
+#+BEGIN_SRC emacs-lisp :tangle yes
 (setq create-lockfiles nil)
 #+END_SRC
 
@@ -1151,6 +1151,8 @@ killall gpg-agent
 <<kb-prefix-map>>
 ;; Reload Eval
 <<kb-reload-eval>>
+;; Speed Type
+<<kb-speed-type>>
 ;; End Keybindings
 #+END_SRC
 
@@ -1180,7 +1182,6 @@ common prefix.
 (use-package ivy-hydra
   :requires (ivy hydra))
 #+END_SRC
-
 
 *** Smartrep
 
@@ -1297,6 +1298,15 @@ from within Emacs.
   (define-key map "q" 'restart-emacs))
 
 (define-key 'halidom-prefix-map (kbd "r") 'reload-eval-prefix-map)
+#+END_SRC
+
+*** Speed Type
+
+I just got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboards,hhkbpro2&pid=pdkb400bn][HHKB2]] keyboard. I need all the help I can get.
+
+#+NAME: kb-speed-type
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package speed-type)
 #+END_SRC
 
 ** System
@@ -5674,6 +5684,8 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 <<ivy-ivy-prescient>>
 ;; Ivy All the Icons
 <<ivy-icons>>
+;; Ivy Xref
+<<ivy-ivy-xref>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -5746,7 +5758,6 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 
 #+END_SRC
 
-
 **** Ivy Prescient
 
 #+NAME: ivy-ivy-prescient
@@ -5791,6 +5802,13 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
   :init
   (all-the-icons-ivy-setup))
 
+#+END_SRC
+
+**** Ivy xref
+
+#+NAME: ivy-ivy-xref
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ivy-xref)
 #+END_SRC
 
 *** Counsel
@@ -6925,8 +6943,6 @@ whistles, it makes up for in compatibility and hackability [fn:16].
 
 (setq org-fixed-pitch-font "Monospace")
 
-(if *is-mac*
-  (setq org-variable-pitch-font "Bookmania"))
 
 (defun toggle-variable-pitch-font ()
   (interactive)
@@ -7386,19 +7402,20 @@ the absence of a window system. I'll check for the latter for now.
 *** Google C Style
 
 #+NAME: google-c-styleguide
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package google-c-style
   :straight
   (google-c-style
    :host github
    :repo "google/styleguide"
    :branch "gh-pages")
-  :config
+  :init
   (defun halidom/google-c-style ()
     (google-set-c-style)
     (google-make-newline-indent))
-
-  (add-hook 'prog-mode-hook #'halidom/google-c-style))
+  :hook
+  (c++-mode . halidom/google-c-style)
+  (java-mode . halidom/google-c-style))
 #+END_SRC
 
 *** Code Formatting
@@ -7406,7 +7423,6 @@ the absence of a window system. I'll check for the latter for now.
 #+NAME: tools-code-format
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package format-all)
-
 #+END_SRC
 
 ** Code Completion
@@ -8104,7 +8120,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
           (cmake-command-run "-DCMAKE_EXPORT_COMPILE_COMMANDS=YES .."))
         (if (f-exists? compiledb)
           (make-symbolic-link compiledb (f-slash build-directory) t))))))
-
 
 
 #+END_SRC
