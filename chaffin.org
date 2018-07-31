@@ -4979,27 +4979,33 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 *** Set the default font
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defvar macos-default-font
-  "SF Mono 12"
-  "A fontspec string of the default font to use on macOS.
+(defcustom halidom-fonts
+  '("Operator Mono"
+    "SF Mono"
+    "Lucida Sans Typewriter"
+    "Ubuntu Mono"
+    "Menlo"
+    "Inconsolota"
+    "Input Mono"
+    "Courier New")
+  "The default font stack to use for setting the font
+on startup and new frame."
+  :type '(string))
 
-  To get the fontspec string, use the command 'M-x x-select-font RET'
-  to choose the desired font, then 'M-x describe-font RET' and copy-and-paste.")
+(defcustom halidom-macos-default-font-size 13
+  "The default font size in pixels."
+  :type 'number)
 
-(if *is-hal*
-    (setq macos-default-font
-	        "Operator Mono:pixelsize=13:weight=light:slant=normal:width=normal:spacing=100:scalable=true"))
 
 (defun halidom/font-setup (&optional frame)
-  (cond
-    (*is-linux*   
-     (set-frame-font "Ubuntu Mono 12" frame t))
-    (*is-windows*
-     (set-frame-font "Lucida Sans Typewriter 12" frame t))
-    (*is-mac*
-     (set-frame-font macos-default-font frame t))
-    (t
-     (set-frame-font "Menlo 12" frame t))))
+  (let* ((font- (or (car
+                    (seq-intersection halidom-fonts (font-family-list)))
+                   (face-attribute 'fixed-pitch :family)))
+         (font (concat font- "-" (format "%s" halidom-macos-default-font-size))))
+    
+    (set-frame-font font frame t)))
+
+
 
 (add-hook 'after-init-hook 'halidom/font-setup)
 (add-hook 'after-make-frame-functions 'halidom/font-setup)
@@ -5306,6 +5312,24 @@ This disables Emacs asking questions about loading a new theme.
   (interactive)
   (halidom--toggle-theme-style)
   (halidom/load-theme))
+(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js-mode)
+  "Major modes for which an italicized font lock keyword
+face shall be used."
+  :type '(symbol))
+
+(defun halidom/italicize-keyword-fn ()
+  (face-remap-add-relative 'font-lock-keyword-face
+                           '(:slant italic)))
+
+(defun halidom/italic-keyword-faces ()
+  (cl-flet ((mode->hook (mode)
+              (intern (concat (symbol-name mode) "-hook"))))
+    (cl-loop
+       for mode in halidom-italicize-keyword-modes
+       for hooksym = (mode->hook mode)
+       do
+         (add-hook hooksym 'halidom/italicize-keyword-fn))))
+
 
 
 (defun halidom/org-faces ()
@@ -5349,13 +5373,7 @@ This disables Emacs asking questions about loading a new theme.
                               :inherit 'org-meta-line)
 
           (set-face-attribute 'org-block-end-line nil
-                              :inherit 'org-block-begin-line)
-
-
-          (set-face-attribute 'font-lock-keyword-face nil
-                              :foreground "#C678DD"
-                              :slant 'italic
-                              :weight 'normal)))))
+                              :inherit 'org-block-begin-line)))))
 
 (defun halidom--org-restart ()
   (let ((org-buffers (org-buffer-list)))
@@ -5363,10 +5381,11 @@ This disables Emacs asking questions about loading a new theme.
       (with-current-buffer buf
         (org-mode-restart)))))
 
-(add-hook 'after-init-hook #'halidom/load-theme)
 (add-hook 'halidom/load-theme-hook #'halidom/org-faces)
 ;; https://github.com/syl20bnr/spacemacs/pull/7667
 (add-hook 'halidom/load-theme-hook #'halidom--org-restart)
+
+(add-hook 'after-init-hook #'halidom/load-theme)
 (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
 #+END_SRC
 
@@ -5478,9 +5497,8 @@ This disables Emacs asking questions about loading a new theme.
         (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") frame 'prepend)
       ;; For Linux
       (set-fontset-font t 'symbol (font-spec :family "Symbola") frame 'prepend)))
-
   (--set-emoji-font nil)
-
+'
   ;; Hook for when a frame is created with emacsclient
   (add-hook 'after-make-frame-functions '--set-emoji-font)
 
