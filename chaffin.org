@@ -9,7 +9,7 @@
   - [[#literate-programming][Literate Programming]]
   - [[#influences][Influences]]
 - [[#base-configuration][Base Configuration]]
-  -  [[#tangle-file][Tangle File]]
+  - [[#tangle-file][Tangle File]]
   - [[#package-management][Package Management]]
     - [[#straight][Straight]]
   - [[#user-information][User Information]]
@@ -285,7 +285,7 @@ compiler.
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
 
 * Base Configuration
-**  Tangle File
+** Tangle File
 :PROPERTIES:
 :ID:       E291C00A-151B-4B37-B771-2E71B7CF937A
 :CUSTOM_ID: tangle-file
@@ -882,6 +882,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<fd-user-home>>
 <<fd-dropbox>>
+<<fd-projects>>
 #+END_SRC
 
 ****** User Home 
@@ -907,6 +908,15 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 #+NAME: fd-dropbox
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (defalias #'dropbox-dir (apply-partially #'user-home "Dropbox"))
+#+END_SRC
+
+****** Project Directory
+
+#+NAME: fd-projects
+#+BEGIN_SRC emacs-lisp :tangle no
+(defalias #'projects-dir (apply-partially #'user-home "Developer" "Projects"))
+
+
 #+END_SRC
 
 ***** Emacs Directories
@@ -1514,14 +1524,15 @@ editors and various other applications on macOS.
    :host github
    :repo "jchaffin/macos-dev-utils")
 
-  :bind (:map macos-prefix-map
-              ("t" . macos-iterm-command-map)
-              ("o" . macos-open-with-command-map))
+  :commands (macos-iterm-command-map macos-open-with-command-map)
   :config
-  (which-key-add-key-based-replacements "M-m m t"
-      '("iTerm" . "iTerm keys"))
-  (which-key-add-key-based-replacements "M-m m o"
-      '("Open" . "Open With keys")))
+  (with-eval-after-load 'macos-dev-utils
+    (which-key-add-key-based-replacements "M-m m t"
+        '("iTerm" . "iTerm keys"))
+    (which-key-add-key-based-replacements "M-m m o"
+        '("Open" . "Open With keys"))
+    (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
+    (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)))
 
 #+END_SRC
 
@@ -3119,7 +3130,7 @@ miscellaneous or arbitrary tasks.
     :config
     (progn
 
-      (setq org-projectile-per-project-filepath "org/TODOs.org")
+      (setq org-projectile-per-project-filepath "TODOs.org")
 
       (org-projectile-per-project)
 
@@ -4219,6 +4230,8 @@ interactive tree .
 (use-package projectile
     :custom
     (projectile-completion-system 'ivy)
+    (projectile-switch-project-action #'projectile-find-dir)
+    (projectile-find-dir-includes-top-level 1)
 
     :init
     (el-patch-feature projectile)
@@ -4236,8 +4249,10 @@ interactive tree .
       (append projectile-globally-ignored-directories
               '("gradle" "target" ".meghanada" ".gradle" "build" "bin" "node_modules"
                 "CMakeFiles" ".cquery_cached_index"))
+
       (defvar chaffin/ignored-project-directories
         '("~/.emacs.d/straight"))
+
       (defun projectile-ignore-projects-in-directory (project-root)
         (cl-flet ((ignored-dir-or-subdir-p (path)
                                            (f-descendant-of?
@@ -4248,6 +4263,44 @@ interactive tree .
                seq-empty-p not)))
       (setq projectile-ignored-project-function
             #'projectile-ignore-projects-in-directory)))
+#+END_SRC
+
+**** Skeletor 
+
+#+NAME: skeletor-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package skeletor
+    :custom
+  (skeletor-user-directory (emacs-dir "skeletons"))
+  (skeletor-completing-read-function 'ivy-completing-read)
+  (skeletor-project-directory (projects-dir))
+
+  :config
+
+  (add-to-list 'skeletor-global-substitutions (cons "__TIME__" (lambda () (format-time-string "%c"))))
+
+  (skeletor-define-template "cmake-unix-makefiles"
+    :requires-executables '(("cmake" . "https://cmake.org")
+                            ("make". "https://www.gnu.org/software/make"))
+    :substitutions
+    (list (cons "__DESCRIPTION__" (lambda () (read-string "Description: ")))
+          (cons "__TARGET_NAME__"  (lambda () (read-string "Target: ")))
+          (cons "__PROJECT-VARS__" ".dir-locals"))
+
+    :after-creation
+    (lambda (dir)
+      (skeletor-async-shell-command "mkdir build")
+      (skeletor-async-shell-command  "( cd build && cmake -G 'Unix Makefiles' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. )")
+      (skeletor-async-shell-command "ln -s `pwd`/build/compile_commands.json `pwd`/compile_commands.json")
+      (dired dir)
+      (revert-buffer)))
+
+  (with-eval-after-load 'lsp-mode
+    (add-to-list 'lsp-project-blacklist skeletor-project-directory))
+
+  (with-eval-after-load 'projectile
+    (add-to-list 'projectile-ignored-projects skeletor-project-directory)))
+
 #+END_SRC
 
 **** Neotree
@@ -4886,7 +4939,7 @@ Set the width to 4px. Also remove the cursor in inactive windows.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default cursor-in-non-selected-windows nil
               x-stretch-cursor nil)
-
+              
 (modify-all-frames-parameters (list (cons 'cursor-type '(bar . 4))))
 #+END_SRC
 
@@ -5255,8 +5308,6 @@ This disables Emacs asking questions about loading a new theme.
 
 *** Load Theme
 
-
-
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default custom-enabled-themes (list halidom-theme))
 
@@ -5298,7 +5349,7 @@ This disables Emacs asking questions about loading a new theme.
 
 (defun halidom/load-theme-with-frame (frame)
   (with-selected-frame frame
-    (when (daemonp)
+    (if-not (daemonp)
       (halidom/load-theme))))
 
 (defun halidom--toggle-theme-style ()
@@ -5307,12 +5358,12 @@ This disables Emacs asking questions about loading a new theme.
       (setq halidom--theme-style 'light)
     (setq halidom--theme-style 'dark)))
 
-
 (defun halidom/toggle-theme ()
   (interactive)
   (halidom--toggle-theme-style)
   (halidom/load-theme))
-(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js-mode)
+
+(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js-mode org-mode)
   "Major modes for which an italicized font lock keyword
 face shall be used."
   :type '(symbol))
@@ -5330,6 +5381,8 @@ face shall be used."
        do
          (add-hook hooksym 'halidom/italicize-keyword-fn))))
 
+
+(add-hook 'after-init-hook 'halidom/italic-keyword-faces)
 
 
 (defun halidom/org-faces ()
@@ -5594,7 +5647,7 @@ top candidates for completion.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-box
     :custom (company-box-enable-icon nil)
-    :hook (company-mode . company-box-mode)x)
+    :hook (company-mode . company-box-mode))
 
 #+END_SRC
 
@@ -5983,10 +6036,23 @@ friends.
 (use-package counsel-gtags
   :after (:all ggtags counsel)
   :demand t
-  :init
-  (progn
-    (setq counsel-gtags-ignore-case t
-          counsel-gtags-auto-update t)))
+  :custom
+	(counsel-gtags-ignore-case t)
+  (counsel-gtags-auto-update t)
+
+  :bind
+  (:map counsel-gtags-mode-map
+        ("M-m g d" . counsel-gtags-find-definition)
+        ("M-m g r" . counsel-gtags-find-reference)
+        ("M-m g s" . counsel-gtatgs-find-symbol)
+        ("M-m g ," . counsel-gtags-go-backward))
+
+  :config
+  (which-key-add-key-based-replacements "M-m g"
+      '("ggtags" . "Counsel Gtags"))
+
+  :hook
+  ((c-mode c++-mode) . counsel-gtags-mode))
 #+END_SRC
 
 ***** Counsel Dash
@@ -7373,9 +7439,25 @@ school's WLAN.
 #+NAME: lsp-lsp-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lsp-mode
-  :init
-  (setq lsp-inhibit-message t)
-  (setq lsp-message-project-root-warning t))
+  :custom
+  (lsp-inhibit-message t)
+  (lsp-message-project-root-warning t)
+  (lsp-project-blacklist '("^/ssh:"))
+  :config
+  (require 'lsp-imenu)
+  (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)
+
+  (defun lsp/set-projectile-root ()
+    (when lsp--cur-workspace
+      (setq projectile-project-root (lsp--workspace-root lsp--cur-workspace))))
+
+  (add-hook 'lsp-before-open-hook 'lsp/set-projectile-root)
+
+  (defun lsp/save-file-immediately ()
+    (when lsp--cur-workspace
+      (save-buffer)))
+
+  (add-hook 'lsp-after-open-hook 'lsp/save-file-immediately))
 #+END_SRC
 
 *** LSP UI Mode
@@ -7405,10 +7487,11 @@ school's WLAN.
     :demand t
     :init
     (push 'company-lsp company-backends)
-    :config
-    (setq company-transformers nil
-          company-lsp-async t
-          company-lsp-cache-candidates nil))
+
+    :custom
+    (company-transformers nil)
+    (company-lsp-async t)
+    (company-lsp-cache-candidates nil))
 #+END_SRC
 
 ** Flycheck
@@ -8223,8 +8306,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin C/C++
 (when (halidom/proglang-enabled-p 'c-c++)
-  ;; Flycheck
-  <<c-cxx-flycheck>>
   ;; Cmake
   <<c-cxx-cmake>>
   ;; Make Comint
@@ -8232,20 +8313,11 @@ Spacemacs =dotspacemacs-configuration-layers=.
   ;; Cquery
   <<c-cxx-cquery>>
   ;; Clangd
-  ;; <<c-cxx-clangd>>
+  <<c-cxx-clangd>>
   ;; Clang Tidy
   <<c-cxx-clang-tidy>>
 )
 
-#+END_SRC
-
-**** Setup Flycheck
-
-#+NAME: c-cxx-flycheck
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun c-cxx/setup-flycheck ()
-  (when (fboundp 'flycheck-mode)
-    (flycheck-mode +1)))
 #+END_SRC
 
 **** Cmake Mode
@@ -8256,25 +8328,28 @@ Spacemacs =dotspacemacs-configuration-layers=.
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
          ("\\.cmake\\'" . cmake-mode))
   :init
+  (with-eval-after-load 'projectile
+    (add-to-list 'projectile-project-root-files-top-down-recurring
+                 ".compile_commands.json"))
+  
   (defun cmake-build-compilation-database ()
     (interactive)
-    (let* ((project-directory (cond ((-non-nil projectile-project-root)
+    (let* ((project-directory (cond (projectile-project-root
                                      projectile-project-root)
                                     ((eq 'major-mode 'dired-mode)
                                      dired-directory)
                                     (t default-directory)))
            (build-directory (f-join project-directory "build"))
-           (compiledb (f-join project-directory "compile_commands.json")))
+           (compiledb (f-join build-directory "compile_commands.json")))
       (when (f-exists? (f-join project-directory "CMakeLists.txt"))
         (if-not (f-exists? build-directory)
             (mkdir build-directory))
         (with-temp-buffer
           (shell-command "make clean")
           (cd build-directory)
-          (cmake-command-run "-DCMAKE_EXPORT_COMPILE_COMMANDS=YES .."))
+          (cmake-command-run "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" project-directory))
         (if (f-exists? compiledb)
-          (make-symbolic-link compiledb (f-slash build-directory) t))))))
-
+            (make-symbolic-link (f-slash project-directory) build-directory t))))))
 
 #+END_SRC
 
@@ -8296,6 +8371,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 (use-package cquery
     :commands lsp-cquery-enable
+    :if (executable-find "cquery")
     :custom
     (cquery-executable (executable-find "cquery"))
     (cquery-extra-init-params '(:index (:comments 2)
@@ -8303,36 +8379,35 @@ Spacemacs =dotspacemacs-configuration-layers=.
                                 :completion (:detailedLabel t)))
     :init
 
-    (defun cquery//enable ()
+    (defun cquery/enable ()
+      "Enable cquery in the workspace."
       (condition-case nil
           (lsp-cquery-enable)
         (user-error "%s" "cquery didn't work")))
-    (add-hook 'c-mode-common-hook #'cquery//enable)
+
+    :hook
+    (c-mode-common . cquery/enable)
+    ((c-mode c++-mode) . halidom/flycheck-enable-hook)
 
     :config
 
-      ;; Alternatively, use lsp-ui-peek interface
-      ;; (lsp-ui-peek-find-custom 'base "$cquery/base")
-      ;; (lsp-ui-peek-find-custom 'callers "$cquery/callers")
+    ;; Alternatively, use lsp-ui-peek interface
+    ;; (lsp-ui-peek-find-custom 'base "$cquery/base")
+    ;; (lsp-ui-peek-find-custom 'callers "$cquery/callers")
+    (setq cquery-sem-highlight-method 'font-lock)
+    ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
 
-      (add-hook 'c-mode-hook #'c-cxx/setup-flycheck)
-      (add-hook 'c++-mode-hook #'c-cxx/setup-flycheck)
+    ;; For rainbow semantic highlighting
+    (with-eval-after-load 'lsp-ui-mode
+      (lsp-ui-peek-find-custom 'base "$cquery/base")
+      (lsp-ui-peek-find-custom 'callers "$cquery/callers")
+      (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
 
-      (setq cquery-sem-highlight-method 'font-lock)
-      ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
+    (cquery-use-default-rainbow-sem-highlight)
 
-      ;; For rainbow semantic highlighting
-      (with-eval-after-load 'lsp-ui-mode
-        (lsp-ui-peek-find-custom 'base "$cquery/base")
-        (lsp-ui-peek-find-custom 'callers "$cquery/callers")
-        (lsp-ui-peek-find-custom 'vars "$cquery/vars"))
-
-      (cquery-use-default-rainbow-sem-highlight)
-
-      (with-eval-after-load 'projectile
-        (setq projectile-project-root-files-top-down-recurring
-              (append '("compile_commands.json" ".cquery")
-                      projectile-project-root-files-top-down-recurring))))
+    (with-eval-after-load 'projectile
+        (add-to-list 'projectile-project-root-files-top-down-recurring
+                     ".cquery")))
 #+END_SRC
 
 **** Clangd
@@ -8344,29 +8419,17 @@ Spacemacs =dotspacemacs-configuration-layers=.
                :type git
                :repo "emacs-lsp/lsp-clangd"
                :host github)
-    :commands (lsp-clangd-c-enable lsp-clangd-c++-enable lsp-clangd-objc-enable)
+    :commands (lsp-clangd-c-enable
+               lsp-clangd-c++-enable
+               lsp-clangd-objc-enable)
+    :custom
+    (lsp-clangd-executable  (executable-find "clangd"))
     
-    :if (or (executable-find "clangd")
-            (and *is-mac*
-                 (file-directory-p
-                  (replace-regexp-in-string "\n" ""
-                   (shell-command-to-string "brew --prefix llvm")))))
-    :init
-    (when *is-mac*
-      (setq lsp-clangd-executable (executable-find "clangd")))
-    (with-eval-after-load 'lsp-mode
-      (require 'lsp-clangd)
-      (add-hook 'c-mode-hook #'lsp-clangd-c-enable)
-      (add-hook 'c++-mode-hook #'lsp-clangd-c++-enable)
-      (add-hook 'objc-mode-hook #'lsp-clangd-objc-enable))
-
-    :config
-
-    (add-hook 'c-mode-hook #'c-cxx/setup-flycheck)
-    (add-hook 'c++-mode-hook #'c-cxx/setup-flycheck)
-    (with-eval-after-load 'projectile
-      (setq projectile-project-root-files-top-down-recurring
-            (append '("compile_commands.json")))))
+    :if  (executable-find "clangd")
+    :hook
+    ((c-mode . lsp-clangd-c-enable)
+     (c++-mode . lsp-clangd-c++-enable)
+     (objc-mode . lsp-clangd-objc-enable)))
 
 #+END_SRC
 
@@ -8378,14 +8441,12 @@ Spacemacs =dotspacemacs-configuration-layers=.
     :after flycheck
     :if (executable-find "clang-tidy")
     :init
-    (defun clang-tidy//enable ()
+    (defun clang-tidy/enable ()
       (when (and (-non-nil projectile-project-root)
-                 (file-exists-p (f-join (or projectile-project-root default-directory)
-                                        "build"
-                                        "compile_commands.json")))
+                 (string= projectile-project-type "cmake"))
         (when (fboundp 'flycheck-mode)
           (flycheck-clang-tidy-setup))))
-    (add-hook 'c-mode-common-hook 'clang-tidy//enable))
+    (add-hook 'c-mode-common-hook 'clang-tidy/enable))
 
 #+END_SRC
 
@@ -10047,7 +10108,6 @@ and slim-mode using company.
       (defadvice livedown-preview (after livedown-preview-after activate)
          (xwidget-webkit-browse-url "http://localhost:1337"))))
 #+END_SRC
-
 
 * Prologue
 
