@@ -248,7 +248,7 @@
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#asm][ASM]]
-    - [[#cc][C/C++]]
+    -  [[#cc][C/C++]]
     - [[#common-lisp][Common Lisp]]
     - [[#clojure][Clojure]]
     - [[#emacs-lisp][Emacs Lisp]]
@@ -797,7 +797,7 @@ function FUNC. To copy the file path to the kill-ring, use the
 
   (destructuring-bind (file dir)
       (cond ((eq major-mode 'dired-mode)
-             (list (substring-no-properties (thingat-point 'symbol))
+             (list (substring-no-properties (thing-at-point 'symbol))
                    dired-directory))
             ((stringp buffer-file-name)
              (mapcar (lambda (f) (funcall f buffer-file-name))
@@ -1179,8 +1179,7 @@ common prefix.
 
 #+NAME: hyrda-ivy
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy-hydra
-  :requires (ivy hydra))
+(use-package ivy-hydra)
 #+END_SRC
 
 *** Smartrep
@@ -1514,11 +1513,11 @@ editors and various other applications on macOS.
   (macos-dev-utils
    :host github
    :repo "jchaffin/macos-dev-utils")
-  :commands (macos-iterm-command-map macos-open-with-command-map)
+
   :bind (:map macos-prefix-map
               ("t" . macos-iterm-command-map)
               ("o" . macos-open-with-command-map))
-  :init
+  :config
   (which-key-add-key-based-replacements "M-m m t"
       '("iTerm" . "iTerm keys"))
   (which-key-add-key-based-replacements "M-m m o"
@@ -3156,7 +3155,7 @@ miscellaneous or arbitrary tasks.
   :config
   (progn
     (defalias #'org-pomodoro-path
-      (apply-partially #'emacs-directory "resources" "wav"))
+      (apply-partially #'emacs-dir "resources" "wav"))
 
     (setq org-pomodoro-audio-player "/usr/bin/afplay"
           org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
@@ -4778,6 +4777,9 @@ different window configurations.
   "A list of directories for which all files and subdirectories
 should open in `read-only-mode'.")
 
+(defvar read-only-whitelist '()
+  "A list of directories which should not be opened in read-only mode.")
+
 (defvar read-only-file-extensions '("\\.gz\\'")
   "Not yet implemented.")
 
@@ -4806,9 +4808,10 @@ should open in `read-only-mode'.")
 (defun halidom/find-file-read-only-hook ()
   (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
 
+
 (setq read-only-directories `(,(straight-dir) "/usr/local/"))
 
-
+(setq read-only-whitelist '("/usr/local/src/llvm-project"))
 (add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
 
 
@@ -4961,7 +4964,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   "Set the custom FONT with completion"
   (interactive)
   (let* ((font (or font (assoc
-			 (completing-readxo "Font: " font-list nil nil)
+			 (completing-read "Font: " font-list nil nil)
 			 font-list)))
 	 (family (car font))
 	 (weight (cdr font)))
@@ -5808,7 +5811,9 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 
 #+NAME: ivy-ivy-xref
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy-xref)
+(use-package ivy-xref
+    :init
+  (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 #+END_SRC
 
 *** Counsel
@@ -6102,6 +6107,16 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 (add-hook 'comint-output-filter-functions 'ansi-color-process-output)
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
+
+(defun display-ansi-colors ()
+  (interactive)
+  (ansi-color-apply-on-region (point-min) (point-max)))
+
+(defun display-ansi-file ()
+  (when (string= "ansi" (file-name-extension (buffer-file-name)))
+    (display-ansi-colors)))
+
+(add-hook 'find-file-hook #'display-ansi-file)
 #+END_SRC
 
 ** xterm
@@ -6765,9 +6780,8 @@ Interactively.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package mu4e-alert
     :init
-  (with-eval-after-load 'mu4e
-    (mu4e-alert-enable-notifications)))
-
+  (mu4e-alert-enable-notifications)
+  (mu4e-alert-enable-mode-line-display))
 #+END_SRC
 
 ** Cloud Integration
@@ -8185,18 +8199,35 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+END_SRC
 
-*** C/C++
+***  C/C++
 
 #+NAME: c-cxx-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin C/C++
 (when (halidom/proglang-enabled-p 'c-c++)
+  ;; Flycheck
+  <<c-cxx-flycheck>>
   ;; Cmake
   <<c-cxx-cmake>>
   ;; Make Comint
   <<c-cxx-make>>
   ;; Cquery
-  <<c-cxx-cquery>>)
+  <<c-cxx-cquery>>
+  ;; Clangd
+  ;; <<c-cxx-clangd>>
+  ;; Clang Tidy
+  <<c-cxx-clang-tidy>>
+)
+
+#+END_SRC
+
+**** Setup Flycheck
+
+#+NAME: c-cxx-flycheck
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun c-cxx/setup-flycheck ()
+  (when (fboundp 'flycheck-mode)
+    (flycheck-mode +1)))
 #+END_SRC
 
 **** Cmake Mode
@@ -8266,12 +8297,8 @@ Spacemacs =dotspacemacs-configuration-layers=.
       ;; (lsp-ui-peek-find-custom 'base "$cquery/base")
       ;; (lsp-ui-peek-find-custom 'callers "$cquery/callers")
 
-      (defun setup-cquery ()
-        (when (fboundp 'flycheck-mode)
-          (flycheck-mode +1)))
-
-      (add-hook 'c-mode-hook #'setup-cquery)
-      (add-hook 'c++-mode-hook #'setup-cquery)
+      (add-hook 'c-mode-hook #'c-cxx/setup-flycheck)
+      (add-hook 'c++-mode-hook #'c-cxx/setup-flycheck)
 
       (setq cquery-sem-highlight-method 'font-lock)
       ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
@@ -8288,6 +8315,93 @@ Spacemacs =dotspacemacs-configuration-layers=.
         (setq projectile-project-root-files-top-down-recurring
               (append '("compile_commands.json" ".cquery")
                       projectile-project-root-files-top-down-recurring))))
+#+END_SRC
+
+**** Clangd
+
+#+NAME: c-cxx-clangd
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-clangd
+    :straight (lsp-clangd
+               :type git
+               :repo "emacs-lsp/lsp-clangd"
+               :host github)
+    :commands (lsp-clangd-c-enable lsp-clangd-c++-enable lsp-clangd-objc-enable)
+    
+    :if (or (executable-find "clangd")
+            (and *is-mac*
+                 (file-directory-p
+                  (replace-regexp-in-string "\n" ""
+                   (shell-command-to-string "brew --prefix llvm")))))
+    :init
+    (when *is-mac*
+      (setq lsp-clangd-executable (executable-find "clangd")))
+    (with-eval-after-load 'lsp-mode
+      (require 'lsp-clangd)
+      (add-hook 'c-mode-hook #'lsp-clangd-c-enable)
+      (add-hook 'c++-mode-hook #'lsp-clangd-c++-enable)
+      (add-hook 'objc-mode-hook #'lsp-clangd-objc-enable))
+
+    :config
+
+    (add-hook 'c-mode-hook #'c-cxx/setup-flycheck)
+    (add-hook 'c++-mode-hook #'c-cxx/setup-flycheck)
+    (with-eval-after-load 'projectile
+      (setq projectile-project-root-files-top-down-recurring
+            (append '("compile_commands.json")))))
+
+#+END_SRC
+
+**** Clang Tidy
+
+#+NAME: c-cxx-clang-tidy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-clang-tidy
+    :after flycheck
+    :if (executable-find "clang-tidy")
+    :init
+    (defun clang-tidy//enable ()
+      (when (and (-non-nil projectile-project-root)
+                 (file-exists-p (f-join (or projectile-project-root default-directory)
+                                        "build"
+                                        "compile_commands.json")))
+        (when (fboundp 'flycheck-mode)
+          (flycheck-clang-tidy-setup))))
+    (add-hook 'c-mode-common-hook 'clang-tidy//enable))
+
+#+END_SRC
+
+**** Clang Check
+
+#+NAME: c-cxx-clang-check
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-clangcheck
+    :after flycheckclang-fo
+    :if (executable-find "clangcheck")
+    :init
+    (defun clangcheck//enable ()
+      (when (and (-non-nil projectile-project-root)
+                 (file-exists-p (f-join projectile-project-root
+                                        "build"
+                                        "compile_commands.json")))
+        (when (fboundp 'flycheck-mode)
+          (flycheck-clangcheck-setup))))
+    (add-hook 'c-mode-common-hook 'clangcheck//enable)))
+
+#+END_SRC
+
+**** Clang Format
+
+#+NAME: c-cxx-clang-format
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package clang-format
+    :if (executable-find "clang-format")
+    :bind (:map c-mode-base-map
+                ("C-c i" . clang-format-region)
+                ("C-c u" . clang-format-buffer))
+    :custom
+    (clang-format-style-option "google"))
+
 #+END_SRC
 
 *** Common Lisp
@@ -9915,6 +10029,7 @@ and slim-mode using company.
       (defadvice livedown-preview (after livedown-preview-after activate)
          (xwidget-webkit-browse-url "http://localhost:1337"))))
 #+END_SRC
+
 
 * Prologue
 

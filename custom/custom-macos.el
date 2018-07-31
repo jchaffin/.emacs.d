@@ -185,12 +185,12 @@
  '(flycheck-disabled-checkers '(emacs-lisp-checkdoc))
  '(flycheck-emacs-lisp-load-path 'inherit)
  '(flycheck-global-modes nil)
- '(ggtags-highlight-tag nil t)
+ '(ggtags-highlight-tag nil)
  '(ivy-initial-inputs-alist nil t)
  '(ivy-re-builders-alist '((t . ivy-prescient-re-builder)) t)
  '(ivy-sort-max-size 50000)
  '(ivy-use-virtual-buffers t)
- '(js-indent-level 2)
+ '(js-indent-level 2 t)
  '(livedown-open nil t)
  '(lsp-inhibit-message t nil nil "Customized with use-package lsp-mode")
  '(lsp-message-project-root-warning t t)
@@ -201,7 +201,8 @@
  '(meghanada-server-remote-debug t t)
  '(message-send-mail-function 'async-smtpmail-send-it)
  '(nrepl-hide-special-buffers t t)
- '(org-agenda-files '("/Users/jacobchaffin/Dropbox/org/todos/TODOs.org"))
+ '(org-agenda-files
+   '("~/.emacs.d/chaffin.org" "/Users/jacobchaffin/Dropbox/org/todos/TODOs.org"))
  '(projectile-completion-system 'ivy)
  '(safe-local-variable-values
    '((eval sh-set-shell zsh)
@@ -235,7 +236,7 @@
      (cider-default-cljs-repl . fm)
      (eval cider-register-cljs-repl-type 'fm "(require 'figwheel.main)(figwheel.main/start \"dev\")" 'cider-verify-piggieback-is-present)
      (eval sh-set-shell "zsh")))
- '(typescript-indent-level 2))
+ '(typescript-indent-level 2 t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
