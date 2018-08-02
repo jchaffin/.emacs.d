@@ -107,6 +107,7 @@
     - [[#frame-fns][Frame-fns]]
     - [[#posframe][posframe]]
     - [[#thingatpt][Thingatpt+]]
+    - [[#bookmark][Bookmark]]
     - [[#visit-file][Visit file+]]
     - [[#bug-tracking][Bug Tracking]]
   - [[#multimedia][Multimedia]]
@@ -244,6 +245,7 @@
     - [[#time-tracking][Time Tracking]]
     - [[#debugging][Debugging]]
     - [[#logging][Logging]]
+    - [[#pair-programming][Pair Programming]]
     - [[#diffing][Diffing]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
@@ -391,6 +393,7 @@ the build directory for that repository instead."
           (browse-url (concat "https://github.com/" repo))
         (message "%s is not a GitHub repository :(" pkg)))))
 #+END_SRC
+
 
 ** User Information
 
@@ -1525,7 +1528,7 @@ editors and various other applications on macOS.
    :repo "jchaffin/macos-dev-utils")
 
   :commands (macos-iterm-command-map macos-open-with-command-map)
-  :config
+  :init
   (with-eval-after-load 'macos-dev-utils
     (which-key-add-key-based-replacements "M-m m t"
         '("iTerm" . "iTerm keys"))
@@ -1571,18 +1574,21 @@ query it with the marked region or symbol at point.
   (let* ((protocol "dash-plugin://")
          (keywords (if dash-plugin-keywords
                        (mapconcat 'identity dash-plugin-keywords ",")
-                     "")))
-    (browse-url
-     (concat
-      protocol
-      (unless (string-empty-p keywords)
-        (concat "keys=" keywords "&"))
-      "query="
-      (if (use-region-p)
-          (buffer-substring-no-properties
-           (region-beginning)
-           (region-end))
-        (substring-no-properties (or (thing-at-point 'symbol) "")))))))
+                     ""))
+         (search-string
+          (if (use-region-p)
+              (buffer-substring-no-properties
+               (region-beginning)
+               (region-end))
+            (substring-no-properties (or (thing-at-point 'symbol) "")))))
+
+    (start-process "Dash" nil "open"
+                   (concat
+                    protocol
+                    (unless (string-empty-p keywords)
+                      (concat "keys=" keywords "&"))
+                    "query="
+                    (url-hexify-string search-string)))))
 #+END_SRC
 
 *** Reveal in macOS Finder
@@ -4230,8 +4236,10 @@ interactive tree .
 (use-package projectile
     :custom
     (projectile-completion-system 'ivy)
-    (projectile-switch-project-action #'projectile-find-dir)
+    (projectile-switch-project-action #'projectile-dired)
     (projectile-find-dir-includes-top-level 1)
+    (projectile-indexing-method 'native)
+    (projectile-enable-caching t)
 
     :init
     (el-patch-feature projectile)
@@ -4822,6 +4830,26 @@ different window configurations.
 (use-package misc-fns)
 #+END_SRC
 
+*** Bookmark
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<bookmark-plus>>
+<<bookmark-bm>>
+#+END_SRC
+
+**** Bookmark+
+#+NAME: bookmark-plus
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package bookmark+)
+#+END_SRC
+
+**** Bm 
+
+#+NAME: bookmark-bm
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package bm)
+#+END_SRC
+
 *** Visit file+
 
 #+NAME: read-only
@@ -4865,8 +4893,7 @@ should open in `read-only-mode'.")
 (setq read-only-directories `(,(straight-dir) "/usr/local/"))
 
 (setq read-only-whitelist '("/usr/local/src/llvm-project"))
-(add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
-
+;; (add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
 
 #+END_SRC
 
@@ -5033,14 +5060,14 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defcustom halidom-fonts
-  '("Operator Mono"
-    "SF Mono"
-    "Lucida Sans Typewriter"
-    "Ubuntu Mono"
-    "Menlo"
-    "Inconsolota"
-    "Input Mono"
-    "Courier New")
+  '(("Operator Mono" . extralight)
+    ("SF Mono" . normal)
+    ("Lucida Sans Typewriter" . nil)
+    ("Ubuntu Mono" . nil)
+    ("Menlo" . nil)
+    ("Inconsolota" . nil)
+    ("Input Mono" . nil)
+    ("Courier New" . nil))
   "The default font stack to use for setting the font
 on startup and new frame."
   :type '(string))
@@ -5051,12 +5078,17 @@ on startup and new frame."
 
 
 (defun halidom/font-setup (&optional frame)
-  (let* ((font- (or (car
-                    (seq-intersection halidom-fonts (font-family-list)))
-                   (face-attribute 'fixed-pitch :family)))
-         (font (concat font- "-" (format "%s" halidom-macos-default-font-size))))
-    
-    (set-frame-font font frame t)))
+  (interactive)
+  (let* ((font-family (or (car
+                           (seq-intersection (mapcar #'car halidom-fonts) (font-family-list)))
+                          (face-attribute 'fixed-pitch :family)))
+         (weight (or (cdr (assoc font-family halidom-fonts)) 'normal)))
+    (run-at-time "0.2 sec" nil
+		             `(lambda () (when (not (eq (face-attribute 'default :family)
+				                               ,font-family))
+			                    (set-face-attribute 'default nil :family ,font-family
+					                                    :weight (quote ,weight)
+					                                    :height 120))))))
 
 
 
@@ -5363,7 +5395,7 @@ This disables Emacs asking questions about loading a new theme.
   (halidom--toggle-theme-style)
   (halidom/load-theme))
 
-(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js-mode org-mode)
+(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode org-mode)
   "Major modes for which an italicized font lock keyword
 face shall be used."
   :type '(symbol))
@@ -6034,8 +6066,6 @@ friends.
 #+NAME: counsel-ggtags-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-gtags
-  :after (:all ggtags counsel)
-  :demand t
   :custom
 	(counsel-gtags-ignore-case t)
   (counsel-gtags-auto-update t)
@@ -6044,7 +6074,7 @@ friends.
   (:map counsel-gtags-mode-map
         ("M-m g d" . counsel-gtags-find-definition)
         ("M-m g r" . counsel-gtags-find-reference)
-        ("M-m g s" . counsel-gtatgs-find-symbol)
+        ("M-m g s" . counsel-gtags-find-symbol)
         ("M-m g ," . counsel-gtags-go-backward))
 
   :config
@@ -6052,7 +6082,7 @@ friends.
       '("ggtags" . "Counsel Gtags"))
 
   :hook
-  ((c-mode c++-mode) . counsel-gtags-mode))
+  (c-mode-common . counsel-gtags-mode))
 #+END_SRC
 
 ***** Counsel Dash
@@ -7472,6 +7502,8 @@ school's WLAN.
 
     :custom
     (lsp-ui-doc-include-signature nil)
+    (lsp-ui-doc-header t)
+    (lsp-ui-doc-max-width 100)
     (lsp-ui-sideline-show-symbol nil)
 
     :hook (lsp-mode . lsp-ui-mode))
@@ -8173,6 +8205,14 @@ A front-end for interacting with external debuggers in Emacs.
 (use-package lognav-mode)
 #+END_SRC
 
+*** Pair Programming
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package floobits
+  :if (file-exists-p (user-home ".floorc.json")))
+
+#+END_SRC 
+
 *** Diffing
 
 #+NAME: ediff-spec
@@ -8349,7 +8389,12 @@ Spacemacs =dotspacemacs-configuration-layers=.
           (cd build-directory)
           (cmake-command-run "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" project-directory))
         (if (f-exists? compiledb)
-            (make-symbolic-link (f-slash project-directory) build-directory t))))))
+            (make-symbolic-link (f-slash project-directory) build-directory t)))))
+
+  (defun cmake-mode-dash-docsets ()
+    (setq-local dash-plugin-keywords '("cmake")))
+
+  :hook (cmake-mode . cmake-mode-dash-docsets))
 
 #+END_SRC
 
@@ -8766,7 +8811,17 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 *** Emacs Lisp
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: emacs-lisp-spec
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Begin emacs-lisp
+<<elisp-emacs-lisp>>
+;; Cask
+<<elisp-cask>>
+;; End emacs-lisp
+#+END_SRC
+
+#+NAME: elisp-emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun emacs-lisp-style ()
   (paredit-mode 1)
   (highlight-symbol-mode 1)
@@ -8777,6 +8832,41 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 (add-hook 'emacs-lisp-mode-hook #'emacs-lisp-style)
 (add-hook 'emacs-lisp-mode-hook #'halidom/elisp-dash-docsets)
+
+#+END_SRC
+
+**** Cask 
+#+NAME: elisp-cask
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Cask Mode
+<<cask-cask-mode>>
+;; Flycheck cask
+<<cask-flycheck-cask>>
+#+END_SRC
+
+***** Cask Mode
+
+#+NAME: cask-cask-mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cask-mode)
+#+END_SRC
+
+***** Flycheck Cask
+
+#+NAME: cask-flycheck-cask
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flycheck-cask
+  :init
+  (defun flycheck-cask/enable ()
+    (when (eq projectile-project-type 'emacs-cask)
+      (flycheck-cask-setup)))
+  (defun flycheck-cask/disable-dir-locals ()
+      (when (string= ".dir-locals.el" (buffer-file-name))
+        (set (make-variable-buffer-local 'flycheck-mode) nil)))
+  
+  :hook
+  (flycheck-mode . flycheck-cask/enable)
+  (flycheck-mode . flycheck-cask/disable-dir-locals))
 
 #+END_SRC
 
@@ -9179,25 +9269,25 @@ for major modes listed in `halidom-js-lsp-modes'."
 
 
 (use-package tide
+  :after (:all typescript-mode flycheck company)
+  :demand t
+  :init
 
-    :after (typescript-mode company flycheck)
-    :init
-    ;; Formats buffer before saving
-    (add-hook 'before-save-hook #'tide-format-before-save)
+  (require 'typescript-mode)
 
-    (defun setup-tide-mode ()
-      "Enable Tide Mode for Typescript."
-      (interactive)
-      (tide-setup)
-      (when (fboundp 'flycheck-mode)
-        (flycheck-add-mode 'typescript-tslint 'typescript-mode)
-        (flycheck-mode +1)
-        (setq flycheck-check-syntax-automatically '(save mode-enabled)))
-      (eldoc-mode +1)
-      (tide-hl-identifier-mode +1)
+  (defun setup-tide-mode ()
+    "Enable Tide Mode for Typescript."
+    (tide-setup)
+    (when (fboundp 'flycheck-mode)
+      (flycheck-add-mode 'typescript-tslint 'typescript-mode)
+      (flycheck-mode +1)
+      (setq flycheck-check-syntax-automatically '(save mode-enabled)))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1))
 
-      :hook
-      (typescript-mode . setup-tide-mode)))
+    :hook
+    (before-save . tide-format-before-save)
+    (typescript-mode . setup-tide-mode))
 #+END_SRC
 
 **** rjsx-mode
