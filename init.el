@@ -45,15 +45,17 @@
 
 ;;; Code:
 
-(defvar literate-config-file "chaffin.org"
+(defcustom halidom-literate-config-file "chaffin.org"
   "The *.org file containing the source code responsible for
   declaration and configuration of third-party packages, as well as
   any settings and customizations defined in this GNU Emacs
-  distribution.")
+  distribution."
+  :type 'string)
 
-(defvar user-literate-init-file
-  (expand-file-name literate-config-file user-emacs-directory)
-  "The absolute path of `literate-config-file.'")
+(defcustom halidom-user-literate-init-file
+  (expand-file-name halidom-literate-config-file user-emacs-directory)
+  "The absolute path of `halidom-literate-config-file.'"
+  :type 'string)
 
 
 (setq package-enable-at-startup nil)
@@ -69,8 +71,15 @@
       ;; Use the macos lockfile
       straight-profiles '((halidom . "versions.el")
 			                    (nil . "default.el"))
-      straight-current-profile 'halidom)
+      straight-current-profile 'halidom
+      straight-recipes-gnu-elpa-use-mirror t)
 
+(if (and (executable-find "watchexec")
+         (executable-find "python3"))
+    (setq straight-check-for-modifications '(watch-files find-when-checking))
+  (setq straight-check-for-modifications '(check-on-save find-when-checking)))
+
+;; Bootstrap straight.el
 (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
       (bootstrap-version 2))
   (unless (file-exists-p bootstrap-file)
@@ -92,13 +101,16 @@
 ;; ensuring the directory exists when `straight-recipes-gnu-elpa-list'
 ;; is invoked.
 
-(defadvice straight-recipes-gnu-elpa-list (around straight-recipe-gnu-elpa-list-around activate)
-  (let* ((elpa-repo-dir (expand-file-name "straight/repos/elpa/" user-emacs-directory))
-         (elpa-pkg-dir (expand-file-name "packages/" elpa-repo-dir)))
-    (unless (file-exists-p elpa-pkg-dir)
-      (if (file-exists-p elpa-repo-dir)
-          (mkdir elpa-pkg-dir)))
-    ad-do-it))
+;; (defadvice straight-recipes-gnu-elpa-list (around straight-recipe-gnu-elpa-list-around activate)
+;;   (let* ((elpa-repo-dir (expand-file-name "straight/repos/elpa/" user-emacs-directory))
+;;          (elpa-pkg-dir (expand-file-name "packages/" elpa-repo-dir)))
+;;     (unless (file-exists-p elpa-pkg-dir)
+;;       (if (file-exists-p elpa-repo-dir)
+;;           (mkdir elpa-pkg-dir)))
+;;     ad-do-it))
+
+
+;;; Use Package
 
 ;; Clone use-package dependencies
 (straight-use-package 'diminish)
@@ -187,8 +199,8 @@
 
 (defun load-literate (&optional user-config-file init-server)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
-Else use the value of `literate-config-file'."
-  (let ((target-file (or user-config-file literate-config-file))
+Else use the value of `halidom-literate-config-file'."
+  (let ((target-file (or user-config-file halidom-literate-config-file))
         (target-dir (or user-emacs-directory default-directory)))
     (when init-server
 	    (require 'server)
@@ -233,7 +245,7 @@ Else use the value of `literate-config-file'."
 
 (defun literate-tangle-src-block (name)
   (let ((buf (find-file-noselect (expand-file-name "chaffin.org" user-emacs-directory))))
-    (with-current-buffer literate-config-file
+    (with-current-buffer halidom-literate-config-file
       (org-element-map (org-element-parse-buffer) 'src-block
 	(lambda (block)
 	  (if (string= name (org-element-property :name block))
@@ -255,7 +267,7 @@ Else use the value of `literate-config-file'."
 
 ;; Initialization
 (if use-literate-p
-    (load-literate literate-config-file)
+    (load-literate halidom-literate-config-file)
   (literate-debug-enabled))
 
 ;;;; init.el ends here

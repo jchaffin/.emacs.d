@@ -249,6 +249,7 @@
     - [[#diffing][Diffing]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
+    - [[#conf][Conf]]
     - [[#asm][ASM]]
     -  [[#cc][C/C++]]
     - [[#common-lisp][Common Lisp]]
@@ -293,6 +294,7 @@ compiler.
 :CUSTOM_ID: tangle-file
 :END:
 
+Insert conventional elisp header.[fn:1] 
 #+NAME: comment-block
 #+BEGIN_SRC emacs-lisp :tangle yes
 ;;; chaffin.el -- Emacs Configuration File
@@ -335,7 +337,7 @@ compiler.
 :CUSTOM_ID: straight
 :END:
 
-[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading the repository description [fn:1], I impetuously refactored my entire Emacs configuration without reading any of the documentation, because
+[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading the repository description [fn:2], I impetuously refactored my entire Emacs configuration without reading any of the documentation, because
 
 #+BEGIN_SRC http :pretty :file ./resources/img/documentation-is-for-wimps.png :exports none
 GET https://3.bp.blogspot.com/-b3dUlC6AJjI/WE2U_wcJvrI/AAAAAAAAA_4/lciulxFqwrUAZxLol9FVybHCpCdgXSufgCLcB/w1200-h630-p-k-no-nu/documentation-is-for-wimps.png
@@ -398,7 +400,7 @@ the build directory for that repository instead."
 ** User Information
 
 These values are initialized with the ’name’ and ’email’
-environment variables, respectively[fn:2].
+environment variables, respectively[fn:3].
 
 Emacs uses these variables to fill the mail header when sending
 emails in emacs, and various third-party packages rely on them
@@ -496,7 +498,7 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 
 *** Constants
 
-Variables used throughout this file[fn:3]:
+Variables used throughout this file[fn:4]:
 
 #+NAME: define-constants
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -519,7 +521,7 @@ conditionals of the /if-then/ form or /if-else-then/ form, the
 conditional clause.
 
 In emacs-lisp, this kind of statement can be expressed with the ~when~
-macro[fn:4].
+macro[fn:5].
 
 Credits to stack overflow user [[https://stackoverflow.com/users/403018/gerstmann][gerstmann]], who provided this solution
 in the following stack overflow [[https://stackoverflow.com/a/26137517/6233622][ticket]].
@@ -825,12 +827,7 @@ function FUNC. To copy the file path to the kill-ring, use the
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun directory-files-no-wildcards (directory &optional full nosort)
    "List directory contents without wildcards"
-  (seq-filter (lambda (x)
-		(not
-		 (or (string-empty-p (string-trim x))
-		     (or (string= "." x)
-			 (string= ".." x)))))
-	      (directory-files directory full nil nosort)))
+   (cddr (directory-files directory full nil nosort)))
 #+END_SRC
 
 ***** Read File Contents
@@ -1015,12 +1012,12 @@ Causes a conflict with ~lsp-mode~.
 
 (defun goto-literate ()
   (interactive)
-  (find-file user-literate-init-file))
+  (find-file halidom-user-literate-init-file))
 
 (defun goto-tangled-init ()
   (interactive)
   (find-file
-    (concat (file-name-sans-extension user-literate-init-file) ".el")))
+    (concat (file-name-sans-extension halidom-user-literate-init-file) ".el")))
 
 (define-key goto-map "i" #'goto-init)
 (define-key goto-map "l" #'goto-literate)
@@ -1454,7 +1451,7 @@ external programs.
 
 **** Modifier Keys
 
-macOS specific settings[fn:5].
+macOS specific settings[fn:9].
 
 Maps the modifier keys based on personal preferences.
 Also sets terminal coding system to "utf-8".
@@ -1529,13 +1526,13 @@ editors and various other applications on macOS.
 
   :commands (macos-iterm-command-map macos-open-with-command-map)
   :init
-  (with-eval-after-load 'macos-dev-utils
-    (which-key-add-key-based-replacements "M-m m t"
-        '("iTerm" . "iTerm keys"))
-    (which-key-add-key-based-replacements "M-m m o"
-        '("Open" . "Open With keys"))
-    (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
-    (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)))
+  (require 'macos-dev-utils)
+  (which-key-add-key-based-replacements "M-m m t"
+      '("iTerm" . "iTerm keys"))
+  (which-key-add-key-based-replacements "M-m m o"
+      '("Open" . "Open With keys"))
+  (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
+  (define-key 'macos-prefix-map "o" 'macos-open-with-command-map))
 
 #+END_SRC
 
@@ -1862,7 +1859,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 *** BibTex
 
 BibTeX mode is built-in with GNU Emacs. Like /super/ built-in. This is
-from the author of the online BibTeX mode manual[fn:9]:
+from the author of the online BibTeX mode manual[fn:10]:
 
 #+BEGIN_QUOTE
 I am not the author of this file and am only putting it online because, to my knowledge, it is not available anywhere else anymore and I find it a very valuable reference.  I haven't been able to find out who the current maintainer of the BibTex-Mode for GNU emacs is, but am willing to withdraw this text or add any copyright notice that would be deemed relevant.
@@ -3236,7 +3233,7 @@ org agenda files.
           org-mru-completing-read #'ivy-completing-read)))
 #+END_SRC
 
-Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:10].
+Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
 
 *** Idea Management
 
@@ -3595,7 +3592,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 
 **** Org PDF View
 
-Now we can open pdf files with =org-pdfview= [fn:11]:
+Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4238,7 +4235,7 @@ interactive tree .
     (projectile-completion-system 'ivy)
     (projectile-switch-project-action #'projectile-dired)
     (projectile-find-dir-includes-top-level 1)
-    (projectile-indexing-method 'native)
+    (projectile-indexing-method 'alien)
     (projectile-enable-caching t)
 
     :init
@@ -4279,41 +4276,58 @@ interactive tree .
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package skeletor
     :custom
-  (skeletor-user-directory (emacs-dir "skeletons"))
-  (skeletor-completing-read-function 'ivy-completing-read)
-  (skeletor-project-directory (projects-dir))
+    (skeletor-user-directory (emacs-dir "skeletons"))
+    (skeletor-completing-read-function 'ivy-completing-read)
+    (skeletor-python-bin-search-path '("/usr/local/bin" "/usr/bin"))
+    (skeletor-project-directory (projects-dir))
 
-  :config
+    :init
 
-  (add-to-list 'skeletor-global-substitutions (cons "__TIME__" (lambda () (format-time-string "%c"))))
+    (defun skeletor-add-pyenv-pythons ()
+      "Add python binaries managed by pyenv to `skeletor-python-bin-search-path'."
+      (let* ((pyenv-dir (getenv "PYENV_ROOT"))
+             (pyenv-version-dir (if pyenv-dir (resolve-path pyenv-dir "versions")))
+             (pyenv-versions (directory-files-no-wildcards pyenv-version-dir t))
+             (python-bins (mapcar (lambda (d) (resolve-path d "bin")) pyenv-versions)))
+        (dolist (python-bin python-bins)
+          (add-to-list 'skeletor-python-bin-search-path python-bin))))
 
-  (skeletor-define-template "cmake-unix-makefiles"
-    :requires-executables '(("cmake" . "https://cmake.org")
-                            ("make". "https://www.gnu.org/software/make"))
-    :substitutions
-    (list (cons "__DESCRIPTION__" (lambda () (read-string "Description: ")))
-          (cons "__TARGET_NAME__"  (lambda () (read-string "Target: ")))
-          (cons "__PROJECT-VARS__" ".dir-locals"))
+    (skeletor-add-pyenv-pythons)
 
-    :after-creation
-    (lambda (dir)
-      (skeletor-async-shell-command "mkdir build")
-      (skeletor-async-shell-command  "( cd build && cmake -G 'Unix Makefiles' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. )")
-      (skeletor-async-shell-command "ln -s `pwd`/build/compile_commands.json `pwd`/compile_commands.json")
-      (dired dir)
-      (revert-buffer)))
 
-  (with-eval-after-load 'lsp-mode
-    (add-to-list 'lsp-project-blacklist skeletor-project-directory))
+    :config
 
-  (with-eval-after-load 'projectile
-    (add-to-list 'projectile-ignored-projects skeletor-project-directory)))
+    (add-to-list 'skeletor-global-substitutions (cons "__TIME__" (lambda () (format-time-string "%c"))))
+
+    (skeletor-define-template "cmake-unix-makefiles"
+      :requires-executables '(("cmake" . "https://cmake.org")
+                              ("make". "https://www.gnu.org/software/make"))
+      :substitutions
+      (list (cons "__DESCRIPTION__" (lambda () (read-string "Description: ")))
+            (cons "__TARGET_NAME__"  (lambda () (read-string "Target: ")))
+            (cons "__PROJECT-VARS__" ".dir-locals"))
+
+      :after-creation
+      (lambda (dir)
+        (skeletor-async-shell-command "mkdir build")
+        (skeletor-async-shell-command  "( cd build && cmake -G 'Unix Makefiles' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. )")
+        (skeletor-async-shell-command "ln -s `pwd`/build/compile_commands.json `pwd`/compile_commands.json")
+        (dired dir)
+        (revert-buffer)))
+
+
+
+    (with-eval-after-load 'lsp-mode
+      (add-to-list 'lsp-project-blacklist skeletor-project-directory))
+
+    (with-eval-after-load 'projectile
+      (add-to-list 'projectile-ignored-projects skeletor-project-directory)))
 
 #+END_SRC
 
 **** Neotree
 
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:12] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package neotree
@@ -4407,6 +4421,14 @@ Adds extensions and functionality to dired mode.
     :demand t
     :config
     (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+#+END_SRC
+
+***** Open org directory links with dired
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(when (symbolp 'org-file-apps)
+  (add-to-list 'org-file-apps '(directory . emacs)))
 #+END_SRC
 
 **** Treemacs
@@ -4585,7 +4607,7 @@ Starting in Emacs 26, the =default-frame-alist= variable can be used
 create a natural title bar in the GUI. Setting the default frame
 properties to the following values has the same effect as the
 '--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
-recommended for Spacemacs users on macOS[fn:13].
+recommended for Spacemacs users on macOS[fn:14].
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . dark)))
@@ -4608,7 +4630,7 @@ so happens this prefix can be extended by every key in the arrow pad
 without causing a conflict with external keymaps on my system.
 
 The suggested keybindings from the footnoted EmacsWiki page may be more
-accessible for you [fn:14].
+accessible for you [fn:15].
 
 #+NAME: window-resize-keybindings
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4858,7 +4880,7 @@ different window configurations.
   "A list of directories for which all files and subdirectories
 should open in `read-only-mode'.")
 
-(defvar read-only-whitelist '()
+(defvar read-only-whitelist-directories '()
   "A list of directories which should not be opened in read-only mode.")
 
 (defvar read-only-file-extensions '("\\.gz\\'")
@@ -4867,17 +4889,21 @@ should open in `read-only-mode'.")
 (defun dir-level (dir)
   (length (f-split dir)))
 
-(defun halidom//dir-or-subdir-p (d1 d2)
+(defun dir-or-subdir-p (d1 d2)
   "If non-nil, then directory D1 is subdirectory or the same directory as D2."
   (cond ((< (dir-level d1) (dir-level d2)) nil)
         ((string= d1 d2) t)
-        (t (halidom//dir-or-subdir-p
+        (t (dir-or-subdir-p
             (--> d1 basename file-name-as-directory (string-remove-suffix it d1))
             d2))))
 
 (defun read-only-directory-p (bf)
-  (cl-flet ((f (d) (funcall #'halidom//dir-or-subdir-p bf d)))
+  "Determine whether the current buffer file is in a directory 
+that is a member of `read-only-directories'."
+  (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
+           
     (and (not (null (seq-filter #'f read-only-directories)))
+         (null (seq-filter #'f read-only-whitelist-directories))
          (file-writable-p bf))))
 
 (defun halidom/open-buffer-as-read-only (file)
@@ -4889,11 +4915,10 @@ should open in `read-only-mode'.")
 (defun halidom/find-file-read-only-hook ()
   (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
 
-
 (setq read-only-directories `(,(straight-dir) "/usr/local/"))
 
-(setq read-only-whitelist '("/usr/local/src/llvm-project"))
-;; (add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
+(setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
+(add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
 
 #+END_SRC
 
@@ -4901,11 +4926,11 @@ should open in `read-only-mode'.")
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package debbugs
-  :straight (debbugs :type git
-                     :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
-                     :files ("packages/debbugs/*.el"
-                             "packages/debbugs/Debbugs.wsdl")
-                     :local-repo "elpa"))
+    :straight (debbugs :type git
+                       :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
+                       :files ("packages/debbugs/*.el"
+                               "packages/debbugs/Debbugs.wsdl")
+                       :local-repo "elpa"))
 
 #+END_SRC
 
@@ -5052,8 +5077,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 		 `(lambda () (when (not (eq (face-attribute 'default :family)
 				       ,family))
 			  (set-face-attribute 'default nil :family ,family
-					      :weight (quote ,weight)
-					      :height 120))))))
+					      :weight (quote ,weight)))))))
 #+END_SRC
 
 *** Set the default font
@@ -6099,7 +6123,6 @@ documentation browser.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package counsel-dash
   :after (:all counsel)
-  :demand t
   :if *is-mac*)
 #+END_SRC
 
@@ -6444,50 +6467,55 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 
 #+NAME: xwidget-ns
 #+BEGIN_SRC emacs-lisp :tangle no
-(el-patch-feature xwidget)
-(with-eval-after-load 'xwidget
-  (el-patch-defun xwidget-webkit-new-session (url)
-    "Create a new webkit session buffer with URL."
-    (let*
-        ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
-         xw)
-      (setq xwidget-webkit-last-session-buffer
-            ((el-patch-swap switch-to-buffer switch-to-buffer-other-window)
-             (get-buffer-create bufname)))
-      ;; The xwidget id is stored in a text property, so we need to have
-      ;; at least character in this buffer.
-      ;; Insert invisible url, good default for next `g' to browse url.
-      (insert url)
-      (put-text-property 1 (+ 1 (length url)) 'invisible t)
-      (setq xw (xwidget-insert 1 'webkit bufname
-                               (xwidget-window-inside-pixel-width (selected-window))
-                               (xwidget-window-inside-pixel-height (selected-window))))
-      (xwidget-put xw 'callback 'xwidget-webkit-callback)
-      (xwidget-webkit-mode)
-      (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url))))
+(use-package xwidget
+    :straight nil
+    :bind (:map xwidget-webkit-mode-map
+                ("\C-s" . isearch-forward))
+    :init
+    (el-patch-feature xwidget)
+    (with-eval-after-load 'xwidget
+      (el-patch-defun xwidget-webkit-new-session (url)
+        "Create a new webkit session buffer with URL."
+        (let*
+            ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
+             xw)
+          (setq xwidget-webkit-last-session-buffer
+                ((el-patch-swap switch-to-buffer switch-to-buffer-other-window)
+                 (get-buffer-create bufname)))
+          ;; The xwidget id is stored in a text property, so we need to have
+          ;; at least character in this buffer.
+          ;; Insert invisible url, good default for next `g' to browse url.
+          (insert url)
+          (put-text-property 1 (+ 1 (length url)) 'invisible t)
+          (setq xw (xwidget-insert 1 'webkit bufname
+                                   (xwidget-window-inside-pixel-width (selected-window))
+                                   (xwidget-window-inside-pixel-height (selected-window))))
+          (xwidget-put xw 'callback 'xwidget-webkit-callback)
+          (xwidget-webkit-mode)
+          (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url))))
 
-(when (require 'xwidget)
-  (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
-  (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
+    (when (require 'xwidget)
+      (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
+      (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
 
-  (require 'bookmark)
+      (require 'bookmark)
 
-  (add-hook 'pre-command-hook
-            (lambda ()
-                (if (eq this-command #'bookmark-bmenu-list)
-                    (if-not (eq major-mode 'xwidget-webkit-mode)
-                        (setq xwidget-webkit-bookmark-jump-new-session t)
-                      (setq xwidget-webkit-bookmark-jump-new-session nil)
-                      (setq xwidget-webkit-last-session-buffer (current-buffer))))))
+      (add-hook 'pre-command-hook
+                (lambda ()
+                  (if (eq this-command #'bookmark-bmenu-list)
+                      (if-not (eq major-mode 'xwidget-webkit-mode)
+                          (setq xwidget-webkit-bookmark-jump-new-session t)
+                        (setq xwidget-webkit-bookmark-jump-new-session nil)
+                        (setq xwidget-webkit-last-session-buffer
+                              (current-buffer))))))
 
-  (defun xwidget-webkit-open-file (&optional file)
-    "Render FILE using xwidget-webkit"
-    (interactive "fFile: ")
-    (xwidget-webkit-browse-url
-     (concat "file://"
-             (and (memq system-type '(windows-nt ms-dos)) "/")
-             (expand-file-name (or file (buffer-file-name)))))))
-
+      (defun xwidget-webkit-open-file (&optional file)
+        "Render FILE using xwidget-webkit"
+        (interactive "fFile: ")
+        (xwidget-webkit-browse-url
+         (concat "file://"
+                 (and (memq system-type '(windows-nt ms-dos)) "/")
+                 (expand-file-name (or file (buffer-file-name))))))))
 #+END_SRC
 
 **** xwidgete
@@ -6958,7 +6986,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+END_SRC
 
 Tools for checking lexical and grammatical errors in text
-buffers[fn:15].
+buffers[fn:16].
 
 *** Flyspell
 
@@ -7068,7 +7096,7 @@ checking for natural language.
 
 The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
 dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:16].
+whistles, it makes up for in compatibility and hackability [fn:17].
 
 #+NAME: completion-dictionary-el
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -7472,7 +7500,7 @@ school's WLAN.
   :custom
   (lsp-inhibit-message t)
   (lsp-message-project-root-warning t)
-  (lsp-project-blacklist '("^/ssh:"))
+  (lsp-project-blacklist '("^/ssh:" "node_modules"))
   :config
   (require 'lsp-imenu)
   (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)
@@ -8255,6 +8283,37 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+END_SRC
 
 ** Programming Languages
+*** Conf
+
+#+NAME: conf-spec
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Begin conf Group
+;; Nginx
+<<conf-nginx>>
+;; YAML Mode
+<<conf-yaml>>
+;; End conf Group
+#+END_SRC
+
+**** Nginx
+
+#+NAME: web-nginx
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package nginx-mode
+    :mode ("/nginx/sites-\\(?:available|enabled\\)/" . nginx-mode))
+#+END_SRC
+
+**** Yaml
+
+#+NAME: conf-yaml
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package yaml-mode
+    :mode (("\\.yml\\'" . yaml-mode)
+           (".clang-tidy\\'" . yaml-mode)))
+
+#+END_SRC
+
 *** ASM
 
 - See Spacemacs [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/asm/][ASM layer]].
@@ -8356,6 +8415,10 @@ Spacemacs =dotspacemacs-configuration-layers=.
   <<c-cxx-clangd>>
   ;; Clang Tidy
   <<c-cxx-clang-tidy>>
+  ;; Rtags
+  <<c-cxx-rtags>>
+  ;; llvm
+  <<c-cxx-llvm>>
 )
 
 #+END_SRC
@@ -8370,7 +8433,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
   :init
   (with-eval-after-load 'projectile
     (add-to-list 'projectile-project-root-files-top-down-recurring
-                 ".compile_commands.json"))
+                 "compile_commands.json"))
   
   (defun cmake-build-compilation-database ()
     (interactive)
@@ -8423,7 +8486,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
                                 :cacheFormat "msgpack"
                                 :completion (:detailedLabel t)))
     :init
-
     (defun cquery/enable ()
       "Enable cquery in the workspace."
       (condition-case nil
@@ -8437,10 +8499,9 @@ Spacemacs =dotspacemacs-configuration-layers=.
     :config
 
     ;; Alternatively, use lsp-ui-peek interface
-    ;; (lsp-ui-peek-find-custom 'base "$cquery/base")
-    ;; (lsp-ui-peek-find-custom 'callers "$cquery/callers")
-    (setq cquery-sem-highlight-method 'font-lock)
-    ;; alternatively, (setq cquery-sem-highlight-method 'overlay)
+    ;; (setq cquery-sem-highlight-method 'font-lock)
+    ;; alternatively
+    (setq cquery-sem-highlight-method 'overlay)
 
     ;; For rainbow semantic highlighting
     (with-eval-after-load 'lsp-ui-mode
@@ -8453,6 +8514,35 @@ Spacemacs =dotspacemacs-configuration-layers=.
     (with-eval-after-load 'projectile
         (add-to-list 'projectile-project-root-files-top-down-recurring
                      ".cquery")))
+#+END_SRC
+
+**** Rtags
+
+#+NAME: c-cxx-rtags
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package rtags
+    :if (executable-find "rdm")
+    :hook
+  ((c-mode . rtags-start-process-unless-running)
+   (c++-mode . rtags-start-process-unless-running)
+   (objc-mode . rtags-start-process-unless-running)))
+
+(use-package ivy-rtags)
+
+#+END_SRC
+
+**** LLVM Mode
+
+#+NAME: c-cxx-llvm
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package llvm-mode
+    :straight nil
+    :load-path "~/.emacs.d/site-lisp/llvm-mode"
+    :init
+    (require 'llvm-mode)
+    (require 'tablegen-mode))
+
 #+END_SRC
 
 **** Clangd
@@ -8808,7 +8898,6 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
 #+END_SRC
 
-
 *** Emacs Lisp
 
 #+NAME: emacs-lisp-spec
@@ -8836,12 +8925,15 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+END_SRC
 
 **** Cask 
+
 #+NAME: elisp-cask
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Cask Mode
 <<cask-cask-mode>>
 ;; Flycheck cask
 <<cask-flycheck-cask>>
+;; Cask Package Toolset
+<<cask-pkg-toolset>>
 #+END_SRC
 
 ***** Cask Mode
@@ -8868,6 +8960,13 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   (flycheck-mode . flycheck-cask/enable)
   (flycheck-mode . flycheck-cask/disable-dir-locals))
 
+#+END_SRC
+
+***** Cask Toolset
+
+#+NAME: cask-pkg-toolset
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cask-package-toolset)
 #+END_SRC
 
 *** Groovy
@@ -9227,8 +9326,8 @@ for major modes listed in `halidom-js-lsp-modes'."
   :interpreter "node"
   :init
 
-  :hook ((js2-mode . js-setup-backend)
-         (js2-mode . halidom/flycheck-enable-hook)))
+  :hook ((js-mode . js-setup-backend)
+         (js-mode . halidom/flycheck-enable-hook)))
 #+END_SRC
 
 **** JSON
@@ -9272,9 +9371,7 @@ for major modes listed in `halidom-js-lsp-modes'."
   :after (:all typescript-mode flycheck company)
   :demand t
   :init
-
-  (require 'typescript-mode)
-
+  ;; (require 'typescript-mode)
   (defun setup-tide-mode ()
     "Enable Tide Mode for Typescript."
     (tide-setup)
@@ -9282,12 +9379,12 @@ for major modes listed in `halidom-js-lsp-modes'."
       (flycheck-add-mode 'typescript-tslint 'typescript-mode)
       (flycheck-mode +1)
       (setq flycheck-check-syntax-automatically '(save mode-enabled)))
-    (eldoc-mode +1)
-    (tide-hl-identifier-mode +1))
+    (eldoc-mode +1))
 
     :hook
     (before-save . tide-format-before-save)
-    (typescript-mode . setup-tide-mode))
+    (typescript-mode . setup-tide-mode)
+    (typescript-mode . tide-hl-identifier-mode))
 #+END_SRC
 
 **** rjsx-mode
@@ -10209,20 +10306,22 @@ and slim-mode using company.
 
 * Footnotes
 
-[fn:1]  "Next-generation, purely functional package manager for the
+[fn:1] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]] 
+
+[fn:2]  "Next-generation, purely functional package manager for the
 Emacs hacker."
 
-[fn:2] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
+[fn:3] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
 
-[fn:3] In lisp, global variables are called /top-level defintions/. By
+[fn:4] In lisp, global variables are called /top-level defintions/. By
 convention, globals are wrapped in a pair of asterisks called
 /earmuffs/. Earmuffs are completely optional -- they have no effect on
 how the program is compiled -- its a best practice in all of the many
 dialects of Lisp.
 
-[fn:4] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
+[fn:5] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
 
-[fn:5] [[https://www.emacswiki.org/emacs/EmacsForMacOS][Emacs Wiki - Emacs For MacOS]]
+[fn:9] [[https://www.emacswiki.org/emacs/EmacsForMacOS][Emacs Wiki - Emacs For MacOS]]
 
 [fn:6] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
 
@@ -10230,25 +10329,22 @@ dialects of Lisp.
 
 [fn:8] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
 
-[fn:9] http://www.jonathanleroux.org/bibtex-mode.html
+[fn:10] http://www.jonathanleroux.org/bibtex-mode.html
 
-[fn:10] http://mbork.pl/2018-04-28_org-mru-clock
+[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
 
-[fn:11] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
+[fn:12] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:13] [[https://github.com/d12frosted/homebrew-emacs-plus][d12frosted/homebrew-emacs-plus]]
+[fn:14] [[https://github.com/d12frosted/homebrew-emacs-plus][d12frosted/homebrew-emacs-plus]]
 
-[fn:12] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
+[fn:13] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
 
-[fn:14] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
+[fn:15] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
 
-[fn:15] https://joelkuiper.eu/spellcheck_emacs
+[fn:16] https://joelkuiper.eu/spellcheck_emacs
 
-[fn:16] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
+[fn:17] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
 
-[fn:17] [[https://www.emacswiki.org/emacs/TabsAreEvil][Emacs Wiki - Tabs Are Evil]]
-
-[fn:18] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
 
 
 
