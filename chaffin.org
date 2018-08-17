@@ -166,6 +166,7 @@
     - [[#eshell-z][Eshell Z]]
     - [[#eshell-prompt-extras][Eshell Prompt Extras]]
   - [[#shell][Shell]]
+    - [[#shell-script-indentation][Shell script Indentation]]
     - [[#zsh-macfix][ZSH Macfix]]
     - [[#shell-command-to-list][Shell Command to list]]
   - [[#remote][Remote]]
@@ -4529,20 +4530,20 @@ list that one may use in the wacky world of Emacs.
 #+NAME: dashboard-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package dashboard
-  :demand t
-  :init
-  (if-not (global-page-break-lines-mode)
-      (global-page-break-lines-mode))
-  (dashboard-setup-startup-hook)
-  :config
-  (add-to-list 'dashboard-items '(agenda) t)
+    :demand t
+    :init
+    (if-not (global-page-break-lines-mode)
+        (global-page-break-lines-mode))
+    (dashboard-setup-startup-hook)
+    :config
+    (add-to-list 'dashboard-items '(agenda) t)
 
-  (setq dashboard-banner-logo-title "Welcome Back, MasterChaff"
-        dashboard-items '(( agenda . 10)
-                          ( projects . 5)
-                          ( recents . 5)
-                          ( bookmarks . 5)))
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
+    (setq dashboard-banner-logo-title "Steak and Eggs in my Dojo."
+          dashboard-items '(( agenda . 10)
+                            ( projects . 5)
+                            ( recents . 5)
+                            ( bookmarks . 5)))
+    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
 
 #+END_SRC
 
@@ -6331,8 +6332,16 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; ZSH Shell Fix
 <<shell-zsh-macfix>>
+;; Shell script style
+<<shell-style>>
 ;; Shell Command to List
 <<shell-cmd-to-list>>
+#+END_SRC
+
+*** Shell script Indentation
+#+NAME: shell-style
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq sh-basic-offset 2)
 #+END_SRC
 
 *** ZSH Macfix

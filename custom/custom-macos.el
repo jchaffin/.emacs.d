@@ -196,7 +196,7 @@
  '(ivy-re-builders-alist '((t . ivy-prescient-re-builder)) t)
  '(ivy-sort-max-size 50000)
  '(ivy-use-virtual-buffers t)
- '(js-indent-level 2)
+ '(js-indent-level 2 t)
  '(livedown-open nil t)
  '(lsp-clangd-executable "/usr/local/opt/llvm/bin/clangd")
  '(lsp-inhibit-message t)
@@ -218,7 +218,9 @@
  '(projectile-indexing-method 'alien)
  '(projectile-switch-project-action 'projectile-dired)
  '(safe-local-variable-values
-   '((projectile-project-run-cmd . "bin/tidyproj")
+   '((projectile-project-run-cmd . "bin/out")
+     (projectile-project-configure-cmd . "cmake -G 'Unix Makefiles' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../")
+     (projectile-project-run-cmd . "bin/tidyproj")
      (projectile-project-name . "clang-tools-extra")
      (projectile-project-root . "/usr/local/src/llvm-project/llvm/tools/clang/extra")
      (projectile-project-test-cmd . "ninja check-clang-tidy")
@@ -246,8 +248,9 @@
      (eval sh-set-shell "zsh")))
  '(skeletor-completing-read-function 'ivy-completing-read)
  '(skeletor-project-directory "/Users/jacobchaffin/Developer/Projects/")
+ '(skeletor-python-bin-search-path '("/usr/local/bin" "/usr/bin"))
  '(skeletor-user-directory "/Users/jacobchaffin/.emacs.d/skeletons/")
- '(typescript-indent-level 2))
+ '(typescript-indent-level 2 t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
