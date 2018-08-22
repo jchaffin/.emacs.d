@@ -1030,6 +1030,7 @@ Causes a conflict with ~lsp-mode~.
   (find-file
     (concat (file-name-sans-extension halidom-user-literate-init-file) ".el")))
 
+
 (define-key goto-map "i" #'goto-init)
 (define-key goto-map "l" #'goto-literate)
 (define-key goto-map "t" #'goto-tangled-init)
@@ -4558,9 +4559,18 @@ list that one may use in the wacky world of Emacs.
 (use-package dashboard
     :demand t
     :init
+
+    (defun goto-dashboard ()
+      (interactive)
+      (if (seq-contains (mapcar #'buffer-name (buffer-list)) "*dashboard*")
+          (switch-to-buffer "*dashboard*")))
+
+    (define-key goto-map "d" #'goto-dashboard)
+
     (if-not (global-page-break-lines-mode)
         (global-page-break-lines-mode))
     (dashboard-setup-startup-hook)
+
     :config
     (add-to-list 'dashboard-items '(agenda) t)
 
