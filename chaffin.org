@@ -88,11 +88,20 @@
     - [[#ox-extra][Ox Extra]]
     - [[#ox-publish][Ox Publish]]
 - [[#customizing-emacs][Customizing Emacs]]
-  - [[#search-and-navigation][Search and Navigation]]
-    - [[#the-buffer][The buffer]]
-    - [[#in-project][In Project]]
-    - [[#the-file-system][The file system]]
-    - [[#searching][Searching]]
+  - [[#project-management][Project Management]]
+    - [[#projectile][Projectile]]
+    - [[#skeletor][Skeletor]]
+  - [[#file-system][File System]]
+    - [[#dired][Dired]]
+    - [[#neotree][Neotree]]
+    - [[#treemacs][Treemacs]]
+    - [[#speedbar][Speedbar]]
+  - [[#search][Search]]
+    - [[#codesearch][Codesearch]]
+    - [[#avy][Avy]]
+    - [[#ack][ack]]
+    - [[#ag][ag]]
+    - [[#grep][grep+]]
     - [[#visual-replace][Visual Replace]]
   - [[#initial-display][Initial Display]]
     - [[#buffer][Buffer]]
@@ -110,6 +119,7 @@
     - [[#bookmark][Bookmark]]
     - [[#visit-file][Visit file+]]
     - [[#bug-tracking][Bug Tracking]]
+    - [[#undo-tree][Undo Tree]]
   - [[#multimedia][Multimedia]]
     - [[#emms][emms]]
     - [[#sound-cloud][Sound Cloud]]
@@ -4204,32 +4214,10 @@ and subtrees of the ignored headlines will be retained.
 #+END_SRC
 
 * Customizing Emacs
-** Search and Navigation
-*** The buffer
-**** Avy
-Jump to arbitrary point in Buffer
+** Project Management
+*** Projectile
 
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package avy
-  :straight t)
-#+END_SRC
-
-**** Undo Tree
-
-Visualize buffer modifications during an Emacs session as an
-interactive tree .
-
-#+NAME: undo-tree-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package undo-tree
-  :init
-  (global-undo-tree-mode))
-#+END_SRC
-
-*** In Project
-**** Projectile
-
-#+NAME: projectile-spec
+#+NAME: project-projectile
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package projectile
     :custom
@@ -4271,7 +4259,14 @@ interactive tree .
             #'projectile-ignore-projects-in-directory)))
 #+END_SRC
 
-**** Skeletor 
+**** Projectile Codesearch
+
+#+NAME: project-codesearch
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package projectile-codesearch)
+#+END_SRC
+
+*** Skeletor 
 
 #+NAME: skeletor-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4326,41 +4321,11 @@ interactive tree .
 
 #+END_SRC
 
-**** Neotree
+**** Projectile Code Search
+<se
 
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package neotree
-  :after (projectile)
-  :demand t
-  :commands (neotree-project-dir)
-  :bind
-  (([f8] . neotree-project-dir))
-  :init
-  (progn
-    (setq neo-theme
-          (if (display-graphic-p)
-              'icons 'arrow)))
-  :config
-  (progn
-    ;; @source https://www.emacswiki.org/emacs/NeoTree
-    (defun neotree-project-dir ()
-      "Open NeoTree using the git root"
-      (interactive)
-      (let ((project-dir (projectile-project-root))
-            (file-name (buffer-file-name)))
-        (neotree-toggle)
-        (if project-dir
-            (if (neo-global--window-exists-p)
-                 (progn
-                   (neotree-dir project-dir)
-                   (neotree-find file-name)))
-          (message "Project root not found."))))))
-#+END_SRC
-
-*** The file system
-**** Dired
+** File System
+*** Dired
 ***** Asynchronous Processing
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4432,14 +4397,75 @@ Adds extensions and functionality to dired mode.
   (add-to-list 'org-file-apps '(directory . emacs)))
 #+END_SRC
 
-**** Treemacs
+*** Neotree
+
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package neotree
+  :after (projectile)
+  :demand t
+  :commands (neotree-project-dir)
+  :bind
+  (([f8] . neotree-project-dir))
+  :init
+  (progn
+    (setq neo-theme
+          (if (display-graphic-p)
+              'icons 'arrow)))
+  :config
+  (progn
+    ;; @source https://www.emacswiki.org/emacs/NeoTree
+    (defun neotree-project-dir ()
+      "Open NeoTree using the git root"
+      (interactive)
+      (let ((project-dir (projectile-project-root))
+            (file-name (buffer-file-name)))
+        (neotree-toggle)
+        (if project-dir
+            (if (neo-global--window-exists-p)
+                 (progn
+                   (neotree-dir project-dir)
+                   (neotree-find file-name)))
+          (message "Project root not found."))))))
+#+END_SRC
+
+*** Treemacs
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package treemacs)
 #+END_SRC
 
-*** Searching
-**** ack
+*** Speedbar
+
+#+NAME: speed-sr
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package sr-speedbar)
+#+END_SRC
+
+#+NAME: projectile-speedbar
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package projectile-speedbar
+    :bind ("M-<f2>" . projectile-speedbar-open-current-buffer-in-tree))
+#+END_SRC
+
+** Search
+*** Codesearch
+
+#+NAME: codesearch
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package codesearch)
+#+END_SRC
+
+*** Avy
+Jump to arbitrary point in Buffer
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package avy
+  :straight t)
+#+END_SRC
+
+*** ack
 
 #+NAME: ack-config
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4448,7 +4474,7 @@ Adds extensions and functionality to dired mode.
   :straight t)
 #+END_SRC
 
-**** ag
+*** ag
 
 #+NAME: ag-config
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4456,7 +4482,7 @@ Adds extensions and functionality to dired mode.
   :straight t)
 #+END_SRC
 
-**** grep+
+*** grep+
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package grep+
@@ -4933,6 +4959,18 @@ that is a member of `read-only-directories'."
                                "packages/debbugs/Debbugs.wsdl")
                        :local-repo "elpa"))
 
+#+END_SRC
+
+*** Undo Tree
+
+Visualize buffer modifications during an Emacs session as an
+interactive tree .
+
+#+NAME: undo-tree-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package undo-tree
+  :init
+  (global-undo-tree-mode))
 #+END_SRC
 
 ** Multimedia
@@ -6044,23 +6082,25 @@ replacements. "
   (counsel-itunes
    :host github
    :repo "jchaffin/counsel-itunes")
-
   :demand t
   :after (:all counsel ivy)
   :init
    ;; make prefix command
-   (define-prefix-command 'counsel-itunes-keymap)
-   (define-key 'halidom-prefix-map "i" 'counsel-itunes-keymap)
-   ;; define keymap
-   (define-key 'counsel-itunes-keymap "-" #'counsel-itunes-volume-down)
-   (define-key 'counsel-itunes-keymap "+" #'counsel-itunes-volume-up)
-   (define-key 'counsel-itunes-keymap "t" #'counsel-itunes-tracklist)
-   (define-key 'counsel-itunes-keymap "p" #'counsel-itunes-play-pause)
-   (define-key 'counsel-itunes-keymap "c" #'counsel-itunes-current-track)
-   (define-key 'counsel-itunes-keymap "P" #'counsel-itunes-playlist)
-   (define-key 'counsel-itunes-keymap "n" #'counsel-itunes-next-track)
-   (define-key 'counsel-itunes-keymap "b" #'counsel-itunes-previous-track)
-   (define-key 'counsel-itunes-keymap "s" #'counsel-itunes-shuffle))
+   (define-prefix-command 'counsel-itunes-prefix-map)
+
+   (let ((map counsel-itunes-prefix-map))
+     (define-key map "-" #'counsel-itunes-volume-down)
+     (define-key map "+" #'counsel-itunes-volume-up)
+     (define-key map "t" #'counsel-itunes-tracklist)
+     (define-key map "p" #'counsel-itunes-play-pause)
+     (define-key map "c" #'counsel-itunes-current-track)
+     (define-key map "P" #'counsel-itunes-playlist)
+     (define-key map "n" #'counsel-itunes-next-track)
+     (define-key map "b" #'counsel-itunes-previous-track)
+     (define-key map "s" #'counsel-itunes-shuffle))
+
+   (define-key 'macos-prefix-map (kbd "i") 'counsel-itunes-prefix-map)
+   (which-key-add-prefix-title "M-m m i" "iTunes"))
 
 #+END_SRC
 
