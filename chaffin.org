@@ -261,7 +261,7 @@
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#conf][Conf]]
-    - [[#asm][ASM]]
+    - [[#assembly][Assembly]]
     -  [[#cc][C/C++]]
     - [[#common-lisp][Common Lisp]]
     - [[#clojure][Clojure]]
@@ -4224,7 +4224,7 @@ and subtrees of the ignored headlines will be retained.
     :custom
     (projectile-completion-system 'ivy)
     (projectile-switch-project-action #'projectile-dired)
-    (projectile-find-dir-includes-top-level 1)
+    (projectile-find-dir-includes-top-level t)
     (projectile-indexing-method 'alien)
     (projectile-enable-caching t)
 
@@ -7678,6 +7678,13 @@ school's WLAN.
 <<hl-prettify-symbol>>
 #+END_SRC
 
+**** Highlight 
+
+#+NAME: hl-highlight
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package highlight)
+#+END_SRC
+
 **** Hlsexp
 
 Minor mode to highlight sexp.
@@ -8136,7 +8143,8 @@ Pop-up feature for viewing the last git commit.
 #+NAME: git-git-modes
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package git-modes
-  :straight t)
+  :straight t
+  :mode (".projectile\\'" . gitignore-mode))
 #+END_SRC
 
 *** Mercurial
@@ -8373,7 +8381,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+END_SRC
 
-*** ASM
+*** Assembly
 
 - See Spacemacs [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/asm/][ASM layer]].
 
@@ -8594,7 +8602,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+NAME: c-cxx-llvm
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (use-package llvm-mode
     :straight nil
     :load-path "~/.emacs.d/site-lisp/llvm-mode"
