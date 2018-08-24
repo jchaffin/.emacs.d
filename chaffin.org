@@ -8581,12 +8581,23 @@ Spacemacs =dotspacemacs-configuration-layers=.
     (with-eval-after-load 'projectile
         (add-to-list 'projectile-project-root-files-top-down-recurring
                      ".cquery")))
+
 #+END_SRC
 
 **** Rtags
 
 #+NAME: c-cxx-rtags
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; rtags
+<<rt-rtags>>
+;; Ivy rtags
+<<rt-ivy>>
+#+END_SRC
+
+
+#+NAME: rt-rtags
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (use-package rtags
     :if (executable-find "rdm")
     :hook
@@ -8594,9 +8605,17 @@ Spacemacs =dotspacemacs-configuration-layers=.
    (c++-mode . rtags-start-process-unless-running)
    (objc-mode . rtags-start-process-unless-running)))
 
-(use-package ivy-rtags)
 
 #+END_SRC
+
+***** Ivy Rtags
+
+#+NAME: rt-ivy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ivy-rtags
+    :requires (rtags))
+#+END_SRC
+
 
 **** LLVM Mode
 
