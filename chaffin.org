@@ -4894,19 +4894,59 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<bookmark-plus>>
 <<bookmark-bm>>
+<<bookmark-zsh>>
 #+END_SRC
 
 **** Bookmark+
+
 #+NAME: bookmark-plus
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package bookmark+)
 #+END_SRC
 
-**** Bm 
+**** Bm
 
 #+NAME: bookmark-bm
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package bm)
+#+END_SRC
+
+**** zsh sync
+
+Converts Emacs into bookmarks for zsh[fn:16].
+
+#+BEGIN_EXAMPLE shell :shebang /bin/zsh
+setopt cd_able_vars
+[[ -r ~/.zsh.bmk ]] && source ~/.zsh.bmk
+#+END_EXAMPLE
+
+
+#+NAME: bookmark-zsh
+#+BEGIN_SRC emacs-lisp :tangle no
+(defadvice bookmark-write-file 
+      (after local-directory-bookmarks-to-zsh-advice activate)
+   (local-directory-bookmarks-to-zsh))
+
+(defun local-directory-bookmarks-to-zsh () 
+      (interactive)
+      (when (and (require 'tramp nil t)
+                 (require 'bookmark nil t))
+        (set-buffer (find-file-noselect "~/.zsh.bmk" t t))
+        (delete-region (point-min) (point-max))
+        (insert "# -*- mode:sh -*-\n")
+        (let (collect-names)
+          (mapc (lambda (item)
+                  (let ((name (replace-regexp-in-string "-" "_" (car item)))
+                        (file (cdr (assoc 'filename 
+                                           (if (cddr item) item (cadr item))))))
+                    (when (and (not (tramp-tramp-file-p file))
+                               (file-directory-p file))
+                      (setq collect-names (cons (concat "~" name) collect-names))
+                      (insert (format "%s=\"%s\"\n" name (expand-file-name file) name)))))
+                bookmark-alist)
+          (insert ": " (mapconcat 'identity collect-names " ") "\n"))
+        (let ((backup-inhibited t)) (save-buffer))
+        (kill-buffer (current-buffer))))
 #+END_SRC
 
 *** Visit file+
@@ -6839,7 +6879,7 @@ Interactively.
         (setq mu4e-maildir (expand-file-name "~/.mail")
               mu4e-context-policy 'pick-first
               mu4e-compose-policy nil
-              mu4e-get-mail-command "offlineimap -q -u quiet"
+              mu4e-get-mail-command "offlineimap -u quiet"
               mu4e-show-images t
               mu4e-show-addresses t)
 
@@ -7045,7 +7085,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+END_SRC
 
 Tools for checking lexical and grammatical errors in text
-buffers[fn:16].
+buffers[fn:17].
 
 *** Flyspell
 
@@ -7155,7 +7195,7 @@ checking for natural language.
 
 The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
 dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:17].
+whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME: completion-dictionary-el
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -10426,9 +10466,11 @@ dialects of Lisp.
 
 [fn:15] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
 
-[fn:16] https://joelkuiper.eu/spellcheck_emacs
+[fn:16] https://www.emacswiki.org/emacs/BookMarks#toc7
 
-[fn:17] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
+[fn:17] https://joelkuiper.eu/spellcheck_emacs
+
+[fn:18] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
 
 
 
