@@ -4456,7 +4456,7 @@ buffer.
 
 **** Use other dired buffer as default directory
 
-When split frames with two dired buffers, default to the other buffer
+When split frames with two dired buffers, defaut to the other buffer
 as the current directory.
 
 See docstring for =dired-dwim-target=.
@@ -4590,9 +4590,15 @@ Jump to arbitrary point in Buffer
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package dired-sidebar
     :commands (dired-sidebar-toggle-sidebar)
+    :init
+    (defun disable-icons ()
+      (when (fboundp 'all-the-icons-dired-mode)
+        (set (make-local-variable 'all-the-icons-dired-mode) nil)))
+    :hook
+    (dired-sidebar-mode . disable-icons)
     :bind
-    ("C-c d" . dired-sidebar-toggle-sidebar)
-)
+    ("C-c d" . dired-sidebar-toggle-sidebar))
+
 #+END_SRC
 
 *** Visual Replace
@@ -8262,8 +8268,6 @@ As a git client though, magit is awesome.
    ("C-c v i" . magit-init)
    ("C-c v l" . magit-log-buffer-file)
    ("C-c v c" . magit-checkout)
-   ("C-c v d" . magit-done)
-   ("C-c v D" . magit-done-no-prompt)
    ("C-c v f" . magit-stage-file)
    ("C-c v p" . magit-pull)
    ("C-c v P" . magit-push)
@@ -8271,7 +8275,6 @@ As a git client though, magit is awesome.
   :config
   (progn
     (setq magit-save-repository-buffers 'dontask)))
-
 
 #+END_SRC
 
