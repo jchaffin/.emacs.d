@@ -409,13 +409,8 @@ the build directory for that repository instead."
                    "Which recipe? "
                    (straight-recipes-list straight-recipe-repositories)
                    nil 'require-match)))
-         (recipe (cdr (straight-recipes-retrieve (intern pkg)))))
-    (destructuring-bind (repo host)
-        `(,(plist-get recipe :repo)
-          ,(plist-get recipe :host))
-      (if (eq host 'github)
-          (browse-url (concat "https://github.com/" repo))
-        (message "%s is not a GitHub repository :(" pkg)))))
+         (url (straight--get-remote-url (intern pkg))))
+    (browse-url url)))
 #+END_SRC
 
 
@@ -1529,8 +1524,7 @@ Also sets terminal coding system to "utf-8".
 **** Generate =<mouse-2>= on trackpad
 
 As far as I know, there is no trackpad gesture to trigger the
-=<mouse-2>= event in Emacs. The following snippet uses
-[[elisp-variable::key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
+=<mouse-2>= event in Emacs. The following snippet uses [[help:key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
 the trackpad (=<mouse-1>=) like normal while holding down Command, or
 "super", modifier key
 
@@ -3393,8 +3387,11 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks.html#sec-1-8-5][org hacks]]:
 
 **** Reveal cursor in folded subtree.
+:PROPERTIES:
+:ID:       088BEAF5-B9FE-43F4-995D-5E26FB6DCB16
+:END:
 
-Fix problem with [[file:/usr/local/Cellar/emacs-plus/HEAD-35e9dca/share/emacs/27.0.50/lisp/saveplace.el.gz::;;;%20saveplace.el%20---%20automatically%20save%20place%20in%20files][saveplace.el]] which puts point back in a folded position.
+Fix problem with  which puts point back in a folded position.
 
 #+NAME: org-hacks-saveplace-fix
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -5135,10 +5132,9 @@ should open in `read-only-mode'.")
             d2))))
 
 (defun read-only-directory-p (bf)
-  "Determine whether the current buffer file is in a directory 
+"Determine whether the current buffer file is in a directory 
 that is a member of `read-only-directories'."
   (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
-           
     (and (not (null (seq-filter #'f read-only-directories)))
          (null (seq-filter #'f read-only-whitelist-directories))
          (file-writable-p bf))))
@@ -10631,12 +10627,21 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
   (when (eq major-mode 'css-mode)
     ;; Only enable in strictly css-mode, not scss-mode (css-mode-hook
     ;; fires for scss-mode because scss-mode is derived from css-mode)
+    (require 'lsp-css)
     (lsp-css-enable)))
 
+(defun less-mode-setup ()
+  (require 'lsp-css)
+  (lsp-less-enable))
+
+(defun scss-mode-setup ()
+  (require 'lsp-css)
+  (lsp-scss-enable))
+
 (add-hook 'css-mode-hook #'css-mode-setup)
-(add-hook 'less-mode-hook #'lsp-less-enable)
-(add-hook 'sass-mode-hook #'lsp-scss-enable)
-(add-hook 'scss-mode-hook #'lsp-scss-enable)
+(add-hook 'less-mode-hook #'less-mode-setup)
+(add-hook 'sass-mode-hook #'scss-mode-setup)
+(add-hook 'scss-mode-hook #'scss-mode-setup)
 #+END_SRC
 
 **** Emmet
