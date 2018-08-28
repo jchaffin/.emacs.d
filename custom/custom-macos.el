@@ -210,8 +210,6 @@
  '(meghanada-server-remote-debug t t)
  '(message-send-mail-function 'async-smtpmail-send-it)
  '(nrepl-hide-special-buffers t t)
- '(org-agenda-files
-   '("~/.emacs.d/chaffin.org" "/Users/jacobchaffin/Dropbox/org/todos/TODOs.org"))
  '(projectile-completion-system 'ivy)
  '(projectile-enable-caching t)
  '(projectile-find-dir-includes-top-level 1)

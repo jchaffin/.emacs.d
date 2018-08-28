@@ -169,6 +169,7 @@
   :bind
   (("C-c a" . org-agenda)
    ("C-c c" . org-capture)
+   ("C-c C-s" . org-schedule)
    ("C-c M-o" . org-store-link)
    ("C-c C-l" . org-insert-link)
    ("C-c b" . org-switchb)
