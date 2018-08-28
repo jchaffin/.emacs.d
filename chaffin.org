@@ -477,6 +477,14 @@ Common Lisp extensions.
 
 #+END_SRC
 
+**** ov
+
+#+NAME: ov-spec
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package ov
+  :straight t)
+#+END_SRC
+
 **** =f=
 
 Declarative file and directory utilities.
@@ -2427,7 +2435,6 @@ Entered on [2018-06-13 Wed 11:42]
 <<org-ob-http>>
 ;; Org Babel CLJS
 <<org-ob-cljs>>
-
 <<org-ob-load-langs>>
 #+END_SRC
 
@@ -2484,43 +2491,20 @@ org-mode buffers.
 
 #+NAME: org-ui
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Enable visual fill column
 <<org-ui-fill>>
-
 ;; UI Fixed Width Block
 <<org-ui-fixedwidth-image>>
-
 ;; UI Org Bullets
 <<org-ui-org-bullets>>
-
 ;; UI Toc Org
 <<org-ui-toc-org>>
-
 ;; UI Column View
 <<org-ui-column-view>>
-
-;; UI Overlay
-<<org-ui-ov>>
-
 ;; UI Equation Renumbering
 <<org-ui-equation-renumbering>>
-
 #+END_SRC
 
-**** Overlay
-
-#+NAME: org-ui-ov
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package ov
-  :straight t)
-
-(use-package ov-highlight
-  :straight (ov-highlight
-             :host github
-             :repo "jkitchin/ov-highlight")
-  :after ov
-  :demand t)
-
-#+END_SRC
 
 **** Org visual fill
 
@@ -6289,7 +6273,7 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 <<counsel-codesearch-config>>
 #+END_SRC
 
-#+NAME: counsel-spec>>
+#+NAME: counsel-spec
 #+BEGIN_SRC emacs-lisp :noweb no :tangle no
 (use-package counsel
   :bind (("<f2> u" . counsel-unicode-char)
@@ -7953,6 +7937,8 @@ school's WLAN.
 
 #+NAME: symbol-hl
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Overlay Highlight 
+<<hl-ov>>
 ;; Highlight Sexp
 <<hl-hl-sexp>>
 ;; Highlight Todos
@@ -7963,11 +7949,22 @@ school's WLAN.
 <<hl-prettify-symbol>>
 #+END_SRC
 
-**** Highlight 
+**** Highlight :disabled:
 
 #+NAME: hl-highlight
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package highlight)
+#+END_SRC
+
+**** Overlay Highlight
+
+#+NAME: hl-ov
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ov-highlight
+  :straight (ov-highlight
+             :host github
+             :repo "jkitchin/ov-highlight")
+  :after ov)
 #+END_SRC
 
 **** Hlsexp
