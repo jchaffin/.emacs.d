@@ -3589,15 +3589,18 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
   :custom
 
   (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-default-bibliography (list (dropbox-dir "org" "ref" "references.bib")))
-  (org-ref-bibliography-notes  (dropbox-dir "org" "ref" "refnotes.org"))
-  (org-ref-pdf-directory  (dropbox-dir "org" "papers" "pdfs"))
+  (org-ref-default-bibliography
+   (list (dropbox-dir "org" "ref" "references.bib")))
+  (org-ref-bibliography-notes
+   (dropbox-dir "org" "ref" "refnotes.org"))
+  (org-ref-pdf-directory
+   (dropbox-dir "org" "papers" "pdfs"))
   (org-ref-show-citation-on-enter t)
   (org-ref-show-broken-links t)
   
   :init
+  ;; https://github.com/jkitchin/org-ref/issues/428
   (progn
-    ;; https://github.com/jkitchin/org-ref/issues/428
     (require 'doi-utils)
     (require 'org-id)
     (require 'org-ref-wos)
@@ -3612,18 +3615,28 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
     (require 'org-ref-pdf))
 
   :config
-  ;; (setq reftex-default-bibliography (list (dropbox-dir "org" "ref" "references.bib")))
+  (defcustom halidom-org-ref-journal-abbrevs '()
+    "Extra abbreviations to add to `org-ref-bibtex-journal-abbreviations.'
+Each abbreviation is a list of the form (string journal-full-name journal-abbreviation)."
+    :type '(alist :value-type (group string)))
 
   ;; Org Ref Journal abbreviations
-  (setq orbj-extra-abbrevs
-    '(("JPS" "Journal of Palestinian Studies")
-      ("JMEISA" "Journal of Middle Eastern and Islamic Studies (in
-                Asia) Vol")
-      ("JHG" "Journal of Historical Geography")
-      ("MEAST" "International Journal of Middle East Studies")))
+  (setq hist109B-journal-abbrevs
+        '(("JPS" "Journal of Palestinian Studies")
+          ("JMEISA" "Journal of Middle Eastern and Islamic Studies (in Asia) Vol")
+          ("JHG" "Journal of Historical Geography")
+          ("MEAST" "International Journal of Middle East Studies")))
 
-  (dolist (elt orbj-extra-abbrevs)
-    (add-to-list 'org-ref-bibtex-journal-abbreviations elt)))
+  (setq halidom-org-ref-journal-abbrevs
+        (seq-concatenate 'list
+                         halidom-org-ref-journal-abbrevs
+                         hist109B-journal-abbrevs))
+
+  
+  
+  (with-eval-after-load 'org-ref
+    (dolist (elt halidom-org-ref-journal-abbrevs)
+      (add-to-list 'org-ref-bibtex-journal-abbreviations elt))))
 
 #+END_SRC
 
@@ -5257,7 +5270,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 
 (defcustom halidom-theme-colors nil
   "plist of colors for the current theme."
-  :type '(plist :key-type symbol value-type sexp))
+  :type '(plist :key-type symbol :value-type sexp))
 #+END_SRC
 
 *** Custom Theme Settings
