@@ -217,7 +217,15 @@ Else use the value of `halidom-literate-config-file'."
 ;; Debug
 
 (defvar literate-debug-blocks
-  '("core-functions" "read-only" "ivy-base" "if-not" "counsel-base" "readview-fc" "org-ui-fill"))
+  '("core-functions"
+    "readview-fc"
+    "read-only"
+    "if-not"
+    "org-ui-fill"
+    "ivy-spec"
+    "counsel-spec"
+    "paredit-spec")
+  )
 
 
 (defun literate-src-parameter-string->alist (parameters)

@@ -190,6 +190,7 @@
 - [[#web][Web]]
   - [[#web-servers-and-utilities][Web Servers and Utilities]]
   - [[#browsing][Browsing]]
+    - [[#browser-prefix-command][Browser prefix command]]
     - [[#webkit-xwidget][Webkit xwidget]]
     - [[#browse-url][Browse url]]
     - [[#browser-utilities-on-macos][Browser utilities on macOS]]
@@ -198,7 +199,6 @@
     - [[#advise-org-open-at-point][Advise =org-open-at-point=]]
     - [[#browse-at-remote][Browse at remote]]
     - [[#set-default-browser][Set default browser]]
-    - [[#engine-mode][Engine Mode]]
   - [[#email][Email]]
     - [[#mu][Mu]]
   - [[#cloud-integration][Cloud Integration]]
@@ -1201,12 +1201,12 @@ killall gpg-agent
 #+NAME: keybindings-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Keybindings
+;; Which Key
+<<kb-which-key>>
 ;; Hydra
 <<kb-hydra>>
 ;; Smartrep
 <<kb-smartrep>>
-;; Which Key
-<<kb-which-key>>
 ;; Prefix Map
 <<kb-prefix-map>>
 ;; Reload Eval
@@ -1252,7 +1252,7 @@ common prefix.
 
 *** Smartrep
 
-#+NAME: kb-which-key
+#+NAME: kb-smart-rep
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package smartrep)
 #+END_SRC
@@ -1260,8 +1260,10 @@ common prefix.
 *** Which Key
 
 #+NAME: kb-which-key
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package which-key
+  :custom
+  (which-key-enable-extended-define-key t)
   :init
   (which-key-mode))
 #+END_SRC
@@ -1356,6 +1358,7 @@ from within Emacs.
   (define-key map "q" 'restart-emacs))
 
 (define-key 'halidom-prefix-map (kbd "r") 'reload-eval-prefix-map)
+(which-key-add-prefix-title "M-m r" "Reload/Eval")
 #+END_SRC
 
 *** Speed Type
@@ -3425,7 +3428,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
     (setcar args (org-extract-link)))
   (apply orig-fun args))
 
-
+  (advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
 #+END_SRC
 
 **** Export to datetree 
@@ -3597,30 +3600,46 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
    (dropbox-dir "org" "papers" "pdfs"))
   (org-ref-show-citation-on-enter t)
   (org-ref-show-broken-links t)
+  (org-ref-bibtex-hydra-key-binding "\C-cj")
   
   :init
   ;; https://github.com/jkitchin/org-ref/issues/428
   (progn
     (require 'doi-utils)
+    (require 'org-ref-url-utils)
     (require 'org-id)
-    (require 'org-ref-wos)
-    
+    (require 'org-ref-latex)
+    (require 'org-ref-bibtex)
+    (require 'org-ref-pdf)    
     (require 'org-ref-scopus)
     (require 'org-ref-isbn)
     (require 'org-ref-pubmed)
     (require 'org-ref-arxiv)
     (require 'org-ref-sci-id)
-    (require 'x2bib)
-    (require 'org-ref-latex)
-    (require 'org-ref-pdf))
+    (require 'org-ref-wos)
+    (require 'org-ref-worldcat)
+    (require 'x2bib))
 
   :config
+
+  (defun goto-org-ref-manual (&optional path)
+    (interactive)
+    (if-not path
+        (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
+    (find-file path))
+  
+  
+  ;; Hydra
+  ;; See [[file:straight/repos/org-ref/org-ref.org::#citations][Citations]] section of the manual
+  (key-chord-define-global "kk" 'org-ref-cite-hydra/body)
+  
+  ;; Org Ref Bibtex Interface
   (defcustom halidom-org-ref-journal-abbrevs '()
     "Extra abbreviations to add to `org-ref-bibtex-journal-abbreviations.'
 Each abbreviation is a list of the form (string journal-full-name journal-abbreviation)."
     :type '(alist :value-type (group string)))
 
-  ;; Org Ref Journal abbreviations
+
   (setq hist109B-journal-abbrevs
         '(("JPS" "Journal of Palestinian Studies")
           ("JMEISA" "Journal of Middle Eastern and Islamic Studies (in Asia) Vol")
@@ -6430,18 +6449,18 @@ friends.
   :after (:all counsel ivy)
   :init
    ;; make prefix command
-   (define-prefix-command 'counsel-itunes-prefix-map)
+  (define-prefix-command 'counsel-itunes-prefix-map)
 
    (let ((map counsel-itunes-prefix-map))
-     (define-key map "-" #'counsel-itunes-volume-down)
-     (define-key map "+" #'counsel-itunes-volume-up)
-     (define-key map "t" #'counsel-itunes-tracklist)
-     (define-key map "p" #'counsel-itunes-play-pause)
-     (define-key map "c" #'counsel-itunes-current-track)
-     (define-key map "P" #'counsel-itunes-playlist)
-     (define-key map "n" #'counsel-itunes-next-track)
-     (define-key map "b" #'counsel-itunes-previous-track)
-     (define-key map "s" #'counsel-itunes-shuffle))
+     (define-key map "-" '("Volume Down" . counsel-itunes-volume-down))
+     (define-key map "+" '("Volume Up" .  counsel-itunes-volume-up))
+     (define-key map "t" '("Tracklist" . counsel-itunes-tracklist))
+     (define-key map "p" '("Playlist" . counsel-itunes-playlist))
+     (define-key map "c" '("Now Playing" . counsel-itunes-current-track))
+     (define-key map "P" '("Playlist" . counsel-itunes-playlist))
+     (define-key map "n" '("Next" . counsel-itunes-next-track))
+     (define-key map "b" '("Previous" . counsel-itunes-previous-track))
+     (define-key map "s" '("Shuffle" . counsel-itunes-shuffle)))
 
    (define-key 'macos-prefix-map (kbd "i") 'counsel-itunes-prefix-map)
    (which-key-add-prefix-title "M-m m i" "iTunes"))
@@ -6797,7 +6816,8 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 ** Browsing
 
 #+NAME: web-browser
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<browser-prefix>>
 <<browser-xwidget>>
 <<browser-url>>
 <<browser-macos>>
@@ -6807,6 +6827,16 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 <<browser-gitremote>>
 <<browser-default>>
 <<browser-engine>>
+#+END_SRC
+
+*** Browser prefix command
+
+#+NAME: browser-prefix
+#+BEGIN_SRC emacs-lisp :tangle no
+(define-prefix-command 'web-browse-prefix-map)
+(define-key 'halidom-prefix-map (kbd "w") 'web-browse-prefix-map)
+(which-key-add-prefix-title "M-m w" "Web Browser")
+
 #+END_SRC
 
 *** Webkit xwidget
@@ -6950,7 +6980,8 @@ the user will be prompted to edit the search string first."
 #+NAME: browser-search
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package search-web
-  :bind (("M-m w" . search-web)))
+  :init
+  (define-key 'web-browse-prefix-map "s" 'search-web))
 #+END_SRC
 
 *** Advise =org-open-at-point=
@@ -7011,82 +7042,166 @@ Interactively.
       (add-to-list 'browse-url-browser-alist
                    '("safari" . osx-browse-url-safari))))
 
-(defun set-browser-function ()
+(defun set-browser-function (browser)
   "Interactively set the browser used by `browse-url'. "
-  (interactive)
-  (let ((browser (assoc (completing-read "Browser: " browse-url-browser-alist)
-                        browse-url-browser-alist)))
-    (setq browse-url-browser-function (cdr browser)))
+  (interactive
+   (list (completing-read "Browser: " browse-url-browser-alist)))
+  (when-let ((browser-function (cdr (assoc browser browse-url-browser-alist))))
+    (setq browse-url-browser-function browser-function)))
 
-  (advice-add 'osx-browse-url :around #'browse-url-extract-org-link))
+
+(define-key 'web-browse-prefix-map "B" 'set-browser-function)
+
+(which-key-add-key-based-replacements "M-m w B"
+    '("Default Browser" . "Set the default web browser"))
+
+(cl-defun make-browser-function (browser)
+  `(defun ,(intern (concat "set-browser-function-" browser)) ()
+     (interactive)
+     (set-browser-function ,browser)))
+
+(defmacro make-browser-functions (browsers)
+  `(progn ,@(mapcar 'make-browser-function browsers)))
+
+
+(eval `(make-browser-functions ,(mapcar 'car browse-url-browser-alist)))
+
+(define-prefix-command 'web-browse-browser-prefix-map)
+
+(let ((map web-browse-browser-prefix-map))
+  (define-key map "c" 'set-browser-function-chrome)
+  (define-key map "e" 'set-browser-function-eww)
+  (define-key map "f" 'set-browser-function-firefox)
+  (define-key map "s" 'set-browser-function-safari)
+  (define-key map "x" 'set-browser-function-xwidget-webkit))
+
+(define-key 'web-browse-prefix-map "b" 'web-browse-browser-prefix-map)
+
+(which-key-add-prefix-title "M-m w b" "Configure")
 #+END_SRC
 
-*** Engine Mode
+*** COMMENT Engine Mode
 
 #+NAME: browser-engine
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package engine-mode
   :init
   (engine-mode t)
+
   :config
-  (progn
-    (defengine github
-      "https://github.com/search?ref=simplesearch&q=%s")
 
-    (defengine worldcat
-      "https://ucla.worldcat.org/search?q=%s")
+   (defengine github
+       "https://github.com/search?ref=simplesearch&q=%s"
+     :keybinding "h"
+     :docstring "Search Github")
 
-    (defengine proquest
-      "https://search.proquest.com"
-      :browser 'xwidget-webkit-browse-url)
+   (defengine worldcat
+       "https://ucla.worldcat.org/search?q=%s"
+     :keybinding "W"
+     :docstring "Search Worldcat")
 
-    (defengine google
-      "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
-      :keybinding "g")
+   (defengine proquest
+       "https://search.proquest.com"
+     :keybinding "p"
+     :docstring "Search Proquest")
 
-    (defengine cassi
-      "http://cassi.cas.org/search.jsp"
-      :browser 'xwidget-webkit-browse-url)
+   (defengine google
+       "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+     :keybinding "g"
+     :docstring "Search Google")
 
-    (defengine google-bookmarks
-      "chrome://bookmarks/?q=%s")
+   (defengine cassi
+     "http://cassi.cas.org/search.jsp"
+     :browser 'xwidget-webkit-browse-url)
 
-    (defengine google-images
-      "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s")
+   (defengine google-bookmarks
+       "chrome://bookmarks/?q=%s"
+     :keybinding "Gb"
+     :docstring "Search bookmarks in Google Chrome")
 
-    (defengine google-maps
-      "http://maps.google.com/maps?q=%s"
-      :docstring "Mappin' it up.")
+   (defengine google-images
+       "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
+       :keybinding "Gi"
+       :docstring "Search google-images")
 
-    (defengine project-gutenberg
-      "http://www.gutenberg.org/ebooks/search/?query=%s")
+   (defengine google-maps
+       "http://maps.google.com/maps?q=%s"
+     :keybinding "Gm"
+     :docstring "Mappin' it up.")
 
-    (defengine rfcs
-      "http://pretty-rfc.herokuapp.com/search?q=%s")
+   (defengine project-gutenberg
+       "http://www.gutenberg.org/ebooks/search/?query=%s"
+     :docstring "Read good")
 
-    (defengine stack-overflow
-      "https://stackoverflow.com/search?q=%s")
+   (defengine rfcs
+     "http://pretty-rfc.herokuapp.com/search?q=%s")
 
-    (defengine twitter
-      "https://twitter.com/search?q=%s")
+   (defengine stack-overflow
+       "https://stackoverflow.com/search?q=%s"
+     :keybinding "s"
+     :docstring "Search StackOverflow.")
 
-    (defengine wikipedia
-      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
-      :keybinding "w"
-      :docstring "Searchin' the wikis.")
+   (defengine twitter
+     "https://twitter.com/search?q=%s")
 
-    (defengine wiktionary
-      "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
+   (defengine wikipedia
+     "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+     :keybinding "w"
+     :docstring "Search wikipedia.")
 
-    (defengine wolfram-alpha
-      "http://www.wolframalpha.com/input/?i=%s")
+   (defengine wiktionary
+     "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
 
-    (defengine youtube
-      "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
+   (defengine wolfram-alpha
+       "http://www.wolframalpha.com/input/?i=%s"
+     :keybinding "a"
+     :docstring "Search Wolfram Alfa")
 
-    (defengine ctan
-      "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
-      :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")))
+   (defengine youtube
+     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
+       :keybinding "y"
+       :docstring "Search Youtube")
+
+   (defengine ctan
+     "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
+     :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
+
+  (setq halidom-web-engine-prefix "M-m w e")
+
+  (when engine/keybinding-prefix
+    (define-key engine-mode-map (kbd "C-x /") nil)
+    (define-key 'web-browse-prefix-map "e" engine-mode-prefixed-map))
+
+  (defun engine-add-which-key-replacement (engine prefix &optional keybinding)
+    (let* ((keyseq (concat prefix " " keybinding))
+           (engine-string (upcase-initials (symbol-name engine)))
+           (replacement (list engine-string
+                              (concat "Search " engine-string))))
+      (which-key-add-key-based-replacements keyseq engine-string)))
+
+  (cl-defun engine-key-replacement (orig-function &rest args)
+    (let ((keybinding (plist-get (cddr args) :keybinding))
+	  (engine (car args))
+          (prefix "M-m w e"))
+      (engine-add-which-key-replacement engine prefix keybinding)
+      (apply orig-function args)))
+  
+  (advice-add 'defengine :around #'engine-key-replacement)
+
+  (cl-flet* ((ks (&rest k)
+                 (let ((p halidom-web-engine-prefix))
+                   (if k (join (push p k) " ") p)))
+             (wkr (rep &rest k)
+                  (let ((kk (apply #'ks k)))
+                    (which-key-add-key-based-replacements kk rep))))
+    (wkr "Search Engine")
+    (wkr "Google Engines" "G")
+    (wkr "Google Images" "G" "i")
+    (wkr "Google Bookmarks" "G" "b"))
+)
+
+
+
 #+END_SRC
 
 ** Email
@@ -8091,7 +8206,7 @@ done [[https://github.com/tomjakubowski/.emacs.d/blob/master/init.el][here]], bu
 block of the programming language is easier to follow and
 offers more meaningful semantics.
 
-#+NAME: paredit-config
+#+NAME: paredit-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package paredit
   :diminish paredit-mode
