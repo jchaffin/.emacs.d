@@ -204,7 +204,6 @@
   - [[#cloud-integration][Cloud Integration]]
     - [[#org-onenote][Org OneNote]]
 - [[#prose][Prose]]
-  - [[#prose-keymap][Prose Keymap]]
   - [[#spelling-and-grammar][Spelling and Grammar]]
     - [[#flyspell][Flyspell]]
     - [[#langtool][Langtool]]
@@ -7419,9 +7418,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+NAME: prose-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Prose
-
-;; Prose Keymap
-<<prose-define-keymap>>
 ;; Spellcheck
 <<prose-spellcheck>>
 ;; Completion
@@ -7430,16 +7426,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 <<prose-notes>>
 ;; Readview
 <<prose-readview>>
-
 ;; End Prose
-#+END_SRC
-
-** Prose Keymap
-
-#+NAME: prose-define-keymap
-#+BEGIN_SRC emacs-lisp :tangle no
-(define-prefix-command 'prose-keymap)
-(define-key 'halidom-prefix-map "p" 'prose-keymap)
 #+END_SRC
 
 ** Spelling and Grammar
@@ -7574,9 +7561,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 (use-package dictionary
   :commands (dictionary-lookup-definition)
   :init
-  (define-prefix-command 'dictionary-keymap)
-  (define-key 'prose-keymap "d" 'dictionary-keymap)
-  (define-key 'dictionary-keymap "i" 'dictionary-lookup-definition))
+  (define-prefix-command 'dictionary-keymap))
 #+END_SRC
 
 ** Taking Notes
