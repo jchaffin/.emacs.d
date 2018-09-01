@@ -24,10 +24,10 @@
     - [[#encryption][Encryption]]
     - [[#alias-yes-or-no][Alias Yes Or No]]
   - [[#keybindings][Keybindings]]
+    - [[#global-prefix-map][Global Prefix Map]]
     - [[#hydra][Hydra]]
     - [[#smartrep][Smartrep]]
     - [[#which-key][Which Key]]
-    - [[#prefix-map][Prefix Map]]
     - [[#reload-eval][Reload Eval]]
     - [[#speed-type][Speed Type]]
   - [[#system][System]]
@@ -392,6 +392,16 @@ the build directory for that repository instead."
 **** Browse straight repository at GitHub
 
 #+BEGIN_SRC emacs-lisp :tangle yes
+(defun straight--get-remote-url (pkg)
+  (let ((recipe (cdr (straight-recipes-retrieve pkg))))
+    (destructuring-bind (repo host)
+        `(,(plist-get recipe :repo)
+          ,(plist-get recipe :host))
+      (if (eq host 'github)
+          (concat "https://github.com/" repo)
+        (message "%s is not a GitHub repository :(" pkg)))))
+
+
 (defun straight-browse-on-github (&optional package)
   "Open a straight recipe on GitHub in the `browse-url-default-browser.'"
   (interactive "P")
@@ -954,9 +964,8 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 
 #+NAME: fd-projects
 #+BEGIN_SRC emacs-lisp :tangle no
-(defalias #'projects-dir (apply-partially #'user-home "Developer" "Projects"))
-
-
+(defalias #'projects-dir
+ (apply-partially #'user-home "Developer" "Projects"))
 #+END_SRC
 
 ***** Emacs Directories
@@ -1207,6 +1216,14 @@ killall gpg-agent
 ;; End Keybindings
 #+END_SRC
 
+*** Global Prefix Map
+
+#+NAME: kb-prefix-map
+#+BEGIN_SRC emacs-lisp :tangle no
+(define-prefix-command 'halidom-prefix-map)
+(global-set-key halidom-prefix 'halidom-prefix-map)
+#+END_SRC
+
 *** Hydra
 
 [[https://github.com/abo-abo/hydra/wiki/Emacs][Hydra]] is a package used to bind a family of related commands with a
@@ -1222,46 +1239,37 @@ common prefix.
 
 
 #+NAME: hydra-hydra
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package hydra)
 #+END_SRC
 
 **** Ivy Hydra
 
-#+NAME: hyrda-ivy
+#+NAME: hydra-ivy
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-hydra)
 #+END_SRC
 
 *** Smartrep
 
-#+NAME: smartrep-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: kb-which-key
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package smartrep)
 #+END_SRC
 
 *** Which Key
-#+NAME: which-key-spec
+
+#+NAME: kb-which-key
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package which-key
   :init
   (which-key-mode))
 #+END_SRC
 
-*** Prefix Map
-
-#+NAME: personal-global-keymap
-#+BEGIN_SRC emacs-lisp :tangle yes
-;; Halidom Prefix Map
-(define-prefix-command 'halidom-prefix-map)
-(global-set-key halidom-prefix 'halidom-prefix-map)
-
-#+END_SRC
-
 *** Reload Eval
 
-#+NAME: reload-eval-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+NAME: kb-reload-eval
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Begin reload-eval Group
 ;; Reload eval straight
 <<reload-eval-straight>>
@@ -3576,15 +3584,24 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
 #+NAME: org-ref-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-ref
-  :if *is-mac*
-  :after (ivy)
+  :after ivy
   :demand t
+  :custom
+
+  (org-ref-completion-library 'org-ref-ivy-cite)
+  (org-ref-default-bibliography (list (dropbox-dir "org" "ref" "references.bib")))
+  (org-ref-bibliography-notes  (dropbox-dir "org" "ref" "refnotes.org"))
+  (org-ref-pdf-directory  (dropbox-dir "org" "papers" "pdfs"))
+  (org-ref-show-citation-on-enter t)
+  (org-ref-show-broken-links t)
+  
   :init
   (progn
     ;; https://github.com/jkitchin/org-ref/issues/428
     (require 'doi-utils)
     (require 'org-id)
     (require 'org-ref-wos)
+    
     (require 'org-ref-scopus)
     (require 'org-ref-isbn)
     (require 'org-ref-pubmed)
@@ -3593,28 +3610,20 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
     (require 'x2bib)
     (require 'org-ref-latex)
     (require 'org-ref-pdf))
+
   :config
-  (progn
-    (setq org-ref-completion-library 'org-ref-ivy-cite)
+  ;; (setq reftex-default-bibliography (list (dropbox-dir "org" "ref" "references.bib")))
 
-    (setq reftex-default-bibliography '("~/Dropbox/org/ref/references.bib"))
+  ;; Org Ref Journal abbreviations
+  (setq orbj-extra-abbrevs
+    '(("JPS" "Journal of Palestinian Studies")
+      ("JMEISA" "Journal of Middle Eastern and Islamic Studies (in
+                Asia) Vol")
+      ("JHG" "Journal of Historical Geography")
+      ("MEAST" "International Journal of Middle East Studies")))
 
-    (setq org-ref-default-bibliography '("~/Dropbox/org/ref/references.bib")
-          org-ref-bibliography-notes "~/Dropbox/org/ref/refnotes.org"
-          org-ref-pdf-directory "~/Dropbox/org/papers/pdfs/"
-          org-ref-show-citation-on-enter t
-          org-ref-show-broken-links t)
-
-    ;; Org Ref Journal abbreviations
-    (setq orbj-extra-abbrevs
-      '(("JPS" "Journal of Palestinian Studies")
-        ("JMEISA" "Journal of Middle Eastern and Islamic Studies (in
-                  Asia) Vol")
-        ("JHG" "Journal of Historical Geography")
-        ("MEAST" "International Journal of Middle East Studies")))
-
-    (dolist (elt orbj-extra-abbrevs)
-      (add-to-list 'org-ref-bibtex-journal-abbreviations elt))))
+  (dolist (elt orbj-extra-abbrevs)
+    (add-to-list 'org-ref-bibtex-journal-abbreviations elt)))
 
 #+END_SRC
 
