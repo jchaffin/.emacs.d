@@ -196,7 +196,7 @@
      (add-hook 'org-mode-hook 'chaffin--unbind-org-mode-map-keys)))
 
 
-;; Literate 
+;; Literate
 
 (defun load-literate (&optional user-config-file init-server)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
@@ -278,6 +278,7 @@ Else use the value of `halidom-literate-config-file'."
 (if use-literate-p
     (load-literate halidom-literate-config-file)
   (literate-debug-enabled))
+
 
 ;;;; init.el ends here
 

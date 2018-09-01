@@ -1,7 +1,7 @@
 #+title: Jacob Chaffin's Literate Emacs Configuration
 #+language: en
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
-#+SETUPFILE: /Users/jacobchaffin/.emacs.d/straight/repos/org-html-themes/setup/theme-readtheorg.setup
+#+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
 * Table Of Contents :TOC_3_gh:noexport:
 - [[#preface][Preface]]
@@ -306,7 +306,7 @@ compiler.
 :CUSTOM_ID: tangle-file
 :END:
 
-Insert conventional elisp header.[fn:1] 
+Insert conventional elisp header.[fn:1]
 #+NAME: comment-block
 #+BEGIN_SRC emacs-lisp :tangle yes
 ;;; chaffin.el -- Emacs Configuration File
@@ -349,17 +349,7 @@ Insert conventional elisp header.[fn:1]
 :CUSTOM_ID: straight
 :END:
 
-[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=. After reading the repository description [fn:2], I impetuously refactored my entire Emacs configuration without reading any of the documentation, because
-
-#+BEGIN_SRC http :pretty :file ./resources/img/documentation-is-for-wimps.png :exports none
-GET https://3.bp.blogspot.com/-b3dUlC6AJjI/WE2U_wcJvrI/AAAAAAAAA_4/lciulxFqwrUAZxLol9FVybHCpCdgXSufgCLcB/w1200-h630-p-k-no-nu/documentation-is-for-wimps.png
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
-#+END_SRC
-
-#+RESULTS:
-[[file:./resources/img/documentation-is-for-wimps.png]]
-
-[[/resources/img/documentation-is-for-wimps.png]]
+[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=.
 
 It took me a while to figure out how straight works and to
 conceptualize the way it loads packages  - primarily because documentation is also for people who understand things - but now that I've gotten through the substantial learning curve (made substantially harder due to my misconception regrading the value of reading documentation), I've come to find it reduces a lot of the weirdness of the Emacs loading process and increases the rapidity (shall I say agility? no..) with which I comprehend the way third-party packages are implemented and modify them as I deem necessary.
@@ -468,7 +458,7 @@ Functional bindings i.e thread =->= macro.
 
 Common Lisp extensions.
 
-#+BEGIN_SRC emacs-lisp :tangle eys
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package cl-lib)
 #+END_SRC
 
@@ -750,7 +740,7 @@ generating a new one if the initial scratch buffer has been killed."
 <<wind-buf-list-modes>>
 #+END_SRC
 
-***** Window Count 
+***** Window Count
 
 #+NAME: win-count
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -770,7 +760,7 @@ generating a new one if the initial scratch buffer has been killed."
 #+END_SRC
 
 ***** Window Buffer List
- 
+
 #+NAME: win-buf-list
 #+BEGIN_SRC emacs-lisp :tangle no
 (defun window-buffer-list ()
@@ -929,7 +919,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 <<fd-projects>>
 #+END_SRC
 
-****** User Home 
+****** User Home
 
 #+NAME: fd-user-home
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -968,6 +958,9 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 #+BEGIN_SRC emacs-lisp :tangle no
 (defalias #'emacs-dir (apply-partially #'user-home ".emacs.d"))
 (defalias #'straight-dir (apply-partially #'emacs-dir "straight"))
+(defalias #'emacs-var-dir (apply-partially #'emacs-dir "var"))
+(defalias #'emacs-bin-dir (apply-partially #'emacs-dir "bin"))
+(defalias #'emacs-etc-dir (apply-partially #'emacs-dir "etc"))
 #+END_SRC
 
 *** Default Setup
@@ -1003,6 +996,22 @@ contributing to the solution.
 #+END_SRC
 
 **** Files
+***** No Littering
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package no-littering
+:custom
+(no-littering-etc-directory
+ (expand-file-name "etc" user-emacs-directory)
+ (no-littering-var-directory
+  (expand-file-name "var" user-emacs-directory))))
+
+(require 'no-littering)
+
+(setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+#+END_SRC
+
 ***** Custom File
 
 By default, Emacs customizations[fn:6] done through the =customize=
@@ -1014,7 +1023,7 @@ org-agenda files, will impact portability and potentially break on
 other machines.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(let ((directory (emacs-dir "custom"))
+(let ((directory (emacs-etc-dir "custom"))
       (file (pcase system-type
               (`darwin "custom-macos.el")
               (`gnu/linux "custom-linux.el")
@@ -1027,7 +1036,9 @@ other machines.
         (save-buffer)
         (kill-buffer)))
   (load custom-file))
+
 #+END_SRC
+
 
 ***** Backup Files
 
@@ -1077,7 +1088,7 @@ Causes a conflict with ~lsp-mode~.
        (shell-command-to-string
 	      (concat "gpg --list-keys | grep " user-mail-address)))
       (progn
-        (add-to-list 'load-path (emacs-dir "secrets"))
+        (add-to-list 'load-path (emacs-etc-dir "secrets"))
         (require 'secrets))
     (print (format "GPG key(s) for %s not found"
                    (or user-full-name user-mail-address)))))
@@ -1489,7 +1500,7 @@ external programs.
 **** Prefix Map
 
 #+NAME: macos-prefix
-#+BEGIN_SRC emacs-lisp :tangle no 
+#+BEGIN_SRC emacs-lisp :tangle no
 (define-prefix-command 'macos-prefix-map)
 (define-key 'halidom-prefix-map "m" 'macos-prefix-map)
 (which-key-add-prefix-title "M-m m" "macOS")
@@ -2713,14 +2724,16 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 (defun org-protocol-handler-install ()
   (interactive)
-  (let* ((apps-dir (f-join user-emacs-directory "apps"))
-         (op-app-path (f-join apps-dir "org-protocol-handler" "Org Protocol Handler.app"))
+  (let* ((install-dir (no-littering-expand-var-file-name
+                    "org-protocol-handler"))
+         (op-app-path (f-join install-dir "org-protocol-handler"
+                              "Org Protocol Handler.app"))
          (url-type (if (ssl-p) "https" "http"))
-         (git-repo apps-dir))
+         (git-repo install-dir))
     (unwind-protect
-        (if-not (f-dir-p apps-dir)
+        (if-not (f-dir-p install-dir)
             (progn
-              (f-mkdir apps-dir)
+              (f-mkdir install-dir)
               (git-clone
                "https://github.com/aaronbieber/org-protocol-handler.git")
               (f-symlink op-app-path "/Applications/"))))))
@@ -2750,7 +2763,8 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
     (interactive)
      "Install system dependencies provided by org-mac-protocol."
      (cl-flet ((f (file)
-                 (let ((app-dir (emacs-dir "apps" "org-mac-protocol"))
+                  (let ((app-dir (no-littering-expand-var-file-name
+                                  "org-mac-protocol"))
                        (script-dir (user-home "Library" "Scripts"))
                        (file-path (concat (straight-dir "repos" "org-mac-protocol") file)))
                    (if-not (file-directory-p app-dir)
@@ -2786,7 +2800,9 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
                    (file "~/Dropbox/org/capture.org")
                    "* %a :website:\n\n%U %?\n\n%:initial")))
   :config
-  (setq opch-shell-script-path  (expand-file-name "bin/org-protocol-capture-html.sh" user-emacs-directory))
+  (setq opch-shell-script-path
+        (emacs-bin-dir "org-protocol-capture-html.sh"))
+
   (defun opch-install-shell-script ()
     (interactive)
     (if-not (file-exists-p opch-shell-script-path)
@@ -3263,7 +3279,7 @@ miscellaneous or arbitrary tasks.
   :config
   (progn
     (defalias #'org-pomodoro-path
-      (apply-partially #'emacs-dir "resources" "wav"))
+      (apply-partially #'emacs-dir "etc" "pomodoro"))
 
     (setq org-pomodoro-audio-player "/usr/bin/afplay"
           org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
@@ -3349,7 +3365,6 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
   :config
   (progn
     (setq org-id-track-globally t
-          org-id-locations-file "~/.emacs.d/.org-id-locations"
           org-brain-visualize-default-choices 'all
           org-brain-title-max-length 12)
     (push '("b" "Brain" plain (function org-brain-goto-end)
@@ -3427,7 +3442,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
   (advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
 #+END_SRC
 
-**** Export to datetree 
+**** Export to datetree
 
 #+NAME: org-hacks-datetree-export
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3597,7 +3612,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
   (org-ref-show-citation-on-enter t)
   (org-ref-show-broken-links t)
   (org-ref-bibtex-hydra-key-binding "\C-cj")
-  
+
   :init
   ;; https://github.com/jkitchin/org-ref/issues/428
   (progn
@@ -3606,7 +3621,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
     (require 'org-id)
     (require 'org-ref-latex)
     (require 'org-ref-bibtex)
-    (require 'org-ref-pdf)    
+    (require 'org-ref-pdf)
     (require 'org-ref-scopus)
     (require 'org-ref-isbn)
     (require 'org-ref-pubmed)
@@ -3623,12 +3638,12 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
     (if-not path
         (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
     (find-file path))
-  
-  
+
+
   ;; Hydra
   ;; See [[file:straight/repos/org-ref/org-ref.org::#citations][Citations]] section of the manual
   (key-chord-define-global "kk" 'org-ref-cite-hydra/body)
-  
+
   ;; Org Ref Bibtex Interface
   (defcustom halidom-org-ref-journal-abbrevs '()
     "Extra abbreviations to add to `org-ref-bibtex-journal-abbreviations.'
@@ -3647,8 +3662,8 @@ Each abbreviation is a list of the form (string journal-full-name journal-abbrev
                          halidom-org-ref-journal-abbrevs
                          hist109B-journal-abbrevs))
 
-  
-  
+
+
   (with-eval-after-load 'org-ref
     (dolist (elt halidom-org-ref-journal-abbrevs)
       (add-to-list 'org-ref-bibtex-journal-abbreviations elt))))
@@ -3726,9 +3741,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
               ("t"   . pdf-annot-add-text-annotation)
               ("D"   . pdf-annot-delete))
   :init
-  (progn
-    (setq pdf-info-epdfinfo-program "~/.emacs.d/bin/epdfinfo")
-    (pdf-tools-install))
+  (pdf-tools-install)
   :config
   (progn
     (setq-default pdf-view-display-size 'fit-page)
@@ -4292,7 +4305,8 @@ for exporting org-mode documents to various formats.
 
 
 #+NAME: ox-html-resolve-setupfile
-#+BEGIN_SRC emacs-lisp :tangle np
+#+BEGIN_SRC emacs-lisp :tangle no
+
 (defun html-resolve-setupfile (data backend info)
   (when (org-export-derived-backend-p 'html)
     (lexical-let ((html-themes--dir (straight--build-dir "org-html-themes")))
@@ -4401,7 +4415,7 @@ and subtrees of the ignored headlines will be retained.
 (use-package projectile-codesearch)
 #+END_SRC
 
-*** Skeletor 
+*** Skeletor
 
 #+NAME: skeletor-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4717,7 +4731,7 @@ list that one may use in the wacky world of Emacs.
 
   :config
   (add-to-list 'dashboard-items '(agenda) t)
-  
+
   (setq dashboard-banner-logo-title "Steak and Eggs in my Dojo."
         dashboard-items '(( agenda . 10)
                           ( projects . 5)
@@ -4898,7 +4912,7 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Perspective
 <<persp-perspective>>
-;: Persp Projectile 
+;: Persp Projectile
 <<persp-projectile>>
 #+END_SRC
 
@@ -4953,7 +4967,7 @@ different window configurations.
 (use-package helpful
     :commands (helpful-at-point helpful-function helpful-command)
     :init
-    
+
     (defhydra 'helpful (global-map "M-m h")
         "Helpful"
         ("d" helpful-at-point)
@@ -5054,6 +5068,11 @@ different window configurations.
 <<bookmark-zsh>>
 #+END_SRC
 
+**** Bookmark File
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq bookmark-default-file (no-littering-expand-var-file-name "bookmarks"))
+
+#+END_SRC
 **** Bookmark+
 
 #+NAME: bookmark-plus
@@ -5080,11 +5099,11 @@ setopt cd_able_vars
 
 #+NAME: bookmark-zsh
 #+BEGIN_SRC emacs-lisp :tangle no
-(defadvice bookmark-write-file 
+(defadvice bookmark-write-file
       (after local-directory-bookmarks-to-zsh-advice activate)
    (local-directory-bookmarks-to-zsh))
 
-(defun local-directory-bookmarks-to-zsh () 
+(defun local-directory-bookmarks-to-zsh ()
       (interactive)
       (when (and (require 'tramp nil t)
                  (require 'bookmark nil t))
@@ -5094,7 +5113,7 @@ setopt cd_able_vars
         (let (collect-names)
           (mapc (lambda (item)
                   (let ((name (replace-regexp-in-string "-" "_" (car item)))
-                        (file (cdr (assoc 'filename 
+                        (file (cdr (assoc 'filename
                                            (if (cddr item) item (cadr item))))))
                     (when (and (not (tramp-tramp-file-p file))
                                (file-directory-p file))
@@ -5132,7 +5151,7 @@ should open in `read-only-mode'.")
             d2))))
 
 (defun read-only-directory-p (bf)
-"Determine whether the current buffer file is in a directory 
+"Determine whether the current buffer file is in a directory
 that is a member of `read-only-directories'."
   (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
     (and (not (null (seq-filter #'f read-only-directories)))
@@ -5516,7 +5535,7 @@ Set the width to 4px. Also remove the cursor in inactive windows.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default cursor-in-non-selected-windows nil
               x-stretch-cursor nil)
-              
+
 (modify-all-frames-parameters (list (cons 'cursor-type '(bar . 4))))
 #+END_SRC
 
@@ -5972,7 +5991,7 @@ Options are 'spaceline, 'sml, and 'powerline."
 ;; Begin Snippets
 <<completion-snippets>>
 ;; End Snippets
-;; Begin Minibuffer 
+;; Begin Minibuffer
 <<completion-minibuffer>>
 ;; End Minibuffer
 ;;; End Completion Group
@@ -6090,7 +6109,7 @@ directory to the list of directories where YASnippet should look for snippets.
           ("s" . goto-snippet-dir))
 
     :init
-    (defvar snippet-directory (emacs-dir "snippets")
+    (defvar snippet-directory (emacs-etc-dir "snippets")
       "Directory for yasnippets.")
 
     (defun goto-snippet-dir ()
@@ -6098,7 +6117,7 @@ directory to the list of directories where YASnippet should look for snippets.
       (interactive)
       (let ((default-directory snippet-directory))
         (dired default-directory)))
-    
+
     (yas-global-mode 1))
 
 #+END_SRC
@@ -6123,7 +6142,7 @@ snippets corresponding to the major mode of the current buffer mode.
   :after (org)
   :init
   (progn
-    (setq code-library-directory (concat user-emacs-directory "codelibrary"))
+    (setq code-library-directory (emacs-etc-dir "codelibrary"))
     (if-not (file-exists-p code-library-directory)
         (if (yes-or-no-p
              (format-message "Directory `%s' doesn't exist. Make directory?" code-library-directory))
@@ -6172,7 +6191,7 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 
 #+NAME: mb-ivy
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Ivy 
+;; Ivy
 <<ivy-spec>>
 ;; Ivy Prescient
 <<ivy-prescient>>
@@ -6245,7 +6264,7 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 
   :config
   (ivy-mode 1)
-  
+
   :diminish ivy-mode)
 
 #+END_SRC
@@ -6726,7 +6745,7 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
     (interactive "sCommand: " )
 
     (--> command
-         (shell-command-to-string it) 
+         (shell-command-to-string it)
          (split-string it)
          (if (interactive-p)
              (message "%s" it)
@@ -6735,7 +6754,7 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
 ** Remote
 
-*** SSH 
+*** SSH
 
 #+NAME: ssh-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -7180,7 +7199,7 @@ Interactively.
           (prefix "M-m w e"))
       (engine-add-which-key-replacement engine prefix keybinding)
       (apply orig-function args)))
-  
+
   (advice-add 'defengine :around #'engine-key-replacement)
 
   (cl-flet* ((ks (&rest k)
@@ -7233,7 +7252,7 @@ Interactively.
         (defun gnus-dired-mail-buffers ()
           "Return a list of active message buffers."
           (let ((buffers))
-            (save-current-buffer 
+            (save-current-buffer
               (dolist (buffer (buffer-list t))
                 (set-buffer buffer)
                 (when (and (derived-mode-p 'message-mode)
@@ -7359,7 +7378,7 @@ Interactively.
                              (message-signature-file "~/dotfiles/mail/work-signature.html")
                              (mu4e-compose-signature . (concat "<#part type=text/html> \n "
                                                         (read-file-contents
-                                                         (user-home "dotfiles" "mail" "work-signature.html")) 
+                                                         (user-home "dotfiles" "mail" "work-signature.html"))
                                                         "<#/part>"))))
 
                    ,(make-mu4e-context
@@ -8061,7 +8080,7 @@ school's WLAN.
 
 #+NAME: symbol-hl
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Overlay Highlight 
+;; Overlay Highlight
 <<hl-ov>>
 ;; Highlight Sexp
 <<hl-hl-sexp>>
@@ -8317,7 +8336,7 @@ Disabling for now.
 *** VCS Customize Interface
 
 #+NAME: vcs-interface
-#+BEGIN_SRC emacs-lisp :tangle no 
+#+BEGIN_SRC emacs-lisp :tangle no
 (defcustom halidom-vcs-svn-list '(git)
   "List of VCS-SVNs for which libraries and tooling should be installed.
   Options are `git' and/or `hg' (mercurial) as symbols in a list, else nil."
@@ -8696,7 +8715,7 @@ A front-end for interacting with external debuggers in Emacs.
 (use-package logview)
 #+END_SRC
 
-**** Log nav 
+**** Log nav
 
 #+NAME: lognav
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -8709,7 +8728,7 @@ A front-end for interacting with external debuggers in Emacs.
 (use-package floobits
   :if (file-exists-p (user-home ".floorc.json")))
 
-#+END_SRC 
+#+END_SRC
 
 *** Diffing
 
@@ -8904,7 +8923,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
   (with-eval-after-load 'projectile
     (add-to-list 'projectile-project-root-files-top-down-recurring
                  "compile_commands.json"))
-  
+
   (defun cmake-build-compilation-database ()
     (interactive)
     (let* ((project-directory (cond (projectile-project-root
@@ -9026,7 +9045,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package llvm-mode
     :straight nil
-    :load-path "~/.emacs.d/local/llvm-mode"
+    :load-path "~/.emacs.d/opt/llvm-mode"
     :init
     (require 'llvm-mode)
     (require 'tablegen-mode))
@@ -9047,7 +9066,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
                lsp-clangd-objc-enable)
     :custom
     (lsp-clangd-executable  (executable-find "clangd"))
-    
+
     :if  (executable-find "clangd")
     :hook
     ((c-mode . lsp-clangd-c-enable)
@@ -9412,7 +9431,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 #+END_SRC
 
-**** Cask 
+**** Cask
 
 #+NAME: elisp-cask
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -9443,7 +9462,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   (defun flycheck-cask/disable-dir-locals ()
       (when (string= ".dir-locals.el" (buffer-file-name))
         (set (make-variable-buffer-local 'flycheck-mode) nil)))
-  
+
   :hook
   (flycheck-mode . flycheck-cask/enable)
   (flycheck-mode . flycheck-cask/disable-dir-locals))
@@ -9655,7 +9674,7 @@ Java bytecode inside Emacs buffers.
   <<js-cofee>>
   ;; Node.js
   <<js-node>>
-  ;; Indium 
+  ;; Indium
   <<js-indium>>
 ) ;; End JavaScript
 
@@ -9982,14 +10001,14 @@ socket URL to connect to."
           (insert output)
           (goto-char (point-min))
           (el-patch-add (ansi-color-apply-on-region (point-min) (point-max))))
-        
+
         (when (string-match-p "Debugger listening on" output)
           (ignore-errors
             (indium-nodejs--connect-to-process process output)))))
 
 
     (cl-defun chrome-debugger-launch (&optional (port "3000") (host "localhost") (type "http") )
-      "Launch a chromium debugger process on HOST using PORT and protocol TYPE. 
+      "Launch a chromium debugger process on HOST using PORT and protocol TYPE.
 
     Note this will kill any running instances of Chromium."
         (interactive (list
@@ -10478,7 +10497,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
   (add-hook 'web-mode-hook #'halidom/web-mode-flycheck)
 
   (add-hook 'web-mode-hook #'halidom/web-mode-style)
-  
+
   (defun halidom/web-dash-docsets ()
     (setq-local dash-plugin-keywords
                 '("css" "html" "javascript" "react")))
@@ -10509,7 +10528,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
   :straight t)
 #+END_SRC
 
-**** LSP HTML 
+**** LSP HTML
 
 #+NAME: web-lsp
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -10531,7 +10550,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: web-css
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Begin CSS 
+;; Begin CSS
 <<css-css-mode>>
 ;; Less Mode
 <<css-less-mode>>
@@ -10544,7 +10563,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 ;; CSS Backends
 <<css-backends>>
 ;; End CSS
-#+END_SRC 
+#+END_SRC
 
 ***** CSS Mode
 
@@ -10586,7 +10605,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 ***** CSS LSP
 
 #+NAME: css-css-lsp
-#+BEGIN_SRC emacs-lisp :tangle no 
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package lsp-css
     :if (executable-find "css-language-server")
     :commands (lsp-css-enable
@@ -10804,7 +10823,7 @@ and slim-mode using company.
 
 * Footnotes
 
-[fn:1] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]] 
+[fn:1] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
 
 [fn:2]  "Next-generation, purely functional package manager for the
 Emacs hacker."

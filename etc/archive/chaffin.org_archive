@@ -1,0 +1,366 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /Users/jacobchaffin/.emacs.d/chaffin.org
+
+
+* Atom One Dark Theme
+  :PROPERTIES:
+  :ID:       F61C9959-2A41-47D9-9D99-04D54098CA90
+  :CUSTOM_ID: atom-one-dark-theme
+  :ARCHIVE_TIME: 2018-06-11 Mon 01:45
+  :ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+  :ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+  :ARCHIVE_CATEGORY: chaffin
+  :END:
+
+#+NAME: atom-theme-cfg
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package atom-one-dark-theme
+  :straight t
+  :config
+  (progn
+    (add-to-list 'custom-enabled-themes 'atom-one-dark)))
+#+END_SRC
+
+** Atom One Dark Modifications
+
+Minor modifications to [[#atom-one-dark-theme][atom one dark theme]]
+color scheme. The template is from the modification of monokai-theme
+in this [[http://fgiasson.com/blog/index.php/2016/06/14/my-optimal-gnu-emacs-settings-for-developing-clojure-revised/][blogpost]].
+
+- Use default foreground color instead of highlight face for org-mode
+  source lines.
+- Use italic font (when available) for strings, comments, and keywords
+- Modify vertical border foreground color
+- Modify highlight symbol foreground face and colors
+
+#+NAME: atom-one-dark-mods
+#+BEGIN_SRC emacs-lisp :tangle no
+(deftheme atom-one-dark-mods)
+
+(let ((class '((class color) (min-colors 257)))
+      (terminal-class '((class color) (min-colors 89))))
+
+  (custom-theme-set-faces
+   'atom-one-dark-mods
+
+   ;; Can also be set using `highlight-symbol-foreground-color' variable
+   `(highlight-symbol-face
+     ((,class :foreground "#E0E0E0")))
+
+   ;; Org Faces
+   `(org-block-begin-line
+     ((t :foreground "#ABB2BF"
+         :background "#35373E")))
+
+   `(org-block-end-line
+     ((t :foreground "#ABB2BF"
+         :background "#35373E")))
+
+   `(org-verbatim
+     ((t :inherit (shadow fixed-pitch-serif))))
+
+   `(font-lock-comment-face
+     ((t :slant italic)))
+
+   `(font-lock-keyword-face
+     ((t :slant italic)))
+
+   `xc(font-lock-string-face
+     ((t :slant italic)))
+
+   `(vertical-border
+     ((t :foreground "#5C6370")))))
+
+
+
+(custom-theme-set-faces 'atom-one-dark)
+
+;; Enable custom theme
+(add-to-list 'custom-enabled-themes 'atom-one-dark-mods)
+
+#+END_SRC
+
+
+Archived entries from file /Users/jacobchaffin/.emacs.d/chaffin.org
+
+
+* Install Themes
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-06-11 Mon 01:45
+  :ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+  :ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+  :ARCHIVE_CATEGORY: chaffin
+  :END:
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<atom-theme-cfg>>
+<<atom-one-dark-mods>>
+<<ob-theme>>
+<<zenburn-theme-cfg>>
+#+END_SRC
+
+
+Archived entries from file /Users/jacobchaffin/.emacs.d/chaffin.org
+
+
+* Org Beautify Theme
+  :PROPERTIES:
+  :ID:       4612DA55-904D-44D4-9E3D-98E6D7AF72E2
+  :CUSTOM_ID: org-beautify-theme
+  :ARCHIVE_TIME: 2018-06-11 Mon 01:45
+  :ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+  :ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+  :ARCHIVE_CATEGORY: chaffin
+  :END:
+
+#+NAME: ob-theme
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-beautify-theme
+  ;; Minor modifications for better compatibility with atom-one-dark
+  ;; theme.
+  :straight (:host github
+             :repo "jchaffin/org-beautify-theme")
+  :config
+  (progn
+    (setq org-beautify-theme-use-box-hack nil)
+    (add-to-list 'custom-enabled-themes 'org-beautify)))
+#+END_SRC
+
+
+Archived entries from file /Users/jacobchaffin/.emacs.d/chaffin.org
+
+
+* Zenburn Theme
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-06-11 Mon 01:45
+  :ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+  :ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+  :ARCHIVE_CATEGORY: chaffin
+  :END:
+
+#+NAME: zenburn-theme-cfg
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package zenburn-theme
+  :straight t)
+#+END_SRC
+
+
+Archived entries from file /Users/jacobchaffin/.emacs.d/chaffin.org
+
+
+* Load Default Theme
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-06-11 Mon 01:45
+  :ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+  :ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+  :ARCHIVE_CATEGORY: chaffin
+  :END:
+
+#+NAME: default-theme-config
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+#+END_SRC
+
+Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
+
+I find that zenburn looks better when Emacs is
+started from the terminal.
+
+#+NAME: theme-config-1
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+
+(if (display-graphic-p)
+    (progn
+      (load-theme 'org-beautify)
+      (load-theme 'atom-one-dark)
+      (enable-theme 'atom-one-dark-mods)
+      (add-hook 'after-init-hook
+                (lambda ()
+                  (load-theme 'atom-one-dark)
+                  (load-theme 'org-beautify)
+                  (enable-theme 'atom-one-dark-mods))))
+
+  (progn
+    (load-theme 'zenburn)))
+#+END_SRC
+
+
+
+
+
+
+
+Archived entries from file /Users/jacobchaffin/.emacs.d/chaffin.org
+
+
+* Enable Custom Themes
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-06-11 Mon 01:45
+  :ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+  :ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+  :ARCHIVE_CATEGORY: chaffin
+  :END:
+
+This disables Emacs asking questions about loading a new theme.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq custom-safe-themes t)
+#+END_SRC
+
+
+Archived entries from file /Users/jacobchaffin/.emacs.d/chaffin.org
+
+
+* Enable Custom Themes
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-06-11 Mon 01:45
+  :ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+  :ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+  :ARCHIVE_CATEGORY: chaffin
+  :END:
+
+This disables Emacs asking questions about loading a new theme.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq custom-safe-themes t)
+#+END_SRC
+
+
+* Load Default Theme
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-06-11 Mon 07:38
+:ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+:ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+:ARCHIVE_CATEGORY: chaffin
+:END:
+
+Primary theme has to be loaded before [[#org-beautify-theme][Org Beautify Theme]] to preserve compatibility.
+
+I find that zenburn looks better when Emacs is
+started from the terminal.
+
+#+NAME: theme-vars
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defvar chaffin/dark-theme 'one-dark-italic)
+(defvar chaffin/light-theme 'poet)
+(defvar chaffin/tty-theme 'zenburn)
+(defvar chaffin/dark-theme-hook nil)
+(defvar chaffin/qui-theme-hook nil)
+(defvar chaffin/light-theme-hook nil)
+(defvar chaffin/theme-mode 'dark)
+#+END_SRC
+
+#+NAME: theme-config-attempt-01
+#+BEGIN_SRC emacs-lisp :tangle yes
+;; If you don't customize it, this is the theme you get.
+(setq-default custom-enabled-themes '(org-beautify oceanic))
+
+;; Ensure that themes will be applied even if they have not been customized
+(defun reapply-themes ()
+  "Forcibly load the themes listed in `custom-enabled-themes'."
+  (dolist (theme custom-enabled-themes)
+    (unless (custom-theme-p theme)
+      (load-theme theme)))
+  (custom-set-variables `(custom-enabled-themes (quote ,custom-enabled-themes))))
+
+(add-hook 'after-init-hook 'reapply-themes)
+
+
+;;------------------------------------------------------------------------------
+;; Toggle between light and dark
+;;------------------------------------------------------------------------------
+(defun light ()
+  "Activate a light color theme."
+  (interactive)
+  (setq custom-enabled-themes '(org-beautify poet))
+  (reapply-themes))
+
+(defun dark ()
+  "Activate a dark color theme."
+  (interactive)
+  (setq custom-enabled-themes '(org-beautify oceanic))
+  (reapply-themes))
+
+
+(use-package dimmer
+  :straight t
+  :init
+  (add-hook 'after-init-hook 'dimmer-mode)
+  :config
+  (setq-default dimmer-fraction 0.1))
+
+
+
+#+END_SRC
+
+#+NAME: theme-config-attempt-00
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq chaffin/light-theme 'poet)
+(setq chaffin/theme-mode 'light)
+
+(defun chaffin/load-gui-theme ()
+  (mapc #'disable-theme custom-enabled-themes)
+
+  (load-theme 'org-beautify)
+
+  (run-hooks 'chaffin/gui-theme-hook)
+
+  (if (eq chaffin/theme-mode 'dark)
+      (progn
+        (message "%s" "Loading dark theme")
+        (load-theme chaffin/dark-theme)
+        (run-hooks 'chaffin/dark-theme-hook))
+    (progn
+      (load-theme chaffin/light-theme)
+      (run-hooks 'chaffin/light-theme-hook))))
+
+(defun chaffin/load-tty-theme ()
+  (load-theme chaffin/tty-theme))
+
+(add-hook 'chaffin/gui-theme-hook
+          (lambda ()
+            (load-theme chaffin/dark-theme)
+            (load-theme 'org-beautify)))
+
+(add-hook 'after-init-hook 'chaffin/load-gui-theme)
+
+
+(defun chaffin/load-theme ()
+  (interactive)
+  (if (display-graphic-p)
+      (chaffin/load-gui-theme)
+    (chaffin/load-tty-theme)))
+
+
+(defun chaffin/toggle-theme ()
+  (interactive)
+  (if (eq chaffin/theme-mode 'dark)
+      (progn
+        (setq chaffin/theme-mode 'light)
+        (chaffin/load-theme))
+    (setq chaffin/theme-mode 'dark)
+    (chaffin/load-theme)))
+
+
+(add-hook 'after-make-frame-functions
+          (chaffin/load-theme))
+#+END_SRC
+
+
+* Install Themes
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-06-11 Mon 07:38
+:ARCHIVE_FILE: ~/.emacs.d/chaffin.org
+:ARCHIVE_OLPATH: Customizing Emacs/User Interface/Theme
+:ARCHIVE_CATEGORY: chaffin
+:END:
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+<<atom-theme-cfg>>
+<<atom-one-dark-mods>>
+<<ob-theme>>
+<<zenburn-theme-cfg>>
+<<doom-theme-cfg>>
+#+END_SRC
+

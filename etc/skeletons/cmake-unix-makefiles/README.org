@@ -1,0 +1,19 @@
+#+TITLE: __PROJECT-NAME__
+#+DATE: 
+* Overview
+
+__DESCRIPTION__
+
+* Installation
+
+#+BEGIN_SRC shell :tangle no
+mkdir build
+cd build && \
+    cmake -G 'Unix Makefiles' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../__PROJECT-NAME__
+
+ln -s `pwd`/compile_commands.json $(dirname `pwd`)/compile_commands.json
+#+END_SRC
+
+
+Created at __TIME__
+
