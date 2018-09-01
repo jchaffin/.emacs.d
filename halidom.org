@@ -307,16 +307,17 @@ compiler.
 :END:
 
 Insert conventional elisp header.[fn:1]
+
 #+NAME: comment-block
 #+BEGIN_SRC emacs-lisp :tangle yes
-;;; chaffin.el -- Emacs Configuration File
+;;; halidom.el -- Emacs Configuration File
 ;;
-;; Copyright (c) 2017 Jacob Chaffin
+;; Copyright (c) 2018 Jacob Chaffin
 ;;
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
-;; Keywords: emacs, .emacs.d, elisp, straight-el
+;; Keywords: emacs, .emacs.d, dotemacs, org-mode, literate
 ;; Homepage: https://github.com/jchaffin/.emacs.d
-;; Package-Requires: ((emacs "25"))
+;; Package-Requires: ((emacs "27"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;

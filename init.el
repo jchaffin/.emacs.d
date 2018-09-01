@@ -1,11 +1,11 @@
 ;;; init.el -- Emacs Initialization File
 ;;
-;; Copyright (c) 2017 Jacob Chaffin
+;; Copyright (c) 2018 Jacob Chaffin
 ;;
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
 ;; Keywords: emacs, .emacs.d, elisp, straight-el
 ;; Homepage: https://github.com/jchaffin/.emacs.d
-;; Package-Requires: ((emacs "25"))
+;; Package-Requires: ((emacs "27"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -40,32 +40,18 @@
 ;;
 ;; [1] https://github.com/raxod502/straight.el/blob/master/README.md
 ;; [2] http://www.literateprogramming.com/knuthweb.pdf
-;; [3] https://github.com/jchaffin/.emacs.d/blob/master/chaffin.org#literate-programming
+;; [3] https://github.com/jchaffin/.emacs.d/blob/master/halidom.org#literate-programming
 ;; [4] http://orgmode.org/worg/org-contrib/babel/
 
 ;;; Code:
 
-(defcustom halidom-literate-config-file "chaffin.org"
-  "The *.org file containing the source code responsible for
-  declaration and configuration of third-party packages, as well as
-  any settings and customizations defined in this GNU Emacs
-  distribution."
-  :type 'string)
-
-(defcustom halidom-user-literate-init-file
-  (expand-file-name halidom-literate-config-file user-emacs-directory)
-  "The absolute path of `halidom-literate-config-file.'"
-  :type 'string)
-
-
-(setq package-enable-at-startup nil)
-
-(require 'gnutls)
-
-;; Prevent elpa from loading `package.el' in case loading fails.
-;; Use LibreSSL certificates to bootstrap dependencies.
-;; [1] https://github.com/raxod502/straight.el/commit/7e77328b
-(add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem")
+;; Straight
+(when (locate-library "gnutls")
+  (require 'gnutls)
+  ;; Prevent elpa from loading `package.el' in case loading fails.
+  ;; Use LibreSSL certificates to bootstrap dependencies.
+  ;; [1] https://github.com/raxod502/straight.el/commit/7e77328b
+  (add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem"))
 
 (setq straight-repository-branch "develop"
       ;; Use the macos lockfile
@@ -91,27 +77,7 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-;;
-;; Interactive commands such as `straight-use-package' fail on the
-;; `develop' branch of `straight'.
-;;
-;; The issue appears to be that straight expects the local `gnu-elpa'
-;; clone to minimally contain a `packages/' directory. Support for
-;; `gnu-elpa' is still unstable. For now, I'm bypassing the issue by
-;; ensuring the directory exists when `straight-recipes-gnu-elpa-list'
-;; is invoked.
-
-;; (defadvice straight-recipes-gnu-elpa-list (around straight-recipe-gnu-elpa-list-around activate)
-;;   (let* ((elpa-repo-dir (expand-file-name "straight/repos/elpa/" user-emacs-directory))
-;;          (elpa-pkg-dir (expand-file-name "packages/" elpa-repo-dir)))
-;;     (unless (file-exists-p elpa-pkg-dir)
-;;       (if (file-exists-p elpa-repo-dir)
-;;           (mkdir elpa-pkg-dir)))
-;;     ad-do-it))
-
-
 ;;; Use Package
-
 ;; Clone use-package dependencies
 (straight-use-package 'diminish)
 (straight-use-package 'bind-key)
@@ -181,7 +147,12 @@
    (progn
      (when (eq system-type 'darwin)
        (setq org-directory (expand-file-name "~/Dropbox/org/")
-             org-default-notes-file (expand-file-name "capture.org" org-directory)))
+             org-default-notes-file (expand-file-name
+                                     "capture.org"
+                                     org-directory)
+             org-id-locations-file
+             (expand-file-name "var/org/id-locations.el"
+                               user-emacs-directory)))
 
      (setq org-insert-heading-respect-content t
            org-startup-indented t
@@ -197,6 +168,18 @@
 
 
 ;; Literate
+(defcustom halidom-literate-config-file "halidom.org"
+  "The *.org file containing the source code responsible for
+  declaration and configuration of third-party packages, as well as
+  any settings and customizations defined in this GNU Emacs
+  distribution."
+  :type 'string)
+
+(defcustom halidom-user-literate-init-file
+  (expand-file-name halidom-literate-config-file user-emacs-directory)
+  "The absolute path of `halidom-literate-config-file.'"
+  :type 'string)
+
 
 (defun load-literate (&optional user-config-file init-server)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
@@ -253,7 +236,7 @@ Else use the value of `halidom-literate-config-file'."
       (mapcar #'func sx))))
 
 (defun literate-tangle-src-block (name)
-  (let ((buf (find-file-noselect (expand-file-name "chaffin.org" user-emacs-directory))))
+  (let ((buf (find-file-noselect (expand-file-name "halidom.org" user-emacs-directory))))
     (with-current-buffer halidom-literate-config-file
       (org-element-map (org-element-parse-buffer) 'src-block
 	(lambda (block)

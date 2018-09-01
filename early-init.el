@@ -1,11 +1,10 @@
 ;;; -*- lexical-binding: t ; -*-
 ;;; early-init.el -- Emacs early initialization file
 ;;
-;; Copyright (c) 2017 Jacob Chaffin
+;; Copyright (c) 2018 Jacob Chaffin
 ;; Author Jacob Chaffin
-;; Keywords:  PKG_KEYWORDS
-;; Homepage: https://github.com/.emacs.d
-;; Package Requires:  PKG_DEPENDENCIES
+;;
+;; Homepage: https://github.com/.emacs.d.git
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
