@@ -1,4 +1,3 @@
-# By default, ignore everything
 var/
 straight/**
 !/straight/versions
