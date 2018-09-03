@@ -2322,7 +2322,6 @@ Prettify dedicated org-mode latex buffers.
 <<latex-math-completion>>
 <<latex-math-unicode>>
 <<latex-math-symbols>>
-<<latex-math-logic-unicode>>
 #+END_SRC
 
 **** Company Math
@@ -2341,82 +2340,70 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: latex-math-unicode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-unicode-math-mode
-  :init
-  (add-hook 'LaTeX-mode-hook 'latex-unicode-math-mode))
+    :init
+  (defun latex-math-enable-unicode ()
+    (latex-unicode-math-mode t)
+    (setq LaTeX-math-menu-unicode t))
+    :hook
+    (LaTeX-mode . latex-math-enable-unicode))
 #+END_SRC
 
 **** Math Symbols
 
-#+NAME: latex-math-symbols
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package math-symbols)
-#+END_SRC
-
-**** Logical Symbols
 Entered on [2018-06-13 Wed 11:42]
 
-#+NAME: latex-math-logic-unicode
+#+NAME: latex-math-symbols
 #+BEGIN_SRC emacs-lisp :tangle no
-(require 'math-symbols)
+(use-package math-symbols
+    :init
+    (defun logic/insert (char)
+      (save-excursion
+        (insert char))
+      (forward-char))
 
- (defun logic/insert (char)
-    (save-excursion
-      (insert char))
-    (forward-char))
+    (defun logic/insert-and ()
+      (interactive)
+      (logic/insert "∧"))
+
+    (defun logic/insert-neg ()
+      (interactive)
+      (logic/insert "⌐"))
+
+    (defun logic/insert-or ()
+      (interactive)
+      (logic/insert "∨"))
+
+    (defun logic/insert-if ()
+      (interactive)
+      (logic/insert "⟶"))
+
+    (defun logic/insert-iff ()
+      (interactive)
+      (logic/insert "⟷"))
+
+    (defun logic/insert-p ()
+      (interactive)
+      (logic/insert "𝑝"))
+
+    (defun logic/insert-q ()
+      (interactive)
+      (logic/insert "𝑞"))
+
+    (defun logic/insert-lparen ()
+      (interactive)
+      (logic/insert "("))
+
+    (defun logic/insert-rparen ()
+      (interactive)
+      (logic/insert ")"))
+
+    (defun logic/insert-paren ()
+      (interactive)
+      (logic/insert "()")))
 
 
-  (defun logic/insert-and ()
-    (interactive)
-    (logic/insert "∧"))
-
-  (defun logic/insert-neg ()
-    (interactive)
-    (logic/insert "⌐")
-  )
-  (defun logic/insert-or ()
-    (interactive)
-    (logic/insert "∨"))
-
-  (defun logic/insert-if ()
-    (interactive)
-    (logic/insert "⟶"))
-
-  (defun logic/insert-iff ()
-    (interactive)
-    (logic/insert "⟷"))
-
-  (defun logic/insert-p ()
-    (interactive)
-    (logic/insert "𝑝"))
-
-  (defun logic/insert-q ()
-    (interactive)
-    (logic/insert "𝑞"))
-
-  (defun logic/insert-lparen ()
-    (interactive)
-    (logic/insert "("))
-
-  (defun logic/insert-rparen ()
-    (interactive)
-    (logic/insert ")"))
-
-  (defun logic/insert-paren ()
-    (interactive)
-    (logic/insert "()"))
 
 
-  (define-key LaTeX-mode-map (kbd "M-m l o") #'logic/insert-or)
-  (define-key LaTeX-mode-map (kbd "M-m l (") #'logic/insert-paren)
-  (define-key LaTeX-mode-map (kbd "M-m l )") #'logic/insert-rparen)
-  (define-key LaTeX-mode-map (kbd "M-m l p") #'logic/insert-p)
-  (define-key LaTeX-mode-map (kbd "M-m l q") #'logic/insert-q)
-  (define-key LaTeX-mode-map (kbd "M-m l a") #'logic/insert-and)
-  (define-key LaTeX-mode-map (kbd "M-m l n") #'logic/insert-neg)
-  (define-key LaTeX-mode-map (kbd "M-m l i") #'logic/insert-if)
-  (define-key LaTeX-mode-map (kbd "M-m l I") #'logic/insert-iff)
-
-  (define-key LaTeX-mode-mapl (kbd "M-m l l") #'math-symbols-insert)
 #+END_SRC
 
 
