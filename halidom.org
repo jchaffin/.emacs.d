@@ -1084,7 +1084,7 @@ Causes a conflict with ~lsp-mode~.
 **** Load Secrets
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(when (and (executable-find "gpg") *is-mac*)
+(when (executable-find "gpg")
   (if-not (string-empty-p
        (shell-command-to-string
 	      (concat "gpg --list-keys | grep " user-mail-address)))
@@ -5656,11 +5656,7 @@ on startup and new frame."
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons
   :init
-  (if (and *is-mac*
-           (not
-            (member "all-the-icons.ttf"
-                    (directory-files (user-home "Library" "Fonts")))))
-      (all-the-icons-install-fonts))
+  (all-the-icons-install-fonts)
 
   :config
   (let ((props (cdr (assoc "\\.node" all-the-icons-icon-alist))))
@@ -6516,19 +6512,18 @@ A smart M-x enhancement for Emacs.
 
 #+NAME: mb-omnibox
 #+BEGIN_SRC emacs-lisp :tangle no
+  (use-package omnibox
+      :commands omnibox-M-x
+      :bind (:map omnibox-mode-map
+		  ("M-x" . omnibox-M-x))
+      :init
+      (let ((pkgdir "~/.local/share/icons-in-terminal"))
+	(when (f-dir-p pkgdir)
+	  (add-to-list 'load-path pkgdir)
+	  (when (locate-library "font-lock+")
+	    (require 'font-lock+)
+	    (require 'icons-in-terminal)))))
 
-(use-package omnibox
-    :commands omnibox-M-x
-    :bind (:map omnibox-mode-map
-                ("M-x" . omnibox-M-x))
-    :init
-    (let ((pkgdir "~/.local/share/icons-in-terminal"))
-      (when (f-dir-p pkgdir)
-
-      (add-to-list 'load-path pkgdir)))
-      (when (locate-library "font-lock+")
-        (require 'font-lock+)
-        (require 'icons-in-terminal)))
 
 #+END_SRC
 
@@ -7366,10 +7361,11 @@ Interactively.
 
 #+NAME: mu-alert
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package mu4e-alert
+  (use-package mu4e-alert
+    :if (locate-library "mu4e")
     :init
-  (mu4e-alert-enable-notifications)
-  (mu4e-alert-enable-mode-line-display))
+    (mu4e-alert-enable-notifications)
+    (mu4e-alert-enable-mode-line-display))
 #+END_SRC
 
 ** Cloud Integration
@@ -7440,7 +7436,7 @@ buffers[fn:17].
     (progn
       (when (executable-find "hunspell")
         (setq-default ispell-program-name "hunspell")
-        (setq-default ispell-dictionary "en_US")
+        (setq-default ispell-dictionary "en_US.UTF-8")
         (setq ispell-really-hunspell t))))
 #+END_SRC
 
@@ -7464,11 +7460,13 @@ checking for natural language.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package langtool
   :if *is-mac*
+  :custom
+  (langtool-language-tool-jar "/usr/local/Cellar/languagetool/4.1/libexec/languagetool-commandline.jar")
   :after (flyspell)
   :demand t
   :config
   (progn
-    (setq langtool-language-tool-jar "/usr/local/Cellar/languagetool/4.1/libexec/languagetool-commandline.jar"
+    (setq
           langtool-mother-tongue "en"
           langtool-disabled-rules '("WHITESPACE_RULE"))))
 #+END_SRC
