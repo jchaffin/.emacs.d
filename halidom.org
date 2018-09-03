@@ -307,16 +307,17 @@ compiler.
 :END:
 
 Insert conventional elisp header.[fn:1]
+
 #+NAME: comment-block
 #+BEGIN_SRC emacs-lisp :tangle yes
-;;; chaffin.el -- Emacs Configuration File
+;;; halidom.el -- Emacs Configuration File
 ;;
-;; Copyright (c) 2017 Jacob Chaffin
+;; Copyright (c) 2018 Jacob Chaffin
 ;;
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
-;; Keywords: emacs, .emacs.d, elisp, straight-el
+;; Keywords: emacs, .emacs.d, dotemacs, org-mode, literate
 ;; Homepage: https://github.com/jchaffin/.emacs.d
-;; Package-Requires: ((emacs "25"))
+;; Package-Requires: ((emacs "27"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -2321,7 +2322,6 @@ Prettify dedicated org-mode latex buffers.
 <<latex-math-completion>>
 <<latex-math-unicode>>
 <<latex-math-symbols>>
-<<latex-math-logic-unicode>>
 #+END_SRC
 
 **** Company Math
@@ -2340,82 +2340,70 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: latex-math-unicode
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-unicode-math-mode
-  :init
-  (add-hook 'LaTeX-mode-hook 'latex-unicode-math-mode))
+    :init
+  (defun latex-math-enable-unicode ()
+    (latex-unicode-math-mode t)
+    (setq LaTeX-math-menu-unicode t))
+    :hook
+    (LaTeX-mode . latex-math-enable-unicode))
 #+END_SRC
 
 **** Math Symbols
 
-#+NAME: latex-math-symbols
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package math-symbols)
-#+END_SRC
-
-**** Logical Symbols
 Entered on [2018-06-13 Wed 11:42]
 
-#+NAME: latex-math-logic-unicode
+#+NAME: latex-math-symbols
 #+BEGIN_SRC emacs-lisp :tangle no
-(require 'math-symbols)
+(use-package math-symbols
+    :init
+    (defun logic/insert (char)
+      (save-excursion
+        (insert char))
+      (forward-char))
 
- (defun logic/insert (char)
-    (save-excursion
-      (insert char))
-    (forward-char))
+    (defun logic/insert-and ()
+      (interactive)
+      (logic/insert "∧"))
+
+    (defun logic/insert-neg ()
+      (interactive)
+      (logic/insert "⌐"))
+
+    (defun logic/insert-or ()
+      (interactive)
+      (logic/insert "∨"))
+
+    (defun logic/insert-if ()
+      (interactive)
+      (logic/insert "⟶"))
+
+    (defun logic/insert-iff ()
+      (interactive)
+      (logic/insert "⟷"))
+
+    (defun logic/insert-p ()
+      (interactive)
+      (logic/insert "𝑝"))
+
+    (defun logic/insert-q ()
+      (interactive)
+      (logic/insert "𝑞"))
+
+    (defun logic/insert-lparen ()
+      (interactive)
+      (logic/insert "("))
+
+    (defun logic/insert-rparen ()
+      (interactive)
+      (logic/insert ")"))
+
+    (defun logic/insert-paren ()
+      (interactive)
+      (logic/insert "()")))
 
 
-  (defun logic/insert-and ()
-    (interactive)
-    (logic/insert "∧"))
-
-  (defun logic/insert-neg ()
-    (interactive)
-    (logic/insert "⌐")
-  )
-  (defun logic/insert-or ()
-    (interactive)
-    (logic/insert "∨"))
-
-  (defun logic/insert-if ()
-    (interactive)
-    (logic/insert "⟶"))
-
-  (defun logic/insert-iff ()
-    (interactive)
-    (logic/insert "⟷"))
-
-  (defun logic/insert-p ()
-    (interactive)
-    (logic/insert "𝑝"))
-
-  (defun logic/insert-q ()
-    (interactive)
-    (logic/insert "𝑞"))
-
-  (defun logic/insert-lparen ()
-    (interactive)
-    (logic/insert "("))
-
-  (defun logic/insert-rparen ()
-    (interactive)
-    (logic/insert ")"))
-
-  (defun logic/insert-paren ()
-    (interactive)
-    (logic/insert "()"))
 
 
-  (define-key LaTeX-mode-map (kbd "M-m l o") #'logic/insert-or)
-  (define-key LaTeX-mode-map (kbd "M-m l (") #'logic/insert-paren)
-  (define-key LaTeX-mode-map (kbd "M-m l )") #'logic/insert-rparen)
-  (define-key LaTeX-mode-map (kbd "M-m l p") #'logic/insert-p)
-  (define-key LaTeX-mode-map (kbd "M-m l q") #'logic/insert-q)
-  (define-key LaTeX-mode-map (kbd "M-m l a") #'logic/insert-and)
-  (define-key LaTeX-mode-map (kbd "M-m l n") #'logic/insert-neg)
-  (define-key LaTeX-mode-map (kbd "M-m l i") #'logic/insert-if)
-  (define-key LaTeX-mode-map (kbd "M-m l I") #'logic/insert-iff)
-
-  (define-key LaTeX-mode-mapl (kbd "M-m l l") #'math-symbols-insert)
 #+END_SRC
 
 
@@ -3223,23 +3211,22 @@ miscellaneous or arbitrary tasks.
     (progn
 
       (defun org-projectile-files-to-agenda ()
-	"Add org-projectile project files to org-agenda."
-	(interactive)
-	(let* ((todo-filepath
-		(or
-		 (bound-and-true-p org-projectile-per-project-filepath)
-		 "org/TODOs.org"))
-	       (active-projects
-		(seq-filter (lambda (proj)
-			      (file-exists-p
-			       (expand-file-name todo-filepath proj)))
-			    projectile-known-projects))
-	       (project-agenda-files
-		(mapcar (lambda (proj)
-			  (expand-file-name todo-filepath proj))
-			active-projects)))
-	  (setq org-agenda-files (append org-agenda-files project-agenda-files))))
+	      "Add org-projectile project files to org-agenda."
+	      (interactive)
+	      (let* ((todo-filepath (or (bound-and-true-p org-projectile-per-project-filepath)
+		                              "org/TODOs.org"))
+	             (active-projects (seq-filter
+                                 (lambda (proj)
+			                             (file-exists-p (expand-file-name todo-filepath proj)))
+                                 projectile-known-projects))
+	             (project-agenda-files (mapcar
+                                      (lambda (proj)
+			                                  (expand-file-name todo-filepath proj))
+			                                active-projects)))
+	        (setq org-agenda-files (append org-agenda-files project-agenda-files))))
+      
       (org-projectile-files-to-agenda))
+
     :config
     (progn
 
@@ -3919,7 +3906,6 @@ recursively processing #+INCLUDEs."
 <<org-export-latex-user-labels>>
 <<org-export-latex-pdf-process>>
 <<org-export-latex-custom-classes>>
-<<org-export-latex-numfilter>>
 #+END_SRC
 
 **** Set latex pdf process
@@ -3955,28 +3941,28 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
       (setq enable-default-minted t)
       (message "%s" "Disabled default minted."))))
 
-(defvar latex-process-latex
-  '("%latex -interaction nonstopmode -output-directory %o %f" "%latex
--interaction nonstopmode -output-directory %o %f" "%latex -interaction
-nonstopmode -output-directory %o %f")
+(setq latex-process-latex
+  '("%latex -interaction nonstopmode -output-directory %o %f"
+    "%latex -interaction nonstopmode -output-directory %o %f"
+    "%latex -interaction nonstopmode -output-directory %o %f"))
 
-  "The default latex command for `org-latex-pdf-process'.")
+(setq latex-process-pdflatex
+  '("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
 
-(defvar latex-process-pdflatex
-  '("latexmk -pdflatex='pdflatex -interaction nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
-
-(defvar latex-process-xelatex
+(setq latex-process-xelatex
   '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
 
-(defvar latex-process-lualatex
+(setq latex-process-lualatex
   '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
 
-(defvar latex-process-list
+(defcustom halidom-latex-pdf-engines
   '(("latex" . latex-process-latex)
     ("lualatex" . latex-process-lualatex)
     ("xelatex" . latex-process-xelatex)
-    ("pdflatex" . latex-process-pdflatex)))
-
+    ("pdflatex" . latex-process-pdflatex))
+  "A list of LaTeX commands available to run when 
+`org-latex-export-to-pdf' is invoked."
+  :type '(cons string symbol))
 
 (setq org-latex-pdf-process latex-process-xelatex)
 
@@ -3986,8 +3972,8 @@ nonstopmode -output-directory %o %f")
   (interactive)
   (let* ((process (or
                    process
-                   (assoc (completing-read "Process: " latex-process-list nil nil)
-                          latex-process-list)))
+                   (assoc (completing-read "Process: " halidom-latex-pdf-engines nil nil)
+                          halidom-latex-pdf-engines)))
          (cmd-string (cdr process)))
     (setq org-latex-pdf-process (symbol-value cmd-string))
     (run-hooks 'org-latex-pdf-process-set-hook)))
@@ -4054,7 +4040,7 @@ The default cross-referencing and hyperlink styles provided by
 #+NAME: org-export-latex-custom-classes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 
-<<org-export-latex-per-file-class>>
+<<org-export-latex-orgling>>
 <<org-export-latex-lingsyn-class>>
 <<org-export-latex-uclacs>>
 <<org-export-latex-humanities-class>>
@@ -4118,9 +4104,9 @@ My custom mla-style LaTeX class.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Lingsyn class
+***** Orgling
 
-#+NAME: org-export-latex-lingsyn-class
+#+NAME: org-export-latex-orgling
 #+BEGIN_SRC emacs-lisp :tangle no
 (if (and (executable-find "kpsewhich")
          (shell-command-to-string "kpsewhich orgling.cls"))
@@ -4178,42 +4164,6 @@ My custom mla-style LaTeX class.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-**** Filter Section Numbering by tag
-
-- [[http://bastibe.de/2014-12-03-org-numbering.html][Org Numbering]]
-
-#+NAME: org-export-latex-numfilter
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun headline-numbering-filter (data backend info)
-  "No numbering in headlines that have a property :numbers: no"
-  (let* ((beg (next-property-change 0 data))
-         (headline (if beg (get-text-property beg :parent data))))
-    (if (string= (org-element-property :NUMBERS headline) "no")
-        (cond ((eq backend 'latex)
-               (replace-regexp-in-string
-                "\\(part\\|chapter\\|\\(?:sub\\)*section\\|\\(?:sub\\)?paragraph\\)"
-                "\\1*" data nil nil 1))
-              ((eq backend 'html)
-               (replace-regexp-in-string
-                "\\(<h[1-6]\\)\\([^>]*>\\)"
-                "\\1 class=\"nonumber\"\\2" data nil nil)))
-      data)))
-
-
-(defun section-title-filter (data backend info)
-  "No numbering in headlines that have a property :title: no"
-  (let* ((beg (next-property-change 0 data))
-         (headline (if beg (get-text-property beg :parent data))))
-    (if (and (eq backend 'latex)
-             (string= (org-element-property :SECTITLE headline) "no"))
-        (replace-regexp-in-string
-         "\\(\\(?:\\(part\\|chapter\\|\\(?:sub\\)*section\\|\\(?:sub\\)?paragraph\\)\\[*]?{\\)\\).*"
-         "\\1}" data))))
-
-(setq org-export-filter-headline-functions
-      '(headline-numbering-filter
-        section-title-filter))
-#+END_SRC
 
 *** Ox Bibtex
 
@@ -4242,30 +4192,42 @@ for exporting org-mode documents to various formats.
 (use-package ox-pandoc
   :if (executable-find "pandoc")
   :after (:all ox org-ref)
+  :custom
+
+  (org-pandoc-options '((standalone . t)))
+
   :demand t
   :config
   (progn
 
-    (setq org-pandoc-options '((standalone . t)))
-
     ;; LaTeX-Beamer-PDF
     (defun ox-pandoc--pdf-engine ()
-      (let ((syms (mapcar (lambda (x) (cdr x)) latex-process-list))
+      "Set the default latex pdf engine to the one set by `org-latex-pdf-process'. "
+      (let ((syms (mapcar (lambda (x) (cdr x)) halidom-latex-pdf-engines))
             (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
             (sep "latex-process-"))
         (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
 
-    (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine)))
-          org-pandoc-options-for-latex-pdf `((pdf-engine . ,(ox-pandoc--pdf-engine))))
+    (setq org-pandoc-options-for-beamer-pdf
+          `((pdf-engine . ,(ox-pandoc--pdf-engine)))
+          org-pandoc-options-for-latex-pdf
+          `((pdf-engine . ,(ox-pandoc--pdf-engine))))
 
     (defun org-pandoc-pdf-engine-set (&optional process)
+      "Set the latex pdf engine for `org-pandoc-export-to-latex-pdf'."
       (interactive)
-      (let* ((process (or process (assoc (completing-read "Pandoc Process: " latex-process-list nil nil) latex-process-list)))
+      (let* ((process (or process
+                          (assoc
+                           (completing-read "Pandoc Process: "
+                                            halidom-latex-pdf-engines nil nil)
+                           halidom-latex-pdf-engines)))
              (sym (substring-no-properties (car process))))
-        (setq org-pandoc-options-for-beamer-pdf `((pdf-engine . ,sym))
-              org-pandoc-options-for-latex-pdf `((pdf-engine . ,sym)))))
+        (setq org-pandoc-options-for-beamer-pdf
+              `((pdf-engine . ,sym))
+              org-pandoc-options-for-latex-pdf
+              `((pdf-engine . ,sym)))))
 
-    ;; Docx
+    ;; Open MS .doc?x files with system viewer.
     (when (symbolp 'org-file-apps)
       (add-to-list 'org-file-apps '("\\.docx?\\'" . system)))))
 #+END_SRC
@@ -4291,7 +4253,7 @@ for exporting org-mode documents to various formats.
 #+END_SRC
 
 *** Ox HTML
-**** Org HTML Themes
+**** Themes
 
 #+NAME: org-export-html
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4326,12 +4288,12 @@ for exporting org-mode documents to various formats.
 #+NAME: org-export-linguistics
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-linguistics
-  :straight (ox-linguistics :host github
-                            :repo "wyleyr/ox-linguistics"
-                            :files ("lisp/*.el"))
-  :after (ox)
-  :demand t
-)
+    :straight (ox-linguistics
+               :host github
+               :repo "wyleyr/ox-linguistics"
+               :files ("lisp/*.el"))
+    :after (ox)
+    :demand t)
 
 #+END_SRC
 
@@ -4358,8 +4320,7 @@ and subtrees of the ignored headlines will be retained.
   :straight org
   :after (ox)
   :demand t
-  ;; :bind (("M-m r p" . org-publish-project))
-)
+  :bind (("M-m r p" . org-publish-project)))
 #+END_SRC
 
 * Customizing Emacs
