@@ -4,4 +4,4 @@ straight/**
 *.el
 !init.el
 !early-init.el
-
+etc/local/**

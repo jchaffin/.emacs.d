@@ -90,6 +90,7 @@
   - [[#project-management][Project Management]]
     - [[#projectile][Projectile]]
     - [[#skeletor][Skeletor]]
+    - [[#find-file-in-project][Find File in Project]]
   - [[#file-system][File System]]
     - [[#dired][Dired]]
     - [[#neotree][Neotree]]
@@ -199,6 +200,7 @@
     - [[#browse-at-remote][Browse at remote]]
     - [[#set-default-browser][Set default browser]]
   - [[#email][Email]]
+    - [[#offlineimap][Offlineimap]]
     - [[#mu][Mu]]
   - [[#cloud-integration][Cloud Integration]]
     - [[#org-onenote][Org OneNote]]
@@ -232,7 +234,7 @@
     - [[#graphviz][Graphviz]]
     - [[#thesaurus][Thesaurus]]
 - [[#code][Code]]
-  - [[#language-server-protocol-lsp][Language Server Protocol (LSP)]]
+  - [[#lsp][LSP]]
     - [[#lsp-mode][LSP Mode]]
     - [[#lsp-ui-mode][LSP UI Mode]]
     - [[#company-lsp][Company LSP]]
@@ -251,13 +253,15 @@
     - [[#vcs-customize-interface][VCS Customize Interface]]
     - [[#git][Git]]
     - [[#mercurial][Mercurial]]
+    - [[#ediff][Ediff]]
+  - [[#devops][DevOps]]
+    - [[#docker][Docker]]
+    - [[#aws][AWS]]
   - [[#prog-tools][Prog Tools]]
-    - [[#devops][DevOps]]
     - [[#time-tracking][Time Tracking]]
-    - [[#debugging][Debugging]]
+    - [[#realgud][RealGUD]]
     - [[#logging][Logging]]
     - [[#pair-programming][Pair Programming]]
-    - [[#diffing][Diffing]]
   - [[#prog-lang-api][Prog Lang API]]
   - [[#programming-languages][Programming Languages]]
     - [[#conf][Conf]]
@@ -272,8 +276,10 @@
     - [[#python][Python]]
     - [[#ruby][Ruby]]
     - [[#scala][Scala]]
-    - [[#web-programming][Web Programming]]
+    - [[#web-1][Web]]
     - [[#markdown][Markdown]]
+- [[#misc][Misc]]
+  - [[#scimax][Scimax]]
 - [[#prologue][Prologue]]
 - [[#footnotes][Footnotes]]
 
@@ -315,7 +321,7 @@ Insert conventional elisp header.[fn:1]
 ;;
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
 ;; Keywords: emacs, .emacs.d, dotemacs, org-mode, literate
-;; Homepage: https://github.com/jhalidom/.emacs.d
+;; Homepage: https://github.com/jchaffin/.emacs.d
 ;; Package-Requires: ((emacs "27"))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -1354,6 +1360,12 @@ common prefix.
 
 #+END_SRC
 
+***** Profile Init
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package esup)
+#+END_SRC
+
 ***** Eval Buffer
 
 #+NAME: straight-eval-buffer
@@ -1373,6 +1385,7 @@ common prefix.
 
   (message "Evaluating %s...done." (buffer-name)))
 #+END_SRC
+
 
 **** Restart Emacs
 
@@ -1464,13 +1477,6 @@ conditionally loading dependencies.
   (progn
     (exec-path-from-shell-initialize)
     (setq exec-path-from-shell-check-startup-files nil)))
-#+END_SRC
-
-**** Ensure System Package
-
-#+NAME: system/use-package
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package use-package-ensure-system-package)
 #+END_SRC
 
 *** System Packages
@@ -1642,7 +1648,7 @@ editors and various other applications on macOS.
   :straight
   (macos-dev-utils
    :host github
-   :repo "jhalidom/macos-dev-utils")
+   :repo "jchaffin/macos-dev-utils")
 
   :commands (macos-iterm-command-map macos-open-with-command-map)
   :init
@@ -1839,7 +1845,9 @@ it to work properly:
 
 #+NAME: tex/auctex
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package auctex)
+(use-package auctex
+  :bind (:map LaTeX-mode-map
+              ("M-s l" . TeX-engine-set)))
 #+END_SRC
 
 *** Tex
@@ -1852,8 +1860,8 @@ Note that LaTeX packages are loaded, configured, and installed when
   (use-package tex
     :straight auctex
     :custom
-    (TeX-command-default
-     (if (executable-find "latexmk") "LatexMk" "LaTeX"))
+    ;; (TeX-command-default
+    ;;  (if (executable-find "latexmk") "LatexMk" "LaTeX"))
     (TeX-auto-save t)
     (TeX-parse-self t)
     (TeX-syntactic-comment t)
@@ -1861,7 +1869,6 @@ Note that LaTeX packages are loaded, configured, and installed when
     (TeX-interactive-mode nil)
     ;; Don't insert line-break at inline math
     (LaTeX-fill-break-at-separators nil)
-    
     :init
 
     ;; https://emacs.stackexchange.com/a/19475
@@ -2299,7 +2306,7 @@ line are justified."
   ;; (LaTeX-mode . turn-on-cdlatex)
   ;; with Emacs latex mode
   ;; (latex-mode . turn-on-cdlatex)
-  (org-mode . org-cdllatex-mode))
+  (org-mode . org-cdlatex-mode))
 #+END_SRC
 
 *** Magic Latex Buffer
@@ -2311,7 +2318,7 @@ Prettify dedicated org-mode latex buffers.
 (use-package magic-latex-buffer
     :custom
     (magic-latex-enable-block-highlight t)
-    (magic-latex-enable-suscript t)
+    (magic-latex-enable-suscript nil)
     (magic-latex-enable-pretty-symbols t)
     (magic-latex-enable-block-align nil)
     (magic-latex-enable-inline-image nil)
@@ -2362,7 +2369,7 @@ Prettify dedicated org-mode latex buffers.
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 #+END_SRC
 
-**** Math Symbols
+**** COMMENT Math Symbols
 
 Entered on [2018-06-13 Wed 11:42]
 
@@ -2414,8 +2421,22 @@ Entered on [2018-06-13 Wed 11:42]
   (setq latex-mode-abbrev-table nil)
 
   (define-abbrev-table 'latex-mode-abbrev-table
-      '(("liff"  "⟷")
-        ("lif"  "⟶")))
+      '(("uiff"  "⟷")
+        ("uif"  "⟶")
+        ("uand" "∧")
+        ("ulambda" "𝜆")
+        ("uor" "∨")
+        ("uxor" "⨁")
+        ("uexists" "∃")
+        ("unexists" "∄")
+        ("usubset" "⊂")
+        ("unsubset" "⊄")))
+
+  (defun latex/unbind-osx-browse ()
+    (when (fboundp 'osx-browse-mode)
+      (let ((map osx-browse-mode-map))
+        (define-key map (kbd "s-b") nil)
+        (define-key map (kbd "s-i") nil))))
 
   (defun latex/font-italic ()
     "Insert a literal italic typeset command, or toggle input method
@@ -2434,10 +2455,10 @@ in math environments with unicode math enabled."
     (define-key map (kbd "s-i") 'latex/font-italic))
 
   :hook
+  (LaTeX-mode . latex/unbind-osx-browse)
   (LaTeX-mode . latex/prettify-symbols-extra))
 
 #+END_SRC
-
 
 ** Org Mode
 :PROPERTIES:
@@ -3051,26 +3072,22 @@ Embed YouTube Links in iframe.
 
 #+NAME: org-links-youtube
 #+BEGIN_SRC emacs-lisp :tangle no
-(defvar yt-iframe-format
-  ;; You may want to change your width and height.
-  (concat "<iframe width=\"440\""
-          " height=\"335\""
-          " src=\"https://www.youtube.com/embed/%s\""
-          " frameborder=\"0\""
-          " allowfullscreen>%s</iframe>"))
+(org-link-set-parameters
+ "youtube"
+ :follow (lambda (path)
+	   (browse-url (format "https://youtu.be/%s" path)))
+ :export (lambda (path desc backend)
+	   (cond
+	    ((eq 'md backend)
+	     (format "[%s](%s)
 
-(org-add-link-type
- "yt"
- (lambda (handle)
-   (browse-url
-    (concat "https://www.youtube.com/embed/"
-            handle)))
- (lambda (path desc backend)
-   (cl-case backend
-     (html (format yt-iframe-format
-                   path (or desc "")))
-     (latex (format "\href{%s}{%s}"
-                    path (or desc "video"))))))
+<a href=\"https://www.youtube.com/watch?v=%s\">
+<img src=\"http://img.youtube.com/vi/%s/0.jpg\"></a>"
+		     (or desc (format "https://youtu.be/%s" path))
+		     (format "https://youtu.be/%s" path)
+		     path path))))
+ :help-echo "A youtube video. Click to open in browser.")
+
 #+END_SRC
 
 ***** Org Link Minor Mode
@@ -4286,8 +4303,7 @@ for exporting org-mode documents to various formats.
 #+NAME: org-export-hugo
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-hugo
-  :after (ox)
-  :demand t)
+  :after (ox))
 #+END_SRC
 
 *** Ox HTML
@@ -4368,6 +4384,8 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: project-projectile
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package projectile
+    :bind (:map projectile-mode-map
+                 ("C-c p" . projectile-command-map))
     :custom
     (projectile-completion-system 'ivy)
     (projectile-switch-project-action #'projectile-dired)
@@ -4422,6 +4440,7 @@ and subtrees of the ignored headlines will be retained.
   :requires (projectile))
 
 #+END_SRC
+
 
 *** Skeletor
 
@@ -4483,6 +4502,13 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: project-code-search
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package projectile-codesearch)
+#+END_SRC
+
+*** Find File in Project
+
+#+NAME: project-ffip
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package find-file-in-project)
 #+END_SRC
 
 ** File System
@@ -5300,7 +5326,7 @@ This disables Emacs asking questions about loading a new theme.
   ;; theme.
   :straight (org-beautify-theme
              :host github
-             :repo "jhalidom/org-beautify-theme"
+             :repo "jchaffin/org-beautify-theme"
              :files ("org-beautify-theme.el"))
   :config
   (defun org-beautify-load-theme ()
@@ -6390,10 +6416,10 @@ friends.
 #+NAME: counsel-projectile-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-projectile
-  :after (:all projectile counsel)
-  :demand t
-  :init
-  (counsel-projectile-mode t))
+    :after (:all projectile counsel)
+    :demand t
+    :init
+    (counsel-projectile-mode t))
 #+END_SRC
 
 **** Counsel Gtags
@@ -6429,7 +6455,7 @@ friends.
   :straight
   (counsel-itunes
    :host github
-   :repo "jhalidom/counsel-itunes")
+   :repo "jchaffin/counsel-itunes")
   :demand t
   :after (:all counsel ivy)
   :init
@@ -6772,10 +6798,12 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 * Web
 
 #+NAME: web-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Browser
 <<web-browser>>
-;; Mu
+;; Email
 <<web-email>>
+;; Cloud
 <<web-cloud>>
 #+END_SRC
 
@@ -7193,15 +7221,30 @@ Interactively.
 
 #+NAME: web-email
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<email-mu>>
+;; Offline imap
+<<mail/imap>>
+;; Mu
+<<mail/mu>>
+#+END_SRC
+
+*** Offlineimap
+
+#+NAME: mail/imap
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package offlineimap)
 #+END_SRC
 
 *** Mu
 
-#+NAME: email-mu
+#+NAME: mail/mu
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Mu4e
 <<mu-mu4e>>
+;; Mu4e Alert
 <<mu-alert>>
+;; Mu4e Maildirs extension
+<<mu-maildirs>>
+
 #+END_SRC
 
 **** Mu4e
@@ -7211,165 +7254,117 @@ Interactively.
 (use-package mu4e
     :straight nil
     :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
-    :config
+    :init
     (require 'mu4e)
-    (with-eval-after-load 'mu4e
-      (progn
-
-         (require 'mu4e-contrib)
-         (setq mu4e-html2text-command 'mu4e-shr2text)
-
-        (require 'gnus-dired)
-        (defun gnus-dired-mail-buffers ()
-          "Return a list of active message buffers."
-          (let ((buffers))
-            (save-current-buffer
-              (dolist (buffer (buffer-list t))
-                (set-buffer buffer)
-                (when (and (derived-mode-p 'message-mode)
-                           (null message-sent-message-via))
-                  (push (buffer-name buffers) buffers))))
-            (nreverse buffers)))
-        (setq gnus-dired-mail-mode 'mu4e-user-agent)
-        (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
-
-        (setq mu4e-maildir (expand-file-name "~/.mail")
-              mu4e-context-policy 'pick-first
-              mu4e-compose-policy nil
-              mu4e-get-mail-command "offlineimap -u quiet"
-              mu4e-show-images t
-              mu4e-show-addresses t)
-
-         ;; smtp settings
-         (setq message-send-mail-function 'async-smtpmail-send-it
-               smtpmail-default-smtp-server "smtp.gmail.com"
-               smtpmail-smtp-server "smtp.gmail.com"
-               smtpmail-local-domain "gmail.com"
-               smtpmail-smtp-service 587
-               smtpmail-stream-type 'ssl)
 
 
-         (defun mail/htmlize-signature ()
-           (let ((message-signature-separator "^-- $")
-                 beg end
-                 contents
-                 (html-p nil))
-             (save-excursion
-               (goto-char (point-max))
-               (when (re-search-backward message-signature-separator nil t)
-                 (forward-line 2)
-                 (setq beg (point-at-bol))
-                 (goto-char (point-max))
-                 (previous-line 2)
-                 (setq end (point-at-eol))))
-             (setq contents (buffer-substring beg end))
+    :config
+    ;; use mu4e for email in emacs
+    (setq mail-user-agent 'mu4e-user-agent)
 
-             (with-temp-buffer
-               (insert contents)
-               (goto-char (point-min))
-               (if (re-search-forward "<html>" nil t)
-                   (setq html-p t)))
-             (message "%s" html-p)
-             (if html-p
-                 (save-excursion
-                   (shr-render-region beg end)))))
+    (setq mu4e-maildir-shortcuts
+          '(("/inbox" . ?i)
+            ("/sent"  . ?s)
+            ("/trash" . ?t)))
 
-         (defun mail/revert-signature ()
-           (let ((html-p nil)
-                 beg end)
-             (with-temp-buffer
-               (insert (eval `,mu4e-compose-signature))
-               (goto-char (point-min))
-               (if (re-search-forward "<#part" nil t)
-                   (setq html-p t)))
-             (if html-p
-                 (save-excursion
-                   (goto-char (point-max))
-                   (when (re-search-backward message-signature-separator)
-                     (forward-line)
-                     (setq beg (point-at-bol)))
-                   (goto-char (point-min))
-                   (when (re-search-forward "<#/part>" nil t)
-                     (setq end (point-at-eol)))
-                   (delete-region beg end)
-                   (goto-char beg)
-                   (insert (eval `,mu4e-compose-signature))))))
+    (setq mu4e-maildir "~/.mail")
 
-         (add-hook 'mu4e-compose-mode-hook 'mail/htmlize-signature)
-         (add-hook 'message-send-hook 'mail/revert-signature)
+    ;; Update with offlineimap
+    (setq mu4e-get-mail-command "offlineimap -o -q")
 
-         (setq mu4e-completing-read-function 'ivy)
-         (setq mu4e-view-show-images t)
+    (require 'smtpmail)
 
-         (when (fboundp 'imagemagick-register-types)
-           (imagemagick-register-types))
+     ;; smtp settings
+    (setq message-send-mail-function 'smtpmail-send-it
+          smtpmail-stream-type 'starttls
+          smtpmail-default-smtp-server "smtp.gmail.com"
+          smtpmail-smtp-server "smtp.gmail.com"
+          smtpmail-smtp-service 587)
 
-         (setq mu4e-view-prefer-html t)
+    ;; Kill message buffers on send
+    (setq message-kill-buffer-on-exit t)
+
+    ;; mu4e View
+    (setq mu4e-attachment-dir "~/Downloads"
+          mu4e-view-show-images t
+          mu4e-show-addresses t
+          mu4e-view-prefer-html t
+          mu4e-view-show-images t)
+
+    (require 'mu4e-contrib)
+    (when (fboundp 'imagemagick-register-types)
+      (imagemagick-register-types))
+
+    (setq mu4e-completing-read-function 'ivy-completing-read)
+
+    ;; Mu4e Contexts
+    (setq mu4e-context-policy 'pick-first
+          mu4e-compose-context-policy 'ask-if-none)
+
+    (setq mu4e-contexts
+          `(,(make-mu4e-context
+              :name "personal"
+              :enter-func
+              (lambda () (mu4e-message "Using personal Gmail account"))
+              :leave-func
+              (lambda () (mu4e-message "leaving personal Gmail account"))
+              :match-func
+              (lambda (msg)
+                (when msg
+                  (mu4e-message-contact-field-matches
+                   msg :to "jchaffin57@gmail.com")))
+              :vars
+              '((user-mail-address  . "jchaffin57@gmail.com")
+                (user-full-name     . "Jacob Chaffin")
+                (mu4e-sent-folder   . "/personal/sent")
+                (mu4e-drafts-folder . "/personal/drafts")
+                (mu4e-refile-folder . "/personal/archive")
+                (mu4e-trash-folder  . "/personal/trash")
+                (mu4e-compose-signature .
+                 (concat
+                  "Jacob Chaffin\n"
+                  "(650)-380-3288"))))
+
+             ,(make-mu4e-context
+               :name "school"
+               :enter-func
+               (lambda () (mu4e-message "UCLA Gmail Account"))
+               :match-func
+               (lambda (msg)
+                 (when msg
+                   (string-match "^/school"
+                                 (mu4e-message-field msg :maildir))))
+               :vars '((user-mail-address  . "jchaffin@ucla.edu")
+                       (user-full-name     . "Jacob Chaffin")
+                       (mu4e-sent-folder   . "/school/sent")
+                       (mu4e-drafts-folder . "/school/drafts")
+                       (mu4e-refile-folder . "/school/archive")
+                       (mu4e-trash-folder  . "/school/trash")
+                       (mu4e-compose-signature .
+                        (concat
+                         "Jacob Chaffin\n"
+                         "UCLA 2019\n"
+                         "Linguistics and Computer Science\n"
+                         "jchaffin@ucla.edu"))))))
 
 
+    (require 'gnus-dired)
 
-         (setq mu4e-contexts
-               `( ,(make-mu4e-context
-                    :name "private"
-                    :match-func (lambda (msg)
-                                  (when msg
-                                    (mu4e-message-contact-field-matches msg
-                                    :to "jchaffin57@gmail.com")))
-                    :enter-func (lambda () (mu4e-message "Switching Personal Gmail."))
-                    :leave-func (lambda () (mu4e-message "Leaving Personal Gmail."))
-                    :vars '((mu4e-reply-to-address "jchaffin@ucla.edu")
-                            (user-mail-address . "jchaffin57@gmail.com" )
-                            (user-full-name . "Jacob Chaffin" )
-                            (mu4e-drafts-folder . "/private/[Gmail].Drafts" )
-                            (mu4e-sent-folder . "/private/[Gmail].Sent Mail" )
-                             (mu4e-refile-folder . "/archived")
-                            (mu4e-compose-signature .
-                             (concat
-                              "Jacob Chaffin\n"
-                              "UCLA 19\n"
-                              "Linguistics and Computer Science\n"
-                              "jchaffin@ucla.edu\n"))))
+    (defun gnus-dired-mail-buffers ()
+      "Return a list of active message buffers."
+      (let ((buffers))
+        (save-current-buffer
+          (dolist (buffer (buffer-list t))
+            (set-buffer buffer)
+            (when (and (derived-mode-p 'message-mode)
+                       (null message-sent-message-via))
+              (push (buffer-name buffers) buffers))))
+        (nreverse buffers)))
 
-                   ,(make-mu4e-context
-                     :name "work"
-                     :enter-func (lambda () (mu4e-message "Switching to Wavecomp"))
-                     :leave-func (lambda () (mu4e-message "Leaving Wavecomp."))
-                     :match-func  (lambda (msg)
-                                   (when msg
-                                     (mu4e-message-contact-field-matches msg :to "jchaffin@wavecomp.com")))
-                     :vars '((mu4e-reply-to-address "jchaffin@wavecomp.com")
-                             (user-mail-address . "jchaffin@wavecomp.com")
-                             (user-full-name . "Jacob Chaffin")
-                             (mu4e-sent-folder . "/work/Sent Items")
-                             (smtpmail-smtp-server . "smtp-mail.outlook.com")
-                             (smtpmail-local-domain . "outlook.com")
-                             (smtpmail-stream-type . starttls)
-                             (mu4e-refile-folder . "/work/Archive")
-                             (mu4e-drafts-folder .  "/work/Drafts")
-                             (message-signature-file "~/dotfiles/mail/work-signature.html")
-                             (mu4e-compose-signature . (concat "<#part type=text/html> \n "
-                                                        (read-file-contents
-                                                         (user-home "dotfiles" "mail" "work-signature.html"))
-                                                        "<#/part>"))))
+    (setq gnus-dired-mail-mode 'mu4e-user-agent)
 
-                   ,(make-mu4e-context
-                    :name "school"
-                    :enter-func (lambda () (mu4e-message "Switching to UCLA Mail"))
-                    :leave-func (lambda () (mu4e-message "Leaving UCLA Mail"))
-                    :match-func  (lambda (msg)
-                                   (when msg
-                                     (mu4e-message-contact-field-matches msg :to (or
-                                                                                  "jchaffin@ucla.edu"
-                                                                                  "jchaffin@g.ucla.edu"))))
-                    :vars '((user-mail-address . "jchaffin@ucla.edu" )
-                            (user-full-name . "Jacob Chaffin" )
-                            (mu4e-compose-signature .
-                             (concat
-                              "Jacob Chaffin\n"
-                              "UCLA 19\n"
-                              "Linguistics and Computer Science\n"
-                              "jchaffin@ucla.edu\n"
-                              "(650)-380-3288\n")))))))))
+    
+    (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
 #+END_SRC
 
 **** Mu Notifications
@@ -7381,6 +7376,17 @@ Interactively.
   (mu4e-alert-enable-notifications)
   (mu4e-alert-enable-mode-line-display))
 #+END_SRC
+
+**** Mu4e Maildirs Extension
+
+#+NAME: mu-maildirs
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package mu4e-maildirs-extension
+    :after mu4e
+    :init
+    (mu4e-maildirs-extension-load))
+#+END_SRC
+
 
 ** Cloud Integration
 
@@ -7403,7 +7409,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 #+NAME: prose-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Begin Prose
 ;; Spellcheck
 <<prose-spellcheck>>
 ;; Completion
@@ -7412,7 +7417,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
 <<prose-notes>>
 ;; Readview
 <<prose-readview>>
-;; End Prose
 #+END_SRC
 
 ** Spelling and Grammar
@@ -7874,7 +7878,6 @@ Artist mode is a built-in Emacs package.
         (setq plantuml-jar-path (halidom/plantuml-resolve-jar-path)))))
 #+END_SRC
 
-
 *** Graphviz
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -7923,7 +7926,7 @@ school's WLAN.
 #+END_SRC
 
 * Code
-** Language Server Protocol (LSP)
+** LSP
 
 #+NAME: lsp-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
@@ -8300,26 +8303,20 @@ Disabling for now.
 
 ** Version Control
 
-#+NAME: vcs-spec
+#+NAME: code/vcs
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-
-<<vcs-interface>>
-
-;; Hg (Mercurial)
-(when (and (member 'hg halidom-vcs-svn-list)
-           (executable-find "hg"))
-  <<vcs-hg>>
-)
+<<vcs/customize>>
+;; Mercurial
+<<vcs/hg>>
 ;; Git
-(when (and (member 'git halidom-vcs-svn-list)
-           (executable-find "git"))
-  <<vcs-git>>
-)
+<<vcs/git>>
+;; Diff
+<<vcs/diff>>
 #+END_SRC
 
 *** VCS Customize Interface
 
-#+NAME: vcs-interface
+#+NAME: vcs/customize
 #+BEGIN_SRC emacs-lisp :tangle no
 (defcustom halidom-vcs-svn-list '(git)
   "List of VCS-SVNs for which libraries and tooling should be installed.
@@ -8329,18 +8326,21 @@ Disabling for now.
 
 *** Git
 
-#+NAME: vcs-git
+#+NAME: vcs/git
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Magit
-<<git-magit>>
-;; Gist
-<<git-gist>>
-;; Git Timemachine
-<<git-git-timemachine>>
-;; Git Messenger
-<<git-git-messenger>>
-;; Git Modes
-<<git-git-modes>>
+(when (or (member 'git halidom-vcs-svn-list)
+         (executable-find "git"))
+  ;; Magit
+  <<git-magit>>
+  ;; Gist
+  <<git-gist>>
+  ;; Git Timemachine
+  <<git-git-timemachine>>
+  ;; Git Messenger
+  <<git-git-messenger>>
+  ;; Git Modes
+  <<git-git-modes>>
+)
 #+END_SRC
 
 **** Magit
@@ -8555,12 +8555,16 @@ Pop-up feature for viewing the last git commit.
 
 *** Mercurial
 
-#+NAME: vcs-hg
+#+NAME: vcs/hg
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; hg-monky
-<<hg-monky>>
-;; hg-ahg
-<<hg-ahg>>
+(when (or (member 'hg halidom-vcs-svn-list)
+         (executable-find "hg"))
+  ;; hg-monky
+  <<hg/monky>>
+  ;; hg-ahg
+  <<hg/ahg>>
+)
+
 #+END_SRC
 
 **** Monky
@@ -8568,7 +8572,7 @@ Pop-up feature for viewing the last git commit.
 Monky provides an interactive interface for mercurial. It's
 essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
-#+NAME: hg-monky
+#+NAME: hg/monky
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package monky
   :custom
@@ -8577,26 +8581,36 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 **** ahg
 
-#+NAME: hg-ahg
+#+NAME: hg/ahg
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ahg)
 #+END_SRC
 
-** Prog Tools
-*** DevOps
+*** Ediff
 
-#+NAME: devops-config
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Docker
-<<devops-docker>>
-;; AWS
-<<devops-aws>>
+#+NAME: vcs/diff
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package ediff
+:custom
+(ediff-diff-options "-w"))
+
 #+END_SRC
 
-**** Docker
+** DevOps
 
-#+NAME: devops-docker
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+NAME: code/devops
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+;; Docker
+<<devops/docker>>
+;; AWS
+<<devops/aws>>
+#+END_SRC
+
+*** Docker
+
+#+NAME: devops/docker
+#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
 ;; Docker
 <<docker-cmds>>
 ;; Dockerfile Mode
@@ -8607,7 +8621,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 <<docker-docker-tramp>>
 #+END_SRC
 
-***** Docker commands
+**** Docker commands
 
 #+NAME: docker-cmds
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -8617,7 +8631,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
   ("M-m d" . docker))
 #+END_SRC
 
-***** Dockerfile mode
+**** Dockerfile mode
 
 #+NAME: docker-dockerfile
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -8625,7 +8639,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
   :mode "Dockerfile\\'")
 #+END_SRC
 
-***** Docker Compose
+**** Docker Compose
 
 #+NAME: docker-docker-compose
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -8634,7 +8648,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 #+END_SRC
 
-***** Docker Tramp
+**** Docker Tramp
 
 #+NAME: docker-docker-tramp
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -8642,9 +8656,9 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
   :straight t)
 #+END_SRC
 
-**** Amazon Web Services
+*** AWS
 
-#+NAME: devops-aws
+#+NAME: devops/aws
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package aws
   :config
@@ -8656,6 +8670,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
     (autoload 'ec2-get-console "aws")))
 #+END_SRC
 
+** Prog Tools
 *** Time Tracking
 
 Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatime]].
@@ -8680,8 +8695,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
         (browse-url "https://wakatime.com/dashboard"))))
 #+END_SRC
 
-*** Debugging
-**** RealGUD
+*** RealGUD
 
 A front-end for interacting with external debuggers in Emacs.
 
@@ -8711,16 +8725,6 @@ A front-end for interacting with external debuggers in Emacs.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package floobits
   :if (file-exists-p (user-home ".floorc.json")))
-
-#+END_SRC
-
-*** Diffing
-
-#+NAME: ediff-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package ediff
-    :custom
-  (ediff-diff-options "-w"))
 
 #+END_SRC
 
@@ -8758,7 +8762,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 ** Programming Languages
 *** Conf
 
-#+NAME: conf-spec
+#+NAME: lang/conf
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin conf Group
 ;; Nginx
@@ -8791,7 +8795,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 - See Spacemacs [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/asm/][ASM layer]].
 
-#+NAME: asm-config
+#+NAME: lang/asm
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin ASM
 (when (halidom/proglang-enabled-p 'asm)
@@ -8874,7 +8878,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 ***  C/C++
 
-#+NAME: c-cxx-spec
+#+NAME: lang/c-c++
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin C/C++
 (when (halidom/proglang-enabled-p 'c-c++)
@@ -9007,9 +9011,9 @@ Spacemacs =dotspacemacs-configuration-layers=.
 (use-package rtags
     :if (executable-find "rdm")
     :hook
-  ((c-mode . rtags-start-process-unless-running)
-   (c++-mode . rtags-start-process-unless-running)
-   (objc-mode . rtags-start-process-unless-running)))
+    ((c-mode . rtags-start-process-unless-running)
+     (c++-mode . rtags-start-process-unless-running)
+     (objc-mode . rtags-start-process-unless-running)))
 
 
 #+END_SRC
@@ -9111,8 +9115,8 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 *** Common Lisp
 
-#+NAME: cl-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+NAME: lang/clisp
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
 ;; Begin CLisp
 (when (halidom/proglang-enabled-p 'common-lisp)
   ;; CL Hooks
@@ -9170,8 +9174,8 @@ Configuration for common-lisp.
 
 *** Clojure
 
-#+NAME: clj-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+NAME: lang/clj
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
 ;; Begin Clojure
 (when (halidom/proglang-enabled-p 'clojure)
   ;; Clojure Mode
@@ -9391,16 +9395,16 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 *** Emacs Lisp
 
-#+NAME: emacs-lisp-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+NAME: lang/emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
 ;; Begin emacs-lisp
-<<elisp-emacs-lisp>>
+<<elisp/core>>
 ;; Cask
 <<elisp-cask>>
 ;; End emacs-lisp
 #+END_SRC
 
-#+NAME: elisp-emacs-lisp
+#+NAME: elisp/core
 #+BEGIN_SRC emacs-lisp :tangle no
 (defun emacs-lisp-style ()
   (paredit-mode 1)
@@ -9462,7 +9466,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 *** Groovy
 
-#+NAME: groovy-spec
+#+NAME: lang/java
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package groovy-mode
   :mode  "\\.gradle\\'"
@@ -9477,8 +9481,8 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 *** Java
 
-#+NAME: java-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+NAME: lang/java
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
 ;; Begin Java
 (when (halidom/proglang-enabled-p 'java)
   ;; Java Backend
@@ -9641,7 +9645,8 @@ Java bytecode inside Emacs buffers.
 
 *** JavaScript
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+NAME: lang/js
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
 ;; Begin JavaScript
 (when (halidom/proglang-enabled-p 'javascript)
   ;; Set up backend
@@ -10028,7 +10033,7 @@ socket URL to connect to."
 
 *** Python
 
-#+NAME: py-spec
+#+NAME: lang/py
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Python
 (when (halidom/proglang-enabled-p 'python)
@@ -10044,9 +10049,6 @@ socket URL to connect to."
   <<py-pyvenv>>
   ;; LSP Python
   <<py-lsp>>
-
-  ;; Anaconda (Not Tangled)
-
   ;; Pip Requirements
   <<py-pip-requirements>>
   ;; Pydoc
@@ -10184,38 +10186,6 @@ socket URL to connect to."
     (add-hook 'python-mode-hook 'python//enable-flycheck))
 #+END_SRC
 
-**** Anaconda
-
-#+NAME: py-anaconda
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<py-anaconda-mode>>
-;; Anaconda company
-<<py-anaconda-company>>
-#+END_SRC
-
-***** Anaconda Mode
-
-#+NAME: py-anaconda-mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package anaconda-mode
-  :requires python-mode
-  :hook
-  ((python-mode . anaconda-mode)
-   (python-mode . anaconda-eldoc-mode)))
-#+END_SRC
-
-***** Company Anaconda
-
-#+NAME: py-anaconda-company
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-anaconda
-  :init
-  (with-eval-after-load 'company
-    `(add-to-list company-backends 'company-anaconda))
-  :demand t
-  :after (:all anaconda-mode company))
-#+END_SRC
-
 **** Pip Requirements
 
 #+NAME: py-pip-requirements
@@ -10349,14 +10319,15 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 *** Scala
 
-#+NAME: scala-spec
+#+NAME: lang/scala
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Scala
 (when (halidom/proglang-enabled-p 'scala)
   ;; Scala Mode
   <<scala-scala-mode>>
   ;; Scala SBT Mode
-  <<scala-sbt-mode>> ) ;: End Scala
+  <<scala-sbt-mode>> 
+) ;: End Scala
 #+END_SRC
 
 **** Scala Mode
@@ -10382,9 +10353,9 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
    minibuffer-local-completion-map))
 #+END_SRC
 
-*** Web Programming
+*** Web
 
-#+NAME: web-spec
+#+NAME: lang/web
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
 ;; Begin Web Configuration
 (when (halidom/proglang-enabled-p 'web)
@@ -10402,6 +10373,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
    <<web-tern>>
    ;; Company Web
    <<web-company>>
+   ;; Web LSP
    <<web-lsp>>
 
 ) ;; End Web Configuration
@@ -10797,9 +10769,27 @@ and slim-mode using company.
          (xwidget-webkit-browse-url "http://localhost:1337"))))
 #+END_SRC
 
+* Misc
+** Scimax
+
+#+NAME: research/scimax
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package scimax
+  :straight nil
+  :if (file-directory-p (emacs-etc-dir "local" "scimax"))
+  :custom
+  (scimax-dir (emacs-etc-dir "local" "scimax"))
+  :load-path "etc/local/scimax"
+  :init
+  (require 'scimax-ivy)
+  (require 'scimax-latex)
+  (require 'scimax-utils))
+
+#+END_SRC
+
 * Prologue
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle yes :exports none
 
 ;;; halidom.el
 
