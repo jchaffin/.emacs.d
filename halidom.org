@@ -10,8 +10,7 @@
   - [[#influences][Influences]]
 - [[#base-configuration][Base Configuration]]
   - [[#tangle-file][Tangle File]]
-  - [[#package-management][Package Management]]
-    - [[#straight][Straight]]
+  - [[#straightel][straight.el]]
   - [[#user-information][User Information]]
   - [[#customization-group][Customization Group]]
   - [[#core][Core]]
@@ -60,7 +59,7 @@
     - [[#magic-latex-buffer][Magic Latex Buffer]]
     - [[#auctex-latexmk][Auctex Latexmk]]
     - [[#texinfo][Texinfo]]
-    - [[#math][Math]]
+    - [[#latex-math][LaTeX Math]]
   - [[#org-mode][Org Mode]]
     - [[#org-babel][Org Babel]]
     - [[#org-mode-ui][Org Mode UI]]
@@ -102,7 +101,9 @@
     - [[#ack][ack]]
     - [[#ag][ag]]
     - [[#grep][grep+]]
+    - [[#rg][rg]]
     - [[#visual-replace][Visual Replace]]
+    - [[#undo-tree][Undo Tree]]
   - [[#startup][Startup]]
     - [[#buffer][Buffer]]
     - [[#scratch][Scratch]]
@@ -116,9 +117,7 @@
     - [[#posframe][posframe]]
     - [[#thingatpt][Thingatpt+]]
     - [[#bookmark][Bookmark]]
-    - [[#visit-file][Visit file+]]
     - [[#bug-tracking][Bug Tracking]]
-    - [[#undo-tree][Undo Tree]]
   - [[#multimedia][Multimedia]]
     - [[#emms][emms]]
     - [[#sound-cloud][Sound Cloud]]
@@ -316,7 +315,7 @@ Insert conventional elisp header.[fn:1]
 ;;
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
 ;; Keywords: emacs, .emacs.d, dotemacs, org-mode, literate
-;; Homepage: https://github.com/jchaffin/.emacs.d
+;; Homepage: https://github.com/jhalidom/.emacs.d
 ;; Package-Requires: ((emacs "27"))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -343,8 +342,7 @@ Insert conventional elisp header.[fn:1]
 ;;; Code:
 #+END_SRC
 
-** Package Management
-*** Straight
+** straight.el
 :PROPERTIES:
 :ID:       66FE9466-8249-4F2A-9E45-1F1ABC67E643
 :CUSTOM_ID: straight
@@ -404,7 +402,6 @@ the build directory for that repository instead."
     (browse-url url)))
 #+END_SRC
 
-
 ** User Information
 
 These values are initialized with the ’name’ and ’email’
@@ -428,7 +425,7 @@ directory.
 
 ** Customization Group
 
-#+NAME: customization-spec
+#+NAME: halidom/customization
 #+BEGIN_SRC emacs-lisp :tangle yes
 ;; Customization Group
 (defgroup halidom nil
@@ -497,6 +494,7 @@ The string manipulation library.
 #+END_SRC
 
 *** El Patch
+
 Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to advice system and package lazy-loading.
 
 #+NAME: elpatch-spec
@@ -516,7 +514,7 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 
 Variables used throughout this file[fn:4]:
 
-#+NAME: define-constants
+#+NAME: halidom/constants
 #+BEGIN_SRC emacs-lisp :tangle yes
 
 (defconst *is-mac* (eq system-type 'darwin))
@@ -526,36 +524,25 @@ Variables used throughout this file[fn:4]:
 #+END_SRC
 
 *** Macros
-**** With system
 
-This is a simple utility macro that evaluates code depending on
-operating system type.
-
-Where as the top level ~system-type~ aliases are intended to simplify
-conditionals of the /if-then/ form or /if-else-then/ form, the
-~with-system~ macro is intended for use in structures with a single
-conditional clause.
-
-In emacs-lisp, this kind of statement can be expressed with the ~when~
-macro[fn:5].
-
-Credits to stack overflow user [[https://stackoverflow.com/users/403018/gerstmann][gerstmann]], who provided this solution
-in the following stack overflow [[https://stackoverflow.com/a/26137517/6233622][ticket]].
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(defmacro with-system (type &rest body)
-  "If TYPE equals `system-type', evaluate BODY."
-  (declare (indent defun))
-  `(when (eq system-type ',type)
-     ,@body))
+#+NAME: halidom/macros
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+;; Begin Macros
+;; If not
+<<macros/if-not>>
+;; with major mode
+<<macros/with-major-mode>>
+;; if major mode
+<<macros/if-major-mode>>
+;; End Macros
 #+END_SRC
 
 **** If not
 
 Clojure-like =if-not= macro in elisp.
 
-#+NAME: if-not
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: macros/if-not
+#+BEGIN_SRC emacs-lisp :tangle no
 (defmacro if-not (condition then-form &rest rest-forms)
   (declare (indent 2))
   `(progn
@@ -564,11 +551,10 @@ Clojure-like =if-not= macro in elisp.
        ,@rest-forms)))
 #+END_SRC
 
-**** Major Mode
-***** With major mode macro
+**** With major mode macro
 
-#+NAME: with-major-mod
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: macros/with-major-mode
+#+BEGIN_SRC emacs-lisp :tangle no
 (defmacro with-major-mode (mode &rest body)
   "If the current major-mode is MODE, then execute BODY."
   (declare (indent defun))
@@ -578,8 +564,8 @@ Clojure-like =if-not= macro in elisp.
 
 ***** If-Else Major Mode Macro
 
-#+NAME: if-major-mode
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: macros/if-major-mode
+#+BEGIN_SRC emacs-lisp :tangle no
 (defmacro if-major-mode (mode then-form &rest rest-forms)
   "If MODE, then execute THEN-FORM, else execute REST-FORMS."
   (declare (indent defun))
@@ -591,7 +577,7 @@ Clojure-like =if-not= macro in elisp.
 
 *** Functions
 
-#+NAME: core-functions
+#+NAME: halidom/functions
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<utility-functions>>
 <<buffer-functions>>
@@ -802,7 +788,8 @@ generating a new one if the initial scratch buffer has been killed."
 <<fd-user>>
 ;; Emacs Directories
 <<fd-emacs>>
-
+;; Readonly directories
+<<fd-read-only>>
 #+END_SRC
 
 ***** Unix-style =basename=
@@ -964,6 +951,55 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 (defalias #'emacs-etc-dir (apply-partially #'emacs-dir "etc"))
 #+END_SRC
 
+***** Read only
+
+#+NAME: fd-read-only
+#+BEGIN_SRC emacs-lisp :tangle no
+(defvar read-only-directories '()
+  "A list of directories for which all files and subdirectories
+should open in `read-only-mode'.")
+
+(defvar read-only-whitelist-directories '()
+  "A list of directories which should not be opened in read-only mode.")
+
+(defvar read-only-file-extensions '("\\.gz\\'")
+  "Not yet implemented.")
+
+(defun dir-level (dir)
+  (length (f-split dir)))
+
+(defun dir-or-subdir-p (d1 d2)
+  "If non-nil, then directory D1 is subdirectory or the same directory as D2."
+  (cond ((< (dir-level d1) (dir-level d2)) nil)
+        ((string= d1 d2) t)
+        (t (dir-or-subdir-p
+            (--> d1 basename file-name-as-directory (string-remove-suffix it d1))
+            d2))))
+
+(defun read-only-directory-p (bf)
+"Determine whether the current buffer file is in a directory
+that is a member of `read-only-directories'."
+  (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
+    (and (not (null (seq-filter #'f read-only-directories)))
+         (null (seq-filter #'f read-only-whitelist-directories))
+         (file-writable-p bf))))
+
+(defun halidom/open-buffer-as-read-only (file)
+  "All buffers from `read-only-directories' or
+`read-only-file-extensions' are set to read-only."
+  (let ((bd (and buffer-file-name (file-name-directory file))))
+    (if (read-only-directory-p bd) (read-only-mode 1))))
+
+(defun halidom/find-file-read-only-hook ()
+  (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
+
+(setq read-only-directories `(,(straight-dir) "/usr/local/"))
+
+(setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
+(add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
+
+#+END_SRC
+
 *** Default Setup
 **** Garbage Collection
 
@@ -1039,7 +1075,6 @@ other machines.
   (load custom-file))
 
 #+END_SRC
-
 
 ***** Backup Files
 
@@ -1406,6 +1441,8 @@ Emacs relies heavily on shell environment variables.
 These variables may not be picked up when launching emacs
 from a gui on a unix-like operating system.
 
+**** Exec Path From Shell
+
 The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] package fixes this problem by copying
 user environment variables from the shell.
 
@@ -1429,6 +1466,13 @@ conditionally loading dependencies.
     (setq exec-path-from-shell-check-startup-files nil)))
 #+END_SRC
 
+**** Ensure System Package
+
+#+NAME: system/use-package
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package use-package-ensure-system-package)
+#+END_SRC
+
 *** System Packages
 
 Utilities for managing system packages in Emacs using an external
@@ -1436,7 +1480,26 @@ package manager.
 
 #+NAME: os-sys-packages
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package system-packages)
+(use-package system-packages
+:init
+ (defun system-packages/update-brew-commands (commands)
+   "Update the brew commands supported in system-packages."
+     (dolist (command  commands)
+       (destructuring-bind (name . cmd) command
+         (setf (cdr (assoc
+                     name
+                     (cdr
+                      (assoc
+                       'brew
+                       system-packages-supported-package-managers))))
+               cmd))))
+
+ :config
+ (with-eval-after-load 'system-packages
+   (let ((commands-alist '((get-info . "brew info")
+                          (verify-all-packages . "brew doctor")
+                          (log . "brew log"))))
+     (system-packages/update-brew-commands commands-alist))))
 #+END_SRC
 
 *** Prodigy
@@ -1551,7 +1614,7 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 
 #+NAME: macos-computer-name
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin/computer-name-cmd ()
+(defun halidom/computer-name-cmd ()
   (let* ((has-scutil
           (executable-find "scutil"))
 	       (scutil-cmd
@@ -1563,7 +1626,7 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 (defvar computer-name nil)
 
 (when *is-mac*
-  (setq computer-name (chaffin/computer-name-cmd)))
+  (setq computer-name (halidom/computer-name-cmd)))
 
 (defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
@@ -1579,7 +1642,7 @@ editors and various other applications on macOS.
   :straight
   (macos-dev-utils
    :host github
-   :repo "jchaffin/macos-dev-utils")
+   :repo "jhalidom/macos-dev-utils")
 
   :commands (macos-iterm-command-map macos-open-with-command-map)
   :init
@@ -1732,41 +1795,31 @@ running macOS.
 :CUSTOM_ID: latex
 :END:
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<auctex-recipe>>
-#+END_SRC
-
 #+NAME: latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; AucTeX
+<<tex/auctex>>
 ;; Tex
 <<latex-tex>>
-
 ;; Reftex
 <<latex-reftex>>
-
 ;; Bibtex
 <<latex-bibtex>>
-
 ;; Company backend for latex completion
 <<latex-company-auctex>>
 <<latex-company-reftex>>
-<<latex-company-math>>
-
 ;; Prettify latex buffers
 <<latex-magic-latex-buffer>>
-
 ;; Extra latex utilities
 <<latex-latex-extra>>
-
 ;; Cdlatex
 <<latex-cdlatex>>
-
 ;; Auctex Latexmk
 <<latex-auctex-latexmk>>
-
+;; LaTeX Math
+<<latex-math>>
 ;; Latex Preview
 <<latex-org-preview>>
-
 ;; Texinfo mode
 <<latex-texinfo>>
 #+END_SRC
@@ -1784,14 +1837,9 @@ it to work properly:
       make && make install )
 #+END_SRC
 
-#+NAME: auctex-recipe
+#+NAME: tex/auctex
 #+BEGIN_SRC emacs-lisp :tangle no
-;; https://github.com/raxod502/straight.el/issues/240
-(straight-use-package
- `(auctex
-   :host github
-   :repo "jchaffin/auctex"
-   :files (:defaults (:exclude "doc/*.texi"))))
+(use-package auctex)
 #+END_SRC
 
 *** Tex
@@ -1803,95 +1851,53 @@ Note that LaTeX packages are loaded, configured, and installed when
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no
   (use-package tex
     :straight auctex
-    :demand t
+    :custom
+    (TeX-command-default
+     (if (executable-find "latexmk") "LatexMk" "LaTeX"))
+    (TeX-auto-save t)
+    (TeX-parse-self t)
+    (TeX-syntactic-comment t)
+    ;; nonstopmode
+    (TeX-interactive-mode nil)
+    ;; Don't insert line-break at inline math
+    (LaTeX-fill-break-at-separators nil)
+    
     :init
-    (progn
 
-      ;; Default to latexmk, if possible.
-      (defvar latex-build-command
-        (if (executable-find "latexmk") "LatexMk" "LaTeX")
-        "The default command to use with `TeX-command'.
-         This variable is essentially an alias for `TeX-command-default'.")
+    ;; https://emacs.stackexchange.com/a/19475
+    (defun latex/view-hook ()
+      "Use pdf-tools to open PDF files."
+      (add-to-list 'TeX-view-program-list '("PDF Tools" TeX-pdf-tools-sync-view))
+      (setf (alist-get 'output-pdf TeX-view-program-selection) '("PDF Tools"))
+      (setq TeX-source-correlate-start-server t)
+      (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 
-      (setq TeX-command-default latex-build-command))
+    (defun latex/shell-escape ()
+      "Use the shell escape flag with `TeX-command'."
+      (setq TeX-command-extra-options "-shell-escape"))
 
-    :config
-    (progn
-      (setq TeX-auto-save t
-            TeX-parse-self t
-            TeX-syntactic-comment t
-            ;; nonstopmode
-            TeX-interactive-mode nil
-            ;; Don't insert line-break at inline math
-            LaTeX-fill-break-at-separators nil)
-
-      (defvar latex-use-auto-fill t)
-
-      (defvar latex-nofill-env '("equation"
-                                 "equation*"
-                                 "align"
-                                 "align*"
-                                 "forest"
-                                 "tabular"
-                                 "tikzpicture"))
-
-      (defun chaffin--tex-auto-fill ()
-        "Check whether the pointer is currently inside one of
-         the environments in `latex-nofill-env` and inhibits auto-filling
-         of the current paragraph."
-        (let ((do-auto-fill t)
-              (current-environment "")
-              (level 0))
-          (while (and do-auto-fill
-                      (not (string= current-environment "document")))
-            (setq level (1+ level)
-                  current-environment (LaTeX-current-environment level)
-                  do-auto-fill
-                  (not (member current-environment latex-nofill-env)))))
-        (when do-auto-fill
-          (do-auto-fill)))
-
-      (defun latex--auto-fill-mode ()
-        "Toggle autofill mode"
-        (interactive)
-        (auto-fill-mode)
-        (setq auto-fill-mode 'chaffin--tex-auto-fill))
-
-
-      (defun latex--view-hook ()
-        ;; Use pdf-tools to open PDF files.
-        ;; https://emacs.stackexchange.com/a/19475
-        (add-to-list 'TeX-view-program-list '("PDF Tools" TeX-pdf-tools-sync-view))
-        (setf (alist-get 'output-pdf TeX-view-program-selection) '("PDF Tools"))
-        (setq TeX-source-correlate-start-server t))
-
-      ;; Update PDF buffers after successful LaTeX runs
-      (add-hook 'LaTeX-mode-hook 'latex--view-hook)
-      (add-hook 'LaTeX-mode-hook (lambda ()
-                                   (setq TeX-command-extra-options "-shell-escape")))
-      (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
-
-      (when latex-use-auto-fill
-        (add-hook 'LaTeX-mode-hook 'latex--auto-fill-mode))
-
-
-      ;; (when (fboundp 'visual-fill-column-mode)
-      ;;   (add-hook 'LaTeX-mode-hook (lambda ()
-      ;;                                (setq fill-column 80)
-      ;;                                (visual-line-mode 1)
-      ;;                                (visual-fill-column-mode 1))))
-
-      (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-      (add-hook 'LaTeX-mode-hook 'TeX-fold-mode)
-      (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
-      (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+    (defun latex/enable-flyspell ()
       (when (fboundp 'flyspell-mode)
-        (add-hook 'LaTeX-mode-hook 'flyspell-mode))
-      (when (fboundp 'doc-view-mode)
-        (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+        (flyspell-mode 1)))
 
+    (defun latex/revert-doc-view ()
+      (when (fboundp 'doc-view-mode)
+        (add-hook 'doc-view-mode 'auto-revert-mode)))
+
+    (defun latex/enable-ggtags ()
       (when (fboundp 'ggtags-mode)
-        (add-hook 'latex-mode-local-vars-hook (ggtags-mode 1)))))
+        (ggtags-mode 1)))
+
+    :hook
+    (LaTeX-mode . latex/shell-escape)
+    (LaTeX-mode . latex/view-hook)
+    (LaTeX-mode . latex/enable-flyspell)
+    (LaTeX-mode . latex/revert-doc-view)
+    (LaTeX-mode . latex/enable-ggtags)
+    (LaTeX-mode . LaTeX-math-mode)
+    (LaTeX-mode . TeX-fold-mode)
+    (LaTeX-mode . TeX-source-correlate-mode)
+    (LaTeX-mode . TeX-PDF-mode))
 #+END_SRC
 
 *** RefTeX
@@ -1904,13 +1910,16 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 #+NAME: latex-reftex
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun chaffin--latex-reftex-hook ()
-  (turn-on-reftex)
-  (setq reftex-plug-into-AUCTeX '(nil nil t t t)
-        reftex-use-fonts t
-        reftex-default-bibliography '("~/Dropbox/org/papers/references.bib")))
-
-(add-hook 'LaTeX-mode-hook 'chaffin--latex-reftex-hook)
+(use-package reftex
+    :straight nil
+    :init
+    (defun halidom/latex-reftex-hook ()
+      (turn-on-reftex)
+      (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+            reftex-use-fonts t
+            reftex-default-bibliography (list (file-truename "~/Dropbox/org/papers/references.bib"))))
+    :hook
+    (LaTeX-mode . halidom/latex-reftex-hook))
 #+END_SRC
 
 *** BibTex
@@ -1942,16 +1951,39 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 :ID:       3D058D68-FED6-43C9-B48B-E9280E6F2016
 :END:
 
+
 #+NAME: latex-latex-extra
 #+BEGIN_SRC emacs-lisp :tangle no
-;; See [1] https://github/Malabarba/latex-extra/issues/23
-(let ((byte-compile-warnings '(not free-vars)))
-  (use-package latex-extra
-    :config
-    (add-hook 'LaTeX-mode-hook 'latex-extra-mode)))
+(use-package latex-extra
+  :custom
+  (latex/no-fill-environments
+   '("equation"
+     "equation*"
+     "align"
+     "align*"
+     "forest"
+     "forest*"
+     "tabular"
+     "tikzpicture"))
+
+    :bind (:map LaTeX-mode-map
+                ("C-c C-a" . latex/compile-commands-until-done)
+                ("C-c C-n" . latex/next-section)
+                ("C-c C-u" . latex/up-section)
+                ("C-c C-f" . latex/next-section-same-level)
+                ("C-M-f"   . latex/forward-environment)
+                ("C-M-b"   . latex/backward-environment)
+                ("C-M-a"   . latex/beginning-of-environment)
+                ("C-c C-p" . latex/previous-section)
+                ("C-c C-b" . latex/previous-section-same-level)
+                ("C-c C-q" . latex/clean-fill-indent-environment))
+    :hook
+    (LaTeX-mode . latex-extra-mode))
+
 #+END_SRC
 
 *** LaTeX Preview
+
 #+NAME: latex-org-preview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<latex-latex-preview-pane>>
@@ -1962,8 +1994,6 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 <<org-preview-justify>>
 #+END_SRC
 
-
-
 **** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
@@ -1972,7 +2002,8 @@ save.
 #+NAME: latex-latex-preview-pane
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-preview-pane
-  :after (:all pdf-tools tex))
+    :after (:all pdf-tools tex)
+    :init (latex-preview-pane-enable))
 #+END_SRC
 
 **** Clear Cache
@@ -1981,7 +2012,8 @@ save.
 #+BEGIN_SRC emacs-lisp :tangle no
 (defun org-preview-clear-cache ()
   (interactive)
-  (let ((preview-cache (f-join default-directory org-preview-latex-image-directory)))
+  (let ((preview-cache
+         (f-join default-directory org-preview-latex-image-directory)))
     (if (f-directory? preview-cache)
         (f-delete preview-cache t)
       (message "%s" "Directory 'ltximg' does not exist."))))
@@ -2046,6 +2078,7 @@ save.
                  org-format-xelatex-header)
             (set (make-local-variable 'org-preview-latex-default-process)
                  'xemagick)))) nil t))
+
 (add-hook 'org-mode-hook #'org-preview-xemagick-fragments)
 #+END_SRC
 
@@ -2257,17 +2290,16 @@ line are justified."
 #+NAME: latex-cdlatex
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cdlatex
-  :config
-  (progn
-    ;; Disable auto label insertion in expanded template.
-    ;; Labels conflict when used in conjunction with `org-ref'
-    (setq cdlatex-insert-auto-labels-in-env-templates nil)
-    ;; with AucTeX LaTeX mode
-    (add-hook 'LaTeX-mode-hook
-              'turn-on-cdlatex)
-    ;; with Emacs latex mode
-    (add-hook 'latex-mode-hook
-              'turn-on-cdlatex)))
+  :custom
+  ;; Disable auto label insertion in expanded template.
+  ;; Labels conflict when used in conjunction with `org-ref'
+  (cdlatex-insert-auto-labels-in-env-templates nil)
+  :hook
+  ;; with AucTeX LaTeX mode
+  ;; (LaTeX-mode . turn-on-cdlatex)
+  ;; with Emacs latex mode
+  ;; (latex-mode . turn-on-cdlatex)
+  (org-mode . org-cdllatex-mode))
 #+END_SRC
 
 *** Magic Latex Buffer
@@ -2277,17 +2309,14 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: latex-magic-latex-buffer
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magic-latex-buffer
-  :after (tex)
-  :init
-  (progn
-    (add-hook 'LaTeX-mode-hook 'magic-latex-buffer))
-  :config
-  (progn
-    (setq magic-latex-enable-block-highlight t
-          magic-latex-enable-suscript t
-          magic-latex-enable-pretty-symbols t
-          magic-latex-enable-block-align nil
-          magic-latex-enable-inline-image nil)))
+    :custom
+    (magic-latex-enable-block-highlight t)
+    (magic-latex-enable-suscript t)
+    (magic-latex-enable-pretty-symbols t)
+    (magic-latex-enable-block-align nil)
+    (magic-latex-enable-inline-image nil)
+    :hook
+    (LaTeX-mode . magic-latex-buffer))
 #+END_SRC
 
 *** Auctex Latexmk
@@ -2295,13 +2324,10 @@ Prettify dedicated org-mode latex buffers.
 #+NAME: latex-auctex-latexmk
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package auctex-latexmk
-  :after (:all tex)
-  :demand t
-  :init
-  (progn
-    (setq auctex-latexmk-inherit-TeX-PDF-mode t)
-    (auctex-latexmk-setup)))
-
+    :custom
+    (auctex-latexmk-inherit-TeX-PDF-mode t)
+    :init
+    (auctex-latexmk-setup))
 #+END_SRC
 
 *** Texinfo
@@ -2311,17 +2337,18 @@ Prettify dedicated org-mode latex buffers.
 (use-package texinfo
   :defines texinfo-section-list
   :commands texinfo-mode
-  :init
-  (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
+  :mode
+  ("\\.texi\\'" . texinfo-mode))
 #+END_SRC
 
-*** Math
+*** LaTeX Math
 
 #+NAME: latex-math
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<latex-math-completion>>
-<<latex-math-unicode>>
+;; Math Symbols
 <<latex-math-symbols>>
+;; Company Math
+<<latex-math-completion>>
 #+END_SRC
 
 **** Company Math
@@ -2335,19 +2362,6 @@ Prettify dedicated org-mode latex buffers.
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 #+END_SRC
 
-**** Unicode Math mode
-
-#+NAME: latex-math-unicode
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package latex-unicode-math-mode
-    :init
-  (defun latex-math-enable-unicode ()
-    (latex-unicode-math-mode t)
-    (setq LaTeX-math-menu-unicode t))
-    :hook
-    (LaTeX-mode . latex-math-enable-unicode))
-#+END_SRC
-
 **** Math Symbols
 
 Entered on [2018-06-13 Wed 11:42]
@@ -2355,54 +2369,72 @@ Entered on [2018-06-13 Wed 11:42]
 #+NAME: latex-math-symbols
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package math-symbols
-    :init
-    (defun logic/insert (char)
-      (save-excursion
-        (insert char))
-      (forward-char))
+  :init
 
-    (defun logic/insert-and ()
-      (interactive)
-      (logic/insert "∧"))
+  (defun latex/font (math-input before after)
+   "Insert a LaTeX font. 
 
-    (defun logic/insert-neg ()
-      (interactive)
-      (logic/insert "⌐"))
+ MATH-INPUT is the input method to toggle in math environments.
 
-    (defun logic/insert-or ()
-      (interactive)
-      (logic/insert "∨"))
+ The BEFORE and AFTER arguments are the strings to insert around 
+ the marked region, when active. If the thing at point is a word,
+ then wrap the word. Otherwise the two elements are joined at point."
+   (cond ((texmathp)
+          (if current-input-method
+              (set-input-method nil)
+            (set-input-method math-input)))
+         ((region-active-p)
+          (save-excursion
+            (goto-char (region-beginning))
+            (insert before)
+            (goto-char (region-end))
+            (insert after)))
+         ((thing-at-point 'word)
+          (save-excursion
+            (goto-char (beginning-of-thing 'word))
+            (insert before)
+            (goto-char (end-of-thing 'word))
+            (insert after)))
+         (t
+          (save-excursion
+            (insert (concat before after)))
+          (goto-char (+ (point) (length before))))))
 
-    (defun logic/insert-if ()
-      (interactive)
-      (logic/insert "⟶"))
+  (defun latex/prettify-symbols-extra ()
+    (if osx-browse-mode
+        (osx-browse-mode nil))
 
-    (defun logic/insert-iff ()
-      (interactive)
-      (logic/insert "⟷"))
+    (when (fboundp 'prettify-symbols-mode)
+      (prettify-symbols-mode 1))
 
-    (defun logic/insert-p ()
-      (interactive)
-      (logic/insert "𝑝"))
+    (setq prettify-symbols-alist
+          '(("\\complement" . "∁"))))
 
-    (defun logic/insert-q ()
-      (interactive)
-      (logic/insert "𝑞"))
+  (setq-default abbrev-mode t)
+  (setq latex-mode-abbrev-table nil)
 
-    (defun logic/insert-lparen ()
-      (interactive)
-      (logic/insert "("))
+  (define-abbrev-table 'latex-mode-abbrev-table
+      '(("liff"  "⟷")
+        ("lif"  "⟶")))
 
-    (defun logic/insert-rparen ()
-      (interactive)
-      (logic/insert ")"))
+  (defun latex/font-italic ()
+    "Insert a literal italic typeset command, or toggle input method
+in math environments with unicode math enabled."
+    (interactive)
+    (latex/font "math-symbols-italic" "\\textit{" "}"))
 
-    (defun logic/insert-paren ()
-      (interactive)
-      (logic/insert "()")))
+  (defun latex/font-bold ()
+    "Insert a literal bold typeset command, or toggle input method
+in math environments with unicode math enabled."
+    (interactive)
+    (latex/font "math-symbols-bold" "\\textbf{" "}"))
 
+  (let ((map LaTeX-mode-map))
+    (define-key map (kbd "s-b") 'latex/font-bold)
+    (define-key map (kbd "s-i") 'latex/font-italic))
 
-
+  :hook
+  (LaTeX-mode . latex/prettify-symbols-extra))
 
 #+END_SRC
 
@@ -2514,12 +2546,12 @@ org-mode buffers.
 #+NAME: org-ui-fill
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(defun chaffin--vfc-hook ()
+(defun halidom/vfc-hook ()
   (visual-fill-column-mode 1)
   (visual-line-mode 1))
 
 
-(add-hook 'org-mode-hook #'chaffin--vfc-hook)
+(add-hook 'org-mode-hook #'halidom/vfc-hook)
 
 
 #+END_SRC
@@ -3269,14 +3301,17 @@ miscellaneous or arbitrary tasks.
       (apply-partially #'emacs-dir "etc" "pomodoro"))
 
     (setq org-pomodoro-audio-player "/usr/bin/afplay"
-          org-pomodoro-tick-sound (org-pomodoro-path "clock-ticking-2.wav")
+          org-pomodoro-tick-sound
+          (org-pomodoro-path "clock-ticking-2.wav")
           ;; Start Settings
           org-pomodoro-start-sound-p t ;; enable starting sound
           org-pomodoro-start-sound-args "--volume 0.08"
-          org-pomodoro-start-sound (org-pomodoro-path "Victory.wav")
+          org-pomodoro-start-sound
+          (org-pomodoro-path "Victory.wav")
         ;; Finished Settings
           org-pomodoro-finished-sound-args "--volume 0.2"
-          org-pomodoro-finished-sound (org-pomodoro-path "Waves.wav")
+          org-pomodoro-finished-sound
+          (org-pomodoro-path "Waves.wav")
           ;; Short Break Settings
           org-pomodoro-short-break-length 5
           org-pomodoro-short-break-sound-args "--volume 0.2"
@@ -3284,10 +3319,11 @@ miscellaneous or arbitrary tasks.
           ;; Long Break Settings
           org-pomodoro-long-break-length 15
           org-pomodoro-long-break-sound-args "--volume 0.2"
-          org-pomodoro-long-break-sound (org-pomodoro-path "Complete.wav"))))
+          org-pomodoro-long-break-sound
+          (org-pomodoro-path "Complete.wav"))))
 #+END_SRC
 
-**** Org Google Calendar
+**** Org Gcal
 
 The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode integration with Google
 Calendar.
@@ -3295,11 +3331,12 @@ Calendar.
 #+NAME: org-taskmgr-gcal
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-gcal
-  :config
-  (progn
-    (setq org-gcal-file-alist
-          '(("8u01m20o80k2ja1lpp93qa3u98@group.calendar.google.com" . "~/Dropbox/Documents/Courses/cs180/org/cs180-gcal.org")
-            ("jchaffin@g.ucla.edu" . "~/Dropbox/org/todos/TODOS.gcal.org")))))
+    :init
+  (require 'secrets)
+  (require 'org-gcal)
+  :custom
+  (org-gcal-file-alist
+   '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/todos/gcal/TODOS.org"))))
 #+END_SRC
 
 **** Counsel Org Clock
@@ -3379,8 +3416,7 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 <<org-hacks-saveplace-fix>>
 ;; Extract hyperlinks
 <<org-hacks-extract-hyperlink>>
-;; Datetree export
-<<org-hacks-datetree-export>>
+
 ;; Dynamically adjust tag position
 <<org-hacks-tag-pos>>
 ;; End Org Hacks
@@ -3429,7 +3465,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
   (advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
 #+END_SRC
 
-**** Export to datetree
+**** Export to datetree :disabled:
 
 #+NAME: org-hacks-datetree-export
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3465,6 +3501,8 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
           (switch-to-buffer this-buffer))
         ad-do-it)
     ad-do-it))
+
+
 #+END_SRC
 
 **** Dynamically set tag position
@@ -3808,7 +3846,7 @@ This doesn't work... it just caches the project metadata for some reason.
 
 ;; LaTeX backend
 ;; Only evaluate LaTeX package configurations if export dispatcher is enabled
-(when (chaffin/org-export-enabled-backend-p 'latex)
+(when (halidom/org-export-enabled-backend-p 'latex)
 
   ;; LaTeX Configuration
   <<latex-config>>
@@ -3823,30 +3861,30 @@ This doesn't work... it just caches the project metadata for some reason.
 ) ;; End LaTeX Backend
 
 ;; BibTeX backend
-(when (chaffin/org-export-enabled-backend-p 'bibtex)
+(when (halidom/org-export-enabled-backend-p 'bibtex)
   <<org-export-bibtex>>)
 
 ;; GFM backend
-(when (chaffin/org-export-enabled-backend-p 'gfm)
+(when (halidom/org-export-enabled-backend-p 'gfm)
   <<org-export-gfm>>)
 
 ;; Pandoc backend
-(when (chaffin/org-export-enabled-backend-p 'pandoc)
+(when (halidom/org-export-enabled-backend-p 'pandoc)
   <<org-export-pandoc>>
 )
 
 ;; Hugo backend
-(when (chaffin/org-export-enabled-backend-p 'hugo)
+(when (halidom/org-export-enabled-backend-p 'hugo)
   <<org-export-hugo>>
 )
 
 ;; HTML Backend
-(when (chaffin/org-export-enabled-backend-p 'html)
+(when (halidom/org-export-enabled-backend-p 'html)
   <<org-export-html>>
 )
 
 ;; OX Linguistics
-(when (chaffin/org-export-enabled-backend-p 'linguistics)
+(when (halidom/org-export-enabled-backend-p 'linguistics)
   <<org-export-linguistics>>)
 #+END_SRC
 
@@ -3861,7 +3899,7 @@ This doesn't work... it just caches the project metadata for some reason.
 (defvar org-export-enabled-backends '()
   "alist of symbols representing enabled `org-mode' export backends")
 
-(defun chaffin/org-export-enabled-backend-p (backend)
+(defun halidom/org-export-enabled-backend-p (backend)
   (member backend org-export-enabled-backends))
 #+END_SRC
 
@@ -4354,7 +4392,7 @@ and subtrees of the ignored headlines will be retained.
               '("gradle" "target" ".meghanada" ".gradle" "build" "bin" "node_modules"
                 "CMakeFiles" ".cquery_cached_index"))
 
-      (defvar chaffin/ignored-project-directories
+      (defvar halidom/ignored-project-directories
         '("~/.emacs.d/straight"))
 
       (defun projectile-ignore-projects-in-directory (project-root)
@@ -4362,7 +4400,7 @@ and subtrees of the ignored headlines will be retained.
                                            (f-descendant-of?
                                             (f-expand project-root)
                                             path)))
-          (->> chaffin/ignored-project-directories
+          (->> halidom/ignored-project-directories
                (seq-filter #'ignored-dir-or-subdir-p)
                seq-empty-p not)))
       (setq projectile-ignored-project-function
@@ -4374,6 +4412,15 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: project-codesearch
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package projectile-codesearch)
+#+END_SRC
+
+**** Projectile Ripgrep
+
+#+NAME: project-ripgrep
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package projectile-ripgrep
+  :requires (projectile))
+
 #+END_SRC
 
 *** Skeletor
@@ -4432,7 +4479,11 @@ and subtrees of the ignored headlines will be retained.
 #+END_SRC
 
 **** Projectile Code Search
-<se
+
+#+NAME: project-code-search
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package projectile-codesearch)
+#+END_SRC
 
 ** File System
 *** Dired
@@ -4507,11 +4558,9 @@ Adds extensions and functionality to dired mode.
   :commands (neotree-project-dir)
   :bind
   (([f8] . neotree-project-dir))
-  :init
-  (progn
-    (setq neo-theme
-          (if (display-graphic-p)
-              'icons 'arrow)))
+  :custom
+  (neo-theme (if (display-graphic-p) 'icons 'arrow))
+  (neo-smart-open t)
   :config
   (progn
     ;; @source https://www.emacswiki.org/emacs/NeoTree
@@ -4551,7 +4600,7 @@ Adds extensions and functionality to dired mode.
 ** Search
 *** Codesearch
 
-#+NAME: codesearch
+#+NAME: search/codesearch
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package codesearch)
 #+END_SRC
@@ -4559,14 +4608,15 @@ Adds extensions and functionality to dired mode.
 *** Avy
 Jump to arbitrary point in Buffer
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+NAME: search/avy
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package avy
   :straight t)
 #+END_SRC
 
 *** ack
 
-#+NAME: ack-config
+#+NAME: search/ack
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package ack
   :if (executable-find "ack")
@@ -4577,15 +4627,14 @@ Jump to arbitrary point in Buffer
 
 #+NAME: ag-config
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package ag
-  :straight t)
+(use-package ag)
 #+END_SRC
 
 *** grep+
 
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package grep+
-  :straight t)
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package grep+)
+
 #+END_SRC
 
 ***** Open With
@@ -4613,6 +4662,16 @@ Jump to arbitrary point in Buffer
 
 #+END_SRC
 
+*** rg
+
+#+NAME: ripgrep
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package rg
+  :ensure-system-package
+  (rg . ripgrep))
+
+#+END_SRC
+
 *** Visual Replace
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4621,6 +4680,18 @@ Jump to arbitrary point in Buffer
   (("C-c r" . vr/replace)
    ("C-c q" . vr/query-replace)
    ("C-c m" . vr/mc-mark)))
+#+END_SRC
+
+*** Undo Tree
+
+Visualize buffer modifications during an Emacs session as an
+interactive tree .
+
+#+NAME: search/undo-tree
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package undo-tree
+  :init
+  (global-undo-tree-mode))
 #+END_SRC
 
 ** Startup
@@ -5086,84 +5157,23 @@ setopt cd_able_vars
         (kill-buffer (current-buffer))))
 #+END_SRC
 
-*** Visit file+
-
-#+NAME: read-only
-#+BEGIN_SRC emacs-lisp :tangle yes
-(defvar read-only-directories '()
-  "A list of directories for which all files and subdirectories
-should open in `read-only-mode'.")
-
-(defvar read-only-whitelist-directories '()
-  "A list of directories which should not be opened in read-only mode.")
-
-(defvar read-only-file-extensions '("\\.gz\\'")
-  "Not yet implemented.")
-
-(defun dir-level (dir)
-  (length (f-split dir)))
-
-(defun dir-or-subdir-p (d1 d2)
-  "If non-nil, then directory D1 is subdirectory or the same directory as D2."
-  (cond ((< (dir-level d1) (dir-level d2)) nil)
-        ((string= d1 d2) t)
-        (t (dir-or-subdir-p
-            (--> d1 basename file-name-as-directory (string-remove-suffix it d1))
-            d2))))
-
-(defun read-only-directory-p (bf)
-"Determine whether the current buffer file is in a directory
-that is a member of `read-only-directories'."
-  (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
-    (and (not (null (seq-filter #'f read-only-directories)))
-         (null (seq-filter #'f read-only-whitelist-directories))
-         (file-writable-p bf))))
-
-(defun halidom/open-buffer-as-read-only (file)
-  "All buffers from `read-only-directories' or
-`read-only-file-extensions' are set to read-only."
-  (let ((bd (and buffer-file-name (file-name-directory file))))
-    (if (read-only-directory-p bd) (read-only-mode 1))))
-
-(defun halidom/find-file-read-only-hook ()
-  (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
-
-(setq read-only-directories `(,(straight-dir) "/usr/local/"))
-
-(setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
-(add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
-
-#+END_SRC
-
 *** Bug Tracking
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package debbugs
-    :straight (debbugs :type git
-                       :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
-                       :files ("packages/debbugs/*.el"
-                               "packages/debbugs/Debbugs.wsdl")
-                       :local-repo "elpa"))
+  :straight (debbugs
+             :type git
+             :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
+             :files ("packages/debbugs/*.el"
+                     "packages/debbugs/Debbugs.wsdl")
+             :local-repo "elpa"))
 
-#+END_SRC
-
-*** Undo Tree
-
-Visualize buffer modifications during an Emacs session as an
-interactive tree .
-
-#+NAME: undo-tree-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package undo-tree
-  :init
-  (global-undo-tree-mode))
 #+END_SRC
 
 ** Multimedia
 
 #+NAME: media-spec
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-
 ;; EMMS
 <<media-emms>>
 ;; SoundCloud
@@ -5290,7 +5300,7 @@ This disables Emacs asking questions about loading a new theme.
   ;; theme.
   :straight (org-beautify-theme
              :host github
-             :repo "jchaffin/org-beautify-theme"
+             :repo "jhalidom/org-beautify-theme"
              :files ("org-beautify-theme.el"))
   :config
   (defun org-beautify-load-theme ()
@@ -6419,7 +6429,7 @@ friends.
   :straight
   (counsel-itunes
    :host github
-   :repo "jchaffin/counsel-itunes")
+   :repo "jhalidom/counsel-itunes")
   :demand t
   :after (:all counsel ivy)
   :init
@@ -7854,14 +7864,14 @@ Artist mode is a built-in Emacs package.
   :defines (org-plantuml-jar-path plantuml-jar-path)
   :config
   (progn
-    (defun chaffin/plantuml-resolve-jar-path ()
+    (defun halidom/plantuml-resolve-jar-path ()
       (when (executable-find "plantuml")
         (replace-regexp-in-string "\n" ""
                                   (shell-command-to-string
                                    "realpath $(brew --prefix plantuml)/libexec/plantuml.jar"))))
       (when *is-mac*
-        (setq org-plantuml-jar-path (chaffin/plantuml-resolve-jar-path))
-        (setq plantuml-jar-path (chaffin/plantuml-resolve-jar-path)))))
+        (setq org-plantuml-jar-path (halidom/plantuml-resolve-jar-path))
+        (setq plantuml-jar-path (halidom/plantuml-resolve-jar-path)))))
 #+END_SRC
 
 
@@ -7902,13 +7912,14 @@ end. It's hardcoded to use port 80. HTTP doesn't really work on my
 school's WLAN.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
+
 (use-package thesaurus
-  :demand t
   :config
   (progn
-    ;;  `thesaurus-bhl-api-key' is set in secrets
+    ;; `thesaurus-bhl-api-key' is set in secrets
     (setq thesaurus-prompt-mechanism 'counsel-imenu
           url-proxy-services nil)))
+
 #+END_SRC
 
 * Code
@@ -7934,6 +7945,7 @@ school's WLAN.
   (lsp-message-project-root-warning t)
   (lsp-project-blacklist '("^/ssh:" "node_modules"))
   :config
+
   (require 'lsp-imenu)
   (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)
 
@@ -8051,6 +8063,8 @@ school's WLAN.
 <<hl-highlight-symbol>>
 ;; Prettify Symbols
 <<hl-prettify-symbol>>
+;; Pretty Mode
+<<hl-pretty>>
 #+END_SRC
 
 **** Highlight :disabled:
@@ -8110,6 +8124,16 @@ the absence of a window system. I'll check for the latter for now.
 #+BEGIN_SRC emacs-lisp :tangle no
 (when (display-graphic-p)
   (add-hook 'prog-mode-hook 'prettify-symbols-mode))
+#+END_SRC
+
+**** Pretty Mode
+
+#+NAME: hl-pretty
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pretty-mode
+    :hook
+  (emacs-lisp-mode . turn-on-pretty-mode)
+  (LaTeX-mode . turn-on-pretty-mode))
 #+END_SRC
 
 *** Code Folding
@@ -8201,11 +8225,10 @@ haystack, =smartparens= are a great productivity tool.
     (require 'smartparens-config)
     (smartparens-global-mode)
 
-    (defun sp-wrap-math ()
+    (defun sp-wrap-inline-math ()
       "Wrap marked region as ordinary LaTeX inline math mode."
       (interactive)
       (sp-wrap-with-pair "$"))
-
 
     (defun disable-smartparens ()
       "Disable smartparens when `paredit-mode' is enabled."
@@ -9488,7 +9511,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 ;; Enable Hooks
 (add-hook 'java-mode-hook 'java-mode-style)
 
-(with-system darwin
+(if *is-mac*
   (add-hook 'java-mode-hook 'java-mode-dash-docsets-hook))
 #+END_SRC
 
@@ -10639,7 +10662,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 #+NAME: web-tern
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package tern
-    :if (executable-find "tern"))
+  :if (executable-find "tern"))
 
 (use-package company-tern
     :after (:all company tern)
@@ -10778,7 +10801,7 @@ and slim-mode using company.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 
-;;; chaffin.el ends here
+;;; halidom.el
 
 #+END_SRC
 

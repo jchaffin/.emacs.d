@@ -167,6 +167,7 @@
      (add-hook 'org-mode-hook 'chaffin--unbind-org-mode-map-keys)))
 
 
+
 ;; Literate
 (defcustom halidom-literate-config-file "halidom.org"
   "The *.org file containing the source code responsible for
@@ -181,32 +182,27 @@
   :type 'string)
 
 
-(defun load-literate (&optional user-config-file init-server)
+(defun load-literate (&optional user-config-file)
   "If USER-CONFIG-FILE is passed as an argument, then tangle.
 Else use the value of `halidom-literate-config-file'."
   (let ((target-file (or user-config-file halidom-literate-config-file))
         (target-dir (or user-emacs-directory default-directory)))
-    (when init-server
-	    (require 'server)
-      (unless (server-running-p)
-          (setq server-socket-dir
-                (expand-file-name "server" user-emacs-directory))
-          (server-start)))
+
     (if target-file
         (org-babel-load-file
          (expand-file-name target-file target-dir))
       (error "%s not found, cannot tangle." target-file))))
 
-;; Debug
 
-(defvar literate-debug-blocks
-  '("core-functions"
+;; Debug
+(defvar halidom-literate-debug-blocks
+  '("halidom/functions"
     "readview-fc"
-    "read-only"
-    "if-not"
+    "halidom/macros"
     "org-ui-fill"
     "ivy-spec"
     "counsel-spec"
+    "mb-swiper"
     "paredit-spec")
   )
 
@@ -235,8 +231,9 @@ Else use the value of `halidom-literate-config-file'."
 		  (replace-regexp-in-string "<<\\(.*?\\)>>" "\\1" s)))
       (mapcar #'func sx))))
 
+
 (defun literate-tangle-src-block (name)
-  (let ((buf (find-file-noselect (expand-file-name "halidom.org" user-emacs-directory))))
+  (let ((buf (find-file-noselect halidom-user-literate-init-file)))
     (with-current-buffer halidom-literate-config-file
       (org-element-map (org-element-parse-buffer) 'src-block
 	(lambda (block)
@@ -254,13 +251,19 @@ Else use the value of `halidom-literate-config-file'."
     (kill-buffer buf)))
 
 (defun literate-debug-enabled ()
+  "Tangle only the source blocks with a name property matching an element in 
+`halidom-literate-debug-blocks'. This is useful for providing a set of default
+
+
+"
   (interactive)
   (mapcar #'literate-tangle-src-block literate-debug-blocks))
 
 ;; Initialization
 (if use-literate-p
     (load-literate halidom-literate-config-file)
-  (literate-debug-enabled))
+  (literate-debug-enabled)
+  (paredit-mode 1))
 
 
 ;;;; init.el ends here
