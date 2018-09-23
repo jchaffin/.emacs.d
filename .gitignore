@@ -1,7 +1,8 @@
 var/
 straight/**
 !/straight/versions
-*.el
+!halidom.el
+.yas-compiled-snippets.el
 !init.el
 !early-init.el
 etc/local/**

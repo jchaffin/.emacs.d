@@ -3124,6 +3124,8 @@ Embed YouTube Links in iframe.
 <<org-taskmgr-gcal>>
 ;; Org Counsel Clock
 <<org-taskmgr-coclock>>
+;; Org Projectile
+<<org-taskmgr-projectile>>
 ;; Org Mru
 <<org-taskmgr-mru-clock>>
 ;; End Org Task Manager
@@ -3256,29 +3258,32 @@ miscellaneous or arbitrary tasks.
     :after (projectile)
     :commands (org-projectile-files-to-agenda)
     :demand t
+    :bind (:map projectile-command-map
+		("C-c p n" . org-projectile-todo-completing-read))
     :init
-    (progn
+    (defun org-projectile-files-to-agenda ()
+      "Add org-projectile project files to org-agenda."
+      (interactive)
+      (let* ((todo-filepath
+	      (or (bound-and-true-p org-projectile-per-project-filepath)
+		 "TODOs.org"))
+	     (active-projects
+	      (seq-filter
+	       (lambda (proj)
+		 (file-exists-p (expand-file-name todo-filepath proj)))
+	       projectile-known-projects))
+	     (project-agenda-files
+	      (mapcar
+	       (lambda (proj)
+		 (expand-file-name todo-filepath proj))
+	       active-projects)))
+	(setq org-agenda-files
+	      (append org-agenda-files project-agenda-files))))
 
-      (defun org-projectile-files-to-agenda ()
-	      "Add org-projectile project files to org-agenda."
-	      (interactive)
-	      (let* ((todo-filepath (or (bound-and-true-p org-projectile-per-project-filepath)
-		                              "org/TODOs.org"))
-	             (active-projects (seq-filter
-                                 (lambda (proj)
-			                             (file-exists-p (expand-file-name todo-filepath proj)))
-                                 projectile-known-projects))
-	             (project-agenda-files (mapcar
-                                      (lambda (proj)
-			                                  (expand-file-name todo-filepath proj))
-			                                active-projects)))
-	        (setq org-agenda-files (append org-agenda-files project-agenda-files))))
-      
-      (org-projectile-files-to-agenda))
+    (org-projectile-files-to-agenda)
 
     :config
     (progn
-
       (setq org-projectile-per-project-filepath "TODOs.org")
 
       (org-projectile-per-project)
@@ -3295,9 +3300,7 @@ miscellaneous or arbitrary tasks.
 		   (org-projectile-project-todo-entry
 		    :capture-character "p"))
 
-      (setq org-confirm-elisp-link-function nil)
-      (global-set-key (kbd "C-c p n") 'org-projectile-project-todo-completing-read)))
-
+      (setq org-confirm-elisp-link-function nil)))
 
 #+END_SRC
 
@@ -4384,8 +4387,8 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: project-projectile
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package projectile
-    :bind (:map projectile-mode-map
-                 ("C-c p" . projectile-command-map))
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
     :custom
     (projectile-completion-system 'ivy)
     (projectile-switch-project-action #'projectile-dired)
@@ -4407,7 +4410,8 @@ and subtrees of the ignored headlines will be retained.
     (progn
 
       (append projectile-globally-ignored-directories
-              '("gradle" "target" ".meghanada" ".gradle" "build" "bin" "node_modules"
+              '("gradle" "target" ".meghanada"
+                ".gradle" "build" "bin" "node_modules"
                 "CMakeFiles" ".cquery_cached_index"))
 
       (defvar halidom/ignored-project-directories
@@ -4415,12 +4419,12 @@ and subtrees of the ignored headlines will be retained.
 
       (defun projectile-ignore-projects-in-directory (project-root)
         (cl-flet ((ignored-dir-or-subdir-p (path)
-                                           (f-descendant-of?
-                                            (f-expand project-root)
-                                            path)))
+                    (f-descendant-of?
+                     (f-expand project-root)
+                     path)))
           (->> halidom/ignored-project-directories
-               (seq-filter #'ignored-dir-or-subdir-p)
-               seq-empty-p not)))
+             (seq-filter #'ignored-dir-or-subdir-p)
+             seq-empty-p not)))
       (setq projectile-ignored-project-function
             #'projectile-ignore-projects-in-directory)))
 #+END_SRC
@@ -4436,8 +4440,7 @@ and subtrees of the ignored headlines will be retained.
 
 #+NAME: project-ripgrep
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package projectile-ripgrep
-  :requires (projectile))
+(use-package projectile-ripgrep)
 
 #+END_SRC
 
@@ -7097,123 +7100,119 @@ Interactively.
 
 #+NAME: browser-engine
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package engine-mode
-  :init
-  (engine-mode t)
+  (use-package engine-mode
+    :init
+    (engine-mode t)
 
-  :config
+    :config
+    (setq halidom-web-engine-prefix "M-m w e")
 
-   (defengine github
-       "https://github.com/search?ref=simplesearch&q=%s"
-     :keybinding "h"
-     :docstring "Search Github")
+    (when engine/keybinding-prefix
+      (define-key engine-mode-map (kbd "C-x /") nil)
+      (define-key 'web-browse-prefix-map "e" engine-mode-prefixed-map))
 
-   (defengine worldcat
-       "https://ucla.worldcat.org/search?q=%s"
-     :keybinding "W"
-     :docstring "Search Worldcat")
+    (defun engine-add-which-key-replacement (engine prefix &optional keybinding)
+      (let* ((keyseq (concat prefix " " keybinding))
+	     (engine-string (upcase-initials (symbol-name engine)))
+	     (replacement (list engine-string
+				(concat "Search " engine-string))))
+	(which-key-add-key-based-replacements keyseq engine-string)))
 
-   (defengine proquest
-       "https://search.proquest.com"
-     :keybinding "p"
-     :docstring "Search Proquest")
+    (cl-defun engine-key-replacement (orig-function &rest args)
+      (let ((keybinding (plist-get (cddr args) :keybinding))
+	    (engine (car args))
+	    (prefix "M-m w e"))
+	(engine-add-which-key-replacement engine prefix keybinding)
+	(apply orig-function args)))
 
-   (defengine google
-       "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
-     :keybinding "g"
-     :docstring "Search Google")
+    (advice-add 'defengine :around #'engine-key-replacement)
 
-   (defengine cassi
-     "http://cassi.cas.org/search.jsp"
-     :browser 'xwidget-webkit-browse-url)
+    (defengine github
+      "https://github.com/search?ref=simplesearch&q=%s"
+      :keybinding "h"
+      :docstring "Search Github")
 
-   (defengine google-bookmarks
-       "chrome://bookmarks/?q=%s"
-     :keybinding "Gb"
-     :docstring "Search bookmarks in Google Chrome")
+    (defengine worldcat
+      "https://ucla.worldcat.org/search?q=%s"
+      :keybinding "W"
+      :docstring "Search Worldcat")
 
-   (defengine google-images
-       "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-       :keybinding "Gi"
-       :docstring "Search google-images")
+    (defengine proquest
+      "https://search.proquest.com"
+      :keybinding "p"
+      :docstring "Search Proquest")
 
-   (defengine google-maps
-       "http://maps.google.com/maps?q=%s"
-     :keybinding "Gm"
-     :docstring "Mappin' it up.")
+    (defengine google
+      "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+      :keybinding "g"
+      :docstring "Search Google")
 
-   (defengine project-gutenberg
-       "http://www.gutenberg.org/ebooks/search/?query=%s"
-     :docstring "Read good")
+    (defengine cassi
+      "http://cassi.cas.org/search.jsp"
+      :browser 'xwidget-webkit-browse-url)
 
-   (defengine rfcs
-     "http://pretty-rfc.herokuapp.com/search?q=%s")
+    (defengine google-bookmarks
+      "chrome://bookmarks/?q=%s"
+      :keybinding "Gb"
+      :docstring "Search bookmarks in Google Chrome")
 
-   (defengine stack-overflow
-       "https://stackoverflow.com/search?q=%s"
-     :keybinding "s"
-     :docstring "Search StackOverflow.")
+    (defengine google-images
+      "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
+	:keybinding "Gi"
+	:docstring "Search google-images")
 
-   (defengine twitter
-     "https://twitter.com/search?q=%s")
+    (defengine google-maps
+      "http://maps.google.com/maps?q=%s"
+      :keybinding "Gm"
+      :docstring "Mappin' it up.")
 
-   (defengine wikipedia
-     "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
-     :keybinding "w"
-     :docstring "Search wikipedia.")
+    (defengine project-gutenberg
+      "http://www.gutenberg.org/ebooks/search/?query=%s"
+      :docstring "Read good")
 
-   (defengine wiktionary
-     "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
+    (defengine rfcs
+      "http://pretty-rfc.herokuapp.com/search?q=%s")
 
-   (defengine wolfram-alpha
-       "http://www.wolframalpha.com/input/?i=%s"
-     :keybinding "a"
-     :docstring "Search Wolfram Alfa")
+    (defengine stack-overflow
+      "https://stackoverflow.com/search?q=%s"
+      :keybinding "s"
+      :docstring "Search StackOverflow.")
 
-   (defengine youtube
-     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
-       :keybinding "y"
-       :docstring "Search Youtube")
+    (defengine twitter
+      "https://twitter.com/search?q=%s")
 
-   (defengine ctan
-     "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
-     :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
+    (defengine wikipedia
+      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+      :keybinding "w"
+      :docstring "Search wikipedia.")
 
-  (setq halidom-web-engine-prefix "M-m w e")
+    (defengine wiktionary
+      "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
 
-  (when engine/keybinding-prefix
-    (define-key engine-mode-map (kbd "C-x /") nil)
-    (define-key 'web-browse-prefix-map "e" engine-mode-prefixed-map))
+    (defengine wolfram-alpha
+      "http://www.wolframalpha.com/input/?i=%s"
+      :keybinding "a"
+      :docstring "Search Wolfram Alfa")
 
-  (defun engine-add-which-key-replacement (engine prefix &optional keybinding)
-    (let* ((keyseq (concat prefix " " keybinding))
-           (engine-string (upcase-initials (symbol-name engine)))
-           (replacement (list engine-string
-                              (concat "Search " engine-string))))
-      (which-key-add-key-based-replacements keyseq engine-string)))
+    (defengine youtube
+      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
+	:keybinding "y"
+	:docstring "Search Youtube")
 
-  (cl-defun engine-key-replacement (orig-function &rest args)
-    (let ((keybinding (plist-get (cddr args) :keybinding))
-	  (engine (car args))
-          (prefix "M-m w e"))
-      (engine-add-which-key-replacement engine prefix keybinding)
-      (apply orig-function args)))
+    (defengine ctan
+      "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
+      :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
 
-  (advice-add 'defengine :around #'engine-key-replacement)
-
-  (cl-flet* ((ks (&rest k)
-                 (let ((p halidom-web-engine-prefix))
-                   (if k (join (push p k) " ") p)))
-             (wkr (rep &rest k)
-                  (let ((kk (apply #'ks k)))
-                    (which-key-add-key-based-replacements kk rep))))
-    (wkr "Search Engine")
-    (wkr "Google Engines" "G")
-    (wkr "Google Images" "G" "i")
-    (wkr "Google Bookmarks" "G" "b"))
-)
-
-
+   (cl-flet* ((ks (&rest k)
+		  (let ((p halidom-web-engine-prefix))
+		    (if k (join (push p k) " ") p)))
+	      (wkr (rep &rest k)
+		   (let ((kk (apply #'ks k)))
+		     (which-key-add-key-based-replacements kk rep))))
+     (wkr "Search Engine")
+     (wkr "Google Engines" "G")
+     (wkr "Google Images" "G" "i")
+     (wkr "Google Bookmarks" "G" "b")))
 
 #+END_SRC
 
@@ -7244,7 +7243,6 @@ Interactively.
 <<mu-alert>>
 ;; Mu4e Maildirs extension
 <<mu-maildirs>>
-
 #+END_SRC
 
 **** Mu4e
@@ -7257,20 +7255,17 @@ Interactively.
     :init
     (require 'mu4e)
 
-
     :config
     ;; use mu4e for email in emacs
     (setq mail-user-agent 'mu4e-user-agent)
-
-    (setq mu4e-maildir-shortcuts
-          '(("/inbox" . ?i)
-            ("/sent"  . ?s)
-            ("/trash" . ?t)))
 
     (setq mu4e-maildir "~/.mail")
 
     ;; Update with offlineimap
     (setq mu4e-get-mail-command "offlineimap -o -q")
+
+    ;; Let GMAIL/IMAP take care of sent messages
+    (setq mu4e-sent-messages-behavior 'delete)
 
     (require 'smtpmail)
 
@@ -7284,6 +7279,8 @@ Interactively.
     ;; Kill message buffers on send
     (setq message-kill-buffer-on-exit t)
 
+    (require 'mu4e-contrib)
+
     ;; mu4e View
     (setq mu4e-attachment-dir "~/Downloads"
           mu4e-view-show-images t
@@ -7291,7 +7288,7 @@ Interactively.
           mu4e-view-prefer-html t
           mu4e-view-show-images t)
 
-    (require 'mu4e-contrib)
+
     (when (fboundp 'imagemagick-register-types)
       (imagemagick-register-types))
 
@@ -7305,17 +7302,19 @@ Interactively.
           `(,(make-mu4e-context
               :name "personal"
               :enter-func
-              (lambda () (mu4e-message "Using personal Gmail account"))
+              (lambda () (mu4e-message "Using Personal gmail account.k"))
               :leave-func
-              (lambda () (mu4e-message "leaving personal Gmail account"))
+              (lambda () (mu4e-message "leaving Personal gmail account."))
               :match-func
               (lambda (msg)
                 (when msg
-                  (mu4e-message-contact-field-matches
-                   msg :to "jchaffin57@gmail.com")))
+                  (string-match-p "^/personal")
+                  (mu4e-message-field msg :maildir)))
               :vars
               '((user-mail-address  . "jchaffin57@gmail.com")
                 (user-full-name     . "Jacob Chaffin")
+                (mail-reply-to      . "jchaffin57@gmail.com")
+                (smtpmail-smtp-user . "jchaffin57@gmail.com")
                 (mu4e-sent-folder   . "/personal/sent")
                 (mu4e-drafts-folder . "/personal/drafts")
                 (mu4e-refile-folder . "/personal/archive")
@@ -7323,21 +7322,26 @@ Interactively.
                 (mu4e-compose-signature .
                  (concat
                   "Jacob Chaffin\n"
-                  "(650)-380-3288"))))
+                  "jchaffin57@gmail.com\n"
+                  "jchaffin@ucla.edu"))))
 
              ,(make-mu4e-context
                :name "school"
                :enter-func
-               (lambda () (mu4e-message "UCLA Gmail Account"))
+               (lambda () (mu4e-message "Entering UCLA Gmail account"))
+               :leave-func
+               (lambda () (mu4e-message "Leaving UCLA Gmail account."))
                :match-func
                (lambda (msg)
                  (when msg
-                   (string-match "^/school"
-                                 (mu4e-message-field msg :maildir))))
+                   (string-match-p "^/school" 
+                   (mu4e-message-field msg :maildir))))
                :vars '((user-mail-address  . "jchaffin@ucla.edu")
                        (user-full-name     . "Jacob Chaffin")
-                       (mu4e-sent-folder   . "/school/sent")
+                       (mail-reply-to      . "jchaffin@ucla.edu" )
+                       (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
                        (mu4e-drafts-folder . "/school/drafts")
+                       (mu4e-sent-folder   . "/school/sent")
                        (mu4e-refile-folder . "/school/archive")
                        (mu4e-trash-folder  . "/school/trash")
                        (mu4e-compose-signature .
@@ -7347,6 +7351,20 @@ Interactively.
                          "Linguistics and Computer Science\n"
                          "jchaffin@ucla.edu"))))))
 
+    ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]] 
+    ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
+    ;; `user-mail-address' values for all contexts. If you have other mail
+    ;; addresses as well, you'll need to add those manually.
+    (setq mu4e-user-mail-address-list
+          (delq nil
+                (mapcar (lambda (context)
+                          (when (mu4e-context-vars context)
+                            (cdr
+                             (assq
+                              'user-mail-address
+                              (mu4e-context-vars context)))))
+                        mu4e-contexts)))
+    
 
     (require 'gnus-dired)
 
@@ -7362,10 +7380,10 @@ Interactively.
         (nreverse buffers)))
 
     (setq gnus-dired-mail-mode 'mu4e-user-agent)
-
     
     (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
 #+END_SRC
+
 
 **** Mu Notifications
 
