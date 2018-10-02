@@ -1,8 +1,7 @@
-var/
+var/**
 straight/**
 !/straight/versions
-!halidom.el
 .yas-compiled-snippets.el
-!init.el
-!early-init.el
-etc/local/**
+/etc/local
+opam-user-setup.el
+halidom.el

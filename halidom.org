@@ -34,6 +34,7 @@
     - [[#utf-8-encoding][UTF-8 Encoding]]
     - [[#pickup-environment-variables][Pickup environment variables]]
     - [[#system-packages][System Packages]]
+    - [[#ensure-system-package][Ensure system package]]
     - [[#prodigy][Prodigy]]
   - [[#macos][macOS]]
     - [[#macos-keys][MacOS Keys]]
@@ -275,6 +276,7 @@
     - [[#javascript][JavaScript]]
     - [[#python][Python]]
     - [[#ruby][Ruby]]
+    - [[#ocaml][Ocaml]]
     - [[#scala][Scala]]
     - [[#web-1][Web]]
     - [[#markdown][Markdown]]
@@ -289,6 +291,9 @@
 This document contains my entire configuration for the GNU Emacs text editor. It written as some combination of travelogue, technical notebook, personal journal, and [[https://www.stackoverflow.com][StackOverflow]] pasteboard.
 
 ** Literate Programming
+:PROPERTIES:
+:ID:       A184FB03-2742-4398-8DDD-CB0D9577DAF5
+:END:
 
 [[https://en.wikipedia.org/wiki/literate_programming][Literate Programming]] is a method of writing computer programs where the composition, logic, and structure of the program are optimized for human comprehension. Introduced by Donald Knuth in his 1983 eponymous work, a literate program interoperates source code with macros, commentary, and documentation written in natural language prose. The source code is then extracted in a pre-compilation step known as /tangling/.
 
@@ -1508,6 +1513,15 @@ package manager.
      (system-packages/update-brew-commands commands-alist))))
 #+END_SRC
 
+*** Ensure system package
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package use-package-ensure-system-package
+  :after (:all exec-path-from-shell system-packages)
+  :demand t)
+
+#+END_SRC
+
 *** Prodigy
 
 Interface for controlling external processes in Emacs.
@@ -1994,10 +2008,13 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 #+NAME: latex-org-preview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<latex-latex-preview-pane>>
+;; Clear Cache
 <<org-preview-clear-cache>>
-<<org-preview-xelatex>>
-<<org-preview-luatex>>
+;; xelateX preview (disabled)
+;; lualatex preview (disabled)
+;; Preview Format
 <<org-preview-format>>
+;; Preview Justify
 <<org-preview-justify>>
 #+END_SRC
 
@@ -2026,173 +2043,6 @@ save.
       (message "%s" "Directory 'ltximg' does not exist."))))
 #+END_SRC
 
-**** XeLaTeX Preview
-
-#+NAME: org-preview-xelatex
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-format-xelatex-header
-      "\\documentclass{article}
-        \\usepackage[usenames]{xcolor}
-        [PACKAGES]
-        [NO-DEFAULT-PACKAGES]
-        \\pagestyle{empty}             % do not remove
-        \\usepackage{amsmath}
-        \\usepackage{fontspec}
-        \\usepackage{unicode-math}
-        \\setromanfont[Ligatures=TeX]{Latin Modern Roman}
-        \\setmathfont[math-style=ISO,bold-style=ISO]{Latin Modern Math}
-        % The settings below are copied from fullpage.sty
-        \\setlength{\\textwidth}{\\paperwidth}
-        \\addtolength{\\textwidth}{-3cm}
-        \\setlength{\\oddsidemargin}{1.5cm}
-        \\addtolength{\\oddsidemargin}{-2.54cm}
-        \\setlength{\\evensidemargin}{\\oddsidemargin}
-        \\setlength{\\textheight}{\\paperheight}
-        \\addtolength{\\textheight}{-\\headheight}
-        \\addtolength{\\textheight}{-\\headsep}
-        \\addtolength{\\textheight}{-\\footskip}
-        \\addtolength{\\textheight}{-3cm}
-        \\setlength{\\topmargin}{1.5cm}
-        \\addtolength{\\topmargin}{-2.54cm}
-
-        % some defaults based on personal preference
-        \\usepackage{adjustbox}
-        \\usepackage[linguistics,edges]{forest}")
-
-;;; XeTex preview
-(setq org-preview-xemagick
-      '(xemagick
-        :programs ("xelatex" "convert")
-        :description ("xelatex" "convert")
-        :message "You need to install xelatex and imagemagick"
-        :use-xcolor t
-        :image-input-type "pdf"
-        :image-output-type "png"
-        :image-size-adjust (1.0 . 1.0)
-        :latex-compiler ("xelatex -interaction nonstopmode -output-directory %o %f")
-        :image-converter  ("convert -density %D -trim -antialias %f -quality 200 %O")))
-
-
-(add-to-list 'org-preview-latex-process-alist org-preview-xemagick)
-
-(defun org-preview-xemagick-fragments ()
-  (org-element-map (org-element-parse-buffer) 'keyword
-    (lambda (keyword)
-      (if (string= "xelatex" (org-element-property :value keyword))
-          (progn
-            (message "%s\n" "Using xelatex format header")
-            (set (make-local-variable 'org-format-latex-header)
-                 org-format-xelatex-header)
-            (set (make-local-variable 'org-preview-latex-default-process)
-                 'xemagick)))) nil t))
-
-(add-hook 'org-mode-hook #'org-preview-xemagick-fragments)
-#+END_SRC
-
-**** LuaTeX Preview
-
-#+NAME: org-preview-luatex
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-preview-luamagick
-      '(luamagick
-        :programs ("lualatex" "convert")
-        :description "pdf > png"
-        :message "you need to install lualatex and imagemagick."
-        :use-xcolor t
-        :image-input-type "pdf"
-        :image-output-type "png"
-        :image-size-adjust (1.0 . 1.0)
-        :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
-        :image-converter ("convert -density %D -trim -antialias %f -quality 200 %O")))
-
-(add-to-list 'org-preview-latex-process-alist org-preview-luamagick)
-
-(defun org-preview-luamagick-fragments ()
-  (org-element-map (org-element-parse-buffer) 'keyword
-    (lambda (keyword)
-      (if (string= "uclacs" (org-element-property :value keyword))
-          (progn
-            (message "%s\n" "Using custom preview header for uclacs LaTeX class.")
-            (set (make-local-variable 'org-format-latex-header)
-                 org-format-lualatex-header)
-            (set (make-local-variable 'org-preview-latex-default-process)
-                 'luamagick)))) nil t))
-
-(setq org-format-lualatex-header
-      "\\documentclass{article}
-        \\usepackage[usenames,dvipsnames,svgnames]{xcolor}
-        [PACKAGES]
-        [DEFAULT-PACKAGES]
-        \\pagestyle{empty}             % do not remove
-        \\usepackage{amsmath}
-        \\usepackage{fontspec}
-        \\usepackage{unicode-math}
-        \\usepackage{hologo}
-        \\setmathfont{STIX2Math}[
-          Extension={.otf},
-          Scale=1]
-        \\setmainfont{STIX2Text}[
-          Extension={.otf},
-          UprightFont={*-Regular},
-          BoldFont={*-Bold},
-          ItalicFont={*-Italic},
-        BoldItalicFont={*-BoldItalic}]
-        % The settings below are copied from fullpage.sty
-        \\setlength{\\textwidth}{\\paperwidth}
-        \\addtolength{\\textwidth}{-3cm}
-        \\setlength{\\oddsidemargin}{1.5cm}
-        \\addtolength{\\oddsidemargin}{-2.54cm}
-        \\setlength{\\evensidemargin}{\\oddsidemargin}
-        \\setlength{\\textheight}{\\paperheight}
-        \\addtolength{\\textheight}{-\\headheight}
-        \\addtolength{\\textheight}{-\\headsep}
-        \\addtolength{\\textheight}{-\\footskip}
-        \\addtolength{\\textheight}{-3cm}
-        \\setlength{\\topmargin}{1.5cm}
-        \\addtolength{\\topmargin}{-2.54cm}
-        % The settings below are copied from ucla.cls
-
-        \\usepackage[algoruled,linesnumbered]{algorithm2e}
-        \\SetKwInOut{Input}{Input}
-        \\SetKwInOut{Output}{Output}
-        \\SetKwProg{proc}{Procedure}{}{}
-        \\newcommand{\\forcond}[3]{$#1=#2$ \\KwTo $#3$}
-        \\newcommand{\\forcondi}[2]{\\forcond{i}{#1}{#2}}
-        \\newcommand{\\forcondj}[2]{\\forcond{j}{#1}{#2}}
-        \\usepackage{etoolbox}
-         \\usepackage{adjustbox}
-         \\usepackage{forest}
-         \\forestset{
-           default preamble={%
-             for tree={circle,draw, l sep=2mm}%
-           }%
-         }%")
-
-
-(add-to-list 'org-preview-latex-process-alist org-preview-luamagick)
-
-#+END_SRC
-
-**** Preview Format
-
-#+NAME: org-preview-format
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-preview--complement-bg ()
-  (with-eval-after-load 'color
-    (substring
-       (apply #'color-rgb-to-hex
-         (color-complement
-      	   (frame-parameter nil 'background-color))) 0 7)))
-
-;; (setq org-format-latex-options
-;;       (plist-put org-format-latex-options
-;;                  :background nil))
-
-;; (setq org-format-latex-options
-;;       (plist-put org-format-latex-options
-;;                  :foreground (org-preview--complement-bg)))
-
-#+END_SRC
 
 **** Justify Fragment
 
@@ -2561,7 +2411,6 @@ org-mode buffers.
 <<org-ui-equation-renumbering>>
 #+END_SRC
 
-
 **** Org visual fill
 
 #+NAME: org-ui-fill
@@ -2713,7 +2562,6 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+NAME: org-docmgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Begin Org Doc Manager Section
-
 ;; Org Capture
 <<org-docmgr-capture>>
 ;; Org Journal
@@ -2726,7 +2574,8 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 <<org-docmgr-links>>
 ;; Org Bookmark
 <<org-docmgr-bookmark>>
-
+;; Org Web Tools
+<<org-docmgr-web>>
 ;; End Org Doc Manager
 #+END_SRC
 
@@ -2987,11 +2836,17 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
   :defines (org-download-image-dir)
   :commands (org-download-enable  org-download-yank org-download-screenshot)
   :init
-  (progn
-    (when *is-mac*
-      (setq-default org-download-image-dir "~/Dropbox/org/img/"))
-    (add-hook  'org-mode-hook 'org-download-enable)
-    (add-hook 'dired-mode-hook 'org-download-enable)))
+  (when *is-mac*
+    (setq-default org-download-image-dir "~/Dropbox/org/img/"))
+  :hook
+  ((dired-mode org-mode) . org-download-enable))
+#+END_SRC
+
+**** Org Web Tools
+
+#+NAME: org-docmgr-web
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-web-tools)
 #+END_SRC
 
 **** Org Links
@@ -3098,7 +2953,6 @@ Embed YouTube Links in iframe.
   :hook (prog-mode . org-link-minor-mode))
 #+END_SRC
 
-
 **** Org Bookmark
 :PROPERTIES:
 :ID:       B7904803-C4A6-439D-BD21-E449CF0B79F5
@@ -3120,8 +2974,8 @@ Embed YouTube Links in iframe.
 <<org-taskmgr-agenda>>
 ;; Org Pomodoro
 <<org-taskmgr-pomodoro>>
-;; Org Google Calendar
-<<org-taskmgr-gcal>>
+;; Calfw
+<<org-taskmgr-calfw>>
 ;; Org Counsel Clock
 <<org-taskmgr-coclock>>
 ;; Org Projectile
@@ -3259,7 +3113,7 @@ miscellaneous or arbitrary tasks.
     :commands (org-projectile-files-to-agenda)
     :demand t
     :bind (:map projectile-command-map
-		("C-c p n" . org-projectile-todo-completing-read))
+		("C-c p nn" . org-projectile-todo-completing-read))
     :init
     (defun org-projectile-files-to-agenda ()
       "Add org-projectile project files to org-agenda."
@@ -3304,6 +3158,104 @@ miscellaneous or arbitrary tasks.
 
 #+END_SRC
 
+**** Org Gcal :disabled:
+
+The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode integration with Google
+Calendar.
+
+#+NAME: org-taskmgr-gcal
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-gcal
+    :init
+  (require 'secrets)
+  (require 'org-gcal)
+  (defun org-agenda/gcal-sync ()
+    (org-gcal-sync))
+  :custom
+  (org-gcal-file-alist
+   '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/agenda/schedule.org")))
+  :hook
+  (org-agenda-mode . org-agenda/gcal-sync)
+  (org-capture-after-finalize . org-agenda/gcal-sync))
+
+#+END_SRC
+
+**** calfw
+
+#+NAME: org-taskmgr-calfw
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package calfw
+  :custom
+  (cfw:render-line-breaker 'cfw:render-line-breaker-wordwrap)
+  (cfw:display-calendar-holidays nil)
+  (cfw:fchar-junction ?╬)
+  (cfw:fchar-vertical-line ?║)
+  (cfw:fchar-horizontal-line ?═)
+  (cfw:fchar-left-junction ?╠)
+  (cfw:fchar-right-junction ?╣)
+  (cfw:fchar-top-junction ?╦)
+  (cfw:fchar-top-left-corner ?╔)
+  (cfw:fchar-top-right-corner ?╗)
+  :custom-face
+  (cfw:face-title              ((t (:foreground "#f0dfaf"
+                                    :weight bold
+                                    :height 2.0
+                                    :inherit variable-pitch))))
+
+  (cfw:face-header             ((t (:foreground "#d0bf8f"
+                                    :weight bold))))
+  (cfw:face-sunday             ((t :foreground "#cc9393"
+                                   :background "grey10"
+                                   :weight bold)))
+  (cfw:face-saturday           ((t :foreground "#8cd0d3"
+                                   :background "grey10"
+                                   :weight bold)))
+  (cfw:face-holiday            ((t :background "grey10"
+                                   :foreground "#8c5353"
+                                   :weight bold)))
+  (cfw:face-grid               ((t :foreground "DarkGrey")))
+  (cfw:face-default-content    ((t :foreground "#bfebbf")))
+  (cfw:face-periods            ((t :foreground "cyan")))
+  (cfw:face-day-title          ((t :background "grey10")))
+  (cfw:face-default-day        ((t :weight bold
+                                   :inherit cfw:face-day-title)))
+  (cfw:face-annotation         ((t :foreground "RosyBrown"
+                                   :inherit cfw:face-day-title)))
+  (cfw:face-disable            ((t :foreground "DarkGray"
+                                   :inherit cfw:face-day-title)))
+  (cfw:face-today-title        ((t :background "#7f9f7f" :weight bold)))
+  (cfw:face-today              ((t :background: "grey10" :weight bold)))
+  (cfw:face-select             ((t :background "#2f2f2f")))
+  (cfw:face-toolbar            ((t :foreground "Steelblue4"
+                                   :background "Steelblue4")))
+  (cfw:face-toolbar-button-off ((t (:foreground "Gray10"
+                                    :weight bold
+                                    :inherit (cfw:face-toolbar)))))
+  (cfw:face-toolbar-button-on  ((t :foreground "Gray50"
+                                   :weight bold
+                                   :inherit (cfw:face-toolbar)))))
+
+(use-package calfw-org
+  :demand t
+  :custom
+  (cfw:org-capture-template
+   '("c" "calfw2org" entry 
+     (file "agenda/schedule.org")
+     "*  %?\n %(cfw:org-capture-day)"))
+  :init
+  (require 'calfw)
+  (defun cfw:open-calendar ()
+   (interactive)
+   (let ((cp
+          (cfw:create-calendar-component-buffer
+           :view 'month
+           :contents-sources
+           (list 
+            (cfw:org-create-file-source
+             "schedule" "~/Dropbox/org/agenda/schedule.org" "Steelblue4")))))
+     (switch-to-buffer (cfw:cp-get-buffer cp)))))
+#+END_SRC
+
 **** Org Pomodoro
 :PROPERTIES:
 :ID:       3600535E-2C20-4E33-8572-E933319E87B3
@@ -3341,22 +3293,6 @@ miscellaneous or arbitrary tasks.
           org-pomodoro-long-break-sound-args "--volume 0.2"
           org-pomodoro-long-break-sound
           (org-pomodoro-path "Complete.wav"))))
-#+END_SRC
-
-**** Org Gcal
-
-The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode integration with Google
-Calendar.
-
-#+NAME: org-taskmgr-gcal
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-gcal
-    :init
-  (require 'secrets)
-  (require 'org-gcal)
-  :custom
-  (org-gcal-file-alist
-   '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/todos/gcal/TODOS.org"))))
 #+END_SRC
 
 **** Counsel Org Clock
@@ -3855,26 +3791,23 @@ This doesn't work... it just caches the project metadata for some reason.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Export Wrapper Block
 <<org-export-wrapper>>
-
 ;; Enabled on MacOS block
 <<org-export-enable-on-mac>>
-
 ;; Enable Extras
 <<org-export-ox-extra>>
-
+;; Org Publish
 <<org-export-publish>>
 
 ;; LaTeX backend
 ;; Only evaluate LaTeX package configurations if export dispatcher is enabled
 (when (halidom/org-export-enabled-backend-p 'latex)
-
-  ;; LaTeX Configuration
+  ;; LaTeX
   <<latex-config>>
-  ;; End LaTeX Config
+  ;; End LaTeX
 
   ;; Org LaTeX
   <<org-latex-config>>
-  ;; End Org Latex Expansion
+  ;; End Org Latex
 
   ;; Ox Latex
   <<org-export-latex>>
@@ -4034,13 +3967,14 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
                           halidom-latex-pdf-engines)))
          (cmd-string (cdr process)))
     (setq org-latex-pdf-process (symbol-value cmd-string))
+    (setq org-latex-compiler (car process))
     (run-hooks 'org-latex-pdf-process-set-hook)))
 
 
 (add-hook 'org-mode-hook
           (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
 
-(defvar org-latex-pdf-process-set-hook nil)
+
 #+END_SRC
 
 **** Prefer user provided labeling system
@@ -4097,46 +4031,27 @@ The default cross-referencing and hyperlink styles provided by
 
 #+NAME: org-export-latex-custom-classes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-
-<<org-export-latex-orgling>>
-<<org-export-latex-lingsyn-class>>
-<<org-export-latex-uclacs>>
-<<org-export-latex-humanities-class>>
-<<org-export-latex-article-no-packages>>
-
+;; Org Ling
+<<ox-class/orgling>>
+;; UCLA CS
+<<ox-class/uclacs>>
+;; Humanities
+<<org-class/humanities>>
+;; Article No Default Packages
+<<ox-class/article-standalone>>
+;; Unicode math
 #+END_SRC
 
-***** Org Per File Class
+***** Article no default packages
 
-Adds a class for exporting to pdf using latex backend without
-importing the default =ox-latex= packages. This allows the export
-settings of a particular file to be completely insulated from most
-external configuration.
-
-#+NAME: org-export-latex-per-file-class
+#+NAME: ox-class/article-standalone
 #+BEGIN_SRC emacs-lisp :tangle no
 (add-to-list 'org-latex-classes
-             '("per-file-class"
-               "\\documentclass{scrartcl}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-***** Article no packages
-
-#+NAME: org-export-latex-artcile-no-packages
-#+BEGIN_SRC emacs-lisp :tangle no
-(add-to-list 'org-latex-classes
-	     '("article-no-defaults"                          ;class-name
+	     '("article-standalone"
 	       "\\documentclass{article}
-               [NO-DEFAULT-PACKAGES]
-               [PACKAGES]
-               [EXTRA]" ;;header-string
+          [NO-DEFAULT-PACKAGES]
+          [PACKAGES]
+          [EXTRA]" ;; header-string
 	       ("\\section{%s}" . "\\section*{%s}")
 	       ("\\subsection{%s}" . "\\subsection*a{%s}")
 	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -4144,27 +4059,9 @@ external configuration.
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Humanities
-
-My custom mla-style LaTeX class.
-
-#+NAME: org-export-latex-humanities-class
-#+BEGIN_SRC emacs-lisp :tangle no
-(add-to-list 'org-latex-classes
-             '("humanities"
-               "\\documentclass{humanities}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
 ***** Orgling
 
-#+NAME: org-export-latex-orgling
+#+NAME: ox-class/orgling
 #+BEGIN_SRC emacs-lisp :tangle no
 (if (and (executable-find "kpsewhich")
          (shell-command-to-string "kpsewhich orgling.cls"))
@@ -4181,8 +4078,10 @@ My custom mla-style LaTeX class.
                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
 #+END_SRC
 
-***** UCLA CS Class
-#+NAME: org-export-latex-uclacs
+
+***** UCLA CS
+
+#+NAME: ox-class/uclacs
 #+BEGIN_SRC emacs-lisp :tangle no
 (add-to-list 'org-latex-classes
              '("uclacs"
@@ -4196,12 +4095,15 @@ My custom mla-style LaTeX class.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Resume
+***** Humanities
 
+My custom mla-style LaTeX class.
+
+#+NAME: ox-class/humanities
 #+BEGIN_SRC emacs-lisp :tangle no
 (add-to-list 'org-latex-classes
-             '("resume"
-               "\\documentclass{resume}
+             '("humanities"
+               "\\documentclass{humanities}
                 [NO-DEFAULT-PACKAGES]
                 [EXTRA]"
                ("\\section{%s}" . "\\section*{%s}")
@@ -4209,12 +4111,31 @@ My custom mla-style LaTeX class.
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+END_SRC
 
+***** Unicode Math
+#+NAME: ox-class/unicode-math
+#+BEGIN_SRC emacs-lisp :tangle no
 (add-to-list 'org-latex-classes
-             '("playground"
-               "\\documentclass{playground}
+             '("unicode-math"
+               "\\documentclass{article}
+                [PACKAGES]
                 [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
+                [EXTRA]
+                \\usepackage{amsmath}
+                \\usepackage{xltxtra}
+                \\usepackage{unicode-math}
+                \\setmathfont{STIX2Math}[
+                  Path/Users/jacobchaffin/Library/Fonts/,
+                  Extension={.otf},
+                  Scale=1]
+                \\setmainfont{STIX2Text}[
+                  Path/Users/jacobchaffin/Library/Fonts/,
+                  Extension={.otf},
+                  UprightFont={*-Regular},
+                  BoldFont={*-Bold},
+                  ItalicFont={*-Italic},
+                  BoldItalicFont={*-BoldItalic}]"
                ("\\section{%s}" . "\\section*{%s}")
                ("\\subsection{%s}" . "\\subsection*{%s}")
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -4928,7 +4849,8 @@ different window configurations.
 #+NAME: popwin-config
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package popwin
-  :config (popwin-mode 1))
+    :config
+  (popwin-mode 1))
 #+END_SRC
 
 **** Poporg
@@ -4948,23 +4870,24 @@ different window configurations.
 
 **** Purpose
 
+#+NAME: purpose
 #+BEGIN_SRC emacs-lisp :tangle no
+(use-package window-purpose)
+
 (use-package ivy-purpose
-  :after (purpose)
-  :init
-  (ivy-purpose-setup)
-  :config
-  (progn
-    (setq pop-up-frames t) ;; allow Emacs to popup new frames
+    :custom (pop-up-frames t)
+    :after (window-purpose)
+    :init
+    (ivy-purpose-setup)
+    :config
     ;; give help buffers the 'popup-frame purpose
     (add-to-list 'purpose-user-mode-purposes
-                 '(help-mode . popup-frame))
+                '(help-mode . popup-frame))
     (add-to-list 'purpose-special-action-sequences
                  '(popup-frame
                    purpose-display-reuse-window-buffer
                    purpose-display-reuse-window-purpose
                    purpose-display-pop-up-frame)))
-  )
 #+END_SRC
 
 **** Perspective
@@ -4972,19 +4895,20 @@ different window configurations.
 #+NAME: persp-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Perspective
-<<persp-perspective>>
+<<persp/perspective>>
 ;: Persp Projectile
-<<persp-projectile>>
+<<persp/projectile>>
 #+END_SRC
 
-#+NAME: persp-perspective
+
+#+NAME: persp/perspective
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package perspective)
 #+END_SRC
 
-****** Perspective Projectile
+***** Persp Projectile
 
-#+NAME: persp-projectile
+#+NAME: persp/projectile
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package persp-projectile
   :after (:all projectile counsel-projectile perspective)
@@ -5419,7 +5343,7 @@ This disables Emacs asking questions about loading a new theme.
 
 (defun halidom/load-theme-with-frame (frame)
   (with-selected-frame frame
-    (if-not (daemonp)
+    (unless (daemonp)
       (halidom/load-theme))))
 
 (defun halidom--toggle-theme-style ()
@@ -6044,8 +5968,7 @@ any reason for me reconsider my choice.
 
 *** Company Quick Help
 
-[[https://github.com/expez/company-quickhelp][Company Quick Help]] emulates =autocomplete= documentation-on-idle behavior, but using the
-less-buggy =pos-tip= package rather than =popup-el=.
+[[https://github.com/expez/company-quickhelp][Company Quick Help]] emulates =autocomplete= documentation-on-idle behavior, but using the less-buggy =pos-tip= package rather than =popup-el=.
 
 #+NAME: company-doc
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6109,7 +6032,7 @@ directory to the list of directories where YASnippet should look for snippets.
           ("s" . goto-snippet-dir))
 
     :init
-    (defvar snippet-directory (emacs-etc-dir "snippets")
+    (defvar snippet-directory (emacs-etc-dir "yasnippet" "snippets")
       "Directory for yasnippets.")
 
     (defun goto-snippet-dir ()
@@ -6261,6 +6184,7 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
   (ivy-initial-inputs-alist nil)
   (ivy-sort-max-size 50000)
   (ivy-re-builders-alist '((t . ivy--regex-plus)))
+  (ivy-use-selectable-prompt t)
 
   :config
   (ivy-mode 1)
@@ -6532,11 +6456,11 @@ documentation browser.
 
 #+NAME: mb-swiper
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (use-package swiper
-  :bind
-  (("\C-s" . swiper)))
-
+    :custom
+    (enable-recursive-minibuffers t)
+    :bind
+    ("\C-s" . swiper))
 #+END_SRC
 
 *** Smex
@@ -8773,7 +8697,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 (when *is-mac*
   (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy
                         'java 'javascript 'markdown 'scala 'python
-                        'ruby 'web))
+                        'ocaml 'ruby 'web))
 
 #+END_SRC
 
@@ -10333,6 +10257,116 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
     (add-to-hooks #'yard-mode '(ruby-mode-hook enh-ruby-mode-hook))
     (add-to-hooks #'eldoc-mode '(ruby-mode-hook enh-ruby-mode-hook)))
 
+#+END_SRC
+
+*** Ocaml
+
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+;; Begin Ocaml
+(when (halidom/proglang-enabled-p 'ocaml)
+  ;; Merlin
+  <<ocaml/merlin>>
+  ;; Tuareg
+  <<ocaml/tuareg>>
+  ;; Reason Mode
+  <<ocaml/reason>>
+  ;; Caml mode
+  <<ocaml/caml>>
+  ;; Lsp mode
+  <<ocaml/lsp>>
+  ;; Setup LSP
+  <<ocaml/setup>>
+) ;; End Ocaml
+#+END_SRC
+
+
+**** Merlin
+
+#+NAME: ocaml/merlin
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package merlin
+  :custom
+  (merlin-command 'opam)
+  :init
+  (defun ocaml/merlin ()
+    "Enable merlin mode."
+    (if (functionp 'merlin-mode)
+        (merlin-mode))))
+#+END_SRC
+
+**** Tuareg
+
+#+NAME: ocaml/tuareg
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package tuareg
+  :init
+  (defun tuareg/prettify-symbols ()
+    "Enable `prettify-symbols-mode' for `tuareg-mode'."
+    (when (functionp 'prettify-symbols-mode)
+      (prettify-symbols-mode)))
+
+  (defun tuareg/lsp ()
+    "Enable `lsp-ocaml' for `tuareg-mode'."
+    (when (functionp 'ocaml/setup-lsp)
+      (ocaml/setup-lsp)))
+
+  :hook
+  (tuareg-mode . tuareg/prettify-symbols)
+  (tuareg-mode . tuareg/lsp)
+  (tuareg-mode . ocaml/merlin))
+
+#+END_SRC
+
+**** Reason Mode
+
+#+NAME: ocaml/reason
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package reason-mode
+  :init
+  (defun reason/lsp ()
+    (when (functionp 'ocaml/setup-lsp)
+      (ocaml/setup-lsp)))
+  :hook
+  (reason . reason/lsp)
+  (reason . ocaml/merlin))
+#+END_SRC
+
+**** Caml mode
+
+#+NAME: ocaml/caml
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package caml
+  :init
+
+  (defun caml/lsp ()
+    (when (functionp 'ocaml/setup-lsp)
+      (ocaml/setup-lsp)))
+
+  :hook
+  (caml . caml/lsp)
+  (caml . ocaml/merlin))
+#+END_SRC
+
+**** Lsp Ocaml
+
+#+NAME: ocaml/lsp
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-ocaml
+  :ensure-system-package
+  (ocaml-language-server . "yarn global add ocaml-language-server")
+  :commands lsp-ocaml-enable)
+
+
+#+END_SRC
+
+**** Setup Ocaml
+
+#+NAME: ocaml/setup
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun ocaml/setup-lsp ()
+  (require 'lsp-mode)
+  (require 'lsp-ocaml)
+  (lsp-ocaml-enable))
 #+END_SRC
 
 *** Scala

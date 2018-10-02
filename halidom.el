@@ -996,11 +996,10 @@ that is a member of `read-only-directories'."
     :defines (org-download-image-dir)
     :commands (org-download-enable  org-download-yank org-download-screenshot)
     :init
-    (progn
-      (when *is-mac*
-        (setq-default org-download-image-dir "~/Dropbox/org/img/"))
-      (add-hook  'org-mode-hook 'org-download-enable)
-      (add-hook 'dired-mode-hook 'org-download-enable)))
+    (when *is-mac*
+      (setq-default org-download-image-dir "~/Dropbox/org/img/"))
+    :hook
+    ((dired-mode org-mode) . org-download-enable))
   ;; Org Links
   ;; Org Tags
    (defun halidom/tag-link (tag)
@@ -1125,9 +1124,86 @@ that is a member of `read-only-directories'."
       :init
     (require 'secrets)
     (require 'org-gcal)
+    (defun org-agenda/gcal-sync ()
+      (org-gcal-sync))
     :custom
     (org-gcal-file-alist
-     '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/todos/gcal/TODOS.org"))))
+     '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/agenda/schedule.org")))
+    :hook
+    (org-agenda-mode . org-agenda/gcal-sync)
+    (org-capture-after-finalize . org-agenda/gcal-sync))
+  
+  ;; Calfw
+  (use-package calfw
+    :custom
+    (cfw:render-line-breaker 'cfw:render-line-breaker-wordwrap)
+    (cfw:display-calendar-holidays nil)
+    (cfw:fchar-junction ?╬)
+    (cfw:fchar-vertical-line ?║)
+    (cfw:fchar-horizontal-line ?═)
+    (cfw:fchar-left-junction ?╠)
+    (cfw:fchar-right-junction ?╣)
+    (cfw:fchar-top-junction ?╦)
+    (cfw:fchar-top-left-corner ?╔)
+    (cfw:fchar-top-right-corner ?╗)
+    :custom-face
+    (cfw:face-title              ((t (:foreground "#f0dfaf"
+                                      :weight bold
+                                      :height 2.0
+                                      :inherit variable-pitch))))
+  
+    (cfw:face-header             ((t (:foreground "#d0bf8f"
+                                      :weight bold))))
+    (cfw:face-sunday             ((t :foreground "#cc9393"
+                                     :background "grey10"
+                                     :weight bold)))
+    (cfw:face-saturday           ((t :foreground "#8cd0d3"
+                                     :background "grey10"
+                                     :weight bold)))
+    (cfw:face-holiday            ((t :background "grey10"
+                                     :foreground "#8c5353"
+                                     :weight bold)))
+    (cfw:face-grid               ((t :foreground "DarkGrey")))
+    (cfw:face-default-content    ((t :foreground "#bfebbf")))
+    (cfw:face-periods            ((t :foreground "cyan")))
+    (cfw:face-day-title          ((t :background "grey10")))
+    (cfw:face-default-day        ((t :weight bold
+                                     :inherit cfw:face-day-title)))
+    (cfw:face-annotation         ((t :foreground "RosyBrown"
+                                     :inherit cfw:face-day-title)))
+    (cfw:face-disable            ((t :foreground "DarkGray"
+                                     :inherit cfw:face-day-title)))
+    (cfw:face-today-title        ((t :background "#7f9f7f" :weight bold)))
+    (cfw:face-today              ((t :background: "grey10" :weight bold)))
+    (cfw:face-select             ((t :background "#2f2f2f")))
+    (cfw:face-toolbar            ((t :foreground "Steelblue4"
+                                     :background "Steelblue4")))
+    (cfw:face-toolbar-button-off ((t (:foreground "Gray10"
+                                      :weight bold
+                                      :inherit (cfw:face-toolbar)))))
+    (cfw:face-toolbar-button-on  ((t :foreground "Gray50"
+                                     :weight bold
+                                     :inherit (cfw:face-toolbar)))))
+  
+  (use-package calfw-org
+    :demand t
+    :custom
+    (cfw:org-capture-template
+     '("c" "calfw2org" entry 
+       (file "agenda/schedule.org")
+       "*  %?\n %(cfw:org-capture-day)"))
+    :init
+    (require 'calfw)
+    (defun cfw:open-calendar ()
+     (interactive)
+     (let ((cp
+            (cfw:create-calendar-component-buffer
+             :view 'month
+             :contents-sources
+             (list 
+              (cfw:org-create-file-source
+               "schedule" "~/Dropbox/org/agenda/schedule.org" "Steelblue4")))))
+       (switch-to-buffer (cfw:cp-get-buffer cp)))))
   ;; Org Counsel Clock
   (use-package counsel-org-clock
     :straight (:host github
@@ -1137,8 +1213,9 @@ that is a member of `read-only-directories'."
     (use-package org-projectile
       :after (projectile)
       :commands (org-projectile-files-to-agenda)
+      :demand t
       :bind (:map projectile-command-map
-  		("C-c p n" . org-projectile-todo-completing-read))
+  		("C-c p nn" . org-projectile-todo-completing-read))
       :init
       (defun org-projectile-files-to-agenda ()
         "Add org-projectile project files to org-agenda."
@@ -1215,14 +1292,12 @@ that is a member of `read-only-directories'."
   
   (defun halidom/org-export-enabled-backend-p (backend)
     (member backend org-export-enabled-backends))
-  
   ;; Enabled on MacOS block
   (when *is-mac*
     (mapcar (lambda (backend)
               (setq org-export-enabled-backends
                     (cons backend org-export-enabled-backends)))
             '(extra gfm latex hugo html pandoc linguistics)))
-  
   ;; Enable Extras
   (use-package ox-extra
     :straight org
@@ -1230,7 +1305,7 @@ that is a member of `read-only-directories'."
     :config
     (ox-extras-activate '(ignore-headlines
                           org-export-filter-parse-tree-functions)))
-  
+  ;; Org Publish
   (use-package ox-publish
     :straight org
     :after (ox)
@@ -1240,8 +1315,7 @@ that is a member of `read-only-directories'."
   ;; LaTeX backend
   ;; Only evaluate LaTeX package configurations if export dispatcher is enabled
   (when (halidom/org-export-enabled-backend-p 'latex)
-  
-    ;; LaTeX Configuration
+    ;; LaTeX
     ;; AucTeX
     (use-package auctex
       :bind (:map LaTeX-mode-map
@@ -1473,6 +1547,7 @@ that is a member of `read-only-directories'."
     (use-package latex-preview-pane
         :after (:all pdf-tools tex)
         :init (latex-preview-pane-enable))
+    ;; Clear Cache
     (defun org-preview-clear-cache ()
       (interactive)
       (let ((preview-cache
@@ -1480,156 +1555,11 @@ that is a member of `read-only-directories'."
         (if (f-directory? preview-cache)
             (f-delete preview-cache t)
           (message "%s" "Directory 'ltximg' does not exist."))))
-    (setq org-format-xelatex-header
-          "\\documentclass{article}
-            \\usepackage[usenames]{xcolor}
-            [PACKAGES]
-            [NO-DEFAULT-PACKAGES]
-            \\pagestyle{empty}             % do not remove
-            \\usepackage{amsmath}
-            \\usepackage{fontspec}
-            \\usepackage{unicode-math}
-            \\setromanfont[Ligatures=TeX]{Latin Modern Roman}
-            \\setmathfont[math-style=ISO,bold-style=ISO]{Latin Modern Math}
-            % The settings below are copied from fullpage.sty
-            \\setlength{\\textwidth}{\\paperwidth}
-            \\addtolength{\\textwidth}{-3cm}
-            \\setlength{\\oddsidemargin}{1.5cm}
-            \\addtolength{\\oddsidemargin}{-2.54cm}
-            \\setlength{\\evensidemargin}{\\oddsidemargin}
-            \\setlength{\\textheight}{\\paperheight}
-            \\addtolength{\\textheight}{-\\headheight}
-            \\addtolength{\\textheight}{-\\headsep}
-            \\addtolength{\\textheight}{-\\footskip}
-            \\addtolength{\\textheight}{-3cm}
-            \\setlength{\\topmargin}{1.5cm}
-            \\addtolength{\\topmargin}{-2.54cm}
+    ;; xelateX preview (disabled)
+    ;; lualatex preview (disabled)
+    ;; Preview Format
     
-            % some defaults based on personal preference
-            \\usepackage{adjustbox}
-            \\usepackage[linguistics,edges]{forest}")
-    
-    ;;; XeTex preview
-    (setq org-preview-xemagick
-          '(xemagick
-            :programs ("xelatex" "convert")
-            :description ("xelatex" "convert")
-            :message "You need to install xelatex and imagemagick"
-            :use-xcolor t
-            :image-input-type "pdf"
-            :image-output-type "png"
-            :image-size-adjust (1.0 . 1.0)
-            :latex-compiler ("xelatex -interaction nonstopmode -output-directory %o %f")
-            :image-converter  ("convert -density %D -trim -antialias %f -quality 200 %O")))
-    
-    
-    (add-to-list 'org-preview-latex-process-alist org-preview-xemagick)
-    
-    (defun org-preview-xemagick-fragments ()
-      (org-element-map (org-element-parse-buffer) 'keyword
-        (lambda (keyword)
-          (if (string= "xelatex" (org-element-property :value keyword))
-              (progn
-                (message "%s\n" "Using xelatex format header")
-                (set (make-local-variable 'org-format-latex-header)
-                     org-format-xelatex-header)
-                (set (make-local-variable 'org-preview-latex-default-process)
-                     'xemagick)))) nil t))
-    
-    (add-hook 'org-mode-hook #'org-preview-xemagick-fragments)
-    (setq org-preview-luamagick
-          '(luamagick
-            :programs ("lualatex" "convert")
-            :description "pdf > png"
-            :message "you need to install lualatex and imagemagick."
-            :use-xcolor t
-            :image-input-type "pdf"
-            :image-output-type "png"
-            :image-size-adjust (1.0 . 1.0)
-            :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
-            :image-converter ("convert -density %D -trim -antialias %f -quality 200 %O")))
-    
-    (add-to-list 'org-preview-latex-process-alist org-preview-luamagick)
-    
-    (defun org-preview-luamagick-fragments ()
-      (org-element-map (org-element-parse-buffer) 'keyword
-        (lambda (keyword)
-          (if (string= "uclacs" (org-element-property :value keyword))
-              (progn
-                (message "%s\n" "Using custom preview header for uclacs LaTeX class.")
-                (set (make-local-variable 'org-format-latex-header)
-                     org-format-lualatex-header)
-                (set (make-local-variable 'org-preview-latex-default-process)
-                     'luamagick)))) nil t))
-    
-    (setq org-format-lualatex-header
-          "\\documentclass{article}
-            \\usepackage[usenames,dvipsnames,svgnames]{xcolor}
-            [PACKAGES]
-            [DEFAULT-PACKAGES]
-            \\pagestyle{empty}             % do not remove
-            \\usepackage{amsmath}
-            \\usepackage{fontspec}
-            \\usepackage{unicode-math}
-            \\usepackage{hologo}
-            \\setmathfont{STIX2Math}[
-              Extension={.otf},
-              Scale=1]
-            \\setmainfont{STIX2Text}[
-              Extension={.otf},
-              UprightFont={*-Regular},
-              BoldFont={*-Bold},
-              ItalicFont={*-Italic},
-            BoldItalicFont={*-BoldItalic}]
-            % The settings below are copied from fullpage.sty
-            \\setlength{\\textwidth}{\\paperwidth}
-            \\addtolength{\\textwidth}{-3cm}
-            \\setlength{\\oddsidemargin}{1.5cm}
-            \\addtolength{\\oddsidemargin}{-2.54cm}
-            \\setlength{\\evensidemargin}{\\oddsidemargin}
-            \\setlength{\\textheight}{\\paperheight}
-            \\addtolength{\\textheight}{-\\headheight}
-            \\addtolength{\\textheight}{-\\headsep}
-            \\addtolength{\\textheight}{-\\footskip}
-            \\addtolength{\\textheight}{-3cm}
-            \\setlength{\\topmargin}{1.5cm}
-            \\addtolength{\\topmargin}{-2.54cm}
-            % The settings below are copied from ucla.cls
-    
-            \\usepackage[algoruled,linesnumbered]{algorithm2e}
-            \\SetKwInOut{Input}{Input}
-            \\SetKwInOut{Output}{Output}
-            \\SetKwProg{proc}{Procedure}{}{}
-            \\newcommand{\\forcond}[3]{$#1=#2$ \\KwTo $#3$}
-            \\newcommand{\\forcondi}[2]{\\forcond{i}{#1}{#2}}
-            \\newcommand{\\forcondj}[2]{\\forcond{j}{#1}{#2}}
-            \\usepackage{etoolbox}
-             \\usepackage{adjustbox}
-             \\usepackage{forest}
-             \\forestset{
-               default preamble={%
-                 for tree={circle,draw, l sep=2mm}%
-               }%
-             }%")
-    
-    
-    (add-to-list 'org-preview-latex-process-alist org-preview-luamagick)
-    
-    (defun org-preview--complement-bg ()
-      (with-eval-after-load 'color
-        (substring
-           (apply #'color-rgb-to-hex
-             (color-complement
-          	   (frame-parameter nil 'background-color))) 0 7)))
-    
-    ;; (setq org-format-latex-options
-    ;;       (plist-put org-format-latex-options
-    ;;                  :background nil))
-    
-    ;; (setq org-format-latex-options
-    ;;       (plist-put org-format-latex-options
-    ;;                  :foreground (org-preview--complement-bg)))
-    
+    ;; Preview Justify
     ;; specify the justification you want
     (require 'ov)
     (plist-put org-format-latex-options :justify 'center)
@@ -1680,7 +1610,7 @@ that is a member of `read-only-directories'."
       :commands texinfo-mode
       :mode
       ("\\.texi\\'" . texinfo-mode))
-    ;; End LaTeX Config
+    ;; End LaTeX
   
     ;; Org LaTeX
     (use-package org-edit-latex
@@ -1820,7 +1750,7 @@ that is a member of `read-only-directories'."
                                      (lambda (file link)
                                        (org-pdfview-open link))))))))
     )
-    ;; End Org Latex Expansion
+    ;; End Org Latex
   
     ;; Ox Latex
     (require 'ox-latex)
@@ -1886,14 +1816,15 @@ that is a member of `read-only-directories'."
                               halidom-latex-pdf-engines)))
              (cmd-string (cdr process)))
         (setq org-latex-pdf-process (symbol-value cmd-string))
+        (setq org-latex-compiler (car process))
         (run-hooks 'org-latex-pdf-process-set-hook)))
     
     
     (add-hook 'org-mode-hook
               (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
     
-    (defvar org-latex-pdf-process-set-hook nil)
     
+    ;; Org Ling
     (if (and (executable-find "kpsewhich")
              (shell-command-to-string "kpsewhich orgling.cls"))
     
@@ -1907,7 +1838,7 @@ that is a member of `read-only-directories'."
                        ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                        ("\\paragraph{%s}" . "\\paragraph*{%s}")
                      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
-    
+    ;; UCLA CS
     (add-to-list 'org-latex-classes
                  '("uclacs"
                    "\\documentclass{uclacs}
@@ -1918,18 +1849,20 @@ that is a member of `read-only-directories'."
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+    ;; Humanities
+    
+    ;; Article No Default Packages
     (add-to-list 'org-latex-classes
-                 '("humanities"
-                   "\\documentclass{humanities}
-                    [NO-DEFAULT-PACKAGES]
-                    [EXTRA]"
-                   ("\\section{%s}" . "\\section*{%s}")
-                   ("\\subsection{%s}" . "\\subsection*{%s}")
-                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-    
-    
+    	     '("article-standalone"
+    	       "\\documentclass{article}
+              [NO-DEFAULT-PACKAGES]
+              [PACKAGES]
+              [EXTRA]" ;; header-string
+    	       ("\\section{%s}" . "\\section*{%s}")
+    	       ("\\subsection{%s}" . "\\subsection*a{%s}")
+    	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+    	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
+    	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
   ) ;; End LaTeX Backend
   
   ;; BibTeX backend
@@ -2117,7 +2050,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
     :bind-keymap
     ("C-c p" . projectile-command-map)
     :custom
-    (project,ile-completion-system 'ivy)
+    (projectile-completion-system 'ivy)
     (projectile-switch-project-action #'projectile-dired)
     (projectile-find-dir-includes-top-level t)
     (projectile-indexing-method 'alien)
@@ -2361,7 +2294,8 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
     (winner-mode 1)))
 
 (use-package popwin
-  :config (popwin-mode 1))
+    :config
+  (popwin-mode 1))
 
 (use-package poporg
       :bind (("C-c /" . poporg-dwim)))
@@ -2578,7 +2512,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
 
 (defun halidom/load-theme-with-frame (frame)
   (with-selected-frame frame
-    (if-not (daemonp)
+    (unless (daemonp)
       (halidom/load-theme))))
 
 (defun halidom--toggle-theme-style ()
@@ -2940,7 +2874,7 @@ Options are 'spaceline, 'sml, and 'powerline."
           ("s" . goto-snippet-dir))
 
     :init
-    (defvar snippet-directory (emacs-etc-dir "snippets")
+    (defvar snippet-directory (emacs-etc-dir "yasnippet" "snippets")
       "Directory for yasnippets.")
 
     (defun goto-snippet-dir ()
@@ -3025,6 +2959,7 @@ Options are 'spaceline, 'sml, and 'powerline."
   (ivy-initial-inputs-alist nil)
   (ivy-sort-max-size 50000)
   (ivy-re-builders-alist '((t . ivy--regex-plus)))
+  (ivy-use-selectable-prompt t)
 
   :config
   (ivy-mode 1)
@@ -3211,11 +3146,11 @@ replacements. "
 (use-package counsel-codesearch
     :requires codesearch)
 ;; Swiper
-
 (use-package swiper
-  :bind
-  (("\C-s" . swiper)))
-
+    :custom
+    (enable-recursive-minibuffers t)
+    :bind
+    ("\C-s" . swiper))
 ;; Smex
 (use-package smex
   :after (ivy)
@@ -4003,6 +3938,7 @@ This works by frobbing `face-remapping-alist'."
     (setq face-remapping-alist nil)))
 
 
+
 (defvar-local org-use-variable-pitch nil)
 ;; (when (local-variable-if-set-p 'org-use-variable-pitch)
 ;;   (add-hook 'org-mode-hook #'org-toggle-variable-pitch))
@@ -4456,7 +4392,7 @@ yunmodified magit buffers will be killed without confirming."
 (when *is-mac*
   (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy
                         'java 'javascript 'markdown 'scala 'python
-                        'ruby 'web))
+                        'ocaml 'ruby 'web))
 
 ;; Begin conf Group
 ;; Nginx
@@ -5547,6 +5483,69 @@ it's the only one of the three I've gotten to work so far."
       (add-to-hooks #'yard-mode '(ruby-mode-hook enh-ruby-mode-hook))
       (add-to-hooks #'eldoc-mode '(ruby-mode-hook enh-ruby-mode-hook)))
    ) ;; End Ruby
+
+;; Begin Ocaml
+(when (halidom/proglang-enabled-p 'ocaml)
+  ;; Merlin
+  (use-package merlin
+    :custom
+    (merlin-command 'opam)
+    :init
+    (defun ocaml/merlin ()
+      "Enable merlin mode."
+      (if (functionp 'merlin-mode)
+          (merlin-mode))))
+  ;; Tuareg
+  (use-package tuareg
+    :init
+    (defun tuareg/prettify-symbols ()
+      "Enable `prettify-symbols-mode' for `tuareg-mode'."
+      (when (functionp 'prettify-symbols-mode)
+        (prettify-symbols-mode)))
+  
+    (defun tuareg/lsp ()
+      "Enable `lsp-ocaml' for `tuareg-mode'."
+      (when (functionp 'ocaml/setup-lsp)
+        (ocaml/setup-lsp)))
+  
+    :hook
+    (tuareg-mode . tuareg/prettify-symbols)
+    (tuareg-mode . tuareg/lsp)
+    (tuareg-mode . ocaml/merlin))
+  
+  ;; Reason Mode
+  (use-package reason-mode
+    :init
+    (defun reason/lsp ()
+      (when (functionp 'ocaml/setup-lsp)
+        (ocaml/setup-lsp)))
+    :hook
+    (reason . reason/lsp)
+    (reason . ocaml/merlin))
+  ;; Caml mode
+  (use-package caml
+    :init
+  
+    (defun caml/lsp ()
+      (when (functionp 'ocaml/setup-lsp)
+        (ocaml/setup-lsp)))
+  
+    :hook
+    (caml . caml/lsp)
+    (caml . ocaml/merlin))
+  ;; Lsp mode
+  (use-package lsp-ocaml
+    :ensure-system-package
+    (ocaml-language-server . "yarn global add ocaml-language-server")
+    :commands lsp-ocaml-enable)
+  
+  
+  ;; Setup LSP
+  (defun ocaml/setup-lsp ()
+    (require 'lsp-mode)
+    (require 'lsp-ocaml)
+    (lsp-ocaml-enable))
+) ;; End Ocaml
 
 ;; Begin Scala
 (when (halidom/proglang-enabled-p 'scala)

@@ -94,6 +94,8 @@
        (straight-use-package 'bind-key)
        ;; Now clone the `use-package' library
        (straight-use-package 'use-package)
+       ;; Enable the `:ensure-system-package' keyword
+       (straight-use-package 'use-package-ensure-system-package)
        ;; lazy load by default
        (setq use-package-always-defer t)
        ;; Straight integration of `use-package'.
@@ -167,12 +169,13 @@
                  org-confirm-babel-evaluate nil
                  org-src-preserve-indentation t)
 
+           (setq org-agenda-inhibit-startup t)
+
            (defun chaffin--unbind-org-mode-map-keys ()
              ;; Conflicts with `ivy-resume'
              (define-key org-mode-map (kbd "C-c C-r") nil))
 
            (add-hook 'org-mode-hook 'chaffin--unbind-org-mode-map-keys)))
-
 
 
        ;; Literate
