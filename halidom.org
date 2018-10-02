@@ -8975,11 +8975,10 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package llvm-mode
     :straight nil
-    :load-path "~/.emacs.d/opt/llvm-mode"
+    :load-path "~/.emacs.d/etc/local/llvm-mode"
     :init
     (require 'llvm-mode)
     (require 'tablegen-mode))
-
 #+END_SRC
 
 **** Clangd
