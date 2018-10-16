@@ -1,0 +1,9 @@
+# -*- mode: org-mode -*-
+# name: org-problem
+# key: <sew
+# --
+
+#+BEGIN_problem
+$1
+#+END_problem
+

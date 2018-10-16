@@ -1,0 +1,7 @@
+# -*- mode: org-mode -*-
+# name: org-special
+# key: beg
+# --
+#+BEGIN_$1
+$2
+#+END_$1

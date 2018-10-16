@@ -56,6 +56,7 @@
 
 (defalias #'straight-disabled-cli (apply-partially #'feature-disabled--cli "--no-straight"))
 (defalias #'literate-disabled-cli (apply-partially #'feature-disabled--cli "--no-literate"))
+(defalias #'server-disabled-cli   (apply-partially #'feature-disabled--cli "--no-server"))
 
 (defun feature-disabled--env (var)
   (let ((env (getenv var)))
@@ -63,6 +64,7 @@
 
 (defun straight-disabled-env () (feature-disabled--env "HALIDOM_NO_STRAIGHT"))
 (defun literate-disabled-env () (feature-disabled--env "HALIDOM_NO_LITERATE"))
+(defun server-disabled-env  ()  (feature-disabled--env "HALIDOM_NO_SERVER"))
 
 (defun feature-check (env-func cli-func)
   (let ((env-disabled (funcall env-func))
@@ -71,7 +73,7 @@
 
 (defun check-straight () (feature-check #'straight-disabled-env #'straight-disabled-cli))
 (defun check-literate () (feature-check #'literate-disabled-env #'literate-disabled-cli))
-
+(defun check-server   () (feature-check #'server-disabled-env   #'server-disabled-cli))
 
 (defvar use-straight-p (check-straight)
   "If non-nil, inhibit package.el and use straight.el as the default package manager.
@@ -84,5 +86,12 @@ a positive numerical value.")
 This variable is non-nil by default. To set to nil, either pass `--no-literate' as a
 command line argument at startup, or set the environment variable `HALIDOM_NO_LITERATE' to
 a positive numerical value.")
+
+(defvar use-server-p (check-server)
+  "If non-nil, don't start the server at initializiation. The default behavior is
+to start a server process at '~/.emacs.d/etc/server/server'. This allows Org Protocol Handler.app 
+to work properly. To disable this feature, either pass `--no-server' as a command line
+argument in the terminal, or set the environment variable `HALIDOM_NO_SERVER' to a positive
+number.")
 
 ;;; early-init.el ends here

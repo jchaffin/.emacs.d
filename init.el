@@ -138,45 +138,50 @@
 
        (straight-use-package 'org-plus-contrib)
        ;; [[id:C2106106-C5F8-4B9B-815D-058678CB9242][Org Mode]]
+
        (use-package org
+	       :init
+	       (defun halidom/resolve-org-ivy-conflict ()
+           ;; Conflicts with `ivy-resume'
+           (define-key org-mode-map (kbd "C-c C-r") nil))
+
+         :custom
+         (org-startup-indented t)
+         (org-ellipsis "  ") ;; folding symbol
+         (org-insert-heading-respect-content t)
+         (org-pretty-entities t)
+         (org-hide-emphasis-markers t)
+         (org-fontify-whole-heading-line t)
+         (org-fontify-done-headline t)
+         (org-fontify-quote-and-verse-blocks t)
+         (org-src-fontify-natively t)
+         (org-confirm-babel-evaluate nil)
+
+
          :bind
-         (("C-c a" . org-agenda)
-          ("C-c c" . org-capture)
-          ("C-c C-s" . org-schedule)
-          ("C-c M-o" . org-store-link)
-          ("C-c C-l" . org-insert-link)
-          ("C-c b" . org-switchb)
+         ("C-c a" . org-agenda)
+         ("C-c c" . org-capture)
+         ("C-c C-s" . org-schedule)
+         ("C-c M-o" . org-store-link)
+         ("C-c C-l" . org-insert-link)
+         ("C-c b" . org-switchb)
 
-          (:map org-mode-map
-                ("C-c M-t"   . org-set-tags-command)
-                ("C-c C-x h" . org-toggle-link-display)
-                ;; editing
-                ("s-b" . org-bold-region)))
-         :config
-         (progn
-           (when (eq system-type 'darwin)
-             (setq org-directory (expand-file-name "~/Dropbox/org/")
-                   org-default-notes-file (expand-file-name
-                                           "capture.org"
-                                           org-directory)
-                   org-id-locations-file
-                   (expand-file-name "var/org/id-locations.el"
-                                     user-emacs-directory)))
+         (:map org-mode-map
+               ("C-c M-t"   . org-set-tags-command)
+               ("C-c C-x h" . org-toggle-link-display))
 
-           (setq org-insert-heading-respect-content t
-                 org-startup-indented t
-                 org-src-fontify-natively t
-                 org-confirm-babel-evaluate nil
-                 org-src-preserve-indentation t)
-
-           (setq org-agenda-inhibit-startup t)
-
-           (defun chaffin--unbind-org-mode-map-keys ()
-             ;; Conflicts with `ivy-resume'
-             (define-key org-mode-map (kbd "C-c C-r") nil))
-
-           (add-hook 'org-mode-hook 'chaffin--unbind-org-mode-map-keys)))
-
+          :config
+	        (when (eq system-type 'darwin)
+	          (setq org-directory (expand-file-name "~/Dropbox/org/")
+		              org-default-notes-file (expand-file-name
+					                                "capture.org"
+					                                org-directory)
+		              org-id-locations-file
+		              (expand-file-name "var/org/id-locations.el"
+				                            user-emacs-directory)))
+          
+          :hook
+          (org-mode . halidom/resolve-org-ivy-conflict))
 
        ;; Literate
        (defcustom halidom-literate-config-file "halidom.org"
@@ -256,8 +261,9 @@
                        (if noweb-p
                            (mapcar #'literate-tangle-src-block (sanitize-no-web-block code))
                          (with-temp-buffer
-                           (insert code)
-                           (eval-buffer))))))))
+			     (message "%s" code)
+                             (insert code)
+			     (eval-buffer))))))))
            (kill-buffer buf)))
 
        (defun literate-debug-enabled ()
@@ -267,7 +273,7 @@
     This is useful for providing a set of defaults for debugging purposes."
 
          (interactive)
-         (mapcar #'literate-tangle-src-block literate-debug-blocks))
+         (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
 
        ;; Initialization
        (if use-literate-p
@@ -276,5 +282,6 @@
          (paredit-mode 1)))
 
   (straight-finalize-transaction))
+
 
  ;;;; init.el ends here
