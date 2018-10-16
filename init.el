@@ -68,7 +68,7 @@
          (setq straight-check-for-modifications
                '(check-on-save find-when-checking)))
 
-       
+
 
        ;; Bootstrap straight.el
        (let ((bootstrap-file
@@ -78,7 +78,7 @@
              (repo "raxod502/straight.el")
              (branch straight-repository-branch)
              (remote-file "install.el"))
-         
+
          (unless (file-exists-p bootstrap-file)
            (with-current-buffer
                (url-retrieve-synchronously
@@ -147,16 +147,11 @@
 
          :custom
          (org-startup-indented t)
-         (org-ellipsis "  ") ;; folding symbol
-         (org-insert-heading-respect-content t)
          (org-pretty-entities t)
          (org-hide-emphasis-markers t)
-         (org-fontify-whole-heading-line t)
-         (org-fontify-done-headline t)
          (org-fontify-quote-and-verse-blocks t)
          (org-src-fontify-natively t)
          (org-confirm-babel-evaluate nil)
-
 
          :bind
          ("C-c a" . org-agenda)
@@ -179,7 +174,7 @@
 		              org-id-locations-file
 		              (expand-file-name "var/org/id-locations.el"
 				                            user-emacs-directory)))
-          
+
           :hook
           (org-mode . halidom/resolve-org-ivy-conflict))
 
@@ -267,8 +262,8 @@
            (kill-buffer buf)))
 
        (defun literate-debug-enabled ()
-         "Tangle only the source blocks with a name property matching an element in 
-    `halidom-literate-debug-blocks'. 
+         "Tangle only the source blocks with a name property matching an element in
+    `halidom-literate-debug-blocks'.
 
     This is useful for providing a set of defaults for debugging purposes."
 
@@ -276,10 +271,12 @@
          (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
 
        ;; Initialization
-       (if use-literate-p
-           (load-literate halidom-literate-config-file)
-         (literate-debug-enabled)
-         (paredit-mode 1)))
+       (if (> emacs-major-version 26)
+	   (if use-literate-p
+               (load-literate halidom-literate-config-file)
+             (literate-debug-enabled)
+             (paredit-mode 1))
+	 (load-literate halidom-literate-config-file)))
 
   (straight-finalize-transaction))
 

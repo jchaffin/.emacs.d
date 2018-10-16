@@ -1,6 +1,5 @@
 #+title: Jacob Chaffin's Literate Emacs Configuration
 #+language: en
-#+STARTUP: hidestars
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
@@ -2817,6 +2816,7 @@ bullets as UTF-8 characters.
 - Smaller set :: ► • ★ ▸
 - Alternative options :: ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
 
+
 The default set of bullet points can be modified via the
 =[[help:org-bullets-bullet-list][org-bullets-bullet-list]]= variable.
 
@@ -2824,12 +2824,10 @@ The default set of bullet points can be modified via the
 #+NAME: org-ui-org-bullets
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
-  :demand t
-  :custom
-  (org-bullets-bullet-list '("› "))
-  :config
-  (progn
-    (add-hook 'org-mode-hook (lambda () (org-bullets-mode +1)))))
+    :demand t
+    :config
+    (progn
+      (add-hook 'org-mode-hook (lambda () (org-bullets-mode +1)))))
 #+END_SRC
 
 **** TOC Org
