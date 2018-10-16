@@ -1000,17 +1000,17 @@ contributing to the solution.
 ***** No Littering
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package no-littering
-:custom
-(no-littering-etc-directory
- (expand-file-name "etc" user-emacs-directory)
- (no-littering-var-directory
-  (expand-file-name "var" user-emacs-directory))))
+  (use-package no-littering
+     :custom
+     (no-littering-etc-directory
+      (expand-file-name "etc" user-emacs-directory)
+      (no-littering-var-directory
+       (expand-file-name "var" user-emacs-directory))))
 
-(require 'no-littering)
+  (require 'no-littering)
 
-(setq auto-save-file-name-transforms
-      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+  (setq auto-save-file-name-transforms
+	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 #+END_SRC
 
 ***** Custom File
@@ -3687,6 +3687,7 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 
 #+NAME: org-ref-pdf
 #+BEGIN_SRC emacs-lisp :tangle no
+
 (defun org-ref-open-pdf-at-point ()
   "Open the pdf for bibtex key under point if it exists."
   (interactive)
@@ -3704,10 +3705,10 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 
 #+NAME: org-latex-pdf
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-(when (display-graphic-p)
-  <<org-pdf-pdftools>>
-  <<org-pdf-pdfview>>
-)
+;; PDF Tools
+<<org-pdf-pdftools>>
+;; PDF View
+<<org-pdf-pdfview>>
 #+END_SRC
 
 **** PDF Tools
@@ -3721,7 +3722,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+NAME: org-pdf-pdftools
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pdf-tools
-  :mode (("\\.pdf\\'" . pdf-view-mode))
+  :mode ("\\.pdf\\'" . pdf-view-mode)
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward)
               ("h"   . pdf-annot-add-highlight-markup-annotation)
@@ -3743,16 +3744,14 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 #+NAME: org-pdf-pdfview
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-pdfview
-  :after (:all pdf-tools)
-  :demand t
-  :config
-  (progn
-    (add-hook 'org-mode-hook
-              (lambda ()
-                (add-to-list 'org-file-apps
-                             '("\\.pdf\\'" .
-                               (lambda (file link)
-                                 (org-pdfview-open link))))))))
+  :after (pdf-tools)
+  :init
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (add-to-list 'org-file-apps
+                           '("\\.pdf\\'" .
+                             (lambda (file link)
+                                 (org-pdfview-open link)))))))
 #+END_SRC
 
 *** Miscellany
@@ -4382,7 +4381,7 @@ and subtrees of the ignored headlines will be retained.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package skeletor
     :custom
-    (skeletor-user-directory (emacs-dir "skeletons"))
+    (skeletor-user-directory (emacs-etc-dir "skeletons"))
     (skeletor-completing-read-function 'ivy-completing-read)
     (skeletor-python-bin-search-path '("/usr/local/bin" "/usr/bin"))
     (skeletor-project-directory (projects-dir))
@@ -4391,19 +4390,20 @@ and subtrees of the ignored headlines will be retained.
 
     (defun skeletor-add-pyenv-pythons ()
       "Add python binaries managed by pyenv to `skeletor-python-bin-search-path'."
-      (let* ((pyenv-dir (getenv "PYENV_ROOT"))
-             (pyenv-version-dir (if pyenv-dir (resolve-path pyenv-dir "versions")))
-             (pyenv-versions (directory-files-no-wildcards pyenv-version-dir t))
-             (python-bins (mapcar (lambda (d) (resolve-path d "bin")) pyenv-versions)))
-        (dolist (python-bin python-bins)
-          (add-to-list 'skeletor-python-bin-search-path python-bin))))
+      (if-let* ((pyenv-dir (getenv "PYENV_ROOT"))
+                (pyenv-version-dir (if pyenv-dir (resolve-path pyenv-dir "versions")))
+                (pyenv-versions (directory-files-no-wildcards pyenv-version-dir t))
+                (python-bins (mapcar (lambda (d) (resolve-path d "bin")) pyenv-versions)))
+          (dolist (python-bin python-bins)
+            (add-to-list 'skeletor-python-bin-search-path python-bin))))
 
     (skeletor-add-pyenv-pythons)
 
 
     :config
 
-    (add-to-list 'skeletor-global-substitutions (cons "__TIME__" (lambda () (format-time-string "%c"))))
+    (add-to-list 'skeletor-global-substitutions
+                 (cons "__TIME__" (lambda () (format-time-string "%c"))))
 
     (skeletor-define-template "cmake-unix-makefiles"
       :requires-executables '(("cmake" . "https://cmake.org")
@@ -5656,7 +5656,16 @@ on startup and new frame."
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons
   :init
-  (all-the-icons-install-fonts)
+
+  (let ((dest-dir
+         (cl-case window-system
+           (x  (concat (or (getenv "XDG_DATA_HOME")
+                           (concat (getenv "HOME") "/.local/share"))
+                       "/fonts/"))
+           (mac (concat (getenv "HOME") "/Library/Fonts/" ))
+           (ns (concat (getenv "HOME") "/Library/Fonts/" )))))
+    (unless (file-exists-p (resolve-path dest-dir "all-the-icons.ttf"))
+      (all-the-icons-install-fonts)))
 
   :config
   (let ((props (cdr (assoc "\\.node" all-the-icons-icon-alist))))
@@ -5680,9 +5689,9 @@ on startup and new frame."
 #+BEGIN_SRC emacs-lisp :tangle no
 
 (use-package all-the-icons-ivy
-  :after (:all ivy all-the-icons)
-  :init
-  (all-the-icons-ivy-setup))
+    :requires (all-the-icons ivy)
+    :init
+    (all-the-icons-ivy-setup))
 
 #+END_SRC
 
@@ -7436,7 +7445,7 @@ buffers[fn:17].
     (progn
       (when (executable-find "hunspell")
         (setq-default ispell-program-name "hunspell")
-        (setq-default ispell-dictionary "en_US.UTF-8")
+        (setq-default ispell-dictionary "en_US")
         (setq ispell-really-hunspell t))))
 #+END_SRC
 

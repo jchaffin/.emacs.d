@@ -149,11 +149,9 @@
        (setq org-directory (expand-file-name "~/Dropbox/org/")
              org-default-notes-file (expand-file-name
                                      "capture.org"
-                                     org-directory)
-             org-id-locations-file
-             (expand-file-name "var/org/id-locations.el"
-                               user-emacs-directory)))
-
+                                     org-directory)))
+    (setq org-id-locations-file
+      (expand-file-name "var/org/id-locations.el" user-emacs-directory))
      (setq org-insert-heading-respect-content t
            org-startup-indented t
            org-src-fontify-natively t
