@@ -276,6 +276,9 @@
          (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
 
        ;; Initialization
+       (when (< emacs-major-version 27)
+	   (setq use-literate-p t))
+
        (if use-literate-p
            (load-literate halidom-literate-config-file)
          (literate-debug-enabled)

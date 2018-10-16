@@ -1,6 +1,5 @@
 #+title: Jacob Chaffin's Literate Emacs Configuration
 #+language: en
-#+STARTUP: hidestars
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
@@ -47,35 +46,28 @@
     - [[#osx-trash][OSX Trash]]
     - [[#osx-clipboard][OSX Clipboard]]
     - [[#counsel-osx-app][Counsel OSX App]]
-- [[#latex-and-org-mode][LaTeX and Org Mode]]
-  - [[#latex][LaTeX]]
-    - [[#auctex][AucTeX]]
-    - [[#tex][Tex]]
-    - [[#reftex][RefTeX]]
-    - [[#bibtex][BibTex]]
-    - [[#latex-extra][LaTeX Extra]]
-    - [[#latex-preview][LaTeX Preview]]
-    - [[#company-auctex][Company AucTeX]]
-    - [[#company-reftex][Company Reftex]]
-    - [[#cdlatex][cdlatex]]
-    - [[#magic-latex-buffer][Magic Latex Buffer]]
-    - [[#auctex-latexmk][Auctex Latexmk]]
-    - [[#texinfo][Texinfo]]
-    - [[#latex-math][LaTeX Math]]
-  - [[#org-mode][Org Mode]]
+- [[#org-mode][Org Mode]]
+  - [[#org-mode-1][Org Mode]]
     - [[#org-babel][Org Babel]]
     - [[#org-mode-ui][Org Mode UI]]
     - [[#document-management][Document Management]]
     - [[#task-management][Task Management]]
     - [[#idea-management][Idea Management]]
     - [[#org-hacks][Org Hacks]]
-  - [[#org-latex][Org LaTeX]]
+  - [[#org-latex][Org Latex]]
     - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
     - [[#edit-latex][Edit Latex]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
     - [[#org-ref][Org Ref]]
     - [[#org-pdf][Org PDF]]
     - [[#miscellany][Miscellany]]
+  - [[#latex][Latex]]
+    - [[#auctex][AucTeX]]
+    - [[#tex][Tex]]
+    - [[#reftex][RefTeX]]
+    - [[#bibtex][BibTex]]
+    - [[#latex-extra][LaTeX Extra]]
+    - [[#latex-preview][LaTeX Preview]]
   - [[#org-mode-export][Org Mode Export]]
     - [[#enable-backends][Enable Backends]]
     - [[#ox-org][Ox Org]]
@@ -1830,854 +1822,7 @@ running macOS.
   (define-key 'macos-prefix-map "a" 'counsel-osx-app))
 #+END_SRC
 
-* LaTeX and Org Mode
-** LaTeX
-:PROPERTIES:
-:ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
-:CUSTOM_ID: latex
-:END:
-
-#+NAME: latex-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; AucTeX
-<<tex/auctex>>
-;; Tex
-<<latex-tex>>
-;; Reftex
-<<latex-reftex>>
-;; Bibtex
-<<latex-bibtex>>
-;; Company backend for latex completion
-<<latex-company-auctex>>
-<<latex-company-reftex>>
-;; Prettify latex buffers
-<<latex-magic-latex-buffer>>
-;; Extra latex utilities
-<<latex-latex-extra>>
-;; Cdlatex
-<<latex-cdlatex>>
-;; Auctex Latexmk
-<<latex-auctex-latexmk>>
-;; LaTeX Math
-<<latex-math>>
-;; Latex Preview
-<<latex-org-preview>>
-;; Texinfo mode
-<<latex-texinfo>>
-#+END_SRC
-
-*** AucTeX
-
-Recent versions of AuCTeX are problematic with straight.
-On a clean install, I had to manually run the following command to get
-it to work properly:
-
-#+BEGIN_SRC shell :tangle no :results none
-( cd $HOME/.emacs.d/straight/repos/auctex && \
-      ./autogen.sh && \
-      ./configure --with-texmf-dir=`kpsewhich --var-value=TEXMFHOME` && \
-      make && make install )
-#+END_SRC
-
-#+NAME: tex/auctex
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package auctex
-  :bind (:map LaTeX-mode-map
-              ("M-s l" . TeX-engine-set)))
-#+END_SRC
-
-*** Tex
-
-Note that LaTeX packages are loaded, configured, and installed when
-='latex= is a member of =org-export-enabled-backends=.
-
-#+NAME: latex-tex
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
-  (use-package tex
-    :straight auctex
-    :custom
-    ;; (TeX-command-default
-    ;;  (if (executable-find "latexmk") "LatexMk" "LaTeX"))
-    (TeX-auto-save t)
-    (TeX-parse-self t)
-    (TeX-syntactic-comment t)
-    ;; nonstopmode
-    (TeX-interactive-mode nil)
-    ;; Don't insert line-break at inline math
-    (LaTeX-fill-break-at-separators nil)
-    :init
-
-    ;; https://emacs.stackexchange.com/a/19475
-    (defun latex/view-hook ()
-      "Use pdf-tools to open PDF files."
-      (add-to-list 'TeX-view-program-list '("PDF Tools" TeX-pdf-tools-sync-view))
-      (setf (alist-get 'output-pdf TeX-view-program-selection) '("PDF Tools"))
-      (setq TeX-source-correlate-start-server t)
-      (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
-
-    (defun latex/shell-escape ()
-      "Use the shell escape flag with `TeX-command'."
-      (setq TeX-command-extra-options "-shell-escape"))
-
-    (defun latex/enable-flyspell ()
-      (when (fboundp 'flyspell-mode)
-        (flyspell-mode 1)))
-
-    (defun latex/revert-doc-view ()
-      (when (fboundp 'doc-view-mode)
-        (add-hook 'doc-view-mode 'auto-revert-mode)))
-
-    (defun latex/enable-ggtags ()
-      (when (fboundp 'ggtags-mode)
-        (ggtags-mode 1)))
-
-    :hook
-    (LaTeX-mode . latex/shell-escape)
-    (LaTeX-mode . latex/view-hook)
-    (LaTeX-mode . latex/enable-flyspell)
-    (LaTeX-mode . latex/revert-doc-view)
-    (LaTeX-mode . latex/enable-ggtags)
-    (LaTeX-mode . LaTeX-math-mode)
-    (LaTeX-mode . TeX-fold-mode)
-    (LaTeX-mode . TeX-source-correlate-mode)
-    (LaTeX-mode . TeX-PDF-mode))
-#+END_SRC
-
-*** RefTeX
-
-
-RefTeX is a citation and reference tool maintained by the
-AucTeX team.
-
-Since Emacs 24.3, its built in with the Emacs distribution.
-
-#+NAME: latex-reftex
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package reftex
-    :straight nil
-    :init
-    (defun halidom/latex-reftex-hook ()
-      (turn-on-reftex)
-      (setq reftex-plug-into-AUCTeX '(nil nil t t t)
-            reftex-use-fonts t
-            reftex-default-bibliography (list (file-truename "~/Dropbox/org/papers/references.bib"))))
-    :hook
-    (LaTeX-mode . halidom/latex-reftex-hook))
-#+END_SRC
-
-*** BibTex
-
-BibTeX mode is built-in with GNU Emacs. Like /super/ built-in. This is
-from the author of the online BibTeX mode manual[fn:10]:
-
-#+BEGIN_QUOTE
-I am not the author of this file and am only putting it online because, to my knowledge, it is not available anywhere else anymore and I find it a very valuable reference.  I haven't been able to find out who the current maintainer of the BibTex-Mode for GNU emacs is, but am willing to withdraw this text or add any copyright notice that would be deemed relevant.
-#+END_QUOTE
-
-That was from 2009...
-
-These are the recommended settings in the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#bibtex-key-format][org-ref]] documentation.
-
-#+NAME: latex-bibtex
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq bibtex-autokey-year-length 4
-      bibtex-autokey-name-year-separator "-"
-      bibtex-autokey-year-title-separator "-"
-      bibtex-autokey-titleword-separator "-"
-      bibtex-autokey-titlewords 2
-      bibtex-autokey-titlewords-stretch 1
-      bibtex-autokey-titleword-length 5)
-#+END_SRC
-
-*** LaTeX Extra
-:PROPERTIES:
-:ID:       3D058D68-FED6-43C9-B48B-E9280E6F2016
-:END:
-
-
-#+NAME: latex-latex-extra
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package latex-extra
-  :custom
-  (latex/no-fill-environments
-   '("equation"
-     "equation*"
-     "align"
-     "align*"
-     "forest"
-     "forest*"
-     "tabular"
-     "tikzpicture"))
-
-    :bind (:map LaTeX-mode-map
-                ("C-c C-a" . latex/compile-commands-until-done)
-                ("C-c C-n" . latex/next-section)
-                ("C-c C-u" . latex/up-section)
-                ("C-c C-f" . latex/next-section-same-level)
-                ("C-M-f"   . latex/forward-environment)
-                ("C-M-b"   . latex/backward-environment)
-                ("C-M-a"   . latex/beginning-of-environment)
-                ("C-c C-p" . latex/previous-section)
-                ("C-c C-b" . latex/previous-section-same-level)
-                ("C-c C-q" . latex/clean-fill-indent-environment))
-    :hook
-    (LaTeX-mode . latex-extra-mode))
-
-#+END_SRC
-
-*** LaTeX Preview
-
-#+NAME: latex-org-preview
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Preview Pane
-<<latex-latex-preview-pane>>
-;; Clear Cache
-<<org-preview-clear-cache>>
-;; Preview Parsing
-<<org-preview-parsing>>
-;; Org Preview default
-<<org-preview-default>>
-;; XeLaTeX Fragments
-<<org-preview-xelatex>>
-;; LuaLaTeX Fragments
-<<org-preview-lualatex>>
-;; Preview process hook
-<<org-preview-dynamic>>
-;; Preview Justify
-<<org-preview-justify>>
-#+END_SRC
-
-**** LaTeX Preview Pane
-
-Not tangling right now because it's creating a new buffer after every
-save.
-
-#+NAME: latex-latex-preview-pane
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package latex-preview-pane
-    :after (:all pdf-tools tex)
-    :init (latex-preview-pane-enable))
-#+END_SRC
-
-**** Clear Cache
-
-
-#+NAME: org-preview-clear-cache
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-preview-clear-cache ()
-  (interactive)
-  (let ((preview-cache
-         (f-join default-directory org-preview-latex-image-directory)))
-    (if (f-directory? preview-cache)
-        (f-delete preview-cache t)
-      (message "%s" "Directory 'ltximg' does not exist."))))
-#+END_SRC
-
-
-**** Justify Fragment
-
-#+NAME: org-preview-justify
-#+BEGIN_SRC emacs-lisp :tangle no
-(require 'ov)
-(plist-put org-format-latex-options :justify 'center)
-
-(defun org-latex-fragment-tooltip (beg end image imagetype)
-  "Add the fragment tooltip to the overlay and set click function to toggle it."
-  (overlay-put (ov-at) 'help-echo
-	       (concat (buffer-substring beg end)
-		       "\nmouse-1 to toggle."))
-  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
-				    (define-key map [mouse-1]
-				      `(lambda ()
-					 (interactive)
-					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
-				    map)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
-
-(defun org-latex-fragment-justify (justification)
-  "Justify the latex fragment at point with JUSTIFICATION.
-JUSTIFICATION is a symbol for 'left, 'center or 'right."
-  (interactive
-   (list (intern-soft
-          (completing-read "Justification (left): " '(left center right)
-                           nil t nil nil 'left))))
-
-  (let* ((ov (ov-at))
-	 (beg (ov-beg ov))
-	 (end (ov-end ov))
-	 (shift (- beg (line-beginning-position)))
-	 (img (overlay-get ov 'display))
-	 (img (and (and img (consp img) (eq (car img) 'image)
-			(image-type-available-p (plist-get (cdr img) :type)))
-		   img))
-	 space-left offset)
-    (when (and img (= beg (line-beginning-position)))
-      (setq space-left (- (window-max-chars-per-line) (car (image-display-size img)))
-	    offset (floor (cond
-			   ((eq justification 'center)
-			    (- (/ space-left 2) shift))
-			   ((eq justification 'right)
-			    (- space-left shift))
-			   (t
-			    0))))
-      (when (>= offset 0)
-	(overlay-put ov 'before-string (make-string offset ?\ ))))))
-
-(defun org-latex-fragment-justify-advice (beg end image imagetype)
-  "After advice function to justify fragments."
-  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
-
-;; ** numbering latex equations
-(defun org-renumber-environment (orig-func &rest args)
-  "A function to inject numbers in LaTeX fragment previews."
-  (let ((results '())
-	(counter -1)
-	(numberp))
-
-    (setq results (loop for (begin .  env) in
-			(org-element-map (org-element-parse-buffer) 'latex-environment
-			  (lambda (env)
-			    (cons
-			     (org-element-property :begin env)
-			     (org-element-property :value env))))
-			collect
-			(cond
-			 ((and (string-match "\\\\begin{equation}" env)
-			       (not (string-match "\\\\tag{" env)))
-			  (incf counter)
-			  (cons begin counter))
-			 ((string-match "\\\\begin{align}" env)
-			  (prog2
-			      (incf counter)
-			      (cons begin counter)
-			    (with-temp-buffer
-			      (insert env)
-			      (goto-char (point-min))
-			      ;; \\ is used for a new line. Each one leads to a number
-			      (incf counter (count-matches "\\\\$"))
-			      ;; unless there are nonumbers.
-			      (goto-char (point-min))
-			      (decf counter (count-matches "\\nonumber")))))
-			 (t
-			  (cons begin nil)))))
-
-    (when (setq numberp (cdr (assoc (point) results)))
-      (setf (car args)
-	    (concat
-	     (format "\\setcounter{equation}{%s}\n" numberp)
-	     (car args)))))
-
-  (apply orig-func args))
-
-(advice-add 'org-create-formula-image :around #'org-renumber-environment)
-
-
-;; * Markup commands for org-mode
-(loop for (type beginning-marker end-marker)
-      in '((subscript "_{" "}")
-	   (superscript "^{" "}")
-	   (italics "/" "/")
-	   (bold "*" "*")
-	   (verbatim "=" "=")
-	   (code "~" "~")
-	   (underline "_" "_")
-	   (strikethrough "+" "+"))
-      do
-      (eval `(defun ,(intern (format "org-%s-region-or-point" type)) ()
-	       ,(format "%s the region, word or character at point"
-			(upcase (symbol-name type)))
-	       (interactive)
-	       (cond
-		;; We have an active region we want to apply
-		((region-active-p)
-		 (let* ((bounds (list (region-beginning) (region-end)))
-			(start (apply 'min bounds))
-			(end (apply 'max bounds))
-			(lines))
-		   (unless (memq ',type '(subscript superscript))
-		     (save-excursion
-		       (goto-char start)
-		       (unless (looking-at " \\|\\<")
-			 (backward-word)
-			 (setq start (point)))
-		       (goto-char end)
-		       (unless (looking-at " \\|\>")
-			 (forward-word)
-			 (setq end (point)))))
-		   (setq lines
-			 (s-join "\n" (mapcar
-				       (lambda (s)
-					 (if (not (string= (s-trim s) ""))
-					     (concat ,beginning-marker
-						     (s-trim s)
-						     ,end-marker)
-					   s))
-				       (split-string
-					(buffer-substring start end) "\n"))))
-		   (setf (buffer-substring start end) lines)
-		   (forward-char (length lines))))
-		;; We are on a word with no region selected
-		((thing-at-point 'word)
-		 (cond
-		  ;; beginning of a word
-		  ((looking-back " " 1)
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))
-		  ;; end of a word
-		  ((looking-back "\\>" 1)
-		   (insert ,(concat beginning-marker end-marker))
-		   (backward-char ,(length end-marker)))
-		  ;; not at start or end, so we just sub/sup the character at point
-		  ((memq ',type '(subscript superscript))
-		   (insert ,beginning-marker)
-		   (forward-char ,(- (length beginning-marker) 1))
-		   (insert ,end-marker))
-		  ;; somewhere else in a word, and handled sub/sup. mark up the
-		  ;; whole word.
-		  (t
-		   (re-search-backward "\\<")
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))))
-		;; not at a word or region, insert markers and put point between
-		;; them.
-		(t
-		 (insert ,(concat beginning-marker end-marker))
-		 (backward-char ,(length end-marker)))))))
-
-(defun org-latex-math-region-or-point (&optional arg)
-  "Wrap the selected region in latex math markup.
-\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
-Or insert those and put point in the middle to add an equation."
-  (interactive "P")
-  (let ((chars
-	 (cond
-	  ((null arg)
-	   '("\\(" . "\\)"))
-	  ((equal arg '(4))
-	   '("$" . "$"))
-	  ((equal arg '(16))
-	   '("@@latex:" . "@@")))))
-    (if (region-active-p)
-	(progn
-	  (goto-char (region-end))
-	  (insert (cdr chars))
-	  (goto-char (region-beginning))
-	  (insert (car chars)))
-      (insert (concat  (car chars) (cdr chars)))
-      (backward-char (length (cdr chars))))))
-
-#+END_SRC
-
-**** Set the default preview process
-
-#+NAME: org-preview-default
-#+BEGIN_SRC emacs-lisp :tangle no
-(if (image-type-available-p 'imagemagick)
-    (setq org-preview-latex-default-process 'imagemagick)
-  (setq org-preview-latex-default-process 'dvisvgm))
-#+END_SRC
-
-**** Parsing keywords
-
-#+NAME: org-preview-parsing
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-preview/process-keyword  (p)
-  (interactive)
-  (org-element-map (org-element-parse-buffer) 'keyword
-    (lambda (k)
-      (if (string= p (org-element-property :key k))
-          (intern (org-element-property :value k))))
-    nil t))
-
-(defun org-preview/process-compiler ()
-  (or (org-preview/process-keyword "LATEX_COMPILER")
-     org-latex-compiler))
-
-(defun org-preview/set-process ()
-  (or (org-preview/process-keyword "PREVIEW")
-     org-preview-latex-default-process))
-
-(defun org-preview/process-class ()
-  (or (org-preview/process-keyword "LATEX_CLASS")
-     org-latex-default-class))
-
-(defun org-preview/orgling-p ()
-  (let ((latex-class (org-preview/process-class)))
-    (string= "orgling" latex-class)))
-
-(defun org-preview/uclacs-p ()
-  (let ((latex-class (org-preview/process-class)))
-    (string= "uclacs" latex-class)))
-
-#+END_SRC
-
-**** XeLaTeX fragments
-
-#+NAME: org-preview-xelatex
-#+BEGIN_SRC emacs-lisp :tangle no
-(defcustom xelatex-preview-header org-format-latex-header
-  "The preamble to use for previewing LaTeX fragments with XeLaTeX."
-  :type 'string)
-
-(setq xelatex-preview-header
-      (concat xelatex-preview-header
-      "\\usepackage{amsmath}
-      \\usepackage{unicode-math}
-      \\setmathfont{STIX2Math}[
-      Extension = .otf,
-      ]
-      \\setmainfont{STIX2Text}[
-      Extension      = .otf,
-      UprightFont    = *-Regular,
-      BoldFont       = *-Bold,
-      ItalicFont     = *-Italic,
-      BoldItalicFont = *-BoldItalic
-      ]"))
-
-(defcustom xelatex-preview-process-alist
-  '((dvipng
-     :programs
-     ("xelatex" "dvipng")
-     :description "dvi > png"
-     :message "You need to install the programs: xelatex and dvipng"
-     :image-input-type "dvi"
-     :image-output-type "png"
-     :image-size-adjust (1.3 1.3)
-     :latex-compiler
-     ("xelatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
-    (dvisvgm
-     :programs
-     ("latex" "dvisvgm")
-     :description "dvi > svg"
-     :message "you need to install the programs: xelatex and dvisvgm."
-     :use-xcolor t
-     :image-input-type "xdv"
-     :image-output-type "svg"
-     :image-size-adjust
-     (1.7 . 1.5)
-     :latex-compiler
-     ("xelatex -no-pdf -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvisvgm %f -n -b min -c %S -o %O"))
-    (imagemagick
-     :programs ("xelatex" "convert")
-     :description "pdf > png"
-     :message "You need to install xelatex and imagemagick"
-     :use-xcolor t
-     :image-input-type "pdf"
-     :image-output-type "png"
-     :image-size-adjust (1.0 1.0)
-     :latex-compiler ("xelatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("convert -density %D -trim -antialias %f -quality 100 %O")))
-  "Preview engines for xelatex."
-  :type '(alist
-          :tag "LaTeX to image backends"
-		      :value-type (plist)))
-
-(defun org-preview-xelatex ()
-
-  (set (make-local-variable 'org-preview-latex-process-alist)
-    xelatex-preview-process-alist)
-
-  (set (make-local-variable 'org-format-latex-header)
-       (if (org-preview/orgling-p)
-           (concat xelatex-preview-header
-                   (read-file-contents
-                    (emacs-etc-dir "preview" "orgling-preview.tex")))
-         xelatex-preview-header)))
-#+END_SRC
-
-**** LuaLaTeX Fragments
-
-#+NAME: org-preview-lualatex
-#+BEGIN_SRC emacs-lisp :tangle no
-(defcustom lualatex-preview-header org-format-latex-header
-  "The preamble to use for previewing LaTeX fragments with LuLaTeX."
-  :type 'string)
-
-(defcustom lualatex-preview-process-alist
-  '((dvipng
-     :programs
-     ("lualatex" "dvipng")
-     :description "dvi > png"
-     :message "You need to install the programs: lualatex and dvipng"
-     :image-input-type "dvi"
-     :image-output-type "png"
-     :image-size-adjust (1.3 1.3)
-     :latex-compiler
-     ("lualatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
-    (dvisvgm
-     :programs
-     ("latex" "dvisvgm")
-     :description "dvi > svg"
-     :message "you need to install the programs: lualatex and dvisvgm."
-     :use-xcolor t
-     :image-input-type "xdv"
-     :image-output-type "svg"
-     :image-size-adjust
-     (1.7 . 1.5)
-     :latex-compiler
-     ("lualatex -no-pdf -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvisvgm %f -n -b min -c %S -o %O"))
-    (imagemagick
-     :programs ("lualatex" "convert")
-     :description "pdf > png"
-     :message "You need to install lualatex and imagemagick"
-     :use-xcolor t
-     :image-input-type "pdf"
-     :image-output-type "png"
-     :image-size-adjust (1.0 1.0)
-     :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("convert -density %D -trim -antialias %f -quality 100 %O")))
-  "Preview engines for lualatex."
-  :type '(alist
-          :tag "LaTeX to image backends"
-		      :value-type (plist)))
-
-
-(defun org-preview-lualatex ()
-  (interactive)
-
-  (set (make-local-variable 'org-preview-latex-process-alist)
-    lualatex-preview-process-alist)
-
-  (set (make-local-variable 'org-format-latex-header)
-       (if (org-preview/uclacs-p)
-           (concat lualatex-preview-header
-                   (read-file-contents
-                    (emacs-etc-dir "preview" "uclacs-preview.tex")))
-         lualatex-preview-header)))
-#+END_SRC
-
-
-**** Per-buffer latex fragment previews
-
-Generate latex fragments based on the latex compiler and class in the current buffer.
-
-#+NAME: org-preview-dynamic
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-preview-process-hook ()
-  (interactive)
-  (let ((latex-compiler (org-preview/process-compiler)))
-    (set (make-local-variable 'org-format-latex-options)
-        '(:foreground ,(face-attribute 'font-lock-builtin-face :foreground)
-          :background default :scale 1.2 :html-foreground "Black"
-          :html-background "Transparent" :html-scale 1.0
-          :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
-    (when-let (preview-process (org-preview/set-process))
-      (set (make-local-variable 'org-preview-latex-default-process)
-           preview-process))
-
-    (when (or  (string= latex-compiler "xelatex")
-              (string= latex-compiler "xetex"))
-      (org-preview-xelatex))
-
-    (when (string= latex-compiler "lualatex")
-      (org-preview-lualatex))))
-
-(add-hook 'org-mode-hook 'org-preview-process-hook)
-#+END_SRC
-
-*** Company AucTeX
-
-#+NAME: latex-company-auctex
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-auctex
-  :demand t
-  :after (:all company tex)
-  :init
-  (company-auctex-init))
-#+END_SRC
-
-*** Company Reftex
-
-#+NAME: latex-company-reftex
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-reftex
-  :demand t
-  :after (:all company reftex))
-#+END_SRC
-
-*** cdlatex
-
-#+NAME: latex-cdlatex
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package cdlatex
-  :custom
-  ;; Disable auto label insertion in expanded template.
-  ;; Labels conflict when used in conjunction with `org-ref'
-  (cdlatex-insert-auto-labels-in-env-templates nil)
-  :hook
-  ;; with AucTeX LaTeX mode
-  ;; (LaTeX-mode . turn-on-cdlatex)
-  ;; with Emacs latex mode
-  ;; (latex-mode . turn-on-cdlatex)
-  (org-mode . org-cdlatex-mode))
-#+END_SRC
-
-*** Magic Latex Buffer
-
-Prettify dedicated org-mode latex buffers.
-
-#+NAME: latex-magic-latex-buffer
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package magic-latex-buffer
-    :custom
-    (magic-latex-enable-block-highlight t)
-    (magic-latex-enable-suscript nil)
-    (magic-latex-enable-pretty-symbols t)
-    (magic-latex-enable-block-align nil)
-    (magic-latex-enable-inline-image nil)
-    :hook
-    (LaTeX-mode . magic-latex-buffer))
-#+END_SRC
-
-*** Auctex Latexmk
-
-#+NAME: latex-auctex-latexmk
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package auctex-latexmk
-    :custom
-    (auctex-latexmk-inherit-TeX-PDF-mode t)
-    :init
-    (auctex-latexmk-setup))
-#+END_SRC
-
-*** Texinfo
-
-#+NAME: latex-texinfo
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package texinfo
-  :defines texinfo-section-list
-  :commands texinfo-mode
-  :mode
-  ("\\.texi\\'" . texinfo-mode))
-#+END_SRC
-
-*** LaTeX Math
-
-#+NAME: latex-math
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Math Symbols
-<<latex-math-symbols>>
-;; Company Math
-<<latex-math-completion>>
-#+END_SRC
-
-**** Company Math
-
-#+NAME: latex-math-completion
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-math
-  :after (company)
-  :demand t
-  :init
-  (add-to-list 'company-backends 'company-math-symbols-unicode))
-#+END_SRC
-
-**** COMMENT Math Symbols
-
-Entered on [2018-06-13 Wed 11:42]
-
-#+NAME: latex-math-symbols
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package math-symbols
-    :init
-
-    (defun latex/font (math-input before after)
-     "Insert a LaTeX font. 
-
-   MATH-INPUT is the input method to toggle in math environments.
-
-   The BEFORE and AFTER arguments are the strings to insert around 
-   the marked region, when active. If the thing at point is a word,
-   then wrap the word. Otherwise the two elements are joined at point."
-     (cond ((texmathp)
-            (if current-input-method
-                (set-input-method nil)
-              (set-input-method math-input)))
-           ((region-active-p)
-            (save-excursion
-              (goto-char (region-beginning))
-              (insert before)
-              (goto-char (region-end))
-              (insert after)))
-           ((thing-at-point 'word)
-            (save-excursion
-              (goto-char (beginning-of-thing 'word))
-              (insert before)
-              (goto-char (end-of-thing 'word))
-              (insert after)))
-           (t
-            (save-excursion
-              (insert (concat before after)))
-            (goto-char (+ (point) (length before))))))
-
-    (defun latex/prettify-symbols-extra ()
-      (if osx-browse-mode
-          (osx-browse-mode nil))
-
-      (when (fboundp 'prettify-symbols-mode)
-        (prettify-symbols-mode 1))
-
-      (setq prettify-symbols-alist
-            '(("\\complement" . "∁"))))
-
-    (setq-default abbrev-mode t)
-    (setq latex-mode-abbrev-table nil)
-
-    (define-abbrev-table 'latex-mode-abbrev-table
-        '(("uiff"  "⟷")
-          ("uif"  "⟶")
-          ("uand" "∧")
-          ("ulambda" "𝜆")
-          ("uor" "∨")
-          ("uxor" "⨁")
-          ("uexists" "∃")
-          ("unexists" "∄")
-          ("usubset" "⊂")
-          ("unsubset" "⊄")))
-
-    (defun latex/unbind-osx-browse ()
-      (when (fboundp 'osx-browse-mode)
-        (let ((map osx-browse-mode-map))
-          (define-key map (kbd "s-b") nil)
-          (define-key map (kbd "s-i") nil))))
-
-    (defun latex/font-italic ()
-      "Insert a literal italic typeset command, or toggle input method
-  in math environments with unicode math enabled."
-      (interactive)
-      (latex/font "math-symbols-italic" "\\textit{" "}"))
-
-    (defun latex/font-bold ()
-      "Insert a literal bold typeset command, or toggle input method
-  in math environments with unicode math enabled."
-      (interactive)
-      (latex/font "math-symbols-bold" "\\textbf{" "}"))
-
-    (let ((map LaTeX-mode-map))
-      (define-key map (kbd "s-b") 'latex/font-bold)
-      (define-key map (kbd "s-i") 'latex/font-italic))
-
-    :hook
-    (LaTeX-mode . latex/unbind-osx-browse)
-    (LaTeX-mode . latex/prettify-symbols-extra))
-
-#+END_SRC
-
+* Org Mode
 ** Org Mode
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
@@ -2825,8 +1970,6 @@ The default set of bullet points can be modified via the
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
   :demand t
-  :custom
-  (org-bullets-bullet-list '("› "))
   :config
   (progn
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode +1)))))
@@ -3966,7 +3109,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
 (ad-activate 'org-refile)
 #+END_SRC
 
-** Org LaTeX
+** Org Latex
 
 #+NAME: org-latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -4229,6 +3372,455 @@ This doesn't work... it just caches the project metadata for some reason.
 
 #+END_SRC
 
+** Latex
+
+#+NAME: latex-config
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; AucTeX
+<<tex/auctex>>
+;; Tex
+<<latex-tex>>
+;; Reftex
+<<latex-reftex>>
+;; Bibtex
+<<latex-bibtex>>
+;; Company backend for latex completion
+<<latex-company-auctex>>
+<<latex-company-reftex>>
+;; Prettify latex buffers
+<<latex-magic-latex-buffer>>
+;; Extra latex utilities
+<<latex-latex-extra>>
+;; Cdlatex
+<<latex-cdlatex>>
+;; Auctex Latexmk
+<<latex-auctex-latexmk>>
+;; LaTeX Math
+<<latex-math>>
+;; Latex Preview
+<<latex-org-preview>>
+;; Texinfo mode
+<<latex-texinfo>>
+#+END_SRC
+
+*** AucTeX
+
+Recent versions of AuCTeX are problematic with straight.
+On a clean install, I had to manually run the following command to get
+it to work properly:
+
+#+BEGIN_SRC shell :tangle no :results none
+( cd $HOME/.emacs.d/straight/repos/auctex && \
+      ./autogen.sh && \
+      ./configure --with-texmf-dir=`kpsewhich --var-value=TEXMFHOME` && \
+      make && make install )
+#+END_SRC
+
+#+NAME: tex/auctex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package auctex
+  :bind (:map LaTeX-mode-map
+              ("M-s l" . TeX-engine-set)))
+#+END_SRC
+
+*** Tex
+
+Note that LaTeX packages are loaded, configured, and installed when
+='latex= is a member of =org-export-enabled-backends=.
+
+#+NAME: latex-tex
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+  (use-package tex
+    :straight auctex
+    :custom
+    ;; (TeX-command-default
+    ;;  (if (executable-find "latexmk") "LatexMk" "LaTeX"))
+    (TeX-auto-save t)
+    (TeX-parse-self t)
+    (TeX-syntactic-comment t)
+    ;; nonstopmode
+    (TeX-interactive-mode nil)
+    ;; Don't insert line-break at inline math
+    (LaTeX-fill-break-at-separators nil)
+    :init
+
+    ;; https://emacs.stackexchange.com/a/19475
+    (defun latex/view-hook ()
+      "Use pdf-tools to open PDF files."
+      (add-to-list 'TeX-view-program-list '("PDF Tools" TeX-pdf-tools-sync-view))
+      (setf (alist-get 'output-pdf TeX-view-program-selection) '("PDF Tools"))
+      (setq TeX-source-correlate-start-server t)
+      (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+
+    (defun latex/shell-escape ()
+      "Use the shell escape flag with `TeX-command'."
+      (setq TeX-command-extra-options "-shell-escape"))
+
+    (defun latex/enable-flyspell ()
+      (when (fboundp 'flyspell-mode)
+        (flyspell-mode 1)))
+
+    (defun latex/revert-doc-view ()
+      (when (fboundp 'doc-view-mode)
+        (add-hook 'doc-view-mode 'auto-revert-mode)))
+
+    (defun latex/enable-ggtags ()
+      (when (fboundp 'ggtags-mode)
+        (ggtags-mode 1)))
+
+    :hook
+    (LaTeX-mode . latex/shell-escape)
+    (LaTeX-mode . latex/view-hook)
+    (LaTeX-mode . latex/enable-flyspell)
+    (LaTeX-mode . latex/revert-doc-view)
+    (LaTeX-mode . latex/enable-ggtags)
+    (LaTeX-mode . LaTeX-math-mode)
+    (LaTeX-mode . TeX-fold-mode)
+    (LaTeX-mode . TeX-source-correlate-mode)
+    (LaTeX-mode . TeX-PDF-mode))
+#+END_SRC
+
+*** RefTeX
+
+
+RefTeX is a citation and reference tool maintained by the
+AucTeX team.
+
+Since Emacs 24.3, its built in with the Emacs distribution.
+
+#+NAME: latex-reftex
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package reftex
+    :straight nil
+    :init
+    (defun halidom/latex-reftex-hook ()
+      (turn-on-reftex)
+      (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+            reftex-use-fonts t
+            reftex-default-bibliography (list (file-truename "~/Dropbox/org/papers/references.bib"))))
+    :hook
+    (LaTeX-mode . halidom/latex-reftex-hook))
+#+END_SRC
+
+*** BibTex
+
+BibTeX mode is built-in with GNU Emacs. Like /super/ built-in. This is
+from the author of the online BibTeX mode manual[fn:10]:
+
+#+BEGIN_QUOTE
+I am not the author of this file and am only putting it online because, to my knowledge, it is not available anywhere else anymore and I find it a very valuable reference.  I haven't been able to find out who the current maintainer of the BibTex-Mode for GNU emacs is, but am willing to withdraw this text or add any copyright notice that would be deemed relevant.
+#+END_QUOTE
+
+That was from 2009...
+
+These are the recommended settings in the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#bibtex-key-format][org-ref]] documentation.
+
+#+NAME: latex-bibtex
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq bibtex-autokey-year-length 4
+      bibtex-autokey-name-year-separator "-"
+      bibtex-autokey-year-title-separator "-"
+      bibtex-autokey-titleword-separator "-"
+      bibtex-autokey-titlewords 2
+      bibtex-autokey-titlewords-stretch 1
+      bibtex-autokey-titleword-length 5)
+#+END_SRC
+
+*** LaTeX Extra
+:PROPERTIES:
+:ID:       3D058D68-FED6-43C9-B48B-E9280E6F2016
+:END:
+
+
+#+NAME: latex-latex-extra
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package latex-extra
+  :custom
+  (latex/no-fill-environments
+   '("equation"
+     "equation*"
+     "align"
+     "align*"
+     "forest"
+     "forest*"
+     "tabular"
+     "tikzpicture"))
+
+    :bind (:map LaTeX-mode-map
+                ("C-c C-a" . latex/compile-commands-until-done)
+                ("C-c C-n" . latex/next-section)
+                ("C-c C-u" . latex/up-section)
+                ("C-c C-f" . latex/next-section-same-level)
+                ("C-M-f"   . latex/forward-environment)
+                ("C-M-b"   . latex/backward-environment)
+                ("C-M-a"   . latex/beginning-of-environment)
+                ("C-c C-p" . latex/previous-section)
+                ("C-c C-b" . latex/previous-section-same-level)
+                ("C-c C-q" . latex/clean-fill-indent-environment))
+    :hook
+    (LaTeX-mode . latex-extra-mode))
+
+#+END_SRC
+
+*** LaTeX Preview
+
+#+NAME: latex-org-preview
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Preview Pane
+<<latex-latex-preview-pane>>
+;; Clear Cache
+<<org-preview-clear-cache>>
+;; Preview Parsing
+<<org-preview-parsing>>
+;; Org Preview default
+<<org-preview-default>>
+;; XeLaTeX Fragments
+<<org-preview-xelatex>>
+;; LuaLaTeX Fragments
+<<org-preview-lualatex>>
+;; Preview process hook
+<<org-preview-dynamic>>
+#+END_SRC
+
+**** LaTeX Preview Pane
+
+Not tangling right now because it's creating a new buffer after every
+save.
+
+#+NAME: latex-latex-preview-pane
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package latex-preview-pane
+    :after (:all pdf-tools tex)
+    :init (latex-preview-pane-enable))
+#+END_SRC
+
+**** Clear Cache
+#+NAME: org-preview-clear-cache
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-preview-clear-cache ()
+  (interactive)
+  (let ((preview-cache
+         (f-join default-directory org-preview-latex-image-directory)))
+    (if (f-directory? preview-cache)
+        (f-delete preview-cache t)
+      (message "%s" "Directory 'ltximg' does not exist."))))
+#+END_SRC
+
+**** Set the default preview process
+
+#+NAME: org-preview-default
+#+BEGIN_SRC emacs-lisp :tangle no
+(if (image-type-available-p 'imagemagick)
+    (setq org-preview-latex-default-process 'imagemagick)
+  (setq org-preview-latex-default-process 'dvisvgm))
+#+END_SRC
+
+**** Parsing keywords
+
+#+NAME: org-preview-parsing
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-preview/process-keyword  (p)
+  (interactive)
+  (org-element-map (org-element-parse-buffer) 'keyword
+    (lambda (k)
+      (if (string= p (org-element-property :key k))
+          (intern (org-element-property :value k))))
+    nil t))
+
+(defun org-preview/process-compiler ()
+  (or (org-preview/process-keyword "LATEX_COMPILER")
+     org-latex-compiler))
+
+(defun org-preview/set-process ()
+  (or (org-preview/process-keyword "PREVIEW")
+     org-preview-latex-default-process))
+
+(defun org-preview/process-class ()
+  (or (org-preview/process-keyword "LATEX_CLASS")
+     org-latex-default-class))
+
+(defun org-preview/orgling-p ()
+  (let ((latex-class (org-preview/process-class)))
+    (string= "orgling" latex-class)))
+
+(defun org-preview/uclacs-p ()
+  (let ((latex-class (org-preview/process-class)))
+    (string= "uclacs" latex-class)))
+
+#+END_SRC
+
+**** XeLaTeX fragments
+
+#+NAME: org-preview-xelatex
+#+BEGIN_SRC emacs-lisp :tangle no
+(defcustom xelatex-preview-header org-format-latex-header
+  "The preamble to use for previewing LaTeX fragments with XeLaTeX."
+  :type 'string)
+
+(setq xelatex-preview-header
+      (concat xelatex-preview-header
+      "\\usepackage{amsmath}
+      \\usepackage{unicode-math}
+      \\setmathfont{STIX2Math}[
+      Extension = .otf,
+      ]
+      \\setmainfont{STIX2Text}[
+      Extension      = .otf,
+      UprightFont    = *-Regular,
+      BoldFont       = *-Bold,
+      ItalicFont     = *-Italic,
+      BoldItalicFont = *-BoldItalic
+      ]"))
+
+(defcustom xelatex-preview-process-alist
+  '((dvipng
+     :programs
+     ("xelatex" "dvipng")
+     :description "dvi > png"
+     :message "You need to install the programs: xelatex and dvipng"
+     :image-input-type "dvi"
+     :image-output-type "png"
+     :image-size-adjust (1.3 1.3)
+     :latex-compiler
+     ("xelatex -interaction nonstopmode -output-directory %o %f")
+     :image-converter
+     ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
+    (dvisvgm
+     :programs
+     ("latex" "dvisvgm")
+     :description "dvi > svg"
+     :message "you need to install the programs: xelatex and dvisvgm."
+     :use-xcolor t
+     :image-input-type "xdv"
+     :image-output-type "svg"
+     :image-size-adjust
+     (1.7 . 1.5)
+     :latex-compiler
+     ("xelatex -no-pdf -interaction nonstopmode -output-directory %o %f")
+     :image-converter
+     ("dvisvgm %f -n -b min -c %S -o %O"))
+    (imagemagick
+     :programs ("xelatex" "convert")
+     :description "pdf > png"
+     :message "You need to install xelatex and imagemagick"
+     :use-xcolor t
+     :image-input-type "pdf"
+     :image-output-type "png"
+     :image-size-adjust (1.0 1.0)
+     :latex-compiler ("xelatex -interaction nonstopmode -output-directory %o %f")
+     :image-converter
+     ("convert -density %D -trim -antialias %f -quality 100 %O")))
+  "Preview engines for xelatex."
+  :type '(alist
+          :tag "LaTeX to image backends"
+		      :value-type (plist)))
+
+(defun org-preview-xelatex ()
+
+  (set (make-local-variable 'org-preview-latex-process-alist)
+    xelatex-preview-process-alist)
+
+  (set (make-local-variable 'org-format-latex-header)
+       (if (org-preview/orgling-p)
+           (concat xelatex-preview-header
+                   (read-file-contents
+                    (emacs-etc-dir "preview" "orgling-preview.tex")))
+         xelatex-preview-header)))
+#+END_SRC
+
+**** LuaLaTeX Fragments
+
+#+NAME: org-preview-lualatex
+#+BEGIN_SRC emacs-lisp :tangle no
+(defcustom lualatex-preview-header org-format-latex-header
+  "The preamble to use for previewing LaTeX fragments with LuLaTeX."
+  :type 'string)
+
+(defcustom lualatex-preview-process-alist
+  '((dvipng
+     :programs
+     ("lualatex" "dvipng")
+     :description "dvi > png"
+     :message "You need to install the programs: lualatex and dvipng"
+     :image-input-type "dvi"
+     :image-output-type "png"
+     :image-size-adjust (1.3 1.3)
+     :latex-compiler
+     ("lualatex -interaction nonstopmode -output-directory %o %f")
+     :image-converter
+     ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
+    (dvisvgm
+     :programs
+     ("latex" "dvisvgm")
+     :description "dvi > svg"
+     :message "you need to install the programs: lualatex and dvisvgm."
+     :use-xcolor t
+     :image-input-type "xdv"
+     :image-output-type "svg"
+     :image-size-adjust
+     (1.7 . 1.5)
+     :latex-compiler
+     ("lualatex -no-pdf -interaction nonstopmode -output-directory %o %f")
+     :image-converter
+     ("dvisvgm %f -n -b min -c %S -o %O"))
+    (imagemagick
+     :programs ("lualatex" "convert")
+     :description "pdf > png"
+     :message "You need to install lualatex and imagemagick"
+     :use-xcolor t
+     :image-input-type "pdf"
+     :image-output-type "png"
+     :image-size-adjust (1.0 1.0)
+     :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
+     :image-converter
+     ("convert -density %D -trim -antialias %f -quality 100 %O")))
+  "Preview engines for lualatex."
+  :type '(alist
+          :tag "LaTeX to image backends"
+		      :value-type (plist)))
+
+
+(defun org-preview-lualatex ()
+  (interactive)
+
+  (set (make-local-variable 'org-preview-latex-process-alist)
+    lualatex-preview-process-alist)
+
+  (set (make-local-variable 'org-format-latex-header)
+       (if (org-preview/uclacs-p)
+           (concat lualatex-preview-header
+                   (read-file-contents
+                    (emacs-etc-dir "preview" "uclacs-preview.tex")))
+         lualatex-preview-header)))
+#+END_SRC
+
+**** Per-buffer latex fragment previews
+
+Generate latex fragments based on the latex compiler and class in the current buffer.
+
+#+NAME: org-preview-dynamic
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun org-preview-process-hook ()
+  (interactive)
+  (let ((latex-compiler (org-preview/process-compiler)))
+    (set (make-local-variable 'org-format-latex-options)
+        '(:foreground ,(face-attribute 'font-lock-builtin-face :foreground)
+          :background default :scale 1.2 :html-foreground "Black"
+          :html-background "Transparent" :html-scale 1.0
+          :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+    (when-let (preview-process (org-preview/set-process))
+      (set (make-local-variable 'org-preview-latex-default-process)
+           preview-process))
+
+    (when (or  (string= latex-compiler "xelatex")
+              (string= latex-compiler "xetex"))
+      (org-preview-xelatex))
+
+    (when (string= latex-compiler "lualatex")
+      (org-preview-lualatex))))
+
+(add-hook 'org-mode-hook 'org-preview-process-hook)
+#+END_SR
 ** Org Mode Export
 :PROPERTIES:
 :ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
@@ -4792,6 +4384,7 @@ and subtrees of the ignored headlines will be retained.
   :demand t
   :bind (("M-m r p" . org-publish-project)))
 #+END_SRC
+
 
 * Customizing Emacs
 ** Project Management
