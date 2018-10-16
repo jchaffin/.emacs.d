@@ -2593,88 +2593,88 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+NAME: latex-math-symbols
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package math-symbols
-  :init
+  (use-package math-symbols
+    :init
 
-  (defun latex/font (math-input before after)
-   "Insert a LaTeX font. 
+    (defun latex/font (math-input before after)
+     "Insert a LaTeX font. 
 
- MATH-INPUT is the input method to toggle in math environments.
+   MATH-INPUT is the input method to toggle in math environments.
 
- The BEFORE and AFTER arguments are the strings to insert around 
- the marked region, when active. If the thing at point is a word,
- then wrap the word. Otherwise the two elements are joined at point."
-   (cond ((texmathp)
-          (if current-input-method
-              (set-input-method nil)
-            (set-input-method math-input)))
-         ((region-active-p)
-          (save-excursion
-            (goto-char (region-beginning))
-            (insert before)
-            (goto-char (region-end))
-            (insert after)))
-         ((thing-at-point 'word)
-          (save-excursion
-            (goto-char (beginning-of-thing 'word))
-            (insert before)
-            (goto-char (end-of-thing 'word))
-            (insert after)))
-         (t
-          (save-excursion
-            (insert (concat before after)))
-          (goto-char (+ (point) (length before))))))
+   The BEFORE and AFTER arguments are the strings to insert around 
+   the marked region, when active. If the thing at point is a word,
+   then wrap the word. Otherwise the two elements are joined at point."
+     (cond ((texmathp)
+            (if current-input-method
+                (set-input-method nil)
+              (set-input-method math-input)))
+           ((region-active-p)
+            (save-excursion
+              (goto-char (region-beginning))
+              (insert before)
+              (goto-char (region-end))
+              (insert after)))
+           ((thing-at-point 'word)
+            (save-excursion
+              (goto-char (beginning-of-thing 'word))
+              (insert before)
+              (goto-char (end-of-thing 'word))
+              (insert after)))
+           (t
+            (save-excursion
+              (insert (concat before after)))
+            (goto-char (+ (point) (length before))))))
 
-  (defun latex/prettify-symbols-extra ()
-    (if osx-browse-mode
-        (osx-browse-mode nil))
+    (defun latex/prettify-symbols-extra ()
+      (if osx-browse-mode
+          (osx-browse-mode nil))
 
-    (when (fboundp 'prettify-symbols-mode)
-      (prettify-symbols-mode 1))
+      (when (fboundp 'prettify-symbols-mode)
+        (prettify-symbols-mode 1))
 
-    (setq prettify-symbols-alist
-          '(("\\complement" . "∁"))))
+      (setq prettify-symbols-alist
+            '(("\\complement" . "∁"))))
 
-  (setq-default abbrev-mode t)
-  (setq latex-mode-abbrev-table nil)
+    (setq-default abbrev-mode t)
+    (setq latex-mode-abbrev-table nil)
 
-  (define-abbrev-table 'latex-mode-abbrev-table
-      '(("uiff"  "⟷")
-        ("uif"  "⟶")
-        ("uand" "∧")
-        ("ulambda" "𝜆")
-        ("uor" "∨")
-        ("uxor" "⨁")
-        ("uexists" "∃")
-        ("unexists" "∄")
-        ("usubset" "⊂")
-        ("unsubset" "⊄")))
+    (define-abbrev-table 'latex-mode-abbrev-table
+        '(("uiff"  "⟷")
+          ("uif"  "⟶")
+          ("uand" "∧")
+          ("ulambda" "𝜆")
+          ("uor" "∨")
+          ("uxor" "⨁")
+          ("uexists" "∃")
+          ("unexists" "∄")
+          ("usubset" "⊂")
+          ("unsubset" "⊄")))
 
-  (defun latex/unbind-osx-browse ()
-    (when (fboundp 'osx-browse-mode)
-      (let ((map osx-browse-mode-map))
-        (define-key map (kbd "s-b") nil)
-        (define-key map (kbd "s-i") nil))))
+    (defun latex/unbind-osx-browse ()
+      (when (fboundp 'osx-browse-mode)
+        (let ((map osx-browse-mode-map))
+          (define-key map (kbd "s-b") nil)
+          (define-key map (kbd "s-i") nil))))
 
-  (defun latex/font-italic ()
-    "Insert a literal italic typeset command, or toggle input method
-in math environments with unicode math enabled."
-    (interactive)
-    (latex/font "math-symbols-italic" "\\textit{" "}"))
+    (defun latex/font-italic ()
+      "Insert a literal italic typeset command, or toggle input method
+  in math environments with unicode math enabled."
+      (interactive)
+      (latex/font "math-symbols-italic" "\\textit{" "}"))
 
-  (defun latex/font-bold ()
-    "Insert a literal bold typeset command, or toggle input method
-in math environments with unicode math enabled."
-    (interactive)
-    (latex/font "math-symbols-bold" "\\textbf{" "}"))
+    (defun latex/font-bold ()
+      "Insert a literal bold typeset command, or toggle input method
+  in math environments with unicode math enabled."
+      (interactive)
+      (latex/font "math-symbols-bold" "\\textbf{" "}"))
 
-  (let ((map LaTeX-mode-map))
-    (define-key map (kbd "s-b") 'latex/font-bold)
-    (define-key map (kbd "s-i") 'latex/font-italic))
+    (let ((map LaTeX-mode-map))
+      (define-key map (kbd "s-b") 'latex/font-bold)
+      (define-key map (kbd "s-i") 'latex/font-italic))
 
-  :hook
-  (LaTeX-mode . latex/unbind-osx-browse)
-  (LaTeX-mode . latex/prettify-symbols-extra))
+    :hook
+    (LaTeX-mode . latex/unbind-osx-browse)
+    (LaTeX-mode . latex/prettify-symbols-extra))
 
 #+END_SRC
 
@@ -3467,7 +3467,7 @@ miscellaneous or arbitrary tasks.
   (setq org-agenda-category-icon-alist
    `(("syntax" ,(list "Ᾱ")  nil nil :ascent center)
      ("phonetics" ,(list "ə")  nil nil :ascent center)
-     ("algorithms" ,(list "𝛺") nil nil :ascent center)
+     ("algorithms" ,(list "") nil nil :ascent center)
      ("languages" ,(list "𝜆") nil nil :ascent center)))
 
   (defvar-local org-use-level-faces nil)
@@ -3557,7 +3557,7 @@ miscellaneous or arbitrary tasks.
     :commands (org-projectile-files-to-agenda)
     :after (projectile)
     :bind (:map projectile-command-map
-		            ("n" . org-projectile-project-todo-completing-read))
+                ("n" . org-projectile-project-todo-completing-read))
     :custom
     (org-projectile-per-project-filepath "TODOs.org")
 
@@ -3581,7 +3581,7 @@ miscellaneous or arbitrary tasks.
            (build-agenda (ps)
                          (setq org-agenda-files
                                (seq-uniq (append org-agenda-files ps)))))
-        
+
           (->> projectile-known-projects
              (seq-filter #'todo-file-p)
              (mapcar #'project-agenda-filepath)
@@ -3594,11 +3594,11 @@ miscellaneous or arbitrary tasks.
     :config
 
     (org-projectile-per-project)
-    
+
     (add-to-list 'org-capture-templates
                  (org-projectile-project-todo-entry
-		              :capture-character "p"
-		              :capture-heading "Linked Project TODO")))
+                  :capture-character "p"
+                  :capture-heading "Linked Project TODO")))
 
 #+END_SRC
 
@@ -4308,11 +4308,11 @@ And opt-in to all back ends when on local machine.
 
 #+NAME: org-export-enable-on-mac
 #+BEGIN_SRC emacs-lisp :tangle no
-(when *is-mac*
-  (mapcar (lambda (backend)
-            (setq org-export-enabled-backends
-                  (cons backend org-export-enabled-backends)))
-          '(extra gfm latex hugo html pandoc linguistics)))
+  (when (or *is-mac* (string= system-name "archer"))
+    (mapcar (lambda (backend)
+              (setq org-export-enabled-backends
+                    (cons backend org-export-enabled-backends)))
+            '(extra gfm latex hugo html pandoc linguistics)))
 #+END_SRC
 
 *** Ox Org
@@ -5896,97 +5896,98 @@ This disables Emacs asking questions about loading a new theme.
 #+END_SRC
 
 *** Org Mode Faces
+
 #+NAME: theme-org-mode
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun halidom/org-faces ()
-  "Customize `org-mode' faces for base-16 themes."
-  (let ((fg (face-foreground 'default nil 'default))
-        (fg2 (or (plist-get halidom-theme-colors :base04)))
-        (bg2 (or (plist-get halidom-theme-colors :base01)))
-        (sans-font "Source Sant Pro")
-        (et-font "EtBembo"))
-    (when (and fg2 bg2)
-      (set-face-attribute 'org-block nil
-                          :foreground fg)
+  (defun halidom/org-faces ()
+    "Customize `org-mode' faces for base-16 themes."
+    (let ((fg (face-foreground 'default nil 'default))
+          (fg2 (or (plist-get halidom-theme-colors :base04)))
+          (bg2 (or (plist-get halidom-theme-colors :base01)))
+          (sans-font "Sans")
+          (et-font "EtBembo"))
+      (when (and fg2 bg2)
+        (set-face-attribute 'org-block nil
+                            :foreground fg)
 
-      (set-face-attribute 'org-block-begin-line nil
-                          :foreground fg2
-                          :background bg2
-                          :inherit 'org-meta-line)
+        (set-face-attribute 'org-block-begin-line nil
+                            :foreground fg2
+                            :background bg2
+                            :inherit 'org-meta-line)
 
-      (set-face-attribute 'org-document-info-keyword nil
-                          :foreground fg2
-                          :slant 'italic
-                          :inherit 'org-document-info-face))
+        (set-face-attribute 'org-document-info-keyword nil
+                            :foreground fg2
+                            :slant 'italic
+                            :inherit 'org-document-info-face))
 
-    (set-face-attribute 'org-level-1 nil
-                     :family sans-font
-                     :height 1.6
-                     :inherit 'outline-1)
+      (set-face-attribute 'org-level-1 nil
+                       :family sans-font
+                       :height 1.4
+                       :inherit 'outline-1)
 
-      (set-face-attribute 'org-level-2 nil
-                          :family sans-font
-                          :height 1.3
-                          :inherit 'outline-2)
+        (set-face-attribute 'org-level-2 nil
+                            :family sans-font
+                            :height 1.2
+                            :inherit 'outline-2)
 
-      (set-face-attribute 'org-level-3 nil
-                          :family sans-font
-                          :height 1.2
-                          :slant 'normal
-                          :inherit 'outline-3)
+        (set-face-attribute 'org-level-3 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-3)
 
-      (set-face-attribute 'org-level-4 nil
-                          :family sans-font
-                          :height 1.1
-                          :slant 'normal
-                          :inherit 'outline-3)
+        (set-face-attribute 'org-level-4 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-3)
 
-      (set-face-attribute 'org-level-5 nil
-                          :family sans-font
-                          :height 1.1
-                          :slant 'normal
-                          :inherit 'outline-4)
+        (set-face-attribute 'org-level-5 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-4)
 
-      (set-face-attribute 'org-level-6 nil
-                          :family sans-font
-                          :height 1.1
-                          :slant 'normal
-                          :inherit 'outline-3)
+        (set-face-attribute 'org-level-6 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-3)
 
-      (set-face-attribute 'org-level-7 nil
-                          :family sans-font
-                          :height 1.0
-                          :slant 'normal
-                          :inherit 'outline-3)
+        (set-face-attribute 'org-level-7 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-3)
 
-      (set-face-attribute 'org-document-title nil
-                          :family et-font
-                          :height 1.8
-                          :underline nil
-                          :inherit 'variable-pitch)
+        (set-face-attribute 'org-document-title nil
+                            :family et-font
+                            :height 1.8
+                            :underline nil
+                            :inherit 'variable-pitch)
 
 
-      (set-face-attribute 'org-block-end-line nil
-                          :inherit 'org-block-begin-line)))
+        (set-face-attribute 'org-block-end-line nil
+                            :inherit 'org-block-begin-line)))
 
-;; https://github.com/syl20bnr/spacemacs/pull/7667
-(defun halidom/org-restart ()
-  "Restart all open org-mode buffers."
-  (let ((org-buffers (org-buffer-list)))
-    (dolist (buf org-buffers)
-      (with-current-buffer buf
-        (org-mode-restart)))))
-        
-(defun halidom/org-theme-hook ()
-    (halidom/org-faces)
-    (halidom/org-restart))
+  ;; https://github.com/syl20bnr/spacemacs/pull/7667
+  (defun halidom/org-restart ()
+    "Restart all open org-mode buffers."
+    (let ((org-buffers (org-buffer-list)))
+      (dolist (buf org-buffers)
+        (with-current-buffer buf
+          (org-mode-restart)))))
 
-(defun halidom/disable-scroll-bar ()
-  (toggle-scroll-bar -1))
+  (defun halidom/org-theme-hook ()
+      (halidom/org-faces)
+      (halidom/org-restart))
 
-;; Add Hooks
-(add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
-(add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
+  (defun halidom/disable-scroll-bar ()
+    (toggle-scroll-bar -1))
+
+  ;; Add Hooks
+  (add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
+  (add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
 
 #+END_SRC
 
@@ -6040,8 +6041,7 @@ face shall be used."
 
 #+NAME: cursor/bar
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package bar-cursor
-  :init (bar-cursor-mode 1))
+  (modify-all-frames-parameters (list (cons 'cursor-type '(bar . 4))))
 #+END_SRC
 
 *** Disable Blink
@@ -6058,8 +6058,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+NAME: cursor/window
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq-default cursor-in-non-selected-windows nil
-              x-stretch-cursor nil)
+  (setq-default cursor-in-non-selected-windows nil
+                x-stretch-cursor nil)
 #+END_SRC
 
 *** Smart Cursor Color
@@ -7880,149 +7880,151 @@ Interactively.
 
 #+NAME: mail/mu
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Mu4e
-<<mu-mu4e>>
-;; Mu4e Alert
-<<mu-alert>>
-;; Mu4e Maildirs extension
-<<mu-maildirs>>
+  ;; Mu4e
+  <<mu-mu4e>>
+  ;; Mu4e Alert
+  <<mu-alert>>
+  ;; Mu4e Maildirs extension
+  <<mu-maildirs>>
 #+END_SRC
 
 **** Mu4e
 
 #+NAME: mu-mu4e
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package mu4e
-    :straight nil
-    :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
-    :init
-    (require 'mu4e)
+  (use-package mu4e
+      :straight nil
+      :if
+      (executable-find "mu")
+      :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
+      :init
+      (require 'mu4e)
 
-    :config
-    ;; use mu4e for email in emacs
-    (setq mail-user-agent 'mu4e-user-agent)
+      :config
+      ;; use mu4e for email in emacs
+      (setq mail-user-agent 'mu4e-user-agent)
 
-    (setq mu4e-maildir "~/.mail")
+      (setq mu4e-maildir "~/.mail")
 
-    ;; Update with offlineimap
-    (setq mu4e-get-mail-command "offlineimap -o -q")
+      ;; Update with offlineimap
+      (setq mu4e-get-mail-command "offlineimap -o -q")
 
-    ;; Let GMAIL/IMAP take care of sent messages
-    (setq mu4e-sent-messages-behavior 'delete)
+      ;; Let GMAIL/IMAP take care of sent messages
+      (setq mu4e-sent-messages-behavior 'delete)
 
-    (require 'smtpmail)
+      (require 'smtpmail)
 
-     ;; smtp settings
-    (setq message-send-mail-function 'smtpmail-send-it
-          smtpmail-stream-type 'starttls
-          smtpmail-default-smtp-server "smtp.gmail.com"
-          smtpmail-smtp-server "smtp.gmail.com"
-          smtpmail-smtp-service 587)
+       ;; smtp settings
+      (setq message-send-mail-function 'smtpmail-send-it
+            smtpmail-stream-type 'starttls
+            smtpmail-default-smtp-server "smtp.gmail.com"
+            smtpmail-smtp-server "smtp.gmail.com"
+            smtpmail-smtp-service 587)
 
-    ;; Kill message buffers on send
-    (setq message-kill-buffer-on-exit t)
+      ;; Kill message buffers on send
+      (setq message-kill-buffer-on-exit t)
 
-    ;; mu4e View
-    (setq mu4e-attachment-dir "~/Downloads"
-          mu4e-view-show-images t
-          mu4e-show-addresses t
-          mu4e-view-prefer-html t
-          mu4e-view-show-images t)
+      ;; mu4e View
+      (setq mu4e-attachment-dir "~/Downloads"
+            mu4e-view-show-images t
+            mu4e-show-addresses t
+            mu4e-view-prefer-html t
+            mu4e-view-show-images t)
 
 
-    (when (fboundp 'imagemagick-register-types)
-      (imagemagick-register-types))
+      (when (fboundp 'imagemagick-register-types)
+        (imagemagick-register-types))
 
-    (setq mu4e-completing-read-function 'ivy-completing-read)
+      (setq mu4e-completing-read-function 'ivy-completing-read)
 
-    ;; Mu4e Contexts
-    (setq mu4e-context-policy 'pick-first
-          mu4e-compose-context-policy 'ask-if-none)
+      ;; Mu4e Contexts
+      (setq mu4e-context-policy 'pick-first
+            mu4e-compose-context-policy 'ask-if-none)
 
-    (setq mu4e-contexts
-          `(,(make-mu4e-context
-              :name "personal"
-              :enter-func
-              (lambda () (mu4e-message "Using Personal gmail account.k"))
-              :leave-func
-              (lambda () (mu4e-message "leaving Personal gmail account."))
-              :match-func
-              (lambda (msg)
-                (when msg
-                  (string-match-p "^/personal")
-                  (mu4e-message-field msg :maildir)))
-              :vars
-              '((user-mail-address  . "jchaffin57@gmail.com")
-                (user-full-name     . "Jacob Chaffin")
-                (mail-reply-to      . "jchaffin57@gmail.com")
-                (smtpmail-smtp-user . "jchaffin57@gmail.com")
-                (mu4e-sent-folder   . "/personal/sent")
-                (mu4e-drafts-folder . "/personal/drafts")
-                (mu4e-refile-folder . "/personal/archive")
-                (mu4e-trash-folder  . "/personal/trash")
-                (mu4e-compose-signature .
-                 (concat
-                  "Jacob Chaffin\n"
-                  "jchaffin57@gmail.com\n"
-                  "jchaffin@ucla.edu"))))
+      (setq mu4e-contexts
+            `(,(make-mu4e-context
+                :name "personal"
+                :enter-func
+                (lambda () (mu4e-message "Using Personal gmail account.k"))
+                :leave-func
+                (lambda () (mu4e-message "leaving Personal gmail account."))
+                :match-func
+                (lambda (msg)
+                  (when msg
+                    (string-match-p "^/personal")
+                    (mu4e-message-field msg :maildir)))
+                :vars
+                '((user-mail-address  . "jchaffin57@gmail.com")
+                  (user-full-name     . "Jacob Chaffin")
+                  (mail-reply-to      . "jchaffin57@gmail.com")
+                  (smtpmail-smtp-user . "jchaffin57@gmail.com")
+                  (mu4e-sent-folder   . "/personal/sent")
+                  (mu4e-drafts-folder . "/personal/drafts")
+                  (mu4e-refile-folder . "/personal/archive")
+                  (mu4e-trash-folder  . "/personal/trash")
+                  (mu4e-compose-signature .
+                   (concat
+                    "Jacob Chaffin\n"
+                    "jchaffin57@gmail.com\n"
+                    "jchaffin@ucla.edu"))))
 
-             ,(make-mu4e-context
-               :name "school"
-               :enter-func
-               (lambda () (mu4e-message "Entering UCLA Gmail account"))
-               :leave-func
-               (lambda () (mu4e-message "Leaving UCLA Gmail account."))
-               :match-func
-               (lambda (msg)
-                 (when msg
-                   (string-match-p "^/school" 
-                   (mu4e-message-field msg :maildir))))
-               :vars '((user-mail-address  . "jchaffin@ucla.edu")
-                       (user-full-name     . "Jacob Chaffin")
-                       (mail-reply-to      . "jchaffin@ucla.edu" )
-                       (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
-                       (mu4e-drafts-folder . "/school/drafts")
-                       (mu4e-sent-folder   . "/school/sent")
-                       (mu4e-refile-folder . "/school/archive")
-                       (mu4e-trash-folder  . "/school/trash")
-                       (mu4e-compose-signature .
-                        (concat
-                         "Jacob Chaffin\n"
-                         "UCLA 2019\n"
-                         "Linguistics and Computer Science\n"
-                         "jchaffin@ucla.edu"))))))
+               ,(make-mu4e-context
+                 :name "school"
+                 :enter-func
+                 (lambda () (mu4e-message "Entering UCLA Gmail account"))
+                 :leave-func
+                 (lambda () (mu4e-message "Leaving UCLA Gmail account."))
+                 :match-func
+                 (lambda (msg)
+                   (when msg
+                     (string-match-p "^/school" 
+                     (mu4e-message-field msg :maildir))))
+                 :vars '((user-mail-address  . "jchaffin@ucla.edu")
+                         (user-full-name     . "Jacob Chaffin")
+                         (mail-reply-to      . "jchaffin@ucla.edu" )
+                         (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
+                         (mu4e-drafts-folder . "/school/drafts")
+                         (mu4e-sent-folder   . "/school/sent")
+                         (mu4e-refile-folder . "/school/archive")
+                         (mu4e-trash-folder  . "/school/trash")
+                         (mu4e-compose-signature .
+                          (concat
+                           "Jacob Chaffin\n"
+                           "UCLA 2019\n"
+                           "Linguistics and Computer Science\n"
+                           "jchaffin@ucla.edu"))))))
 
-    ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]] 
-    ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
-    ;; `user-mail-address' values for all contexts. If you have other mail
-    ;; addresses as well, you'll need to add those manually.
-    (setq mu4e-user-mail-address-list
-          (delq nil
-                (mapcar (lambda (context)
-                          (when (mu4e-context-vars context)
-                            (cdr
-                             (assq
-                              'user-mail-address
-                              (mu4e-context-vars context)))))
-                        mu4e-contexts)))
+      ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]] 
+      ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
+      ;; `user-mail-address' values for all contexts. If you have other mail
+      ;; addresses as well, you'll need to add those manually.
+      (setq mu4e-user-mail-address-list
+            (delq nil
+                  (mapcar (lambda (context)
+                            (when (mu4e-context-vars context)
+                              (cdr
+                               (assq
+                                'user-mail-address
+                                (mu4e-context-vars context)))))
+                          mu4e-contexts)))
     
 
-    (require 'gnus-dired)
+      (require 'gnus-dired)
 
-    (defun gnus-dired-mail-buffers ()
-      "Return a list of active message buffers."
-      (let ((buffers))
-        (save-current-buffer
-          (dolist (buffer (buffer-list t))
-            (set-buffer buffer)
-            (when (and (derived-mode-p 'message-mode)
-                       (null message-sent-message-via))
-              (push (buffer-name buffers) buffers))))
-        (nreverse buffers)))
+      (defun gnus-dired-mail-buffers ()
+        "Return a list of active message buffers."
+        (let ((buffers))
+          (save-current-buffer
+            (dolist (buffer (buffer-list t))
+              (set-buffer buffer)
+              (when (and (derived-mode-p 'message-mode)
+                         (null message-sent-message-via))
+                (push (buffer-name buffers) buffers))))
+          (nreverse buffers)))
 
-    (setq gnus-dired-mail-mode 'mu4e-user-agent)
+      (setq gnus-dired-mail-mode 'mu4e-user-agent)
     
-    (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
+      (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
 #+END_SRC
 
 
@@ -8281,47 +8283,48 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME: writing-variable-pitch
 #+BEGIN_SRC emacs-lisp :tangle no
-(defcustom halidom-org-fixed-pitch-faces
-  '(org-table
-    org-code
-    org-special-keyword
-    org-verbatim
-    org-meta-line
-    org-block
-    org-block-begin-line
-    org-block-end-line
-    org-document-info-keyword)
-  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
-  :type '(list symbol))
+  (defcustom halidom-org-fixed-pitch-faces
+    '(org-table
+      org-code
+      org-special-keyword
+      org-verbatim
+      org-meta-line
+      org-block
+      org-block-begin-line
+      org-block-end-line
+      org-document-info-keyword)
+    "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
+    :type '(list symbol))
 
-(defvar org-fixed-pitch-font
-  (face-attribute 'fixed-pitch :family))
+  (defvar org-fixed-pitch-font
+    (face-attribute 'fixed-pitch :family))
 
-(defvar org-variable-pitch-font
-  (face-attribute 'variable-pitch :family))
+  (defvar org-variable-pitch-font
+    (face-attribute 'variable-pitch :family))
 
-(setq org-fixed-pitch-font "Operator Mono")
-(setq org-variable-pitch-font "ETBembo")
+  (setq org-fixed-pitch-font "Operator Mono")
 
-(setq face-remapping-alist nil)
+  (setq org-variable-pitch-font "ETBembo")
 
-(defun org-toggle-variable-pitch ()
-  "Toggle use of face `variable-pitch'.
-This works by frobbing `face-remapping-alist'."
-  (interactive)
-  (if face-remapping-alist
-      (setq face-remapping-alist nil)
-    (face-remap-add-relative 'variable-pitch
-                             :family org-variable-pitch-font)
-    (face-remap-add-relative 'default 'variable-pitch)
-    (->> halidom-org-fixed-pitch-faces
-        (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
-        (mapcar (lambda (x) (apply #'face-remap-add-relative x))))))
+  (setq face-remapping-alist nil)
+
+  (defun org-toggle-variable-pitch ()
+    "Toggle use of face `variable-pitch'.
+  This works by frobbing `face-remapping-alist'."
+    (interactive)
+    (if face-remapping-alist
+        (setq face-remapping-alist nil)
+      (face-remap-add-relative 'variable-pitch
+                               :family org-variable-pitch-font)
+      (face-remap-add-relative 'default 'variable-pitch)
+      (->> halidom-org-fixed-pitch-faces
+          (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
+          (mapcar (lambda (x) (apply #'face-remap-add-relative x))))))
 
 
 
-;; (when (local-variable-if-set-p 'org-use-variable-pitch)
-;;   (add-hook 'org-mode-hook #'org-toggle-variable-pitch))
+  ;; (when (local-variable-if-set-p 'org-use-variable-pitch)
+  ;;   (add-hook 'org-mode-hook #'org-toggle-variable-pitch))
 #+END_SRC
 
 *** Olivetti
