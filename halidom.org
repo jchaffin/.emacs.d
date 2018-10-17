@@ -3,7 +3,7 @@
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
-* Table Of Contents :TOC_3_gh:noexport:
+*  Table Of Contents :TOC_3_gh:noexport:
 - [[#preface][Preface]]
   - [[#about-this-document][About this document]]
   - [[#literate-programming][Literate Programming]]
@@ -68,7 +68,7 @@
     - [[#task-management][Task Management]]
     - [[#idea-management][Idea Management]]
     - [[#org-hacks][Org Hacks]]
-  - [[#org-latex][Org LaTeX]]
+  - [[#org-latex][Org Latex]]
     - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
     - [[#edit-latex][Edit Latex]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
@@ -84,7 +84,7 @@
     - [[#ox-gfm][Ox GFM]]
     - [[#ox-hugo][Ox Hugo]]
     - [[#ox-html][Ox HTML]]
-    - [[#ox-linguistics][OX Linguistics]]
+    - [[#ox-linguistics][Ox Linguistics]]
     - [[#ox-extra][Ox Extra]]
     - [[#ox-publish][Ox Publish]]
 - [[#customizing-emacs][Customizing Emacs]]
@@ -210,7 +210,6 @@
     - [[#browser-utilities-on-macos][Browser utilities on macOS]]
     - [[#google-search-at-point][Google search at point]]
     - [[#search-web][Search Web]]
-    - [[#advise-org-open-at-point][Advise =org-open-at-point=]]
     - [[#browse-at-remote][Browse at remote]]
     - [[#set-default-browser][Set default browser]]
     - [[#engine-mode][Engine Mode]]
@@ -2042,8 +2041,6 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 <<org-preview-lualatex>>
 ;; Preview process hook
 <<org-preview-dynamic>>
-;; Preview Justify
-<<org-preview-justify>>
 #+END_SRC
 
 **** LaTeX Preview Pane
@@ -2059,7 +2056,6 @@ save.
 #+END_SRC
 
 **** Clear Cache
-
 
 #+NAME: org-preview-clear-cache
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2488,6 +2484,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 (add-hook 'org-mode-hook 'org-preview-process-hook)
 #+END_SRC
+
 
 *** Company AucTeX
 
@@ -2935,7 +2932,13 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-outline-numbering
   :custom-face
-  (org-outline-numbering-face ((t (:family "Sans" :weight book :inherit (default))))))
+  (org-outline-numbering-face
+   ((t (:family "Sans" :weight book :inherit (default)))))
+  :init
+  (defun org/outline-numbering ()
+    (org-outline-numbering-mode 1))
+  :hook
+  (org-mode . org/outline-numbering))
 
 #+END_SRC
 
@@ -3394,7 +3397,6 @@ Embed YouTube Links in iframe.
 (use-package org-bookmark-heading)
 #+END_SRC
 
-
 *** Task Management
 
 #+NAME: org-taskmgr
@@ -3435,6 +3437,9 @@ Embed YouTube Links in iframe.
 <<agenda/ng>>
 ;; org ql
 <<agenda/ql>>
+;; Side bar
+<<agenda/sidebar>>
+;; End Org Agenda
 #+END_SRC
 
 I use per-project agenda files for the most part (now being managed
@@ -3523,20 +3528,29 @@ miscellaneous or arbitrary tasks.
 #+NAME: agenda/ql
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-ql
-  :straight (org-ql :host github
-                           :repo "alphapapa/org-agenda-ng"
-                           :files ("org-ql.el")))
+    :straight
+    (org-ql
+      :type git
+      :host github
+      :repo "alphapapa/org-agenda-ng"
+      :files ("org-ql.el")))
+
+(use-package org-ql-agenda
+    :straight
+    (org-ql-agenda
+      :type git
+      :host github
+      :repo "alphapapa/org-agenda-ng"
+      :files ("org-ql-agenda.el")))
 
 #+END_SRC
 
 ***** Org Sidebar
 
-#+NAME: org-agenda-sidebar
+#+NAME: agenda/sidebar
 #+BEGIN_SRC emacs-lisp :tangle no
-
-
 (use-package org-sidebar
-  :after (:all org-agenda-ng org-ql)
+  :after org-ql
   :init (require 'org-habit)
   :demand t
   :straight (org-sidebar :host github
@@ -3766,6 +3780,10 @@ org agenda files.
 Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
 
 *** Idea Management
+:PROPERTIES:
+:ID:       0D754B3F-C800-409F-B8A2-140CB8EDD1E3
+:CUSTOM_ID: sec:idea-management
+:END:
 
 #+NAME: org-ideamgr
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -3964,7 +3982,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
 (ad-activate 'org-refile)
 #+END_SRC
 
-** Org LaTeX
+** Org Latex
 
 #+NAME: org-latex-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -3977,8 +3995,10 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
 
 #+NAME: org-latex-editing
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Org Edit Latex
 <<org-latex-edit-latex>>
-<<org-latex-highlight-tex>>
+;; Org Highlight LaTeX
+;; <<org-latex-highlight-tex>>
 #+END_SRC
 
 *** Edit Latex
@@ -3989,7 +4009,7 @@ and apply ORIG-FUN with the extracted url in the car of original ARGS."
   :straight t)
 #+END_SRC
 
-*** Highlight inline LaTeX fragments
+*** Highlight inline LaTeX fragments :disabled:
 
 #+NAME: org-latex-highlight-tex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4161,20 +4181,13 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
               ("h"   . pdf-annot-add-highlight-markup-annotation)
               ("t"   . pdf-annot-add-text-annotation)
               ("D"   . pdf-annot-delete))
-  :magic ("%PDF" . pdf-view-mode)
   :init
-  (defun pdf-view/disable-line-numbers ()
-    (when (featurep 'display-line-numbers)
-      (display-line-numbers-mode -1)))
-
   (pdf-tools-install)
-  :custom
-  (pdf-view-display-size 'fit-page)
-  (pdf-annot-activate-created-annotations t)
-  (pdf-view-resize-factor 1.1)
-
-  :hook
-  (pdf-view-mode . pdf-view/disable-line-numbers))
+  :config
+  (progn
+    (setq-default pdf-view-display-size 'fit-page)
+    (setq pdf-annot-activate-created-annotations t)
+    (setq pdf-view-resize-factor 1.1)))
 #+END_SRC
 
 **** Org PDF View
@@ -4231,7 +4244,7 @@ This doesn't work... it just caches the project metadata for some reason.
 ** Org Mode Export
 :PROPERTIES:
 :ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
-:CUSTOM_ID: org-mode-export
+:CUSTOM_ID: sec:org-mode-export
 :END:
 
 #+NAME: org-export
@@ -4285,7 +4298,8 @@ This doesn't work... it just caches the project metadata for some reason.
 
 ;; OX Linguistics
 (when (halidom/org-export-enabled-backend-p 'linguistics)
-  <<org-export-linguistics>>)
+  <<org-export-linguistics>>
+)
 #+END_SRC
 
 *** Enable Backends
@@ -4340,46 +4354,12 @@ recursively processing #+INCLUDEs."
 #+NAME: org-export-latex
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (require 'ox-latex)
-
-
-
+;; Prefer user labels
 <<org-export-latex-user-labels>>
-
+;; PDF Process Interface
 <<org-export-latex-pdf-process>>
-
+;; Custom classes
 <<org-export-latex-custom-classes>>
-#+END_SRC
-
-**** Improve special block options
-#+NAME: org-export-latex-special
-#+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'ox-latex
-  (el-patch-defun org-latex-special-block (special-block contents info)
-    "Transcode a SPECIAL-BLOCK element from Org to LaTeX.
-  CONTENTS holds the contents of the block.  INFO is a plist
-  holding contextual information."
-    (let ((type (org-element-property :type special-block))
-    (opt (org-export-read-attribute :attr_latex special-block :options))
-    (caption (org-latex--caption/label-string special-block info))
-    (caption-above-p (org-latex--caption-above-p special-block info)))
-      (concat  (format  "\\begin{%s}%s\n" type (or opt ""))
-        (and caption-above-p caption)
-        (el-patch-add
-          (and (org-export-read-attribute :attr_latex special-block :center)
-             "\\centering\n"))
-        contents
-        (and (not caption-above-p) caption)
-        (format "\\end{%s}" type)
-        (el-patch-add (if (string= type "subfigure") "\n~"))))))
-
-
-#+END_SRC
-
-**** Prefer user provided labeling system
-
-#+NAME: org-export-latex-user-labels
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-latex-prefer-user-labels t)
 #+END_SRC
 
 **** Set latex pdf process
@@ -4394,6 +4374,7 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
   (defvar enable-default-minted nil))
 
 (setq org-latex-listings 'minted)
+
 (defun latex-toggle-default-minted ()
   (interactive)
   (if enable-default-minted
@@ -4459,20 +4440,11 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 #+END_SRC
 
-**** Subfigures
+**** Prefer user provided labeling system
 
-#+NAME: org-export-latex-subfigures
+#+NAME: org-export-latex-user-labels
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ox-latex-subfigure
-    :straight (ox-latex-subfigure
-               :type git
-               :host github
-               :repo "linktohack/ox-latex-subfigure"
-               :local-repo "ox-latex-subfigure")
-    :config
-    (require 'ox-latex-subfigure))
-
-
+(setq org-latex-prefer-user-labels t)
 #+END_SRC
 
 **** Org LaTeX Default Packages :ignore:
@@ -4752,7 +4724,7 @@ for exporting org-mode documents to various formats.
 
 #+END_SRC
 
-*** OX Linguistics
+*** Ox Linguistics
 
 #+NAME: org-export-linguistics
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -5542,7 +5514,7 @@ different window configurations.
 #+END_SRC
 
 *** Thingatpt+
-
+n
 #+NAME: thingatpt-plus
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package thingatpt+)
@@ -5859,17 +5831,28 @@ This disables Emacs asking questions about loading a new theme.
       (load-theme halidom-theme)
       (run-hooks 'halidom/load-theme-hook))))
 
+  (if (display-graphic-p)
+      (progn
 
+        (load-theme theme)
 (defun halidom/load-theme-with-frame (frame)
+        (if (halidom--base16-p theme)
+            (setq halidom-theme-colors
   (with-selected-frame frame
+                   (intern
+                    (eval
+                     `(concat
+                       ,(symbol-name (symbol-value 'halidom-theme)) "-colors")))))
+          (setq halidom-theme-colors nil))
     (message "%s" (getenv "TERM"))
 
 
+    (progn
+      (load-theme halidom-term-theme)))))
 
-
-
-
-
+(defun halidom/load-theme-with-frame (frame)
+  (with-selected-frame frame
+    (unless (daemonp)
     (halidom/load-theme)))
 
 (defun halidom/load-default-theme ()
@@ -5902,12 +5885,25 @@ This disables Emacs asking questions about loading a new theme.
         (fg2 (or (plist-get halidom-theme-colors :base04)))
         (bg2 (or (plist-get halidom-theme-colors :base01)))
         (sans-font "Source Sant Pro")
-        (et-font "EtBembo"))
+        (header-font "EtBembo"))
     (when (and fg2 bg2)
+        (progn
+          (set-face-attribute 'org-level-1 nil
+                             :family header-font
+                             :height 1.4
+                             :inherit 'outline-1)
+          (set-face-attribute 'org-level-2 nil
+                             :family header-font
+                             :height 1.2
+                             :inherit 'outline-2)
       (set-face-attribute 'org-block nil
+                              :family header-font
+                              :height 1.0
+                              :slant 'normal
                           :foreground fg)
 
       (set-face-attribute 'org-block-begin-line nil
+                              :height 1.5
                           :foreground fg2
                           :background bg2
                           :inherit 'org-meta-line)
@@ -6012,6 +6008,7 @@ face shall be used."
        do
          (add-hook hooksym 'halidom/italicize-keyword-fn))))
 
+
 (add-hook 'after-init-hook 'halidom/italicize-keyword-faces)
 
 #+END_SRC
@@ -6034,6 +6031,7 @@ face shall be used."
 <<cursor/bar>>
 #+END_SRC
 
+#+BEGIN_SRC emacs-lisp :tangle yes
 *** Bar Cursor 
 
 #+NAME: cursor/bar
@@ -7642,32 +7640,6 @@ the user will be prompted to edit the search string first."
   (define-key 'web-browse-prefix-map "s" 'search-web))
 #+END_SRC
 
-*** Advise =org-open-at-point=
-:PROPERTIES:
-:ID:       69b03145-629e-4593-ae4c-6cbd5404ff3e
-:CUSTOM_ID: org-open-at-point-browser
-:END:
-
-This [[https://www.emacswiki.org/emacs/BrowseUrl#toc28][function]] advises =org-open-at-point= to allow choosing different browsers.
-
-#+NAME: browser-org-advise
-#+BEGIN_SRC emacs-lisp :tangle no
-(defadvice org-open-at-point (around org-open-at-point-choose-browser activate)
-  (let ((browse-url-browser-function
-         (cond ((equal (ad-get-arg 0) '(4))
-                'browse-url-generic)
-               ((equal (ad-get-arg 0) '(16))
-                'choose-browser)
-               (t
-                (lambda (url &optional new)
-                  (if (and (> emacs-major-version 26)
-                           (display-graphic-p))
-                      (xwidget-webkit-browse-url url t)
-                    (eww-browse-url url t)))))))
-    ad-do-it))
-#+END_SRC
-
-
 *** Browse at remote
 
 #+NAME: browser-gitremote
@@ -8266,7 +8238,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME:  prose-writing
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
-;; Olivetti Monde
+;; Olivetti Mode
 <<writing-olivetti>>
 ;; Writeroom Mode
 <<writing-writeroom>>
@@ -11166,7 +11138,6 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
     "Enable `prettify-symbols-mode' for `tuareg-mode'."
     (when (functionp 'prettify-symbols-mode)
       (prettify-symbols-mode)))
-
 
   (defun tuareg/lsp ()
     "Enable `lsp-ocaml' for `tuareg-mode'."
