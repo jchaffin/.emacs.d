@@ -1,5 +1,7 @@
 #+title: Jacob Chaffin's Literate Emacs Configuration
 #+language: en
+#+AUTHOR: Jacob Chaffin
+#+STARTUP: hideblock
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
 #+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
@@ -62,6 +64,7 @@
     - [[#texinfo][Texinfo]]
     - [[#latex-math][LaTeX Math]]
   - [[#org-mode][Org Mode]]
+    - [[#org-command-map][Org Command Map]]
     - [[#org-babel][Org Babel]]
     - [[#org-appearance][Org Appearance]]
     - [[#structure-and-editing][Structure and Editing]]
@@ -295,6 +298,7 @@
 - [[#misc][Misc]]
   - [[#scimax][Scimax]]
   - [[#alfred-org-capture][Alfred Org Capture]]
+  - [[#ess][ESS]]
 - [[#prologue][Prologue]]
 - [[#footnotes][Footnotes]]
 
@@ -383,19 +387,39 @@ Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun goto-repo (&optional build-dir)
-  "Go to a straight repository directory. If BUILD-DIR, then go to
-the build directory for that repository instead."
-  (interactive "P")
-  (let* ((dir (-> user-emacs-directory
-                  (f-join "straight"
-                          (if build-dir "build" "repos"))))
-         (msg (format "(%s) Goto recipe: " (upcase-initials (f-base dir)))))
-    (ivy-read
-     msg
-     (directory-files dir)
-     :action (lambda (package)
-               (dired (f-join dir package))))))
+
+  (defun goto-repo (&optional build-dir)
+    "Go to a straight repository directory. If BUILD-DIR, then go to
+  the build directory for that repository instead."
+    (interactive "P")
+    (let* ((dir (-> user-emacs-directory
+                   (f-join "straight"
+                           (if build-dir "build" "repos"))))
+           (pkg-keys (sort (hash-table-keys
+                            straight--recipe-cache)
+                           #'string-lessp))
+           (msg (format "(%s) Goto recipe: "
+                        (upcase-initials (f-base dir)))))
+      (ivy-read
+       msg
+       pkg-keys
+       :action
+       (lambda (package)
+         (let ((pkg-directory
+                (expand-file-name
+                 (plist-get
+                  (gethash package straight--recipe-cache)
+                  :local-repo)
+                 dir)))
+           (when (file-directory-p pkg-directory)
+             (let ((readme (car
+                            (directory-files
+                             pkg-directory
+                             t
+                             "\\README.*\\'"))))
+               (if readme
+                   (find-file readme)
+                 (dired pkg-directory)))))))))
 
   ;; Add to goto-* keymap
   (define-key goto-map "r" #'goto-repo)
@@ -421,9 +445,49 @@ the build directory for that repository instead."
                   (completing-read
                    "Which recipe? "
                    (straight-recipes-list straight-recipe-repositories)
-                   nil 'require-match)))
+                o   nil 'require-match)))
          (url (straight--get-remote-url (intern pkg))))
     (browse-url url)))
+#+END_SRC
+
+****  Straight Hydra Menu
+
+#+NAME: straight/hydra
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (defhydra hydra-straight (:hint nil)
+
+    "
+  _c_heck all       |_f_etch all     |_m_erge all      |_n_ormalize all   |p_u_sh all
+  _C_heck package   |_F_etch package |_M_erge package  |_N_ormlize package|p_U_sh package
+  ----------------^^+--------------^^+---------------^^+----------------^^+------------||_q_uit||
+  _r_ebuild all     |_p_ull all      |_v_ersions freeze|_w_atcher start   |_g_et recipe
+  _R_ebuild package |_P_ull package  |_V_ersions thaw  |_W_atcher quit    |pru_n_e build
+  ----------------^^+--------------^^+---------------^^+----------------^^+------------
+  _b_rowse on Github
+  "
+    ("b" straight-browse-on-github)
+    ("c" straight-check-all)
+    ("C" straight-check-package)
+    ("r" straight-rebuild-all)
+    ("R" straight-rebuild-package)
+    ("f" straight-fetch-all)
+    ("F" straight-fetch-package)
+    ("p" straight-pull-all)
+    ("P" straight-pull-package)
+    ("m" straight-merge-all)
+    ("M" straight-merge-package)
+    ("n" straight-normalize-all)
+    ("N" straight-normalize-package)
+    ("u" straight-push-all)
+    ("U" straight-push-package)
+    ("v" straight-freeze-versions)
+    ("V" straight-thaw-versions)
+    ("w" straight-watcher-start)
+    ("W" straight-watcher-quit)
+    ("g" straight-get-recipe)
+    ("n" straight-prune-build)
+    ("q" nil))
+
 #+END_SRC
 
 ** User Information
@@ -1428,17 +1492,19 @@ from within Emacs.
 #+NAME: reload-eval-commander
 #+BEGIN_SRC emacs-lisp :tangle yes
 
-(define-prefix-command 'reload-eval-prefix-map)
+  (define-prefix-command 'reload-eval-prefix-map)
 
-(let ((map reload-eval-prefix-map))
-  (define-key map "i" 'straight-reload-init)
-  (define-key map "b" 'straight-eval-buffer)
-  (define-key map "r" 'eval-region)
-  (define-key map "f" 'straight-eval-defun)
-  (define-key map "q" 'restart-emacs))
+  (let ((map reload-eval-prefix-map))
+    (define-key map "i" 'straight-reload-init)
+    (define-key map "b" 'straight-eval-buffer)
+    (define-key map "r" 'eval-region)
+    (define-key map "f" 'straight-eval-defun)
+    (define-key map "q" 'restart-emacs))
 
-(define-key 'halidom-prefix-map (kbd "r") 'reload-eval-prefix-map)
-(which-key-add-prefix-title "M-m r" "Reload/Eval")
+  (define-key 'halidom-prefix-map (kbd "s") 'hydra-straight/body)
+  (define-key 'halidom-prefix-map (kbd "r") 'reload-eval-prefix-map)
+  (which-key-add-prefix-title "M-m r" "Reload/Eval")
+
 #+END_SRC
 
 *** Speed Type
@@ -1910,6 +1976,7 @@ Note that LaTeX packages are loaded, configured, and installed when
     :custom
     ;; (TeX-command-default
     ;;  (if (executable-find "latexmk") "LatexMk" "LaTeX"))
+    (TeX-error-overview-open-after-TeX-run t)
     (TeX-auto-save t)
     (TeX-parse-self t)
     (TeX-syntactic-comment t)
@@ -1917,6 +1984,8 @@ Note that LaTeX packages are loaded, configured, and installed when
     (TeX-interactive-mode nil)
     ;; Don't insert line-break at inline math
     (LaTeX-fill-break-at-separators nil)
+    (LaTeX-item-indent nil)
+
     :init
 
     ;; https://emacs.stackexchange.com/a/19475
@@ -1952,7 +2021,42 @@ Note that LaTeX packages are loaded, configured, and installed when
     (LaTeX-mode . LaTeX-math-mode)
     (LaTeX-mode . TeX-fold-mode)
     (LaTeX-mode . TeX-source-correlate-mode)
-    (LaTeX-mode . TeX-PDF-mode))
+    (LaTeX-mode . TeX-PDF-mode)
+    (LaTeX-mode . display-line-numbers-mode)
+
+    :config
+    ;; Copied from Emacs Stack exchange
+    ;; https://emacs.stackexchange.com/a/5493
+    (setq LaTeX-begin-regexp "\\(?:begin\\|if@\\)\\b")
+    (setq LaTeX-end-regexp "\\(?:end\\|else\\|fi\\)\\b")
+    (defun LaTeX-indent-level-count ()
+      "Count indentation change caused by all \\left, \\right, \\begin, and
+    \\end commands in the current line."
+      (save-excursion
+        (save-restriction
+          (let ((count 0))
+            (narrow-to-region (point)
+                              (save-excursion
+                                (re-search-forward
+                                 (concat "[^" TeX-esc "]"
+                                         "\\(" LaTeX-indent-comment-start-regexp
+                                         "\\)\\|\n\\|\\'"))
+                                (backward-char)
+                                (point)))
+            (while (search-forward TeX-esc nil t)
+              (cond
+                ((looking-at "left\\b")
+                 (setq count (+ count LaTeX-left-right-indent-level)))
+                ((looking-at "right\\b")
+                 (setq count (- count LaTeX-left-right-indent-level)))
+                ((looking-at LaTeX-begin-regexp)
+                 (setq count (+ count LaTeX-indent-level)))
+                ((looking-at "else\\b"))
+                ((looking-at LaTeX-end-regexp)
+                 (setq count (- count LaTeX-indent-level)))
+                ((looking-at (regexp-quote TeX-esc))
+                 (forward-char 1))))
+            count)))))
 #+END_SRC
 
 *** RefTeX
@@ -2482,26 +2586,34 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 #+NAME: org-preview-dynamic
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun org-preview-process-hook ()
-  (interactive)
-  (let ((latex-compiler (org-preview/process-compiler)))
-    (set (make-local-variable 'org-format-latex-options)
-        '(:foreground ,(face-attribute 'font-lock-builtin-face :foreground)
-          :background default :scale 1.2 :html-foreground "Black"
-          :html-background "Transparent" :html-scale 1.0
-          :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
-    (when-let (preview-process (org-preview/set-process))
-      (set (make-local-variable 'org-preview-latex-default-process)
-           preview-process))
+  (defun org-preview-process-hook ()
+    (interactive)
+    (let ((latex-compiler (org-preview/process-compiler))
+          (foreground-color (face-attribute
+                            'font-lock-builtin-face
+                            :foreground)))
 
-    (when (or  (string= latex-compiler "xelatex")
-              (string= latex-compiler "xetex"))
-      (org-preview-xelatex))
+      (set (make-local-variable 'org-format-latex-options)
+           `(:foreground default
+             :background default
+             :scale 1.2
+             :html-foreground "Black"
+             :html-background "Transparent"
+             :html-scale 1.0
+             :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
-    (when (string= latex-compiler "lualatex")
-      (org-preview-lualatex))))
+      (when-let (preview-process (org-preview/set-process))
+        (set (make-local-variable 'org-preview-latex-default-process)
+             preview-process))
 
-(add-hook 'org-mode-hook 'org-preview-process-hook)
+      (when (or  (string= latex-compiler "xelatex")
+                (string= latex-compiler "xetex"))
+        (org-preview-xelatex))
+
+      (when (string= latex-compiler "lualatex")
+        (org-preview-lualatex))))
+
+  (add-hook 'org-mode-hook 'org-preview-process-hook)
 #+END_SRC
 
 *** Company AucTeX
@@ -2699,6 +2811,8 @@ in math environments with unicode math enabled."
 
 #+NAME: orgtex/org
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Org command map
+<<org/commander>> 
 ;; Org Babel
 <<org/ob>>
 ;; Org UI
@@ -2714,6 +2828,21 @@ in math environments with unicode math enabled."
 ;; Org export
 <<org/ox>>
 #+END_SRC
+
+*** Org Command Map
+#+NAME: org/commander
+#+BEGIN_SRC emacs-lisp :tangle no
+  (define-prefix-command 'halidom/org-command-map)
+
+  ;; (let ((map halidom/org-command-map))
+  ;;   (define-key map "j" 'org-journal-new-entry))
+
+  (define-key 'halidom-prefix-map (kbd "o")
+   'halidom/org-command-map)
+
+  (which-key-add-prefix-title "M-m o" "Org Mode")
+#+END_SRC
+
 
 *** Org Babel
 
@@ -2949,17 +3078,17 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 **** Org Outline Numbering
 
-#+NAME: org-ui-outline-numberiing
+#+NAME: org-ui-outline-numbering
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-outline-numbering
-  :custom-face
-  (org-outline-numbering-face
-   ((t (:family "Sans" :weight book :inherit (default)))))
-  :init
-  (defun org/outline-numbering ()
-    (org-outline-numbering-mode 1))
-  :hook
-  (org-mode . org/outline-numbering))
+  (use-package org-outline-numbering
+    :custom-face
+    (org-outline-numbering-face
+     ((t (:family "Sans" :weight book :inherit (default)))))
+    :init
+    (defun org/outline-numbering ()
+      (org-outline-numbering-mode 1))
+    :hook
+    (org-mode . org/outline-numbering))
 
 #+END_SRC
 
@@ -3160,21 +3289,24 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+NAME: org-docmgr-journal
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-journal
-  :if *is-mac*
-  ;; :bind
-  ;; (("M-m j" . org-journal-new-entry))
-  :config
-  (progn
-    (setq org-journal-dir (concat (file-name-as-directory org-directory) "journal")
-          org-journal-date-prefix "#+TITLE: "
-          org-journal-date-format "%A, %B %d %Y"
-          org-journal-time-prefix "* "
-          org-journal-time-format "")
-    (push '("j" "Journal" entry
-            (file+olp+datetree "~/Dropbox/org/journal.org")
-            "* %?\nEntered on %U\n %i\n %a")
-          org-capture-templates)))
+  (use-package org-journal
+    :if *is-mac*
+    :bind (:map halidom/org-command-map
+                ("j" . org-journal-new-entry))
+    ;; :bind
+    ;; (("M-m j" . org-journal-new-entry))
+    :config
+    (progn
+      (setq org-journal-dir (concat (file-name-as-directory org-directory) "journal")
+            org-journal-date-prefix "#+TITLE: "
+            org-journal-date-format "%A, %B %d %Y"
+            org-journal-time-prefix "* "
+            org-journal-time-format "")
+      (push '("j" "Journal" entry
+              (file+olp+datetree "~/Dropbox/org/journal.org")
+              "* %?\nEntered on %U\n %i\n %a")
+            org-capture-templates)))
+
 #+END_SRC
 
 **** Org ID
@@ -3422,22 +3554,22 @@ Embed YouTube Links in iframe.
 
 #+NAME: org/tasks
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Begin Org Task Manager
-;; Org Habit
-<<org-taskmgr-habit>>
-;; Org Agenda
-<<org-taskmgr-agenda>>
-;; Org Pomodoro
-<<org-taskmgr-pomodoro>>
-;; Calfw
-<<org-taskmgr-calfw>>
-;; Org Counsel Clock
-<<org-taskmgr-coclock>>
-;; Org Projectile
-<<org-taskmgr-projectile>>
-;; Org Mru
-<<org-taskmgr-mru-clock>>
-;; End Org Task Manager
+  ;; Begin Org Task Manager
+  ;; Org Habit
+  <<org-taskmgr-habit>>
+  ;; Org Agenda
+  <<org-taskmgr-agenda>>
+  ;; Org Pomodoro
+  <<org-taskmgr-pomodoro>>
+  ;; Calfw
+  <<org-taskmgr-calfw>>
+  ;; Org Counsel Clock
+  <<org-taskmgr-coclock>>
+  ;; Org Projectile
+  <<org-taskmgr-projectile>>
+  ;; Org Mru
+  <<org-taskmgr-mru-clock>>
+  ;; End Org Task Manager
 #+END_SRC
 
 **** Org Habit
@@ -3464,73 +3596,74 @@ Embed YouTube Links in iframe.
 #+END_SRC
 
 I use per-project agenda files for the most part (now being managed
-using [[#org-projectile][org-projectile]]), but I like having a designated global one for
-miscellaneous or arbitrary tasks.
+using [[#org-projectile][org-projectile]]), but I like having a designated global one for miscellaneous or arbitrary tasks.
+
 
 #+NAME: agenda/org-agenda
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-agenda
-  :straight org
-  :custom
-  (org-tags-column 0)
-  (diary-file (expand-file-name "diary.org" org-directory))
+  (use-package org-agenda
+    :straight org
+    :custom
+    (org-tags-column 0)
+    (diary-file (expand-file-name "diary.org" org-directory))
 
-  :init
+    :init
 
-  (defun goto-agenda-dir ()
-    (interactive)
-    (dired (agenda-dir)))
+    (defun goto-agenda-dir ()
+      (interactive)
+      (dired (agenda-dir)))
 
-  (defun goto-org-dir ()
-    (interactive)
-    (dired org-directory))
+    (defun goto-org-dir ()
+      (interactive)
+      (dired org-directory))
 
-  (define-key goto-map "a" #'goto-agenda-dir)
-  (define-key goto-map "o" #'goto-org-dir)
+    (define-key goto-map "a" #'goto-agenda-dir)
+    (define-key goto-map "o" #'goto-org-dir)
 
-  (setq org-agenda-category-icon-alist
-   `(("syntax" ,(list "Ᾱ")  nil nil :ascent center)
-     ("phonetics" ,(list "ə")  nil nil :ascent center)
-     ("algorithms" ,(list "𝛺") nil nil :ascent center)
-     ("languages" ,(list "𝜆") nil nil :ascent center)))
+    (setq org-agenda-category-icon-alist
+     `(("syntax" ,(list "Ᾱ")  nil nil :ascent center)
+       ("phonetics" ,(list "ə")  nil nil :ascent center)
+       ("algorithms" ,(list "𝛺") nil nil :ascent center)
+       ("languages" ,(list "𝜆") nil nil :ascent center)))
 
-  (defvar-local org-use-level-faces nil)
-  (defvar org-level-remap-face nil)
+    (defvar-local org-use-level-faces nil)
+    (defvar org-level-remap-face nil)
 
-  (defun halidom/remap-org-level-faces ()
-    "Use minimal foreground face in `org-agenda-files' buffers."
+    (defun halidom/remap-org-level-faces ()
+      "Use minimal foreground face in `org-agenda-files' buffers."
 
-    (let ((foreground (face-foreground 'default nil 'default)))
-      (unless org-use-level-faces
-        (mapcar
-         (lambda (face)
-           (add-to-list 'org-level-remap-face
-                        (face-remap-add-relative
-                         face
-                         :foreground foreground)))
-         org-level-faces)
-        (setq-local org-use-level-faces t))))
+      (let ((foreground (face-foreground 'default nil 'default)))
+        (unless org-use-level-faces
+          (mapcar
+           (lambda (face)
+             (add-to-list 'org-level-remap-face
+                          (face-remap-add-relative
+                           face
+                           :foreground foreground)))
+           org-level-faces)
+          (setq-local org-use-level-faces t))))
 
-  (defun halidom/org-agenda-face ()
-    (cond ((org-agenda-file-p) (halidom/remap-org-level-faces))
-          (org-use-level-faces
-           (mapcar
-            (lambda (f)
-              (setq face-remapping-alist
-                    (delq f face-remapping-alist)))
-            org-level-remap-face))))
-  :config
-  (defvar default-agenda-file (resolve-path org-directory "TODOS.org"))
+    (defun halidom/org-agenda-face ()
+      (cond ((org-agenda-file-p) (halidom/remap-org-level-faces))
+            (org-use-level-faces
+             (mapcar
+              (lambda (f)
+                (setq face-remapping-alist
+                      (delq f face-remapping-alist)))
+              org-level-remap-face))))
 
-  (defun halidom/default-agenda ()
-    (interactive)
-    (setq org-agenda-files
-          (if (file-exists-p default-agenda-file)
-             (list default-agenda-file))))
+    :config
+    (defvar default-agenda-file (resolve-path org-directory "TODOS.org"))
 
-  (halidom/default-agenda)
-  :hook
-  (org-mode . halidom/org-agenda-face))
+    (defun halidom/default-agenda ()
+      (interactive)
+      (setq org-agenda-files
+            (if (file-exists-p default-agenda-file)
+               (list default-agenda-file))))
+
+    (halidom/default-agenda)
+    :hook
+    (org-mode . halidom/org-agenda-face))
 #+END_SRC
 
 ***** Agenda ng
@@ -3570,12 +3703,13 @@ miscellaneous or arbitrary tasks.
 
 #+NAME: agenda/sidebar
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-sidebar
-  :after org-ql
-  :init (require 'org-habit)
-  :demand t
-  :straight (org-sidebar :host github
-                         :repo "alphapapa/org-sidebar"))
+  (use-package org-sidebar
+    :after org-ql
+    :init (require 'org-habit)
+    :bind (:map halidom/org-command-map
+                ("s" . org-sidebar))
+    :straight (org-sidebar :host github
+                           :repo "alphapapa/org-sidebar"))
 #+END_SRC
 
 **** Org Projectile
@@ -3590,7 +3724,7 @@ miscellaneous or arbitrary tasks.
     :commands (org-projectile-files-to-agenda)
     :after (projectile)
     :bind (:map projectile-command-map
-		            ("n" . org-projectile-project-todo-completing-read))
+                ("n" . org-projectile-project-todo-completing-read))
     :custom
     (org-projectile-per-project-filepath "TODOs.org")
 
@@ -3630,8 +3764,8 @@ miscellaneous or arbitrary tasks.
 
     (add-to-list 'org-capture-templates
                  (org-projectile-project-todo-entry
-		              :capture-character "p"
-		              :capture-heading "Linked Project TODO")))
+                  :capture-character "p"
+                  :capture-heading "Linked Project TODO")))
 
 #+END_SRC
 
@@ -4252,12 +4386,12 @@ The default cross-referencing and hyperlink styles provided by
 
 #+NAME: oxl/hyperref
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-latex-hyperref-template
-      (concat "\\hyperset{\n"
-              " colorlinks=true,"
-              " urlcolor=black"
-              " linkcolor=black"
-              "\n}"))
+  (setq org-latex-hyperref-template
+        (concat "\\hypersetup{\n"
+                " colorlinks=true,"
+                " urlcolor=black"
+                " linkcolor=black"
+                "\n}"))
 #+END_SRC
 
 **** Export classes
@@ -5063,6 +5197,7 @@ Jump to arbitrary point in Buffer
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package dired-sidebar
       :commands (dired-sidebar-toggle-sidebar)
+      :custom (dired-sidebar-should-follow-file t)
       :init
       (defun sidebar/disable-icons ()
         (when (fboundp 'all-the-icons-dired-mode)
@@ -5190,12 +5325,7 @@ list that one may use in the wacky world of Emacs.
 
     (dashboard-setup-startup-hook)
 
-    (defun dashboard/hide-line-numbers ()
-      "Disable line numbers in das"
-      (if display-line-numbers
-          (display-line-numbers-mode -1)))
-
-    (defun dashboard/set-intial-buffer ()
+    (defun dashboard/set-initial-buffer ()
       (when (and (boundp 'dashboard-buffer-name)
                (bufferp (get-buffer dashboard-buffer-name)))
         (get-buffer dashboard-buffer-name)))
@@ -5216,8 +5346,8 @@ list that one may use in the wacky world of Emacs.
 
     :hook
     (after-init     . dashboard-refresh-buffer)
-    (dashboard-mode . halidom/dashboard-banner)
-    (dashboard-mode . dashboard/hide-line-numbers))
+    (dashboard-mode . halidom/dashboard-banner))
+
 
 #+END_SRC
 
@@ -5338,6 +5468,18 @@ different window configurations.
   :init
   (when (fboundp 'winner-mode)
     (winner-mode 1)))
+#+END_SRC
+
+**** Ace Window
+
+#+NAME: window/ace
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package ace-window
+      :bind ("M-o" . ace-window)
+      :custom
+      (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+      (aw-background nil))
+
 #+END_SRC
 
 **** Popwin
@@ -5729,6 +5871,8 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 <<theme-org-mode>>
 ;; Italicize keywords for modes
 <<theme-italicize-for-modes>>
+;; Per Buffer theme
+<<theme/per-buffer>>
 ;;; End Theme Group
 #+END_SRC
 
@@ -5895,7 +6039,7 @@ This disables Emacs asking questions about loading a new theme.
     (halidom/load-theme))
 
   (add-hook 'after-init-hook #'halidom/load-theme)
-  (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
+  ;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
 
 #+END_SRC
 
@@ -5904,100 +6048,99 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: theme-org-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 
-    ;; Org Mode faces
-      (defun halidom/org-faces ()
-        "Customize `org-mode' faces for base-16 themes."
-        (let ((fg (face-foreground 'default nil 'default))
-        (fg2 (or (plist-get halidom-theme-colors :base04)))
-        (bg2 (or (plist-get halidom-theme-colors :base01)))
-        (sans-font "Source Sans Pro")
-        (header-font "EtBembo"))
-          (when (and fg2 bg2)
+  ;; Org Mode faces
+    (defun halidom/org-faces ()
+      "Customize `org-mode' faces for base-16 themes."
+      (let ((fg (face-foreground 'default nil 'default))
+      (fg2 (or (plist-get halidom-theme-colors :base04)))
+      (bg2 (or (plist-get halidom-theme-colors :base01)))
+      (sans-font "Source Sans Pro")
+      (header-font "EtBembo"))
+        (when (and fg2 bg2)
 
-      (set-face-attribute 'org-block nil
-              :height 1.0
-              :slant 'normal
-              :foreground fg)
+          (set-face-attribute 'org-block-begin-line nil
+                              :height 1.0
+                              :foreground fg2
+                              :background bg2
+                              :inherit 'org-meta-line)
 
-      (set-face-attribute 'org-block-begin-line nil
-           :height 1.0
-           :foreground fg2
-           :background bg2
-           :inherit 'org-meta-line)
+          (set-face-attribute 'org-document-info-keyword nil
+                              :foreground fg2
+                              :slant 'italic
+                              :inherit 'org-document-info-face))
 
-      (set-face-attribute 'org-document-info-keyword nil
-              :foreground fg2
-              :slant 'italic
-              :inherit 'org-document-info-face))
+        (set-face-attribute 'org-level-2 nil
+                            :family header-font
+                            :height 1.2
+                            :inherit 'outline-2)
+        (set-face-attribute 'org-level-1 nil
+                            :family sans-font
+                            :height 1.6
+                            :inherit 'outline-1)
+        (set-face-attribute 'org-level-2 nil
+                            :family sans-font
+                            :height 1.3
+                            :inherit 'outline-2)
+        (set-face-attribute 'org-level-3 nil
+                            :family sans-font
+                            :height 1.2
+                            :slant 'normal
+                            :inherit 'outline-3)
+        (set-face-attribute 'org-level-4 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-3)
+        (set-face-attribute 'org-level-5 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-4)
+        (set-face-attribute 'org-level-6 nil
+                            :family sans-font
+                            :height 1.1
+                            :slant 'normal
+                            :inherit 'outline-3)
+        (set-face-attribute 'org-level-7 nil
+                            :family sans-font
+                            :height 1.0
+                            :slant 'normal
+                            :inherit 'outline-3)
 
-          (set-face-attribute 'org-level-1 nil
-            :family header-font
-            :height 1.4
-            :inherit 'outline-1)
-          (set-face-attribute 'org-level-2 nil
-             :family header-font
-             :height 1.2
-             :inherit 'outline-2)
-          (set-face-attribute 'org-level-1 nil
-            :family sans-font
-            :height 1.6
-            :inherit 'outline-1)
-          (set-face-attribute 'org-level-2 nil
-            :family sans-font
-            :height 1.3
-            :inherit 'outline-2)
-           (set-face-attribute 'org-level-3 nil
-             :family sans-font
-             :height 1.2
-             :slant 'normal
-             :inherit 'outline-3)
-           (set-face-attribute 'org-level-4 nil
-             :family sans-font
-             :height 1.1
-             :slant 'normal
-             :inherit 'outline-3)
-           (set-face-attribute 'org-level-5 nil
-             :family sans-font
-             :height 1.1
-             :slant 'normal
-             :inherit 'outline-4)
-           (set-face-attribute 'org-level-6 nil
-             :family sans-font
-             :height 1.1
-             :slant 'normal
-             :inherit 'outline-3)
-           (set-face-attribute 'org-level-7 nil
-             :family sans-font
-             :height 1.0
-             :slant 'normal
-             :inherit 'outline-3)
-           (set-face-attribute 'org-document-title nil
-             :family header-font
-             :height 1.8
-             :underline nil
-             :inherit 'variable-pitch)
-           (set-face-attribute 'org-block-end-line nil
-             :inherit 'org-block-begin-line)))
+        (set-face-attribute 'org-block nil
+                            :height 1.0
+                            :slant 'normal
+                            :foreground fg)
 
-      ;; https://github.com/syl20bnr/spacemacs/pull/7667
-      (defun halidom/org-restart ()
-        "Restart all open org-mode buffers."
-        (let ((org-buffers (org-buffer-list)))
-          (dolist (buf org-buffers)
-      (with-current-buffer buf
-        (org-mode-restart)))))
+        (set-face-attribute 'org-document-title nil
+                            :family header-font
+                            :foreground fg
+                            :height 1.8
+                            :underline nil
+                            :inherit 'variable-pitch)
 
-      (defun halidom/org-theme-hook ()
-          (halidom/org-faces)
-          (halidom/org-restart))
+        (set-face-attribute 'org-block-end-line nil
+                            :inherit 'org-block-begin-line)))
 
-      (defun halidom/disable-scroll-bar ()
-        (toggle-scroll-bar -1))
+    ;; https://github.com/syl20bnr/spacemacs/pull/7667
+    (defun halidom/org-restart ()
+      "Restart all open org-mode buffers."
+      (let ((org-buffers (org-buffer-list)))
+        (dolist (buf org-buffers)
+    (with-current-buffer buf
+      (org-mode-restart)))))
 
-      ;; Add Hooks
-      (add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
-      (add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
+    (defun halidom/org-theme-hook ()
+        (halidom/org-faces)
+        (halidom/org-restart))
 
+    (defun halidom/disable-scroll-bar ()
+      (toggle-scroll-bar -1))
+
+    ;; Add Hooks
+    (add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
+    (add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
+    (add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
 #+END_SRC
 
 *** Italicize font lock keyword face
@@ -6027,6 +6170,13 @@ face shall be used."
 
 (add-hook 'after-init-hook 'halidom/italicize-keyword-faces)
 
+#+END_SRC
+
+**** Per buffer Themes
+
+#+NAME: theme/per-buffer
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package per-buffer-theme)
 #+END_SRC
 
 ** Cursor
@@ -6216,7 +6366,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
         (halidom/font-setup)))
 
   (add-hook 'after-init-hook 'halidom/font-setup)
-  (add-hook 'after-make-frame-functions 'halidom/font-setup-for-frame)
+  ;; (add-hook 'after-make-frame-functions 'halidom/font-setup-for-frame)
 
 #+END_SRC
 
@@ -6750,23 +6900,24 @@ snippets corresponding to the major mode of the current buffer mode.
 
 #+NAME: snippets-code-library
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package code-library
-  :after (org)
-  :init
-  (progn
-    (setq code-library-directory (emacs-etc-dir "codelibrary"))
-    (if-not (file-exists-p code-library-directory)
-        (if (yes-or-no-p
-             (format-message "Directory `%s' doesn't exist. Make directory?" code-library-directory))
-            (mkdir code-library-directory))))
-  :config
-  (progn
-    (append 'code-library-mode-file-alist
-            '((latex-mode . "latex.org")
-              (clojure-mode . "clojure.org")
-              (makefile-mode . "makefile.org")
-              (makefile-gmake-mode . "makefile.org")))
-    (setq code-library-sync-to-gist t)))
+  (use-package code-library
+    :after (org)
+    :init
+    (progn
+      (setq code-library-directory (emacs-etc-dir "codelibrary"))
+      (if-not (file-exists-p code-library-directory)
+          (if (yes-or-no-p
+               (format-message "Directory `%s' doesn't exist. Make directory?" code-library-directory))
+              (mkdir code-library-directory))))
+    :config
+    (progn
+      (append 'code-library-mode-file-alist
+              '((latex-mode . "latex.org")
+                (org-mode .  "latex.org")
+                (clojure-mode . "clojure.org")
+                (makefile-mode . "makefile.org")
+                (makefile-gmake-mode . "makefile.org")))n
+      (setq code-library-sync-to-gist t)))
 #+END_SRC
 
 ** Minibuffer
@@ -6948,9 +7099,9 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+NAME: ivy/rich
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package ivy-rich
+      :after (counsel)
       :init
     (ivy-rich-mode 1))
-
 #+END_SRC
 
 **** Ivy Pages
@@ -6986,78 +7137,89 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 #+NAME: counsel-spec
 #+BEGIN_SRC emacs-lisp :noweb no :tangle no
-(use-package counsel
-  :bind (("<f2> u" . counsel-unicode-char)
-         ("<f1> l" . counsel-find-library)
-         ("C-c l" . counsel-load-library)
-         ("C-c g" . counsel-git)
-         ("C-c j" . counsel-git-grep)
-         ("C-c k" . counsel-ag)
-         ("C-x l" . counsel-locate)
-         (:map minibuffer-local-map
-               ("C-r" . counsel-minibuffer-history)))
-  :init
-  ;; Lazy-load `counsel'.
-  (el-patch-defvar counsel-mode-map
-    (let ((map (make-sparse-keymap)))
-      (dolist (binding
-               '((execute-extended-command . counsel-M-x)
-                 (describe-bindings . counsel-descbinds)
-                 (describe-function . counsel-describe-function)
-                 (describe-variable . counsel-describe-variable)
-                 (describe-face . counsel-describe-face)
-                 (list-faces-display . counsel-faces)
-                 (find-file . counsel-find-file)
-                 (find-library . counsel-find-library)
-                 (imenu . counsel-imenu)
-                 (load-library . counsel-load-library)
-                 (load-theme . counsel-load-theme)
-                 (yank-pop . counsel-yank-pop)
-                 (info-lookup-symbol . counsel-info-lookup-symbol)
-                 (pop-to-mark-command . counsel-mark-ring)
-                 (bookmark-jump . counsel-bookmark)
-                 (org-capture . counsel-org-capture)
-                 (org-tag . counsel-org-tag)))
-        (define-key map
-            (vector 'remap (car binding)) (cdr binding))) map)
-    "Map for `counsel-mode'.
-Remaps built-in functions to counsel replacements.")
+  (use-package counsel
+    :bind (("<f2> u" . counsel-unicode-char)
+           ("<f1> l" . counsel-find-library)
+           ("C-c l" . counsel-load-library)
+           ("C-c g" . counsel-git)
+           ("C-c G" . counsel-git-grep)
+           ("C-c k" . counsel-ag)
+           ("C-x l" . counsel-locate)
+           (:map minibuffer-local-map
+                 ("C-r" . counsel-minibuffer-history))
+           (:map org-mode-map
+                 ("C-c C-j" . counsel-org-goto)
+                 ("C-c M-t" . counsel-org-tag)
+                 ("C-c f"   . counsel-org-file))
+           (:map org-agenda-mode-map
+                 ("C-c M-t" . counsel-org-tag-agenda)
+                 ("C-c C-j" . counsel-org-agenda-headlines)))
+    :init/el-patch
+    ;; Lazy-load `counsel'.
 
-   (el-patch-defcustom counsel-mode-override-describe-bindings nil
-    "Whether to override `describe-bindings' when `counsel-mode' is active."
-    :group 'ivy
-    :type 'boolean)
+    (defvar counsel-mode-map
+      (let ((map (make-sparse-keymap)))
+        (dolist (binding
+                  '((execute-extended-command . counsel-M-x)
+                    (describe-bindings . counsel-descbinds)
+                    (describe-function . counsel-describe-function)
+                    (describe-variable . counsel-describe-variable)
+                    (apropos-command . counsel-apropos)
+                    (describe-face . counsel-describe-face)
+                    (list-faces-display . counsel-faces)
+                    (find-file . counsel-find-file)
+                    (find-library . counsel-find-library)
+                    (imenu . counsel-imenu)
+                    (load-library . counsel-load-library)
+                    (load-theme . counsel-load-theme)
+                    (yank-pop . counsel-yank-pop)
+                    (info-lookup-symbol . counsel-info-lookup-symbol)
+                    (pop-to-mark-command . counsel-mark-ring)
+                    (bookmark-jump . counsel-bookmark)))
+          (define-key map (vector 'remap (car binding)) (cdr binding)))
+        map)
+   "Map for `counsel-mode'.
+  Remaps built-in functions to counsel replacements.")
 
-  (el-patch-define-minor-mode counsel-mode
-    "Toggle Counsel mode on or off.
-Turn Counsel mode on if ARG is positive, off otherwise. Counsel
-mode remaps built-in emacs functions that have counsel
-replacements. "
-    :group 'ivy
-    :global t
-    :keymap counsel-mode-map
-    :lighter " counsel"
-    (if counsel-mode
-        (progn
-          (when (and (fboundp 'advice-add)
-                     counsel-mode-override-describe-bindings)
-            (advice-add #'describe-bindings :override #'counsel-descbinds))
-          (define-key minibuffer-local-map (kbd "C-r")
-            'counsel-minibuffer-history))
-      (when (fboundp 'advice-remove)
-        (advice-remove #'describe-bindings #'counsel-descbinds))))
 
-  ;; Use customized Ivy configurations for built-in Emacs commands.
-  (counsel-mode +1)
+    (el-patch-defcustom counsel-mode-override-describe-bindings nil
+      "Whether to override `describe-bindings' when `counsel-mode' is active."
+      :group 'ivy
+      :type 'boolean)
 
-  ;; Diminish the lazy-loaded version of `counsel-mode'.
-  (diminish 'counsel-mode)
+    (el-patch-define-minor-mode counsel-mode
+      "Toggle Counsel mode on or off.
+  Turn Counsel mode on if ARG is positive, off otherwise. Counsel
+  mode remaps built-in emacs functions that have counsel
+  replacements.
 
-  :config
-  (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
-  (setq counsel-mode-override-describe-bindings t)
+  Local bindings (`counsel-mode-map'):
+  \\{counsel-mode-map}"
+      :group 'ivy
+      :global t
+      :keymap counsel-mode-map
+      :lighter " counsel"
+      (if counsel-mode
+          (progn
+            (when (and (fboundp 'advice-add)
+                       counsel-mode-override-describe-bindings)
+              (advice-add #'describe-bindings :override #'counsel-descbinds))
+            (define-key minibuffer-local-map (kbd "C-r")
+              'counsel-minibuffer-history))
+        (when (fboundp 'advice-remove)
+          (advice-remove #'describe-bindings #'counsel-descbinds))))
 
-  :diminish counsel-mode)
+    ;; Use customized Ivy configurations for built-in Emacs commands.
+    (counsel-mode +1)
+
+    ;; Diminish the lazy-loaded version of `counsel-mode'.
+    (diminish 'counsel-mode)
+
+    :config
+    (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
+    (setq counsel-mode-override-describe-bindings t)
+
+    :diminish counsel-mode)
 
 #+END_SRC
 
@@ -7780,41 +7942,33 @@ Interactively.
       (define-key engine-mode-map (kbd "C-x /") nil)
       (define-key 'web-browse-prefix-map "e" engine-mode-prefixed-map))
 
+    (defengine cassi
+      "http://cassi.cas.org/search.jsp")
+
+    (defengine ctan
+      "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
+      :keybinding "c"
+      :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
 
     (defengine github
       "https://github.com/search?ref=simplesearch&q=%s"
       :keybinding "h"
       :docstring "Search Github")
 
-    (defengine worldcat
-      "https://ucla.worldcat.org/search?q=%s"
-      :keybinding "W"
-      :docstring "Search Worldcat"
-      :browser 'osx-browse-url-chrome)
-
-    (defengine proquest
-      "https://search.proquest.com"
-      :keybinding "p"
-      :docstring "Search Proquest")
-
     (defengine google
       "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
       :keybinding "g"
       :docstring "Search Google")
 
-    (defengine cassi
-      "http://cassi.cas.org/search.jsp"
-      :browser 'xwidget-webkit-browse-url)
-
     (defengine google-bookmarks
-      "chrome://bookmarks/?q=%s"
+       "chrome://bookmarks/?q=%s"
       :keybinding "Gb"
       :docstring "Search bookmarks in Google Chrome")
 
     (defengine google-images
-      "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-  :keybinding "Gi"
-  :docstring "Search google-images")
+        "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
+      :keybinding "Gi"
+      :docstring "Search google-images")
 
     (defengine google-maps
       "http://maps.google.com/maps?q=%s"
@@ -7824,6 +7978,11 @@ Interactively.
     (defengine project-gutenberg
       "http://www.gutenberg.org/ebooks/search/?query=%s"
       :docstring "Read good")
+
+    (defengine proquest
+       "https://search.proquest.com"
+      :keybinding "p"
+      :docstring "Search Proquest")
 
     (defengine rfcs
       "http://pretty-rfc.herokuapp.com/search?q=%s")
@@ -7849,14 +8008,17 @@ Interactively.
       :keybinding "a"
       :docstring "Search Wolfram Alfa")
 
+    (defengine worldcat
+      "https://ucla.worldcat.org/search?q=%s"
+      :keybinding "W"
+      :docstring "Search Worldcat"
+      :browser 'osx-browse-url-chrome)
+
     (defengine youtube
       "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
   :keybinding "y"
   :docstring "Search Youtube")
 
-    (defengine ctan
-      "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
-      :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
 
    (cl-flet* ((ks (&rest k)
                   (let ((p halidom-web-engine-prefix))
@@ -7904,137 +8066,137 @@ Interactively.
 
 #+NAME: mu-mu4e
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package mu4e
-    :straight nil
-    :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
-    :init
-    (require 'mu4e)
+  (use-package mu4e
+      :straight nil
+      :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
+      :init
+      (require 'mu4e)
 
-    :config
-    ;; use mu4e for email in emacs
-    (setq mail-user-agent 'mu4e-user-agent)
+      :config
+      ;; use mu4e for email in emacs
+      (setq mail-user-agent 'mu4e-user-agent)
 
-    (setq mu4e-maildir "~/.mail")
+      (setq mu4e-maildir "~/.mail")
 
-    ;; Update with offlineimap
-    (setq mu4e-get-mail-command "offlineimap -o -q")
+      ;; Update with offlineimap
+      (setq mu4e-get-mail-command "offlineimap -o -q")
 
-    ;; Let GMAIL/IMAP take care of sent messages
-    (setq mu4e-sent-messages-behavior 'delete)
+      ;; Let GMAIL/IMAP take care of sent messages
+      (setq mu4e-sent-messages-behavior 'delete)
 
-    (require 'smtpmail)
+      (require 'smtpmail)
 
-     ;; smtp settings
-    (setq message-send-mail-function 'smtpmail-send-it
-          smtpmail-stream-type 'starttls
-          smtpmail-default-smtp-server "smtp.gmail.com"
-          smtpmail-smtp-server "smtp.gmail.com"
-          smtpmail-smtp-service 587)
+       ;; smtp settings
+      (setq message-send-mail-function 'smtpmail-send-it
+            smtpmail-stream-type 'starttls
+            smtpmail-default-smtp-server "smtp.gmail.com"
+            smtpmail-smtp-server "smtp.gmail.com"
+            smtpmail-smtp-service 587)
 
-    ;; Kill message buffers on send
-    (setq message-kill-buffer-on-exit t)
+      ;; Kill message buffers on send
+      (setq message-kill-buffer-on-exit t)
 
-    ;; mu4e View
-    (setq mu4e-attachment-dir "~/Downloads"
-          mu4e-view-show-images t
-          mu4e-show-addresses t
-          mu4e-view-prefer-html t
-          mu4e-view-show-images t)
-
-
-    (when (fboundp 'imagemagick-register-types)
-      (imagemagick-register-types))
-
-    (setq mu4e-completing-read-function 'ivy-completing-read)
-
-    ;; Mu4e Contexts
-    (setq mu4e-context-policy 'pick-first
-          mu4e-compose-context-policy 'ask-if-none)
-
-    (setq mu4e-contexts
-          `(,(make-mu4e-context
-              :name "personal"
-              :enter-func
-              (lambda () (mu4e-message "Using Personal gmail account.k"))
-              :leave-func
-              (lambda () (mu4e-message "leaving Personal gmail account."))
-              :match-func
-              (lambda (msg)
-                (when msg
-                  (string-match-p "^/personal")
-                  (mu4e-message-field msg :maildir)))
-              :vars
-              '((user-mail-address  . "jchaffin57@gmail.com")
-                (user-full-name     . "Jacob Chaffin")
-                (mail-reply-to      . "jchaffin57@gmail.com")
-                (smtpmail-smtp-user . "jchaffin57@gmail.com")
-                (mu4e-sent-folder   . "/personal/sent")
-                (mu4e-drafts-folder . "/personal/drafts")
-                (mu4e-refile-folder . "/personal/archive")
-                (mu4e-trash-folder  . "/personal/trash")
-                (mu4e-compose-signature .
-                 (concat
-                  "Jacob Chaffin\n"
-                  "jchaffin57@gmail.com\n"
-                  "jchaffin@ucla.edu"))))
-
-             ,(make-mu4e-context
-               :name "school"
-               :enter-func
-               (lambda () (mu4e-message "Entering UCLA Gmail account"))
-               :leave-func
-               (lambda () (mu4e-message "Leaving UCLA Gmail account."))
-               :match-func
-               (lambda (msg)
-                 (when msg
-                   (string-match-p "^/school"
-                   (mu4e-message-field msg :maildir))))
-               :vars '((user-mail-address  . "jchaffin@ucla.edu")
-                       (user-full-name     . "Jacob Chaffin")
-                       (mail-reply-to      . "jchaffin@ucla.edu" )
-                       (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
-                       (mu4e-drafts-folder . "/school/drafts")
-                       (mu4e-sent-folder   . "/school/sent")
-                       (mu4e-refile-folder . "/school/archive")
-                       (mu4e-trash-folder  . "/school/trash")
-                       (mu4e-compose-signature .
-                        (concat
-                         "Jacob Chaffin\n"
-                         "UCLA 2019\n"
-                         "Linguistics and Computer Science\n"
-                         "jchaffin@ucla.edu"))))))
-
-    ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
-    ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
-    ;; `user-mail-address' values for all contexts. If you have other mail
-    ;; addresses as well, you'll need to add those manually.
-    (setq mu4e-user-mail-address-list
-          (delq nil
-                (mapcar (lambda (context)
-                          (when (mu4e-context-vars context)
-                            (cdr
-                             (assq
-                              'user-mail-address
-                              (mu4e-context-vars context)))))
-                        mu4e-contexts)))
+      ;; mu4e View
+      (setq mu4e-attachment-dir "~/Downloads"
+            mu4e-view-show-images t
+            mu4e-show-addresses t
+            mu4e-view-prefer-html t
+            mu4e-view-show-images t)
 
 
-    (require 'gnus-dired)
+      (when (fboundp 'imagemagick-register-types)
+        (imagemagick-register-types))
 
-    (defun gnus-dired-mail-buffers ()
-      "Return a list of active message buffers."
-      (let ((buffers))
-        (save-current-buffer
-          (dolist (buffer (buffer-list t))
-            (set-buffer buffer)
-            (when (and (derived-mode-p 'message-mode)
-                       (null message-sent-message-via))
-              (push (buffer-name buffers) buffers))))
-        (nreverse buffers)))
+      (setq mu4e-completing-read-function 'ivy-completing-read)
 
-    (setq gnus-dired-mail-mode 'mu4e-user-agent)
+      ;; Mu4e Contexts
+      (setq mu4e-context-policy 'pick-first
+            mu4e-compose-context-policy 'ask-if-none)
 
-    (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
+      (setq mu4e-contexts
+            `(,(make-mu4e-context
+                :name "personal"
+                :enter-func
+                (lambda () (mu4e-message "Using Personal gmail account.k"))
+                :leave-func
+                (lambda () (mu4e-message "leaving Personal gmail account."))
+                :match-func
+                (lambda (msg)
+                  (when msg
+                    (string-match-p "^/personal")
+                    (mu4e-message-field msg :maildir)))
+                :vars
+                '((user-mail-address  . "jchaffin57@gmail.com")
+                  (user-full-name     . "Jacob Chaffin")
+                  (mail-reply-to      . "jchaffin57@gmail.com")
+                  (smtpmail-smtp-user . "jchaffin57@gmail.com")
+                  (mu4e-sent-folder   . "/personal/sent")
+                  (mu4e-drafts-folder . "/personal/drafts")
+                  (mu4e-refile-folder . "/personal/archive")
+                  (mu4e-trash-folder  . "/personal/trash")
+                  (mu4e-compose-signature .
+                   (concat
+                    "Jacob Chaffin\n"
+                    "jchaffin57@gmail.com\n"
+                    "jchaffin@ucla.edu"))))
+
+               ,(make-mu4e-context
+                 :name "school"
+                 :enter-func
+                 (lambda () (mu4e-message "Entering UCLA Gmail account"))
+                 :leave-func
+                 (lambda () (mu4e-message "Leaving UCLA Gmail account."))
+                 :match-func
+                 (lambda (msg)
+                   (when msg
+                     (string-match-p "^/school"
+                     (mu4e-message-field msg :maildir))))
+                 :vars '((user-mail-address  . "jchaffin@ucla.edu")
+                         (user-full-name     . "Jacob Chaffin")
+                         (mail-reply-to      . "jchaffin@ucla.edu" )
+                         (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
+                         (mu4e-drafts-folder . "/school/drafts")
+                         (mu4e-sent-folder   . "/school/sent")
+                         (mu4e-refile-folder . "/school/archive")
+                         (mu4e-trash-folder  . "/school/trash")
+                         (mu4e-compose-signature .
+                          (concat
+                           "Jacob Chaffin\n"
+                           "UCLA 2019\n"
+                           "Linguistics and Computer Science\n"
+                           "jchaffin@ucla.edu"))))))
+
+      ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
+      ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
+      ;; `user-mail-address' values for all contexts. If you have other mail
+      ;; addresses as well, you'll need to add those manually.
+      (setq mu4e-user-mail-address-list
+            (delq nil
+                  (mapcar (lambda (context)
+                            (when (mu4e-context-vars context)
+                              (cdr
+                               (assq
+                                'user-mail-address
+                                (mu4e-context-vars context)))))
+                          mu4e-contexts)))
+
+
+      (require 'gnus-dired)
+
+      (defun gnus-dired-mail-buffers ()
+        "Return a list of active message buffers."
+        (let ((buffers))
+          (save-current-buffer
+            (dolist (buffer (buffer-list t))
+              (set-buffer buffer)
+              (when (and (derived-mode-p 'message-mode)
+                         (null message-sent-message-via))
+                (push (buffer-name buffers) buffers))))
+          (nreverse buffers)))
+
+      (setq gnus-dired-mail-mode 'mu4e-user-agent)
+
+      (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
 #+END_SRC
 
 
@@ -8717,9 +8879,9 @@ school's WLAN.
 
 #+NAME: default/linenos
 #+BEGIN_SRC emacs-lisp :tangle no
-; Line Numbering
-(when (>= emacs-major-version 26)
-  (global-display-line-numbers-mode 1))
+  ; Line Numbering
+  (when (>= emacs-major-version 26)
+    (add-hook 'prog-mode-hook #'display-line-numbers-mode))
 
 #+END_SRC
 
@@ -10160,18 +10322,25 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 #+NAME: elisp/core
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun emacs-lisp-style ()
-  (paredit-mode 1)
-  (highlight-symbol-mode 1)
-  (setq lisp-indent-function 'common-lisp-indent-function))
+  (defun emacs-lisp-style ()
+    (paredit-mode 1)
+    (highlight-symbol-mode 1))
 
-(defun halidom/elisp-dash-docsets ()
-  (setq-local dash-plugin-keywords '("elisp")))
+  (defun halidom/elisp-dash-docsets ()
+    (setq-local dash-plugin-keywords '("elisp")))
 
 
-(add-hook 'emacs-lisp-mode-hook #'emacs-lisp-style)
-(add-hook 'emacs-lisp-mode-hook #'halidom/elisp-dash-docsets)
+  (add-hook 'emacs-lisp-mode-hook #'emacs-lisp-style)
+  (add-hook 'emacs-lisp-mode-hook #'halidom/elisp-dash-docsets)
+#+END_SRC
 
+**** Emacs Lisp  Format
+
+#+NAME: elisp/format
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package elisp-format 
+    :custom
+    (elisp-format-column 80))
 #+END_SRC
 
 **** Cask
@@ -10197,18 +10366,19 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 #+NAME: cask-flycheck-cask
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package flycheck-cask
-  :init
-  (defun flycheck-cask/enable ()
-    (when (eq projectile-project-type 'emacs-cask)
-      (flycheck-cask-setup)))
-  (defun flycheck-cask/disable-dir-locals ()
+  (use-package flycheck-cask
+    :init
+    (defun flycheck-cask/enable ()
+      (when (eq projectile-project-type 'emacs-cask)
+        (flycheck-cask-setup)))
+  
+    (defun flycheck-cask/disable-dir-locals ()
       (when (string= ".dir-locals.el" (buffer-file-name))
         (set (make-variable-buffer-local 'flycheck-mode) nil)))
 
-  :hook
-  (flycheck-mode . flycheck-cask/enable)
-  (flycheck-mode . flycheck-cask/disable-dir-locals))
+    :hook
+    (flycheck-mode . flycheck-cask/enable)
+    (flycheck-mode . flycheck-cask/disable-dir-locals))
 
 #+END_SRC
 
@@ -10319,40 +10489,39 @@ Gradle is a build tool for Java. It's awesome.
 
 #+NAME: java-meghanada
 #+BEGIN_SRC emacs-lisp :tangle no :noweb
-(use-package meghanada
-  :if (eq halidom-java-backend 'meghanada)
+  (use-package meghanada
+    :if (eq halidom-java-backend 'meghanada)
+    :commands meghanada-mode
 
-  :commands meghanada-mode
+    :bind
+    (:map meghanada-mode-map
+          ("C-S-t" . meghanada-switch-testcase)
+          ("M-RET" . meghanada-local-variable)
+          ("M-r"   . meghanada-reference)
+          ("M-t"   . meghanada-typeinfo)
+          ("C-z"   . hydra-meghanada/body))
 
-  :bind
-  ((:map meghanada-mode-map
-	       ("C-S-t" . meghanada-switch-testcase)
-	       ("M-RET" . meghanada-local-variable)
-	       ("M-r"   . meghanada-reference)
-	       ("M-t"   . meghanada-typeinfo)
-	       ("C-z"   . hydra-meghanada/body)))
+    :hook
+    ((java-mode . meghanada-mode)
+     (java-mode . flycheck-mode))
 
-  :hook
-  ((java-mode . meghanada-mode)
-   (java-mode . flycheck-mode))
+    :custom
+    (meghanada-server-remote-debug t)
+    (meghanada-javac-xlint "-Xlint:all,-processing")
 
-  :custom
-  (meghanada-server-remote-debug t)
-  (meghanada-javac-xlint "-Xlint:all,-processing")
-
-  :config
-  (defhydra hydra-meghanada (:hint nil :exit t)
-    "
-       ^Edit^                          ^Tast or Task^
-       ^^^^^^---------------------------------------------
-       _f_: meghanada-compile-file     _m_: meghanada-restart
-       _c_: meghanada-compile-project  _t_: meghanada-run-task
-       _o_: meghanada-optimize-import  _j_: meghanada-run-junit-test-case
-       _s_: meghanada-switch-test-case _J_: meghanada-run-junit-class
-       _v_: meghanada-local-variable   _R_: meghanada-run-junit-recent
-       _i_: meghanada-import-all       _r_: meghanada-reference
-       _q_: exit                       _T_: meghanada-typeinfo
-       "
+    :config
+    (defhydra hydra-meghanada (:hint nil :exit t)
+      "
+         ^Edit^                          ^Tast or Task^
+         ^^^^^^---------------------------------------------
+         _f_: meghanada-compile-file     _m_: meghanada-restart
+         _c_: meghanada-compile-project  _t_: meghanada-run-task
+         _o_: meghanada-optimize-import  _j_: meghanada-run-junit-test-case
+         _s_: meghanada-switch-test-case _J_: meghanada-run-junit-class
+         _v_: meghanada-local-variable   _R_: meghanada-run-junit-recent
+         _i_: meghanada-import-all       _r_: meghanada-reference
+         _q_: exit                       _T_: meghanada-typeinfo
+         "
       ("f" meghanada-compile-file)
       ("m" meghanada-restart)
 
@@ -10372,20 +10541,18 @@ Gradle is a build tool for Java. It's awesome.
 
       ("q" exit)
       ("z" nil "leave")))
-
-
 #+END_SRC
 
 ***** Ensime
 
 #+NAME: java-ensime
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ensime
-  :if (eq halidom-java-backend 'ensime)
-  :straight (ensime
-             :host github
-             :repo "ensime/ensime-emacs"
-             :branch "2.0"))
+  (use-package ensime
+    :if (eq halidom-java-backend 'ensime)
+    :straight (ensime
+               :host github
+               :repo "ensime/ensime-emacs"
+               :branch "2.0"))
 #+END_SRC
 
 **** Autodisass Java Bytecode
@@ -10677,7 +10844,7 @@ for major modes listed in `halidom-js-lsp-modes'."
 
 #+NAME: js-tide
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package typescript-mode
+  (use-package typescript-mode
     :custom
     (typescript-indent-level 2)
     :hook
@@ -10685,19 +10852,19 @@ for major modes listed in `halidom-js-lsp-modes'."
     (typescript-mode . js-setup-backend))
 
 
-(use-package tide
-  :after (:all typescript-mode flycheck company)
-  :demand t
-  :init
-  ;; (require 'typescript-mode)
-  (defun setup-tide-mode ()
-    "Enable Tide Mode for Typescript."
-    (tide-setup)
-    (when (fboundp 'flycheck-mode)
-      (flycheck-add-mode 'typescript-tslint 'typescript-mode)
-      (flycheck-mode +1)
-      (setq flycheck-check-syntax-automatically '(save mode-enabled)))
-    (eldoc-mode +1))
+  (use-package tide
+    :after (:all typescript-mode flycheck company)
+    :demand t
+    :init
+    ;; (require 'typescript-mode)
+    (defun setup-tide-mode ()
+      "Enable Tide Mode for Typescript."
+      (tide-setup)
+      (when (fboundp 'flycheck-mode)
+        (flycheck-add-mode 'typescript-tslint 'typescript-mode)
+        (flycheck-mode +1)
+        (setq flycheck-check-syntax-automatically '(save mode-enabled)))
+      (eldoc-mode +1))
 
     :hook
     (before-save . tide-format-before-save)
@@ -10740,7 +10907,7 @@ Real jsx support.
 
 #+NAME: js-indium
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package indium
+  (use-package indium
     :bind (:map indium-interaction-mode-map
                 ("C-M-b" . indium-eval-buffer))
     :init
@@ -10748,7 +10915,7 @@ Real jsx support.
     (with-eval-after-load 'indium-nodejs
       (el-patch-defun indium-nodejs--process-filter (process output)
         "Filter function for PROCESS. Append OUTPUT to the PROCESS buffer,
- and parse it to detect the socket URL to connect to."
+   and parse it to detect the socket URL to connect to."
         ;; Append output to the process buffer
         (with-current-buffer (process-buffer process)
           (goto-char (point-max))
@@ -10762,12 +10929,12 @@ Real jsx support.
 
 
     (cl-defun chrome-debugger-launch (&optional
-                                        (port "3000")
-                                        (host "localhost")
-                                        (type "http"))
+                                      (port "3000")
+                                      (host "localhost")
+                                      (type "http"))
       "Launch a chromium debugger process on HOST using PORT and protocol TYPE.
 
-    Note this will kill any running instances of Chromium."
+      Note this will kill any running instances of Chromium."
 
       (interactive (list
                     (read-string "Port: " "3000")
@@ -10777,27 +10944,25 @@ Real jsx support.
       (unless (featurep 'secrets)
         (require 'secrets))
 
-        (if (boundp 'google-api-key)
-            (setenv "GOOGLE_API_KEY" google-api-key))
-        (if (boundp 'google-api-key)
-            (setenv "GOOGLE_DEFAULT_CLIENT_ID" google-default-client-id))
-        (if (boundp 'google-default-client-secret)
-            (setenv "GOOGLE_DEFAULT_CLIENT_SECRET" google-default-client-secret))
-        (let ((process-names (--> (process-list)
-                                  (mapcar (lambda (p) (process-name p)) it)))
-              (process (get-process "chromium"))
-              (ip (concat type "://" host ":" port))
-              (chromium-program browse-url-chromium-program))
-          (if (shell-command-to-list "pgrep \"Chromium\"")
-              (shell-command "killall Chromium"))
-          (if (process-live-p process)
-              (kill-process process))
-          (start-process "chromium" (get-buffer-create "chromium")
-                         chromium-program "--remote-debugging-port=9222" ip)))
-  :hook
-  (js-mode . indium-interaction-mode))
-
-
+      (if (boundp 'google-api-key)
+          (setenv "GOOGLE_API_KEY" google-api-key))
+      (if (boundp 'google-api-key)
+          (setenv "GOOGLE_DEFAULT_CLIENT_ID" google-default-client-id))
+      (if (boundp 'google-default-client-secret)
+          (setenv "GOOGLE_DEFAULT_CLIENT_SECRET" google-default-client-secret))
+      (let ((process-names (--> (process-list)
+                                (mapcar (lambda (p) (process-name p)) it)))
+            (process (get-process "chromium"))
+            (ip (concat type "://" host ":" port))
+            (chromium-program browse-url-chromium-program))
+        (if (shell-command-to-list "pgrep \"Chromium\"")
+            (shell-command "killall Chromium"))
+        (if (process-live-p process)
+            (kill-process process))
+        (start-process "chromium" (get-buffer-create "chromium")
+                       chromium-program "--remote-debugging-port=9222" ip)))
+    :hook
+    (js-mode . indium-interaction-mode))
 #+END_SRC
 
 *** Python
@@ -10853,7 +11018,7 @@ Real jsx support.
 
 #+NAME: py-pyenv
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package pyenv-mode
+  (use-package pyenv-mode
     :if (executable-find "pyenv")
     :init
     (add-to-list 'exec-path (user-home ".pyenv" "shims"))
@@ -10877,7 +11042,7 @@ Real jsx support.
         (pyenv-mode-set global-pyenv)
         (setq pyenv-current-version global-pyenv)))
 
-   (add-hook 'after-init-hook 'pyenv-init)
+    (add-hook 'after-init-hook 'pyenv-init)
 
     (progn
       (with-eval-after-load 'projectile
@@ -10892,15 +11057,15 @@ Real jsx support.
                   'projectile-pyenv-mode-set))
 
       ;; http://rakan.me/emacs/python-dev-with-emacs-and-pyenv/
-     (defun pyenv-activate-current-project ()
-       "Automatically activates pyenv version if .python-version file exists."
-       (interactive)
-       (let ((python-version-directory (locate-dominating-file (buffer-file-name) ".python-version")))
-         (if python-version-directory
-             (let* ((pyenv-version-path (f-expand ".python-version" python-version-directory))
-                    (pyenv-current-version (s-trim (f-read-text pyenv-version-path 'utf-8))))
-               (pyenv-mode-set pyenv-current-version)
-               (message (concat "Setting virtualenv to " pyenv-current-version))))))))
+      (defun pyenv-activate-current-project ()
+        "Automatically activates pyenv version if .python-version file exists."
+        (interactive)
+        (let ((python-version-directory (locate-dominating-file (buffer-file-name) ".python-version")))
+          (if python-version-directory
+              (let* ((pyenv-version-path (f-expand ".python-version" python-version-directory))
+                     (pyenv-current-version (s-trim (f-read-text pyenv-version-path 'utf-8))))
+                (pyenv-mode-set pyenv-current-version)
+                (message (concat "Setting virtualenv to " pyenv-current-version))))))))
 #+END_SRC
 
 **** Pyenv Auto Set
@@ -11055,22 +11220,21 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: ruby-robe
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package robe
+  (use-package robe
     :after (:all ruby-mode rvm enh-ruby-mode)
     :demand t
     :init
-  ;; https://github.com/dgutov/robe#integration-with-rvmel
+    ;; https://github.com/dgutov/robe#integration-with-rvmel
     (defadvice inf-ruby-console-auto (before
                                       activate-rvm-for-robe
                                       activate)
       (rvm-activate-corresponding-ruby))
-  (defun halidom/robe-mode-enable ()
-    (robe-mode)
-    (with-eval-after-load 'company
-      (push 'company-robe company-backends)))
-  (add-to-hooks #'halidom/robe-mode-enable
-                '(ruby-mode-hook enh-ruby-mode-hook)))
-
+    (defun halidom/robe-mode-enable ()
+      (robe-mode)
+      (with-eval-after-load 'company
+        (push 'company-robe company-backends)))
+    (add-to-hooks #'halidom/robe-mode-enable
+                  '(ruby-mode-hook enh-ruby-mode-hook)))
 #+END_SRC
 
 **** Yard Mode
@@ -11166,12 +11330,11 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
         (merlin-mode))))
 #+END_SRC
 
-**** Flycheck
+**** Flycheck Ocaml
 
 #+NAME: ocaml/flycheck
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package flycheck-ocaml)
-
 
 #+END_SRC
 
@@ -11179,38 +11342,37 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: ocaml/tuareg
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package tuareg
-  :mode
-  ("\\.ml\\'" . tuareg-mode)
+  (use-package tuareg
+    :mode
+    ("\\.ml\\'" . tuareg-mode)
 
-  :init
-  (defun tuareg/prettify-symbols ()
-    "Enable `prettify-symbols-mode' for `tuareg-mode'."
-    (when (functionp 'prettify-symbols-mode)
-      (prettify-symbols-mode)))
+    :init
+    (defun tuareg/prettify-symbols ()
+      "Enable `prettify-symbols-mode' for `tuareg-mode'."
+      (when (functionp 'prettify-symbols-mode)
+        (prettify-symbols-mode)))
 
-  (defun tuareg/lsp ()
-    "Enable `lsp-ocaml' for `tuareg-mode'."
-    (when (functionp 'ocaml/setup-lsp)
-      (ocaml/setup-lsp)))
+    (defun tuareg/lsp ()
+      "Enable `lsp-ocaml' for `tuareg-mode'."
+      (when (functionp 'ocaml/setup-lsp)
+        (ocaml/setup-lsp)))
 
-  (defun tuareg/flycheck ()
-    (when (locate-library "flycheck-ocaml")
-      (unless (and (featurep 'flycheck-ocaml)
-                 (bound-and-true-p flycheck-ocaml/enable))
-        (require 'flycheck-ocaml))
-      (halidom/flycheck-enable-hook)
+    (defun tuareg/flycheck ()
+      (when (locate-library "flycheck-ocaml")
+        (unless (and (featurep 'flycheck-ocaml)
+                   (bound-and-true-p flycheck-ocaml/enable))
+          (require 'flycheck-ocaml))
+        (halidom/flycheck-enable-hook)
 
-      (when (and (featurep 'merlin)
-               (bound-and-true-p merlin-error-after-save))
-        (flycheck-ocaml-setup))))
+        (when (and (featurep 'merlin)
+                 (bound-and-true-p merlin-error-after-save))
+          (flycheck-ocaml-setup))))
 
-  :hook
-  (tuareg-mode . tuareg/prettify-symbols)
-  (tuareg-mode . tuareg/flycheck)
-  (tuareg-mode . tuareg/lsp)
-  (tuareg-mode . ocaml/merlin))
-
+    :hook
+    (tuareg-mode . tuareg/prettify-symbols)
+    (tuareg-mode . tuareg/flycheck)
+    (tuareg-mode . tuareg/lsp)
+    (tuareg-mode . ocaml/merlin))
 #+END_SRC
 
 **** Reason Mode
@@ -11247,12 +11409,12 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: ocaml/lsp
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package lsp-ocaml
-  :ensure-system-package
-  (ocaml-language-server . "yarn global add ocaml-language-server")
-  :commands lsp-ocaml-enable)
-
-
+  (use-package lsp-ocaml
+    :ensure-system-package
+    (ocaml-language-server
+     .
+     "yarn global add ocaml-language-server")
+    :commands lsp-ocaml-enable)
 #+END_SRC
 
 **** Setup Ocaml
@@ -11331,82 +11493,83 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: web-web-mode
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package web-mode
-  :bind (:map web-mode-map
-              ;; I should rebind this because it conficts
-              ;; with `company-select-next-or-abort'
-              ("M-n" . web-mode-tag-match))
-  :mode
-  (("\\.phtml\\'"      . web-mode)
-   ("\\.tpl\\.php\\'"  . web-mode)
-   ("\\.twig\\'"       . web-mode)
-   ("\\.html\\'"       . web-mode)
-   ("\\.htm\\'"        . web-mode)
-   ("\\.[gj]sp\\'"     . web-mode)
-   ("\\.as[cp]x?\\'"   . web-mode)
-   ("\\.eex\\'"        . web-mode)
-   ("\\.erb\\'"        . web-mode)
-   ("\\.mustache\\'"   . web-mode)
-   ("\\.handlebars\\'" . web-mode)
-   ("\\.hbs\\'"        . web-mode)
-   ("\\.eco\\'"        . web-mode)
-   ("\\.ejs\\'"        . web-mode)
-   ("\\.djhtml\\'"     . web-mode)
-   ("\\.tsx\\'"        . web-mode))
+  (use-package web-mode
+    :bind
+    (:map web-mode-map
+          ;; I should rebind this because it conficts
+          ;; with `company-select-next-or-abort'
+          ("M-n" . web-mode-tag-match))
+    :mode
+    (("\\.phtml\\'"      . web-mode)
+     ("\\.tpl\\.php\\'"  . web-mode)
+     ("\\.twig\\'"       . web-mode)
+     ("\\.html\\'"       . web-mode)
+     ("\\.htm\\'"        . web-mode)
+     ("\\.[gj]sp\\'"     . web-mode)
+     ("\\.as[cp]x?\\'"   . web-mode)
+     ("\\.eex\\'"        . web-mode)
+     ("\\.erb\\'"        . web-mode)
+     ("\\.mustache\\'"   . web-mode)
+     ("\\.handlebars\\'" . web-mode)
+     ("\\.hbs\\'"        . web-mode)
+     ("\\.eco\\'"        . web-mode)
+     ("\\.ejs\\'"        . web-mode)
+     ("\\.djhtml\\'"     . web-mode)
+     ("\\.tsx\\'"        . web-mode))
 
-  :config
-  (setq web-mode-engines-alist
-        '(("php" . "\\.phtml\\'")
-          ("blade" . "\\.blade\\'")))
+    :config
+    (setq web-mode-engines-alist
+          '(("php" . "\\.phtml\\'")
+            ("blade" . "\\.blade\\'")))
 
-  (defun halidom/web-mode-enable ()
-    "Enabled web-mode options."
-    (setq web-mode-enable-auto-pairing t
-          web-mode-enable-css-colorization t
-          web-mode-enable-block-face t
-          web-mode-enable-part-face t
-          web-mode-enable-comment-keywords t
-          web-mode-enable-heredoc-fontification t
-          web-mode-enable-current-element-highlight t
-          web-mode-enable-current-column-highlight t)
-    )
+    (defun halidom/web-mode-enable ()
+      "Enabled web-mode options."
+      (setq web-mode-enable-auto-pairing t
+            web-mode-enable-css-colorization t
+            web-mode-enable-block-face t
+            web-mode-enable-part-face t
+            web-mode-enable-comment-keywords t
+            web-mode-enable-heredoc-fontification t
+            web-mode-enable-current-element-highlight t
+            web-mode-enable-current-column-highlight t)
+      )
 
 
-  (defun halidom/web-mode-tide ()
-    "Enable tide-mode in Typescript tsx buffers."
-    (when (string-equal "tsx" (file-name-extension buffer-file-name))
-      (setup-tide-mode)
-      (flycheck-add-mode 'typescript-tslint 'web-mode)))
+    (defun halidom/web-mode-tide ()
+      "Enable tide-mode in Typescript tsx buffers."
+      (when (string-equal "tsx" (file-name-extension buffer-file-name))
+        (setup-tide-mode)
+        (flycheck-add-mode 'typescript-tslint 'web-mode)))
 
-  (add-hook 'web-mode-hook #'halidom/web-mode-tide)
+    (add-hook 'web-mode-hook #'halidom/web-mode-tide)
 
-  (defun halidom/web-mode-indent ()
-    "Indentation settings for web-mode."
-    (setq web-mode-markup-indent-offset 2
-          web-mode-code-indent-offset 2
-          web-mode-style-padding 1
-          web-mode-script-padding 1
-          web-mode-block-padding 0
-          web-mode-comment-style 2))
+    (defun halidom/web-mode-indent ()
+      "Indentation settings for web-mode."
+      (setq web-mode-markup-indent-offset 2
+            web-mode-code-indent-offset 2
+            web-mode-style-padding 1
+            web-mode-script-padding 1
+            web-mode-block-padding 0
+            web-mode-comment-style 2))
 
-  (defun halidom/web-mode-style ()
-    "Styleguide for web-mode."
-    (halidom/web-mode-enable)
-    (halidom/web-mode-indent))
+    (defun halidom/web-mode-style ()
+      "Styleguide for web-mode."
+      (halidom/web-mode-enable)
+      (halidom/web-mode-indent))
 
-  (defun halidom/web-mode-flycheck ()
-    (when (fboundp 'flycheck-mode)
-      (flycheck-mode +1)))
+    (defun halidom/web-mode-flycheck ()
+      (when (fboundp 'flycheck-mode)
+        (flycheck-mode +1)))
 
-  (add-hook 'web-mode-hook #'halidom/web-mode-flycheck)
+    (add-hook 'web-mode-hook #'halidom/web-mode-flycheck)
 
-  (add-hook 'web-mode-hook #'halidom/web-mode-style)
+    (add-hook 'web-mode-hook #'halidom/web-mode-style)
 
-  (defun halidom/web-dash-docsets ()
-    (setq-local dash-plugin-keywords
-                '("css" "html" "javascript" "react")))
-  (when *is-mac*
-    (add-hook 'web-mode-hook #'halidom/web-dash-docsets)))
+    (defun halidom/web-dash-docsets ()
+      (setq-local dash-plugin-keywords
+                  '("css" "html" "javascript" "react")))
+    (when *is-mac*
+      (add-hook 'web-mode-hook #'halidom/web-dash-docsets)))
 #+END_SRC
 
 **** Tag Edit
@@ -11474,43 +11637,43 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 #+NAME: css-css-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(use-package css-mode
-  :commands (css-expand-statment css-contrac-statement)
-  :custom (css-indent-offset )
-  :init
-  (defun css-expand-statment ()
-    (interactive)
-    (save-excursion
+  (use-package css-mode
+    :commands (css-expand-statment css-contrac-statement)
+    :custom (css-indent-offset )
+    :init
+    (defun css-expand-statment ()
+      (interactive)
+      (save-excursion
+        (end-of-line)
+        (search-backward "{")
+        (forward-char 1)
+        (while (or (eobp) (not (looking-at "}")))
+          (let ((beg (point)))
+            (newline)
+            (search-forward ";")
+            (indent-region beg (point))))
+        (newline)))
+
+    (defun css-contrac-statement ()
+      "Contract CSS Block"
+      (interactive)
       (end-of-line)
       (search-backward "{")
-      (forward-char 1)
-      (while (or (eobp) (not (looking-at "}")))
-        (let ((beg (point)))
-          (newline)
-          (search-forward ";")
-          (indent-region beg (point))))
-      (newline)))
+      (while (not (looking-at "}"))
+        (join-line -1)))
 
-  (defun css-contrac-statement ()
-    "Contract CSS Block"
-    (interactive)
-    (end-of-line)
-    (search-backward "{")
-    (while (not (looking-at "}"))
-      (join-line -1)))
+    (defun css/style ()
+      (setq css-indent-offset 2))
 
-  :config
-  (progn
-    (add-hook 'css-mode-hook (lambda ()
-                               (setq css-indent-offset 2)))))
-
+    :hook
+    (css-mode . css/style))
 #+END_SRC
 
 ***** CSS LSP
 
 #+NAME: css-css-lsp
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package lsp-css
+  (use-package lsp-css
     :if (executable-find "css-language-server")
     :commands (lsp-css-enable
                lsp-less-enable
@@ -11646,26 +11809,23 @@ and slim-mode using company.
 
 #+NAME md-markdown-mode
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package markdown-mode
-    :custom (markdown-command "multimarkdown")
-    :mode
-    (("README\\.md\\'" . gfm-mode)
-     ("\\.md\\'" . markdown-mode)
-     ("\\.markdown\\'" . markdown-mode))
+  (use-package markdown-mode
+      :custom
+    (markdown-command "markdown")
+      :mode
+      (("README\\.md\\'" . gfm-mode)
+       ("\\.md\\'" . markdown-mode)
+       ("\\.markdown\\'" . markdown-mode))
 
-    :init
-    (defun md-setup ()
-      "Setup markdown mode"
-      (when (functionp 'macos-open-with-default-app)
-        (setq markdown-open-command macos-open-with-default-app))
-      (when (featurep 'xwidget-internal)
-        (setq browse-url-browser-function #'xwidget-webkit-open-file))
-      (when (featurep 'visual-fill-column)
-        (visual-fill-column-mode 1)
-        (visual-line-mode 1)))
+      :init
+      (defun md-setup ()
+        "Setup markdown mode"
+        (when (functionp 'macos-open-with-default-app)
+          (setq markdown-open-command 'macos-open-with-default-app)))
 
-    :hook
-    ((markdown-mode gfm-mode) . md-setup))
+      :hook
+      ((markdown-mode gfm-mode) . md-setup)
+      ((markdown-mode gfm-mode) . halidom/vfc-hook))
 #+END_SRC
 
 
@@ -11698,20 +11858,20 @@ and slim-mode using company.
 
 #+NAME: md-livedown
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package livedown
-    :straight (livedown
-               :type git
-               :host github
-               :repo "shime/emacs-livedown")
-    :custom (livedown-open nil)
-    :init
+  (use-package livedown
+      :straight (livedown
+                 :type git
+                 :host github
+                 :repo "shime/emacs-livedown")
+      :custom (livedown-open nil)
+      :init
 
-    (when (featurep 'xwidget-internal)
-      (unless (featurep 'xwidget)
-        (require 'xwidget))
+      (when (featurep 'xwidget-internal)
+        (unless (featurep 'xwidget)
+          (require 'xwidget))
 
-      (defadvice livedown-preview (after livedown-preview-after activate)
-        (xwidget-webkit-browse-url "http://localhost:1337"))))
+        (defadvice livedown-preview (after livedown-preview-after activate)
+          (xwidget-webkit-browse-url "http://localhost:1337"))))
 #+END_SRC
 
 * Misc
@@ -11738,6 +11898,13 @@ and slim-mode using company.
 (when *is-mac*
   (load-file (no-littering-expand-etc-file-name
               "local/alfred-org-capture/alfred-org-capture.el")))
+#+END_SRC
+
+** ESS
+
+#+NAME: research/ess
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package ess)
 #+END_SRC
 
 * Prologue

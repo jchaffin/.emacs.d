@@ -4,5 +4,5 @@
 # --
 #+NAME: $1
 #+BEGIN_SRC emacs-lisp :tangle no
-$3
+$2
 #+END_SRC

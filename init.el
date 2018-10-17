@@ -152,6 +152,7 @@
          :custom
          (org-startup-indented t)
          (org-pretty-entities t)
+         (org-pretty-entities-include-sub-superscripts nil)
          (org-hide-emphasis-markers t)
          (org-fontify-quote-and-verse-blocks t)
          (org-src-fontify-natively t)
