@@ -270,15 +270,11 @@
          (interactive)
          (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
 
-       ;; Initialization
-       (if (> emacs-major-version 26)
-	   (if use-literate-p
-               (load-literate halidom-literate-config-file)
-             (literate-debug-enabled)
-             (paredit-mode 1))
-	 (load-literate halidom-literate-config-file)))
+       (if use-literate-p
+           (load-literate halidom-literate-config-file)
+         (literate-debug-enabled)
+         (paredit-mode 1)))
 
   (straight-finalize-transaction))
-
 
  ;;;; init.el ends here
