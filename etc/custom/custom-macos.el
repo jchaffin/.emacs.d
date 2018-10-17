@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -13,7 +11,7 @@
  '(ansi-color-names-vector
    ["#1b2b34" "#ec5f67" "#99c794" "#fac863" "#6699cc" "#c594c5" "#6699cc" "#c0c5ce"])
  '(ansi-term-color-vector
-   [unspecified "#1b2b34" "#ec5f67" "#99c794" "#fac863" "#6699cc" "#c594c5" "#6699cc" "#c0c5ce"])
+   ["#1b2b34" "#ec5f67" "#99c794" "#fac863" "#6699cc" "#c594c5" "#6699cc" "#c0c5ce"])
  '(auctex-latexmk-inherit-TeX-PDF-mode t)
  '(browse-url-chromium-program "/Applications/Chromium.app/Contents/MacOS/Chromium")
  '(cdlatex-insert-auto-labels-in-env-templates nil)
@@ -32,7 +30,7 @@
      "*  %?
  %(cfw:org-capture-day)"))
  '(cfw:render-line-breaker 'cfw:render-line-breaker-wordwrap t)
- '(cider-repl-history-file "~/.emacs.d/cider-history" t)
+ '(cider-repl-history-file "~/.emacs.d/var/cider/cider-history" t)
  '(cider-repl-history-size 3000 t)
  '(cider-repl-result-prefix ";; => " t)
  '(cider-repl-use-clojure-font-lock t t)
@@ -121,14 +119,12 @@
      (remote-path "~/courses/cs131")
      (user . "classbin")
      (host . "lnxsrv07seas.ucla.edu")
-     (org-noter-default-notes-file-names "ling103.org")
-     (org-latex-hyperref-template)
      (org-ref-default-bibliography "~/Dropbox/Documents/Courses/ling120c/ling120c.bib")))
  '(scimax-dir "/Users/jacobchaffin/.emacs.d/etc/local/scimax/" t)
  '(skeletor-completing-read-function 'ivy-completing-read)
  '(skeletor-project-directory "/Users/jacobchaffin/Developer/Projects/")
  '(skeletor-python-bin-search-path '("/usr/local/bin" "/usr/bin"))
- '(skeletor-user-directory "/Users/jacobchaffin/.emacs.d/skeletons")
+ '(skeletor-user-directory "/Users/jacobchaffin/.emacs.d/etc/skeletons")
  '(typescript-indent-level 2)
  '(which-key-enable-extended-define-key t))
 (custom-set-faces
@@ -154,4 +150,4 @@
  '(cfw:face-toolbar ((t :foreground "Steelblue4" :background "Steelblue4")))
  '(cfw:face-toolbar-button-off ((t (:foreground "Gray10" :weight bold :inherit (cfw:face-toolbar)))))
  '(cfw:face-toolbar-button-on ((t :foreground "Gray50" :weight bold :inherit (cfw:face-toolbar)))))
->>>>>>> hotfix
+
