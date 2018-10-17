@@ -4771,14 +4771,20 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: project-codesearch
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package projectile-codesearch)
+  (use-package projectile-codesearch
+      :after (projectile)
+      :bind (:map projectile-command-map
+                  ("s c" . projectile-codesearch-search)))
 #+END_SRC
 
 **** Projectile Ripgrep
 
 #+NAME: project-ripgrep
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package projectile-ripgrep)
+  (use-package projectile-ripgrep
+      :after (projectile)
+      ;; takes a cons in the form of `(binary . package-name)`
+      :ensure-system-package (rg . ripgrep))
 
 #+END_SRC
 
@@ -4787,53 +4793,93 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: skeletor-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package skeletor
-    :custom
-    (skeletor-user-directory (emacs-dir "skeletons"))
+  (use-package skeletor
+      :custom
+    (skeletor-user-directory (emacs-etc-dir "skeletons"))
     (skeletor-completing-read-function 'ivy-completing-read)
-    (skeletor-python-bin-search-path '("/usr/local/bin" "/usr/bin"))
+    (skeletor-python-bin-search-path
+     '("/usr/local/bin" "/usr/bin"))
     (skeletor-project-directory (projects-dir))
 
     :init
 
     (defun skeletor-add-pyenv-pythons ()
-      "Add python binaries managed by pyenv to `skeletor-python-bin-search-path'."
-      (let* ((pyenv-dir (or (getenv "PYENV_ROOT") (user-home ".pyenv")))
-             (pyenv-version-dir (if pyenv-dir (resolve-path pyenv-dir "versions")))
-             (pyenv-versions (directory-files-no-wildcards pyenv-version-dir t))
-             (python-bins (mapcar (lambda (d) (resolve-path d "bin")) pyenv-versions)))
+      "Add python binaries managed by pyenv to
+   `skeletor-python-bin-search-path'."
+      (let* ((pyenv-dir (or (getenv "PYENV_ROOT")
+                           (user-home ".pyenv")))
+             (pyenv-version-dir
+              (and pyenv-dir (resolve-path pyenv-dir "versions")))
+             (pyenv-versions
+              (directory-files-no-wildcards pyenv-version-dir t))
+             (python-bins
+              (mapcar
+               (lambda (d)
+                 (resolve-path d "bin"))
+               pyenv-versions)))
         (dolist (python-bin python-bins)
-          (add-to-list 'skeletor-python-bin-search-path python-bin))))
+          (add-to-list 'skeletor-python-bin-search-path
+                       python-bin))))
 
     (skeletor-add-pyenv-pythons)
 
 
     :config
 
-    (add-to-list 'skeletor-global-substitutions (cons "__TIME__" (lambda () (format-time-string "%c"))))
+    (add-to-list 'skeletor-global-substitutions
+                 (cons "__TIME__"
+                       (lambda () (format-time-string "%c"))))
 
     (skeletor-define-template "cmake-unix-makefiles"
-      :requires-executables '(("cmake" . "https://cmake.org")
-                              ("make".
- "https://www.gnu.org/software/make"))
+      :requires-executables
+      '(("cmake". "https://cmake.org")
+        ("make" . "https://www.gnu.org/software/make"))
+
       :substitutions
-      (list (cons "__DESCRIPTION__" (lambda () (read-string "Description: ")))
-            (cons "__TARGET_NAME__"  (lambda () (read-string "Target: ")))
-            (cons "__PROJECT-VARS__" ".dir-locals"))
+      (list
+       (cons "__DESCRIPTION__"
+             (lambda ()
+               (read-string "Description: ")))
+       (cons "__TARGET_NAME__"
+             (lambda ()
+               (read-string "Target: ")))
+       (cons "__PROJECT-VARS__" ".dir-locals"))
 
       :after-creation
       (lambda (dir)
         (skeletor-async-shell-command "mkdir build")
-        (skeletor-async-shell-command  "( cd build && cmake -G 'Unix Makefiles' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. )")
-        (skeletor-async-shell-command "ln -s `pwd`/build/compile_commands.json `pwd`/compile_commands.json")
+        (skeletor-async-shell-command
+         (concat "("
+                 " cd build &&"
+                 " cmake -G 'Unix Makefiles'"
+                 " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. "
+                 ")"))
+        (skeletor-async-shell-command
+         "ln -s `pwd`/build/compile_commands.json .")
         (dired dir)
         (revert-buffer)))
 
-    (with-eval-after-load 'lsp-mode
-      (add-to-list 'lsp-project-blacklist skeletor-project-directory))
+    (defun skeletor/redact-user-directory (pkg xs)
+      "When a pkg PKG is available,
+  add `skeletor-directory' to a list XS so that
+  templates are not marked as projects."
+      (when (and (featurep pkg)
+               (boundp xs))
+        (add-to-list xs skeletor-user-directory)))
 
-    (with-eval-after-load 'projectile
-      (add-to-list 'projectile-ignored-projects skeletor-project-directory)))
+    (defun skeletor/lsp-blacklist ()
+      (skeletor/redact-user-directory
+       'lsp-mode
+       'lsp-project-blacklist))
+
+    (defun skeletor/projectile-ignore ()
+      (skeletor/redact-user-directory
+       'projectile
+       'projectile-ignored-projects))
+
+    :hook
+    (lsp-mode . skeletor/lsp-blacklist)
+    (project-mode .skeletor/projectile-ignore))
 
 #+END_SRC
 
@@ -5015,16 +5061,18 @@ Jump to arbitrary point in Buffer
 
 #+NAME: dired-sidebar-config
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package dired-sidebar
-    :commands (dired-sidebar-toggle-sidebar)
-    :init
-    (defun disable-icons ()
-      (when (fboundp 'all-the-icons-dired-mode)
-        (set (make-local-variable 'all-the-icons-dired-mode) nil)))
-    :hook
-    (dired-sidebar-mode . disable-icons)
-    :bind
-    ("C-c d" . dired-sidebar-toggle-sidebar))
+  (use-package dired-sidebar
+      :commands (dired-sidebar-toggle-sidebar)
+      :init
+      (defun sidebar/disable-icons ()
+        (when (fboundp 'all-the-icons-dired-mode)
+          (set
+           (make-local-variable 'all-the-icons-dired-mode)
+           nil)))
+      :hook
+      (dired-sidebar-mode . sidebar/disable-icons)
+      :bind
+      ("C-c d" . dired-sidebar-toggle-sidebar))
 
 #+END_SRC
 
@@ -5079,11 +5127,11 @@ interactive tree .
 #+NAME: startup-buffer
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Page break lines
-<<pbl-spec>>
+<<buffer/page-break-lines>>
 ;; Emacs dashboard
-<<dashboard-spec>>
+<<buffer/dashboard>>
 ;; Fireplace
-<<fireplace-spec>>
+<<buffer/fireplace>>
 #+END_SRC
 
 The default splash screen is great when you're starting out,
@@ -5095,7 +5143,7 @@ know you're around.
 Global minor-mode that turns ~^L~ form feed characters into
 horizontal line rules.
 
-#+NAME: pbl-spec
+#+NAME: buffer/page-break-lines
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package page-break-lines
   :init
@@ -5110,23 +5158,30 @@ It's a nice way of consolidating any combination of tasks,
 agenda items, bookmarks, and pretty much any other enumerable
 list that one may use in the wacky world of Emacs.
 
-#+NAME: dashboard-spec
+#+NAME: buffer/dashboard
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package dashboard
     :demand t
     :init
     (defun halidom/dashboard-banner ()
-      "Set a dashboard banner including information on package initialization
-     time and garbage collections."
-      (setq dashboard-banner-logo-title
-            (format "Emacs ready in %.2f seconds with %d garbage collections."
-                    (float-time
-                     (time-subtract after-init-time before-init-time))
-                    gcs-done)))
+      "Set a dashboard banner including information on 
+  package initialization time and garbage collections."
+        (setq dashboard-banner-logo-title
+              (format
+               (concat "Emacs ready in %.2f seconds "
+                       "with %d garbage collections.")
+               (float-time (time-subtract
+                            after-init-time
+                            before-init-time))
+               gcs-done)))
+
     (defun goto-dashboard ()
+      "Switch to the `dashboard-buffer-name'buffer."
       (interactive)
-      (if (seq-contains (mapcar #'buffer-name (buffer-list)) "*dashboard*")
-          (switch-to-buffer "*dashboard*")))
+      (if (seq-contains
+           (mapcar #'buffer-name (buffer-list))
+           dashboard-buffer-name)
+          (switch-to-buffer dashboard-buffer-name)))
 
     (define-key goto-map "d" #'goto-dashboard)
 
@@ -5136,20 +5191,31 @@ list that one may use in the wacky world of Emacs.
     (dashboard-setup-startup-hook)
 
     (defun dashboard/hide-line-numbers ()
-      (display-line-numbers-mode -1))
-        
+      "Disable line numbers in das"
+      (if display-line-numbers
+          (display-line-numbers-mode -1)))
+
+    (defun dashboard/set-intial-buffer ()
+      (when (and (boundp 'dashboard-buffer-name)
+               (bufferp (get-buffer dashboard-buffer-name)))
+        (get-buffer dashboard-buffer-name)))
 
     :config
     (add-to-list 'dashboard-items '(agenda) t)
+    ;; Get the week agenda.
+    ;; See `dashboard-get-agenda' for how this
+    ;; variable is being used.
     (setq show-week-agenda-p t)
 
     (setq dashboard-items '(( agenda . 10)
                             ( projects . 5)
-                            ( recents . 5)
+                            ( recents . 3)
                             ( bookmarks . 5)))
-    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+    (setq initial-buffer-choice (dashboard/set-initial-buffer))
 
     :hook
+    (after-init     . dashboard-refresh-buffer)
     (dashboard-mode . halidom/dashboard-banner)
     (dashboard-mode . dashboard/hide-line-numbers))
 
@@ -5178,7 +5244,7 @@ Just for the hell of it.
 *** Frame
 
 #+NAME: startup-frame
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
 ;; Disable toolbar and scrollbar
 <<frame-tool-and-scroll>>
 ;; Disable menubar unless system is macOS.
@@ -5196,7 +5262,6 @@ Disable scroll bars and tool bar on all system types.
 #+NAME: frame-tool-and-scroll
 #+BEGIN_SRC emacs-lisp :tangle no
 (tool-bar-mode -1)
-
 (scroll-bar-mode -1)
 #+END_SRC
 
@@ -5238,7 +5303,6 @@ recommended for Spacemacs users on macOS[fn:14].
 *** Window Manager
 
 **** Window Resize
-
 
 Default keybindings for window resize:
 
@@ -5496,7 +5560,8 @@ n
 
 **** Bookmark File
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq bookmark-default-file (no-littering-expand-var-file-name "bookmarks"))
+(setq bookmark-default-file
+ (no-littering-expand-var-file-name "bookmarks"))
 
 #+END_SRC
 **** Bookmark+
@@ -5525,30 +5590,43 @@ setopt cd_able_vars
 
 #+NAME: bookmark-zsh
 #+BEGIN_SRC emacs-lisp :tangle no
-(defadvice bookmark-write-file
-      (after local-directory-bookmarks-to-zsh-advice activate)
-   (local-directory-bookmarks-to-zsh))
+  (defadvice bookmark-write-file
+        (after local-directory-bookmarks-to-zsh-advice activate)
+     (local-directory-bookmarks-to-zsh))
 
-(defun local-directory-bookmarks-to-zsh ()
-      (interactive)
-      (when (and (require 'tramp nil t)
-                 (require 'bookmark nil t))
-        (set-buffer (find-file-noselect "~/.zsh.bmk" t t))
-        (delete-region (point-min) (point-max))
-        (insert "# -*- mode:sh -*-\n")
-        (let (collect-names)
-          (mapc (lambda (item)
-                  (let ((name (replace-regexp-in-string "-" "_" (car item)))
-                        (file (cdr (assoc 'filename
-                                           (if (cddr item) item (cadr item))))))
-                    (when (and (not (tramp-tramp-file-p file))
-                               (file-directory-p file))
-                      (setq collect-names (cons (concat "~" name) collect-names))
-                      (insert (format "%s=\"%s\"\n" name (expand-file-name file) name)))))
-                bookmark-alist)
-          (insert ": " (mapconcat 'identity collect-names " ") "\n"))
-        (let ((backup-inhibited t)) (save-buffer))
-        (kill-buffer (current-buffer))))
+  (defun local-directory-bookmarks-to-zsh ()
+        (interactive)
+        (when (and (require 'tramp nil t)
+                   (require 'bookmark nil t))
+          (set-buffer (find-file-noselect "~/.zsh.bmk" t t))
+          (delete-region (point-min) (point-max))
+          (insert "# -*- mode:sh -*-\n")
+          (let (collect-names)
+            (mapc
+             (lambda (item)
+               (let ((name
+                      (replace-regexp-in-string
+                       "-" "_" (car item)))
+                    (file (cdr
+                            (assoc 'filename
+                                   (if (cddr item)
+                                       item
+                                     (cadr item))))))
+                 (when (and (not (tramp-tramp-file-p file))
+                          (file-directory-p file))
+                   (setq collect-names
+                         (cons (concat "~" name) collect-names))
+                   (insert
+                    (format
+                     "%s=\"%s\"\n"
+                     name
+                     (expand-file-name file)
+                     name)))))
+             bookmark-alist)
+            (insert ": "
+                    (mapconcat 'identity collect-names " ") "\n"))
+          (let ((backup-inhibited t)) (save-buffer))
+          (kill-buffer (current-buffer))))
 #+END_SRC
 
 *** Bug Tracking
@@ -6496,10 +6574,9 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 #+NAME: scroll/subliminity
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package sublimity
-    :init
-  (require 'sublimity-scroll)
-  (sublimity-mode 1))
+  (use-package sublimity
+      :init
+    (require 'sublimity-scroll))
 #+END_SRC
 
 ** Buttons
@@ -6727,13 +6804,17 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 #+NAME: mb-ivy
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Ivy
-<<ivy-spec>>
+<<ivy/spec>>
 ;; Ivy Prescient
-<<ivy-prescient>>
+<<ivy/prescient>>
 ;; Ivy Xref
-<<ivy-references>>
+<<ivy/xref>>
 ;; Ivy Todo
-<<ivy-todos>>
+<<ivy/todo>>
+;; Ivy rich
+<<ivy/rich>>
+;; Ivy pages
+<<ivy/pages>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -6744,19 +6825,16 @@ but its easy to configure, offers a minimalistic interface,
 and is every bit as good of a completion tool as helm is,
 if not better.
 
-I prefer the default regex matcher, but if you want fuzzy matching as
-a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
+I prefer the default regex matcher, but if you want fuzzy matching as a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
 
-#+NAME: ivy-spec
+#+NAME: ivy/spec
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy
-    :init
-    ;; Lazy Load Ivy
-    ;; https://github.com/raxod502/el-patch#lazy-loading-packages
-    ;; https://github.com/raxod502/radian/blob/develop/radian-emacs/radian-coxompletion.el#L25
-    (el-patch-feature ivy)
-
-    (el-patch-defvar ivy-mode-map
+  (use-package ivy
+      :init
+      ;; Lazy Load Ivy
+      ;; https://github.com/raxod502/el-patch#lazy-loading-packages
+    :init/el-patch
+    (defvar ivy-mode-map
       (let ((map (make-sparse-keymap)))
         (define-key map [remap switch-to-buffer]
           'ivy-switch-buffer)
@@ -6765,51 +6843,54 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
         map)
       "Keymap for `ivy-mode'.")
 
-    (el-patch-define-minor-mode ivy-mode
-        "Toggle Ivy mode on or off.
-  Turn Ivy mode on if ARG is positive, off othherwise.
+      (define-minor-mode ivy-mode
+          (el-patch-concat
+            "Toggle Ivy mode on or off.
+  Turn Ivy mode on if ARG is positive, off otherwise.
+  Turning on Ivy mode sets `completing-read-function' to
+  `ivy-completing-read'.
 
-    Global bindings:
-    \\{ivy-mode-map}
+  Global bindings:
+  \\{ivy-mode-map}}
 
-    Minibuffer bindings:
-    \\{ivy-minibuffer-map}"
+  Minibuffer bindings:
+  \\{ivy-minibuffer-map}")
+            :group 'ivy
+            :global t
+            :keymap ivy-mode-map
+            (el-patch-remove
+              :lighter "ivy")
+            (if ivy-mode
+                (progn
+                  (setq completing-read-function 'ivy-completing-read)
+                  (el-patch-splice 2
+                      (when ivy-do-completion-in-region
+                        (setq completion-in-region-function 'ivy-completion-in-region))))
+              (setq completing-read-function 'completing-read-default)
+              (setq completion-in-region-function 'completion--in-region)))
 
-      :group 'ivy
-      :global t
-      :keymap ivy-mode-map
-      :lighter " ivy"
-      (if ivy-mode
-          (progn
-            (setq completing-read-function 'ivy-completing-read)
-            (el-patch-splice 2
-              (when ivy-do-completion-in-region
-                (setq completion-in-region-function
-                      'ivy-completion-in-region))))
-        (setq completing-read-function 'completing-read-default)
-        (setq completion-in-region-function 'completion--in-region)))
-    (ivy-mode +1)
-    (diminish 'ivy-mode)
+      (ivy-mode +1)
 
-  :bind (("C-c C-r" . ivy-resume)
-         ("C-`" . ivy-avy))
-  :custom
-  (ivy-use-virtual-buffers t)
-  (ivy-initial-inputs-alist nil)
-  (ivy-sort-max-size 50000)
-  (ivy-re-builders-alist '((t . ivy--regex-plus)))
-  (ivy-use-selectable-prompt t)
+    :bind (("C-c C-r" . ivy-resume)
+           ("C-`"     . ivy-avy))
 
-  :config
-  (ivy-mode 1)
+    :custom
+    (ivy-use-virtual-buffers t)
+    (ivy-initial-inputs-alist nil)
+    (ivy-sort-max-size 50000)
+    (ivy-re-builders-alist '((t . ivy--regex-plus)))
+    (ivy-use-selectable-prompt t)
 
-  :diminish ivy-mode)
+    :config
+    (ivy-mode 1)
+
+    :diminish ivy-mode)
 
 #+END_SRC
 
 **** Prescient
 
-#+NAME: ivy-prescient
+#+NAME: ivy/prescient
 #+BEGIN_SRC emacs-lisp :tangle no
 ;; Package `prescient' is a library for intelligent sorting and
 ;; filtering in various contexts. It is not published to MELPA, so we
@@ -6843,7 +6924,7 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 
 **** Ivy Xref
 
-#+NAME: ivy-references
+#+NAME: ivy/xref
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-xref
     :init
@@ -6852,14 +6933,34 @@ a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx
 
 **** Ivy Todos
 
-#+NAME: ivy-todos
+#+NAME: ivy/todo
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy-todo
+
+  (use-package ivy-todo
     :custom
-  (ivy-todo-file (agenda-dir "ivy-todo.org")))
+    (ivy-todo-file (agenda-dir "ivy-todo.org")))
 
 
 #+END_SRC
+
+**** Ivy Rich
+
+#+NAME: ivy/rich
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package ivy-rich
+      :init
+    (ivy-rich-mode 1))
+
+#+END_SRC
+
+**** Ivy Pages
+
+#+NAME: ivy/pages
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package ivy-pages
+    :after (ivy))
+#+END_SRC
+
 
 *** Counsel
 
@@ -7573,9 +7674,9 @@ the user will be prompted to edit the search string first."
 
 #+NAME: browser-search
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package search-web
-  :init
-  (define-key 'web-browse-prefix-map "s" 'search-web))
+  (use-package search-web
+      :config
+    (define-key 'web-browse-prefix-map "s" 'search-web))
 #+END_SRC
 
 *** Browse at remote
@@ -7655,28 +7756,30 @@ Interactively.
     :init
     (engine-mode t)
 
+    (defun engine-add-which-key-replacement (engine prefix &optional keybinding)
+      (let* ((keyseq (concat prefix " " keybinding))
+       (engine-string (upcase-initials (symbol-name engine)))
+       (replacement (list engine-string
+        (concat "Search " engine-string))))
+  (which-key-add-key-based-replacements keyseq engine-string)))
+
+    (cl-defun engine-key-replacement (orig-function &rest args)
+      (let ((keybinding (plist-get (cddr args) :keybinding))
+      (engine (car args))
+      (prefix "M-m w e"))
+  (engine-add-which-key-replacement engine prefix keybinding)
+  (apply orig-function args)))
+
+    (advice-add 'defengine :around #'engine-key-replacement)
+
     :config
+
     (setq halidom-web-engine-prefix "M-m w e")
 
     (when engine/keybinding-prefix
       (define-key engine-mode-map (kbd "C-x /") nil)
       (define-key 'web-browse-prefix-map "e" engine-mode-prefixed-map))
 
-    (defun engine-add-which-key-replacement (engine prefix &optional keybinding)
-      (let* ((keyseq (concat prefix " " keybinding))
-	     (engine-string (upcase-initials (symbol-name engine)))
-	     (replacement (list engine-string
-				(concat "Search " engine-string))))
-	(which-key-add-key-based-replacements keyseq engine-string)))
-
-    (cl-defun engine-key-replacement (orig-function &rest args)
-      (let ((keybinding (plist-get (cddr args) :keybinding))
-	    (engine (car args))
-	    (prefix "M-m w e"))
-	(engine-add-which-key-replacement engine prefix keybinding)
-	(apply orig-function args)))
-
-    (advice-add 'defengine :around #'engine-key-replacement)
 
     (defengine github
       "https://github.com/search?ref=simplesearch&q=%s"
@@ -7710,8 +7813,8 @@ Interactively.
 
     (defengine google-images
       "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-	:keybinding "Gi"
-	:docstring "Search google-images")
+  :keybinding "Gi"
+  :docstring "Search google-images")
 
     (defengine google-maps
       "http://maps.google.com/maps?q=%s"
@@ -7748,19 +7851,19 @@ Interactively.
 
     (defengine youtube
       "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
-	:keybinding "y"
-	:docstring "Search Youtube")
+  :keybinding "y"
+  :docstring "Search Youtube")
 
     (defengine ctan
       "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
       :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
 
    (cl-flet* ((ks (&rest k)
-		              (let ((p halidom-web-engine-prefix))
-		                (if k (join (push p k) " ") p)))
-	            (wkr (rep &rest k)
-		               (let ((kk (apply #'ks k)))
-		                 (which-key-add-key-based-replacements kk rep))))
+                  (let ((p halidom-web-engine-prefix))
+                    (if k (join (push p k) " ") p)))
+              (wkr (rep &rest k)
+                   (let ((kk (apply #'ks k)))
+                     (which-key-add-key-based-replacements kk rep))))
      (wkr "Search Engine")
      (wkr "Google Engines" "G")
      (wkr "Google Images" "G" "i")
@@ -8029,11 +8132,11 @@ buffers[fn:17].
 
 #+NAME: flyspell-correct-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package flyspell-correct-ivy
-  :after (:all flyspell ivy)
-  :demand t
-  :config
-  (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic))
+  (use-package flyspell-correct-ivy
+    :after (:all flyspell ivy)
+    :demand t
+    :config
+    (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic))
 #+END_SRC
 
 *** Langtool
@@ -8574,7 +8677,8 @@ school's WLAN.
 
       (defun halidom/toggle-flycheck-error-list ()
         "Toggle flycheck's error list window.
-  If the error list is visible hide the window. Else display the buffer."
+  If the error list is visible, hide the window. 
+  Else display the buffer."
         (interactive)
         (-if-let (window (flycheck-get-error-list-window))
             (quit-window nil window)
@@ -8583,9 +8687,11 @@ school's WLAN.
       (defun halidom/goto-flycheck-error-list ()
         "Open and go to the error list buffer."
         (interactive)
-        (unless (get-buffer-window (get-buffer flycheck-error-list-buffer))
+        (unless (get-buffer-window
+                 (get-buffer flycheck-error-list-buffer))
           (flycheck-list-errors)
-          (switch-to-buffer-other-window flycheck-error-list-buffer))))
+          (switch-to-buffer-other-window
+           flycheck-error-list-buffer))))
 #+END_SRC
 
 ** Code Style
@@ -8972,10 +9078,11 @@ Disabling for now.
 
 #+NAME: vcs/customize
 #+BEGIN_SRC emacs-lisp :tangle no
-(defcustom halidom-vcs-svn-list '(git)
-  "List of VCS-SVNs for which libraries and tooling should be installed.
-  Options are `git' and/or `hg' (mercurial) as symbols in a list, else nil."
-  :type '(list symbol))
+  (defcustom halidom-vcs-svn-list '(git)
+    "List of VCS-SVNs for which libraries and tooling 
+  should be installed. Options are `git' and/or `hg' as symbols 
+  in a list, else nil."
+    :type '(list symbol))
 #+END_SRC
 
 *** Git
@@ -9333,20 +9440,14 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package wakatime-mode
     :if (executable-find "wakatime")
-    :init
-    (add-hook 'prog-mode-hook 'wakatime-mode)
-    :config
-    (progn
-      (if *is-mac*
-          (setq wakatime-cli-path
-                (f-expand "~/.local/lib/python3.6/site-packages/wakatime/cli.py")
-                wakatime-python-bin
-                (f-expand "~/.pyenv/shims/python")))
-
-      ;; from spacemacs wakatime layer
-      (defun wakatime-dashboard ()
-        (interactive)
-        (browse-url "https://wakatime.com/dashboard"))))
+    :hook
+    (prog-mode . wakatime-mode)
+    :custom
+    (wakatime-cli-path
+     (user-home ".local" "lib" "python3.6"
+                "site-packages" "wakatime" "cli.py"))
+    (wakatime-python-bin
+     (executable-find "python")))
 #+END_SRC
 
 *** RealGUD
@@ -9389,27 +9490,27 @@ Spacemacs =dotspacemacs-configuration-layers=.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 
-(defcustom halidom-proglang-enabled-list nil
-  "List of languages for which straight should install respective tooling,
-   syntax-highlighting, and peripherals."
-  :type '(list symbol))
+  (defcustom halidom-proglang-enabled-list nil
+    "List of languages for which straight should install respective 
+  tooling, syntax-highlighting, and peripherals."
+    :type '(list symbol))
 
 
-(defun halidom/proglang-enabled-p (lang)
-  "Returns non-nil if LANG is an enabled language spec."
-  (member lang halidom-proglang-enabled-list))
+  (defun halidom/proglang-enabled-p (lang)
+    "Returns non-nil if LANG is an enabled language spec."
+    (member lang halidom-proglang-enabled-list))
 
-(defun halidom/enable-langs (&rest langs)
-  "Enable LANGS."
-  (mapcar (lambda (lang)
-            (setq halidom-proglang-enabled-list
-                  (cons lang halidom-proglang-enabled-list)))
-          langs))
+  (defun halidom/enable-langs (&rest langs)
+    "Enable LANGS."
+    (mapcar (lambda (lang)
+              (setq halidom-proglang-enabled-list
+                    (cons lang halidom-proglang-enabled-list)))
+            langs))
 
-(when *is-mac*
-  (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy
-                        'java 'javascript 'markdown 'scala 'python
-                        'ocaml 'ruby 'web))
+  (when *is-mac*
+    (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy
+                          'java 'javascript 'markdown 'scala 'python
+                          'ocaml 'ruby 'web))
 
 #+END_SRC
 
@@ -10311,6 +10412,8 @@ Java bytecode inside Emacs buffers.
   <<js-json>>
   ;; RJSX Mode
   <<js-rjsx>>
+  ;; Flycheck jest
+  <<js/jest>>
   ;; Tide Mode
   <<js-tide>>
   ;; Coffeescript
@@ -10462,7 +10565,6 @@ for major modes listed in `halidom-js-lsp-modes'."
 
 #+END_SRC
 
-
 **** js2-mode
 
 #+NAME: js-js2
@@ -10503,58 +10605,6 @@ for major modes listed in `halidom-js-lsp-modes'."
   (json-mode . json-mode-faces)
   (json-mode . json-inhibit-message))
 
-#+END_SRC
-
-**** TypeScript
-
-#+NAME: js-tide
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package typescript-mode
-    :custom
-    (typescript-indent-level 2)
-    :hook
-    (typescript-mode . subword-mode)
-    (typescript-mode . js-setup-backend))
-
-
-(use-package tide
-  :after (:all typescript-mode flycheck company)
-  :demand t
-  :init
-  ;; (require 'typescript-mode)
-  (defun setup-tide-mode ()
-    "Enable Tide Mode for Typescript."
-    (tide-setup)
-    (when (fboundp 'flycheck-mode)
-      (flycheck-add-mode 'typescript-tslint 'typescript-mode)
-      (flycheck-mode +1)
-      (setq flycheck-check-syntax-automatically '(save mode-enabled)))
-    (eldoc-mode +1))
-
-    :hook
-    (before-save . tide-format-before-save)
-    (typescript-mode . setup-tide-mode)
-    (typescript-mode . tide-hl-identifier-mode))
-#+END_SRC
-
-**** rjsx-mode
-
-Real jsx support.
-
-#+NAME: js-rjsx
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package rjsx-mode
-  :mode "\\.jsx\\'"
-  :hook ((rjsx-mode-hook . js-setup-backend)
-         (rjsx-mode-hook . halidom/flycheck-enable-hook)))
-#+END_SRC
-
-**** CoffeeScript
-
-#+NAME: js-coffee
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package coffee-mode
-  :mode ("\\.coffee\\'" . coffee-mode))
 #+END_SRC
 
 **** Node JS
@@ -10623,6 +10673,68 @@ Real jsx support.
   :if (executable-find "nvm"))
 #+END_SRC
 
+**** TypeScript
+
+#+NAME: js-tide
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package typescript-mode
+    :custom
+    (typescript-indent-level 2)
+    :hook
+    (typescript-mode . subword-mode)
+    (typescript-mode . js-setup-backend))
+
+
+(use-package tide
+  :after (:all typescript-mode flycheck company)
+  :demand t
+  :init
+  ;; (require 'typescript-mode)
+  (defun setup-tide-mode ()
+    "Enable Tide Mode for Typescript."
+    (tide-setup)
+    (when (fboundp 'flycheck-mode)
+      (flycheck-add-mode 'typescript-tslint 'typescript-mode)
+      (flycheck-mode +1)
+      (setq flycheck-check-syntax-automatically '(save mode-enabled)))
+    (eldoc-mode +1))
+
+    :hook
+    (before-save . tide-format-before-save)
+    (typescript-mode . setup-tide-mode)
+    (typescript-mode . tide-hl-identifier-mode))
+#+END_SRC
+
+**** rjsx-mode
+
+Real jsx support.
+
+#+NAME: js-rjsx
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package rjsx-mode
+  :mode "\\.jsx\\'"
+  :hook ((rjsx-mode-hook . js-setup-backend)
+         (rjsx-mode-hook . halidom/flycheck-enable-hook)))
+#+END_SRC
+
+**** Flycheck Jest
+
+#+NAME: js/jest
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package flycheck-jest
+    :after flycheck
+    :init
+    (flycheck-jest-setup))
+
+#+END_SRC
+
+**** CoffeeScript
+
+#+NAME: js-coffee
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package coffee-mode
+  :mode ("\\.coffee\\'" . coffee-mode))
+#+END_SRC
 
 **** Indium
 

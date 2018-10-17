@@ -96,6 +96,10 @@
        (straight-use-package 'use-package)
        ;; Enable the `:ensure-system-package' keyword
        (straight-use-package 'use-package-ensure-system-package)
+       ;; Use  the `:blackout' to clean mode lighters
+       (straight-use-package '(blackout
+                               :host github
+                               :repo "raxod502/blackout"))
        ;; lazy load by default
        (setq use-package-always-defer t)
        ;; Straight integration of `use-package'.
@@ -205,16 +209,7 @@
 
 
        ;; Debug
-       (defvar halidom-literate-debug-blocks
-         '("halidom/functions"
-           "readview-fc"
-           "halidom/macros"
-           "org-ui-fill"
-           "ivy-spec"
-           "counsel-spec"
-           "mb-swiper"
-           "paredit-spec")
-         )
+       (defvar halidom-literate-debug-blocks nil)
 
 
        (defun literate-src-parameter-string->alist (parameters)
