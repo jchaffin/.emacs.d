@@ -90,8 +90,6 @@
  '(neo-theme 'icons)
  '(no-littering-etc-directory "/Users/jacobchaffin/.emacs.d/etc" t)
  '(nrepl-hide-special-buffers t)
- '(org-agenda-files
-   '("~/.emacs.d/halidom.org" "/Users/jacobchaffin/Dropbox/org/TODOS.org" "/Users/jacobchaffin/Dropbox/courses/ling165b/TODOs.org" "/Users/jacobchaffin/Dropbox/courses/ling103/TODOs.org" "/Users/jacobchaffin/Dropbox/courses/cs131/TODOs.org"))
  '(org-bullets-bullet-list '("‣" "•") nil nil "Customized with use-package org-bullets")
  '(org-confirm-babel-evaluate nil)
  '(org-ellipsis "   ")
