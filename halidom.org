@@ -2853,6 +2853,8 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 <<org-docmgr-index>>
 ;; Interleave
 <<org-docmgr-interleave>>
+;; Attach
+<<org-docmgr-attach>>
 ;; End Org Doc Manager
 #+END_SRC
 
