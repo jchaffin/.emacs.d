@@ -1,12 +1,77 @@
-\usepackage{gb4e}
-\noautomath
+\documentclass{article}
+\usepackage[usenames]{color}
+\pagestyle{empty}
+% do not remove
+% The settings below are copied from fullpage.sty
+\setlength{\textwidth}{\paperwidth}
+\addtolength{\textwidth}{-3cm}
+\setlength{\oddsidemargin}{1.5cm}
+\addtolength{\oddsidemargin}{-2.54cm}
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\textheight}{\paperheight}
+\addtolength{\textheight}{-\headheight}
+\addtolength{\textheight}{-\headsep}
+\addtolength{\textheight}{-\footskip}
+\addtolength{\textheight}{-3cm}
+\setlength{\topmargin}{1.5cm}
+\addtolength{\topmargin}{-2.54cm}
+
+\usepackage{fontspec}
+\usepackage{amsmath}
+\usepackage{unicode-math}
+
+\setmathfont{STIX2Math}[
+  Extension = .otf,
+]
+% Set the main font to Stix Two Text
+\setmainfont{STIX2Text}[
+  Extension      = .otf,
+  UprightFont    = *-Regular,
+  BoldFont       = *-Bold,
+  ItalicFont     = *-Italic,
+  BoldItalicFont = *-BoldItalic
+]
+
 \usepackage{adjustbox}
 \usepackage{tikz}
-\usepackage{tikz-qtree}
-\usepackage{tikz-qtree-compat}
+\
+\usetikzlibrary{calc}
 
-\usepackage{syntrace}
-\usetikzlibrary{positioning,shapes,fit,arrows}
+% https://tex.stackexchange.com/a/394431
+\newcommand\tikzmark[1]{\tikz[remember picture, baseline=(#1.base)] \node[anchor=base,inner sep=0pt, outer sep=0pt] (#1) {#1};}
+
+% https://tex.stackexchange.com/a/394431
+\newcommand\tmark[2]{\tikz[remember picture, baseline=(#1.base)] \node[anchor=base,inner sep=0pt, outer sep=0pt] (#1) {#2};}
+
+% This code from http://tex.stackexchange.com/q/55068/2693
+\tikzset{
+  ncbar angle/.initial=90,
+  ncbar/.style={
+      to path=(\tikztostart)
+      -- ($(\tikztostart)!#1!\pgfkeysvalueof{/tikz/ncbar angle}:(\tikztotarget)$)
+      -- ($(\tikztotarget)!($(\tikztostart)!#1!\pgfkeysvalueof{/tikz/ncbar angle}:(\tikztotarget)$)!\pgfkeysvalueof{/tikz/ncbar angle}:(\tikztostart)$)
+      -- (\tikztotarget)
+  },
+  ncbar/.default=0.5cm,
+} 
+
+% Thanks to Paul Gessler adn Percusse for code improvement here
+\newcommand{\arrow}[2]{\begin{tikzpicture}[remember picture,overlay,semithick]
+ \draw[->,shorten >=3pt,shorten <=3pt] (#1.base) to [ncbar=\arrowht] (#2.base);
+ \end{tikzpicture}
+ \setlength{\arrowht}{0ex}
+}
+
+\usepackage{gb4e}
+\noautomath
+\newlength{\arrowht}
+\setlength{\arrowht}{0ex}
+\newcommand*\cgdepthstrut{{\vrule height 0pt depth \arrowht width 0pt}}
+\renewcommand\eachwordone{\cgdepthstrut\rmfamily}
+\renewcommand\glt{\vskip -\topsep}
+\let\trans=\glt
+\newcommand\arrowex{\setlength{\arrowht}{2.5ex}\ex}
+
 \usepackage[linguistics]{forest}
 
 
@@ -73,4 +138,3 @@
   }
 }
 
-\forestapplylibrarydefaults{linguistics}

@@ -90,7 +90,6 @@
          (load bootstrap-file nil 'nomessage))
 
        ;; Clone use-package dependencies
-       (straight-use-package 'diminish)
        (straight-use-package 'bind-key)
        ;; Now clone the `use-package' library
        (straight-use-package 'use-package)
@@ -100,6 +99,8 @@
        (straight-use-package '(blackout
                                :host github
                                :repo "raxod502/blackout"))
+       (require 'blackout)
+
        ;; lazy load by default
        (setq use-package-always-defer t)
        ;; Straight integration of `use-package'.

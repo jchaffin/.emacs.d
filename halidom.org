@@ -2,10 +2,10 @@
 #+language: en
 #+AUTHOR: Jacob Chaffin
 #+STARTUP: hideblock
-#+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3
+#+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 #+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
-*  Table Of Contents :TOC_3_gh:noexport:
+* Table Of Contents :TOC_3_gh:noexport:
 - [[#preface][Preface]]
   - [[#about-this-document][About this document]]
   - [[#literate-programming][Literate Programming]]
@@ -50,13 +50,13 @@
     - [[#counsel-osx-app][Counsel OSX App]]
 - [[#tex-and-org-mode][Tex and Org Mode]]
   - [[#latex][Latex]]
-    - [[#auctex][AucTeX]]
+    - [[#auctex][Auctex]]
     - [[#tex][Tex]]
-    - [[#reftex][RefTeX]]
+    - [[#reftex][Reftex]]
     - [[#bibtex][BibTex]]
     - [[#extra][Extra]]
     - [[#preview][Preview]]
-    - [[#company-auctex][Company AucTeX]]
+    - [[#company-auctex][Company Auctex]]
     - [[#company-reftex][Company Reftex]]
     - [[#cdlatex][cdlatex]]
     - [[#magic-latex-buffer][Magic Latex Buffer]]
@@ -190,6 +190,7 @@
   - [[#eshell][Eshell]]
     - [[#eshell-bookmark][Eshell Bookmark]]
     - [[#eshell-z][Eshell Z]]
+    - [[#eshell-prompt][Eshell Prompt]]
     - [[#eshell-prompt-extras][Eshell Prompt Extras]]
   - [[#shell][Shell]]
     - [[#shell-script-indentation][Shell script Indentation]]
@@ -1945,7 +1946,7 @@ running macOS.
 <<latex-texinfo>>
 #+END_SRC
 
-*** AucTeX
+*** Auctex
 
 Recent versions of AuCTeX are problematic with straight.
 On a clean install, I had to manually run the following command to get
@@ -1971,7 +1972,7 @@ Note that LaTeX packages are loaded, configured, and installed when
 ='latex= is a member of =org-export-enabled-backends=.
 
 #+NAME: latex-tex
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package tex
     :straight auctex
     :custom
@@ -2023,44 +2024,10 @@ Note that LaTeX packages are loaded, configured, and installed when
     (LaTeX-mode . TeX-fold-mode)
     (LaTeX-mode . TeX-source-correlate-mode)
     (LaTeX-mode . TeX-PDF-mode)
-    (LaTeX-mode . display-line-numbers-mode)
-
-    :config
-    ;; Copied from Emacs Stack exchange
-    ;; https://emacs.stackexchange.com/a/5493
-    (setq LaTeX-begin-regexp "\\(?:begin\\|if@\\)\\b")
-    (setq LaTeX-end-regexp "\\(?:end\\|else\\|fi\\)\\b")
-    (defun LaTeX-indent-level-count ()
-      "Count indentation change caused by all \\left, \\right, \\begin, and
-    \\end commands in the current line."
-      (save-excursion
-        (save-restriction
-          (let ((count 0))
-            (narrow-to-region (point)
-                              (save-excursion
-                                (re-search-forward
-                                 (concat "[^" TeX-esc "]"
-                                         "\\(" LaTeX-indent-comment-start-regexp
-                                         "\\)\\|\n\\|\\'"))
-                                (backward-char)
-                                (point)))
-            (while (search-forward TeX-esc nil t)
-              (cond
-                ((looking-at "left\\b")
-                 (setq count (+ count LaTeX-left-right-indent-level)))
-                ((looking-at "right\\b")
-                 (setq count (- count LaTeX-left-right-indent-level)))
-                ((looking-at LaTeX-begin-regexp)
-                 (setq count (+ count LaTeX-indent-level)))
-                ((looking-at "else\\b"))
-                ((looking-at LaTeX-end-regexp)
-                 (setq count (- count LaTeX-indent-level)))
-                ((looking-at (regexp-quote TeX-esc))
-                 (forward-char 1))))
-            count)))))
+    (LaTeX-mode . display-line-numbers-mode))
 #+END_SRC
 
-*** RefTeX
+*** Reftex
 
 
 RefTeX is a citation and reference tool maintained by the
@@ -2240,79 +2207,63 @@ save.
 
 #+NAME: org-preview-xelatex
 #+BEGIN_SRC emacs-lisp :tangle no
-(defcustom xelatex-preview-header org-format-latex-header
-  "The preamble to use for previewing LaTeX fragments with XeLaTeX."
-  :type 'string)
+  (defcustom xelatex-preview-header org-format-latex-header
+    "The preamble to use for previewing LaTeX fragments with XeLaTeX."
+    :type 'string)
 
-(setq xelatex-preview-header
-      (concat xelatex-preview-header
-      "\\usepackage{amsmath}
-      \\usepackage{unicode-math}
-      \\setmathfont{STIX2Math}[
-      Extension = .otf,
-      ]
-      \\setmainfont{STIX2Text}[
-      Extension      = .otf,
-      UprightFont    = *-Regular,
-      BoldFont       = *-Bold,
-      ItalicFont     = *-Italic,
-      BoldItalicFont = *-BoldItalic
-      ]"))
+  (defcustom xelatex-preview-process-alist
+    '((dvipng
+       :programs
+       ("xelatex" "dvipng")
+       :description "dvi > png"
+       :message "You need to install the programs: xelatex and dvipng"
+       :image-input-type "dvi"
+       :image-output-type "png"
+       :image-size-adjust (1.3 1.3)
+       :latex-compiler
+       ("xelatex -interaction nonstopmode -output-directory %o %f")
+       :image-converter
+       ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
+      (dvisvgm
+       :programs
+       ("latex" "dvisvgm")
+       :description "dvi > svg"
+       :message "you need to install the programs: xelatex and dvisvgm."
+       :use-xcolor t
+       :image-input-type "xdv"
+       :image-output-type "svg"
+       :image-size-adjust
+       (1.7 . 1.5)
+       :latex-compiler
+       ("xelatex -no-pdf -interaction nonstopmode -output-directory %o %f")
+       :image-converter
+       ("dvisvgm %f -n -b min -c %S -o %O"))
+      (imagemagick
+       :programs ("xelatex" "convert")
+       :description "pdf > png"
+       :message "You need to install xelatex and imagemagick"
+       :use-xcolor t
+       :image-input-type "pdf"
+       :image-output-type "png"
+       :image-size-adjust (1.0 1.0)
+       :latex-compiler ("xelatex -interaction nonstopmode -output-directory %o %f")
+       :image-converter
+       ("convert -density %D -trim -antialias %f -quality 100 %O")))
+    "Preview engines for xelatex."
+    :type '(alist
+            :tag "LaTeX to image backends"
+            :value-type (plist)))
 
-(defcustom xelatex-preview-process-alist
-  '((dvipng
-     :programs
-     ("xelatex" "dvipng")
-     :description "dvi > png"
-     :message "You need to install the programs: xelatex and dvipng"
-     :image-input-type "dvi"
-     :image-output-type "png"
-     :image-size-adjust (1.3 1.3)
-     :latex-compiler
-     ("xelatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
-    (dvisvgm
-     :programs
-     ("latex" "dvisvgm")
-     :description "dvi > svg"
-     :message "you need to install the programs: xelatex and dvisvgm."
-     :use-xcolor t
-     :image-input-type "xdv"
-     :image-output-type "svg"
-     :image-size-adjust
-     (1.7 . 1.5)
-     :latex-compiler
-     ("xelatex -no-pdf -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvisvgm %f -n -b min -c %S -o %O"))
-    (imagemagick
-     :programs ("xelatex" "convert")
-     :description "pdf > png"
-     :message "You need to install xelatex and imagemagick"
-     :use-xcolor t
-     :image-input-type "pdf"
-     :image-output-type "png"
-     :image-size-adjust (1.0 1.0)
-     :latex-compiler ("xelatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("convert -density %D -trim -antialias %f -quality 100 %O")))
-  "Preview engines for xelatex."
-  :type '(alist
-          :tag "LaTeX to image backends"
-		      :value-type (plist)))
+  (defun org-preview-xelatex ()
+    (interactive)
+    (set (make-local-variable 'org-preview-latex-process-alist)
+      xelatex-preview-process-alist)
 
-(defun org-preview-xelatex ()
-
-  (set (make-local-variable 'org-preview-latex-process-alist)
-    xelatex-preview-process-alist)
-
-  (set (make-local-variable 'org-format-latex-header)
-       (if (org-preview/orgling-p)
-           (concat xelatex-preview-header
-                   (read-file-contents
-                    (emacs-etc-dir "preview" "orgling-preview.tex")))
-         xelatex-preview-header)))
+    (set (make-local-variable 'org-format-latex-header)
+         (if (org-preview/orgling-p)
+             (read-file-contents
+              (emacs-etc-dir "preview" "orgling-preview.tex"))
+           xelatex-preview-header)))
 #+END_SRC
 
 **** LuaLaTeX Fragments
@@ -2381,7 +2332,6 @@ save.
          lualatex-preview-header)))
 #+END_SRC
 
-
 **** Per-buffer latex fragment previews
 
 Generate latex fragments based on the latex compiler and class in the current buffer.
@@ -2390,20 +2340,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 #+BEGIN_SRC emacs-lisp :tangle no
   (defun org-preview-process-hook ()
     (interactive)
-    (let ((latex-compiler (org-preview/process-compiler))
-          (foreground-color (face-attribute
-                            'font-lock-builtin-face
-                            :foreground)))
-
-      (set (make-local-variable 'org-format-latex-options)
-           `(:foreground default
-             :background default
-             :scale 1.2
-             :html-foreground "Black"
-             :html-background "Transparent"
-             :html-scale 1.0
-             :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
-
+    (let ((latex-compiler (org-preview/process-compiler)))
       (when-let (preview-process (org-preview/set-process))
         (set (make-local-variable 'org-preview-latex-default-process)
              preview-process))
@@ -2418,7 +2355,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
   (add-hook 'org-mode-hook 'org-preview-process-hook)
 #+END_SRC
 
-*** Company AucTeX
+*** Company Auctex
 
 #+NAME: latex-company-auctex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2515,7 +2452,7 @@ Prettify dedicated org-mode latex buffers.
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 #+END_SRC
 
-**** COMMENT Math Symbols
+**** Math Symbols
 
 Entered on [2018-06-13 Wed 11:42]
 
@@ -2614,7 +2551,7 @@ in math environments with unicode math enabled."
 #+NAME: orgtex/org
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Org command map
-<<org/commander>> 
+<<org/commander>>
 ;; Org Babel
 <<org/ob>>
 ;; Org UI
@@ -2671,7 +2608,6 @@ in math environments with unicode math enabled."
 
 **** Ob ClojureScript
 
-
 [[https://github.com/emacsmirror/ob-clojurescript][ob-clojurescript]] uses [[https://github.com/anmonteiro/lumo][lumo]] to evaluate ClojureScript code blocks in
 =org-mode= buffers.
 
@@ -2687,23 +2623,25 @@ in math environments with unicode math enabled."
 
 #+NAME: org-ob-load-langs
 #+BEGIN_SRC emacs-lisp :tangle no
- (org-babel-do-load-languages
-  'org-babel-load-languages
-  '((C . t)
-    (clojure . t)
-    (clojurescript . t)
-    (dot . t)
-    (ditaa . t)
-    (latex . t)
-    (http . t)
-    (perl . t)
-    (python . t)
-    (plantuml . t)
-    (java . t)
-    (ruby . t)
-    (R . t)
-    (shell . t)
-    (org . t)))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((C . t)
+     (clojure . t)
+     (clojurescript . t)
+     (dot . t)
+     (ditaa . t)
+     (latex . t)
+     (lisp . t)
+     (emacs-lisp . t)
+     (http . t)
+     (perl . t)
+     (python . t)
+     (plantuml . t)
+     (java . t)
+     (ruby . t)
+     (R . t)
+     (shell . t)
+     (org . t)))
 #+END_SRC
 
 *** Org Appearance
@@ -2855,8 +2793,8 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 
   (apply orig-func args))
 
-(advice-add 'org-create-formula-image
-            :around #'org-renumber-environment)
+;; (advice-add 'org-create-formula-image
+;;           :around #'org-renumber-environment)
 
 #+END_SRC
 
@@ -2888,9 +2826,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
      ((t (:family "Sans" :weight book :inherit (default)))))
     :init
     (defun org/outline-numbering ()
-      (org-outline-numbering-mode 1))
-    :hook
-    (org-mode . org/outline-numbering))
+      (org-outline-numbering-mode 1)))
 
 #+END_SRC
 
@@ -3080,10 +3016,10 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+NAME: org-docmgr-attach
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-attach
-  :straight org
-  :custom
-  (org-attach-auto-tag "attach"))
+  (use-package org-attach
+    :straight org
+    :custom
+    (org-attach-auto-tag "attach"))
 
 #+END_SRC
 
@@ -3201,7 +3137,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 (use-package org-index)
 #+END_SRC
 
-**** Org Noter
+**** Org Interleave
 
 #+NAME: org-docmgr-interleave
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3228,7 +3164,9 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 
 #+NAME: org-docmgr-bookmark
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-bookmark-heading)
+  (use-package org-bookmark-heading
+    :init
+    (require 'org-bookmark-heading))
 #+END_SRC
 
 **** Org Web Tools
@@ -3294,63 +3232,13 @@ With prefix argument, also display headlines without a TODO keyword."
 
 #+NAME: org-links-mac
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-mac-link
-  :straight org)
+  (use-package org-mac-link
+    :straight org)
+
+  (use-package org-mac-ical
+    :straight org)
 #+END_SRC
 
-***** Org Cliplink
-
-Insert org links from the system clipboard.
-
-#+NAME: org-links-cliplink
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-cliplink
-  :bind (("C-x p i" . org-cliplink)))
-#+END_SRC
-
-***** Org YouTube
-
-From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
-
-Embed YouTube Links in iframe.
-
-#+NAME: org-links-youtube
-#+BEGIN_SRC emacs-lisp :tangle no
-(org-link-set-parameters
- "youtube"
- :follow (lambda (path)
-	   (browse-url (format "https://youtu.be/%s" path)))
- :export (lambda (path desc backend)
-	   (cond
-	    ((eq 'md backend)
-	     (format "[%s](%s)
-
-<a href=\"https://www.youtube.com/watch?v=%s\">
-<img src=\"http://img.youtube.com/vi/%s/0.jpg\"></a>"
-		     (or desc (format "https://youtu.be/%s" path))
-		     (format "https://youtu.be/%s" path)
-		     path path))))
- :help-echo "A youtube video. Click to open in browser.")
-
-#+END_SRC
-
-***** Org Link Minor Mode
-
-#+NAME: org-links-minor
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-link-minor-mode
-  :hook (prog-mode . org-link-minor-mode))
-#+END_SRC
-
-**** Org Bookmark
-:PROPERTIES:
-:ID:       B7904803-C4A6-439D-BD21-E449CF0B79F5
-:END:
-
-#+NAME: org-docmgr-bookmark
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-bookmark-heading)
-#+END_SRC
 
 *** Task Management
 
@@ -3378,8 +3266,10 @@ Embed YouTube Links in iframe.
 
 #+NAME: org-taskmgr-habit
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-habit
-  :straight nil)
+  (use-package org-habit
+    :straight org
+    :init
+    (require 'org-habit))
 #+END_SRC
 
 **** Org Agenda
@@ -3408,9 +3298,9 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :custom
     (org-tags-column 0)
     (diary-file (expand-file-name "diary.org" org-directory))
-
+  
     :init
-
+  
     (defun goto-agenda-dir ()
       (interactive)
       (dired (agenda-dir)))
@@ -3423,10 +3313,10 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (define-key goto-map "o" #'goto-org-dir)
 
     (setq org-agenda-category-icon-alist
-     `(("syntax" ,(list "Ᾱ")  nil nil :ascent center)
-       ("phonetics" ,(list "ə")  nil nil :ascent center)
+     `(("syntax"     ,(list "Ᾱ")  nil nil :ascent center)
+       ("phonetics"  ,(list "ə")  nil nil :ascent center)
        ("algorithms" ,(list "𝛺") nil nil :ascent center)
-       ("languages" ,(list "𝜆") nil nil :ascent center)))
+       ("languages"  ,(list "𝜆") nil nil :ascent center)))
 
     (defvar-local org-use-level-faces nil)
     (defvar org-level-remap-face nil)
@@ -3454,16 +3344,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                       (delq f face-remapping-alist)))
               org-level-remap-face))))
 
-    :config
-    (defvar default-agenda-file (resolve-path org-directory "TODOS.org"))
-
-    (defun halidom/default-agenda ()
-      (interactive)
-      (setq org-agenda-files
-            (if (file-exists-p default-agenda-file)
-               (list default-agenda-file))))
-
-    (halidom/default-agenda)
     :hook
     (org-mode . halidom/org-agenda-face))
 #+END_SRC
@@ -3507,11 +3387,28 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package org-sidebar
     :after org-ql
-    :init (require 'org-habit)
-    :bind (:map halidom/org-command-map
-                ("s" . org-sidebar))
-    :straight (org-sidebar :host github
-                           :repo "alphapapa/org-sidebar"))
+    :straight
+    (org-sidebar
+     :host github
+     :repo "alphapapa/org-sidebar")
+    :init
+    (with-eval-after-load 'org-sidebar
+      (org-sidebar-defsidebar sidebar/syntax
+        :header "Syntax"
+        :sidebars (((and (not (done))
+                       (or (deadline <=)
+                          (scheduled <=)))))
+        :super-groups '((:time-grid t)
+                        (:name "Overdue" :scheduled past :deadline past)
+                        (:name "Due"   :scheduled today :deadline today)
+                        (:name "Homework" :tag "homework")
+                        (:priority "A"))
+        :files '("~/Dropbox/courses/ling165b/TODOs.org"))
+
+
+      (defun syntax-sidebar ()
+        (interactive)
+        (sidebar/syntax))))
 #+END_SRC
 
 **** Org Projectile
@@ -3543,7 +3440,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       (cl-flet*
           ((project-agenda-filepath (p)
                                     (expand-file-name
-                                     org-projectile-per-project-filepath
+                                     "TODOs.org"
                                      p))
            (todo-file-p (p)
                         (file-exists-p (project-agenda-filepath p)))
@@ -3771,9 +3668,43 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 
 #+NAME: org-ideamgr-drill
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-drill
-  :straight org)
+  (use-package org-drill
+    :straight org)
 #+END_SRC
+
+**** Org Modules
+:PROPERTIES:
+:ID:       7197831D-BE24-417E-A84B-9A36C1466145
+:END:
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package org-notify
+    :straight org
+    :init
+    (require 'org-notify))
+
+  (use-package org-eval
+    :straight org
+    :init
+    (require 'org-eval))
+
+  (use-package org-learn
+    :straight org
+    :init (require 'org-learn))
+
+  (use-package org-panel
+    :straight org
+    :init
+    (require 'org-panel))
+
+
+  (use-package org-expiry
+    :straight org
+    :init (require 'org-expiry))
+
+#+END_SRC
+
+
 
 *** Org Hacks
 :PROPERTIES:
@@ -4098,7 +4029,7 @@ recursively processing #+INCLUDEs."
 
 **** Prefer user provided labeling system
 
-#+NAME: ox/labels>>
+#+NAME: ox/labels
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-latex-prefer-user-labels t)
 #+END_SRC
@@ -4460,7 +4391,7 @@ for exporting org-mode documents to various formats.
 
 #+NAME: org-latex-highlight-tex
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-highlight-latex-and-related '(latex))
+  (setq org-highlight-latex-and-related '(latex))
 #+END_SRC
 
 *** Org Ref
@@ -4724,7 +4655,6 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+END_SRC
 
-
 *** Skeletor
 
 #+NAME: skeletor-spec
@@ -4958,8 +4888,9 @@ Jump to arbitrary point in Buffer
 
 #+NAME: search/avy
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package avy
-  :straight t)
+  (use-package avy
+    :bind
+    ("C-:" . avy-goto-char))
 #+END_SRC
 
 *** ack
@@ -5026,11 +4957,11 @@ Jump to arbitrary point in Buffer
 *** Visual Replace
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package visual-regexp
-  :bind
-  (("C-c r" . vr/replace)
-   ("C-c q" . vr/query-replace)
-   ("C-c m" . vr/mc-mark)))
+  (use-package visual-regexp
+    :bind
+    (("C-c r" . vr/replace)
+     ("C-c q" . vr/query-replace)
+     ("C-c m" . vr/mc-mark)))
 #+END_SRC
 
 *** Undo Tree
@@ -5098,10 +5029,9 @@ list that one may use in the wacky world of Emacs.
 #+NAME: buffer/dashboard
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package dashboard
-    :demand t
     :init
     (defun halidom/dashboard-banner ()
-      "Set a dashboard banner including information on 
+      "Set a dashboard banner including information on
   package initialization time and garbage collections."
         (setq dashboard-banner-logo-title
               (format
@@ -5319,23 +5249,23 @@ different window configurations.
 **** Purpose
 
 #+NAME: purpose
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package window-purpose)
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package window-purpose)
 
-(use-package ivy-purpose
-    :custom (pop-up-frames t)
-    :after (window-purpose)
-    :init
-    (ivy-purpose-setup)
-    :config
-    ;; give help buffers the 'popup-frame purpose
-    (add-to-list 'purpose-user-mode-purposes
-                '(help-mode . popup-frame))
-    (add-to-list 'purpose-special-action-sequences
-                 '(popup-frame
-                   purpose-display-reuse-window-buffer
-                   purpose-display-reuse-window-purpose
-                   purpose-display-pop-up-frame)))
+  (use-package ivy-purpose
+      :custom (pop-up-frames t)
+      :after (window-purpose)
+      :init
+      (ivy-purpose-setup)
+      :config
+      ;; give help buffers the 'popup-frame purpose
+      (add-to-list 'purpose-user-mode-purposes
+                  '(help-mode . popup-frame))
+      (add-to-list 'purpose-special-action-sequences
+                   '(popup-frame
+                     purpose-display-reuse-window-buffer
+                     purpose-display-reuse-window-purpose
+                     purpose-display-pop-up-frame)))
 #+END_SRC
 
 **** Perspective
@@ -5416,21 +5346,21 @@ different window configurations.
 [[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package image+
-  :if (display-graphic-p)
-  :after (image)
-  :config
-  (eval-after-load 'image+
-    `(when (require 'hydra nil t)
-       (defhydra imagex-sticky-binding (global-map "C-x C-l")
-         "Manipulating image"
-         ("+" imagex-sticky-zoom-in "zoom in")
-         ("-" imagex-sticky-zoom-out "zoom out")
-         ("M" imagex-sticky-maximize "maximize")
-         ("O" imagex-sticky-restore-original "restore orginal")
-         ("S" imagex-sticky-save-image "save file")
-         ("r" imagex-sticky-rotate-right "rotate right")
-         ("l" imagex-sticky-rotate-left "rotate left")))))
+  (use-package image+
+    :if (display-graphic-p)
+    :after (image)
+    :config
+    (eval-after-load 'image+
+      `(when (require 'hydra nil t)
+         (defhydra imagex-sticky-binding (global-map "C-x C-l")
+           "Manipulating image"
+           ("+" imagex-sticky-zoom-in "zoom in")
+           ("-" imagex-sticky-zoom-out "zoom out")
+           ("M" imagex-sticky-maximize "maximize")
+           ("O" imagex-sticky-restore-original "restore orginal")
+           ("S" imagex-sticky-save-image "save file")
+           ("r" imagex-sticky-rotate-right "rotate right")
+           ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
 **** blimp
@@ -6052,14 +5982,14 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+NAME: cursor/mc
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package multiple-cursors
-  :init
-  (global-unset-key (kbd "M-<down-mouse-1>"))
-  :bind
-  (("C-S-c C-S-c" . mc/edit-lines)
-   ("C->" . mc/mark-next-like-this)
-   ("C-c C-<" . mc/mark-all-like-this)
-   ("M-<mouse-1>" . mc/add-cursor-on-click)))
+  (use-package multiple-cursors
+    :init
+    (global-unset-key (kbd "M-<down-mouse-1>"))
+    :bind
+    (("C-c C-s-." . mc/edit-lines)
+     ("C->" . mc/mark-next-like-this)
+     ("C-c C->" . mc/mark-all-like-this)
+     ("M-<mouse-1>" . mc/add-cursor-on-click)))
 #+END_SRC
 
 *** Centered Cursor Mode
@@ -6848,7 +6778,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
     :config
     (ivy-mode 1)
 
-    :diminish ivy-mode)
+    :blackout t)
 
 #+END_SRC
 
@@ -7026,13 +6956,13 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
     (counsel-mode +1)
 
     ;; Diminish the lazy-loaded version of `counsel-mode'.
-    (diminish 'counsel-mode)
+    (blackout 'counsel-mode)
 
     :config
     (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
     (setq counsel-mode-override-describe-bindings t)
 
-    :diminish counsel-mode)
+    :blackout t)
 
 #+END_SRC
 
@@ -7126,9 +7056,12 @@ documentation browser.
 
 #+NAME: counsel-dash-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package counsel-dash
-  :after (:all counsel)
-  :if *is-mac*)
+  (use-package counsel-dash
+    :after (:all counsel)
+    :if *is-mac*
+    :ensure-system-package
+    ("/Applications/Dash.app" . "brew cask install dash"))
+
 #+END_SRC
 
 **** Counsel Codesearch
@@ -7181,18 +7114,18 @@ A smart M-x enhancement for Emacs.
 #+NAME: mb-omnibox
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(use-package omnibox
-    :commands omnibox-M-x
-    :bind (:map omnibox-mode-map
-                ("M-x" . omnibox-M-x))
-    :init
-    (let ((pkgdir "~/.local/share/icons-in-terminal"))
-      (when (f-dir-p pkgdir)
+  (use-package omnibox
+      :commands omnibox-M-x
+      :bind (:map omnibox-mode-map
+                  ("M-x" . omnibox-M-x))
+      :init
+      (let ((pkgdir "~/.local/share/icons-in-terminal"))
+        (when (f-dir-p pkgdir)
 
-      (add-to-list 'load-path pkgdir)))
-      (when (locate-library "font-lock+")
-        (require 'font-lock+)
-        (require 'icons-in-terminal)))
+        (add-to-list 'load-path pkgdir)))
+        (when (locate-library "font-lock+")
+          (require 'font-lock+)
+          (require 'icons-in-terminal)))
 
 #+END_SRC
 
@@ -7293,14 +7226,14 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 
 #+NAME: eshell-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Begin Eshell
-;; eshell bookmark
-<<esh-bookmark>>
-;; eshell z
-<<esh-z>>
-;; eshell prompt extras
-<<esh-prompt-extras>>
-;; End Eshell
+  ;; Begin Eshell
+  ;; eshell bookmark
+  <<esh-bookmark>>
+  ;; eshell z
+  <<esh-z>>
+  ;; eshell prompt extras
+  <<esh-prompt-extras>>
+  ;; End Eshell
 #+END_SRC
 
 *** Eshell Bookmark
@@ -7324,18 +7257,112 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 
 #+END_SRC
 
+*** Eshell Prompt
+
+#+NAME: eshell/prompt
+#+BEGIN_SRC emacs-lisp :tangle no
+  (with-eval-after-load "esh-opt"
+    (pyvenv-mode 1)
+    (defmacro with-face (STR &rest PROPS)
+      "Return STR propertized with PROPS."
+      `(propertize ,STR 'face (list ,@PROPS)))
+
+    (defmacro esh-section (NAME ICON FORM &rest PROPS)
+      "Build eshell section NAME with ICON prepended to evaled FORM with PROPS."
+      `(setq ,NAME
+             (lambda () (when ,FORM
+                     (-> ,ICON
+                        (concat esh-section-delim ,FORM)
+                        (with-face ,@PROPS))))))
+
+    (defun esh-acc (acc x)
+      "Accumulator for evaluating and concatenating esh-sections."
+      (--if-let (funcall x)
+          (if (s-blank? acc)
+              it
+            (concat acc esh-sep it))
+        acc))
+
+    (defun esh-prompt-func ()
+      "Build `eshell-prompt-function'"
+      (concat esh-header
+              (-reduce-from 'esh-acc "" eshell-funcs)
+              "\n"
+              eshell-prompt-string))
+
+    (esh-section esh-dir
+                 "\xf07c"  ;  (faicon folder)
+                 (abbreviate-file-name (eshell/pwd))
+                 '(:foreground "gold" :weight 'bold :underline t))
+
+    (esh-section esh-git
+                 "\xe907"  ;  (git icon)
+                 (magit-get-current-branch)
+                 '(:foreground "pink"))
+
+    (esh-section esh-python
+                 "\xe928"  ;  (python icon)
+                 pyvenv-virtual-env-name)
+
+    (esh-section esh-clock
+                 "\xf017"  ;  (clock icon)
+                 (format-time-string "%H:%M" (current-time))
+                 '(:foreground "forest green"))
+
+    ;; Below I implement a "prompt number" section
+    (setq esh-prompt-num 0)
+    (add-hook 'eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
+    (advice-add 'eshell-send-input :before
+                (lambda (&rest args) (setq esh-prompt-num (incf esh-prompt-num))))
+
+    (esh-section esh-num
+                 "\xf0c9"  ;  (list icon)
+                 (number-to-string esh-prompt-num)
+                 '(:foreground "brown"))
+
+    ;; Separator between esh-sections
+    (setq esh-sep "  ")  ; or " | "
+
+    ;; Separator between an esh-section icon and form
+    (setq esh-section-delim " ")
+
+    ;; Eshell prompt header
+    (setq esh-header "\n")  ; or "\n ┌─ ┎
+
+    ;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.
+    ;; your login, these can be the same.
+    (setq eshell-prompt-regexp "λ\\s-")   ; or "└─> "
+    (setq eshell-prompt-string "λ ")   ; or "└─> "
+
+    ;; Choose which eshell-funcs to enable
+    (setq eshell-funcs (list esh-dir esh-git esh-python esh-clock esh-num))
+
+    ;; Enable the new eshell prompt
+    (setq eshell-prompt-function 'esh-prompt-func)
+    )
+#+END_SRC
+
 *** Eshell Prompt Extras
 
 #+NAME: esh-prompt-extras
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package eshell-prompt-extras
+  (use-package eshell-prompt-extras
+    :custom-face
+    (eshell-prompt ((t (:foreground "gray83"))))
     :custom
     (eshell-modify-global-environment t)
     :init
-    (with-eval-after-load "esh-opt")
-    (autoload 'epe-theme-lambda "eshell-prompt-extras")
-    (setq eshell-highlight-prompt t
-          eshell-prompt-function 'epe-theme-lambda))
+    (with-eval-after-load "esh-opt"
+      (autoload 'epe-theme-lambda "eshell-prompt-extras")
+      (setq eshell-highlight-prompt t))
+
+    (defun eshell/fortune-banner ()
+      (setq eshell-banner-message
+          (if (executable-find "fortune")
+              (concat (shell-command-to-string "fortune -s") "\n")
+            (concat "Welcome to the Emacs shell " user-login-name "\n\n"))))
+    :hook
+    (eshell-banner-load . eshell/fortune-banner))
 #+END_SRC
 
 ** Shell
@@ -7742,10 +7769,12 @@ Interactively.
       (let ((keybinding (plist-get (cddr args) :keybinding))
       (engine (car args))
       (prefix "M-m w e"))
-  (engine-add-which-key-replacement engine prefix keybinding)
-  (apply orig-function args)))
+        (engine-add-which-key-replacement engine prefix keybinding)
+        (apply orig-function args)))
 
-    (advice-add 'defengine :around #'engine-key-replacement)
+    (with-eval-after-load 'engine-mode
+      (advice-add 'defengine :around #'engine-key-replacement))
+
 
     :config
 
@@ -7787,6 +7816,11 @@ Interactively.
       "http://maps.google.com/maps?q=%s"
       :keybinding "Gm"
       :docstring "Mappin' it up.")
+
+    (defengine google-schoolar
+      "http://scholar.google.com/scholar?q=%s"
+      :keybinding "Gs"
+      :docstring "Schoolin'it up.")
 
     (defengine project-gutenberg
       "http://www.gutenberg.org/ebooks/search/?query=%s"
@@ -7840,9 +7874,12 @@ Interactively.
                    (let ((kk (apply #'ks k)))
                      (which-key-add-key-based-replacements kk rep))))
      (wkr "Search Engine")
-     (wkr "Google Engines" "G")
+     (wkr "Google+" "G")
      (wkr "Google Images" "G" "i")
-     (wkr "Google Bookmarks" "G" "b")))
+     (wkr "Google Bookmarks" "G" "b")
+     (wkr "Google Maps" "G" "m")
+     (wkr "Google Scholar" "G" "s")))
+
 
 #+END_SRC
 
@@ -8107,7 +8144,7 @@ buffers[fn:17].
 
 #+NAME: flyspell-correct-config
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package flyspell-correct-ivy
+  (use-package flyspell-correct-ivy       ;
     :after (:all flyspell ivy)
     :demand t
     :config
@@ -8240,14 +8277,15 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME: notes/velocity
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-velocity
-  :straight org
-  :bind
-  (("C-c n" . org-velocity))
-  :demand t
-  :init
-  (progn
-    (setq org-velocity-bucket (expand-file-name "bucket.org" org-directory))))
+  (use-package org-velocity
+    :straight org
+    :bind
+    (("C-c n" . org-velocity))
+    :demand t
+    :custom
+    (org-velocity-bucket (expand-file-name "bucket.org" org-directory))
+    :init
+  (require 'org-velocity))
 #+END_SRC
 
 ** Writing mode
@@ -8652,7 +8690,7 @@ school's WLAN.
 
       (defun halidom/toggle-flycheck-error-list ()
         "Toggle flycheck's error list window.
-  If the error list is visible, hide the window. 
+  If the error list is visible, hide the window.
   Else display the buffer."
         (interactive)
         (-if-let (window (flycheck-get-error-list-window))
@@ -8932,7 +8970,6 @@ offers more meaningful semantics.
 #+NAME: paredit-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package paredit
-  :diminish paredit-mode
   :config
   (progn
     (use-package eldoc
@@ -9054,8 +9091,8 @@ Disabling for now.
 #+NAME: vcs/customize
 #+BEGIN_SRC emacs-lisp :tangle no
   (defcustom halidom-vcs-svn-list '(git)
-    "List of VCS-SVNs for which libraries and tooling 
-  should be installed. Options are `git' and/or `hg' as symbols 
+    "List of VCS-SVNs for which libraries and tooling
+  should be installed. Options are `git' and/or `hg' as symbols
   in a list, else nil."
     :type '(list symbol))
 #+END_SRC
@@ -9466,7 +9503,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 #+BEGIN_SRC emacs-lisp :tangle yes
 
   (defcustom halidom-proglang-enabled-list nil
-    "List of languages for which straight should install respective 
+    "List of languages for which straight should install respective
   tooling, syntax-highlighting, and peripherals."
     :type '(list symbol))
 
@@ -10151,7 +10188,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 #+NAME: elisp/format
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package elisp-format 
+  (use-package elisp-format
     :custom
     (elisp-format-column 80))
 #+END_SRC
@@ -10184,7 +10221,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
     (defun flycheck-cask/enable ()
       (when (eq projectile-project-type 'emacs-cask)
         (flycheck-cask-setup)))
-  
+
     (defun flycheck-cask/disable-dir-locals ()
       (when (string= ".dir-locals.el" (buffer-file-name))
         (set (make-variable-buffer-local 'flycheck-mode) nil)))
@@ -11389,15 +11426,16 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: web-tagedit
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package tagedit
-  :init
-  (defun halidom/tagedit-enable ()
-    (tagedit-add-experimental-features)
-    (tagedit-mode +1))
+  (use-package tagedit
+    :init
+    (defun halidom/tagedit-enable ()
+      (tagedit-add-experimental-features)
+      (tagedit-mode +1))
 
-  (add-hook 'html-mode-hook #'halidom/tagedit-enable)
+    :hook
+    (html-mode . halidom/tagedit-enable)
 
-  :diminish tagedit-mode)
+    :blackout t)
 #+END_SRC
 
 **** Htmlize
@@ -11770,7 +11808,6 @@ dialects of Lisp.
 [fn:17] https://joelkuiper.eu/spellcheck_emacs
 
 [fn:18] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
-
 
 
 
