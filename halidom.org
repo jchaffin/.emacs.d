@@ -235,6 +235,8 @@
     - [[#lorem-ipsum][Lorem Ipsum]]
     - [[#org-velocity][Org Velocity]]
   - [[#writing-mode][Writing mode]]
+    - [[#typo-mode][Typo Mode]]
+    - [[#writegood][Writegood]]
     - [[#variable-pitch][Variable Pitch]]
     - [[#olivetti][Olivetti]]
     - [[#writeroom][Writeroom]]
@@ -3242,6 +3244,7 @@ With prefix argument, also display headlines without a TODO keyword."
 #+END_SRC
 
 
+
 *** Task Management
 
 #+NAME: org/tasks
@@ -3300,9 +3303,9 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :custom
     (org-tags-column 0)
     (diary-file (expand-file-name "diary.org" org-directory))
-  
+
     :init
-  
+
     (defun goto-agenda-dir ()
       (interactive)
       (dired (agenda-dir)))
@@ -3751,22 +3754,22 @@ Fix problem with  which puts point back in a folded position.
 #+NAME: org-hacks-extract-hyperlink
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(defun org-extract-link ()
-  "Extract the link location at point and put it on the killring."
-  (interactive)
-  (when (org-in-regexp org-bracket-link-regexp 1)
-    (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
+  (defun org-extract-link ()
+    "Extract the link location at point and put it on the killring."
+    (interactive)
+    (when (org-in-regexp org-bracket-link-regexp 1)
+      (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
 
 
-(defun browse-url-extract-org-link (orig-fun &rest args)
-  "If `thing-at-point' is a org-link, then call `org-extract-link'
-and apply ORIG-FUN with the extracted url in the car of original ARGS."
-  (when (and (eq major-mode 'org-mode)
-             (string= (car (org-thing-at-point)) "link"))
-    (setcar args (org-extract-link)))
-  (apply orig-fun args))
+  (defun browse-url-extract-org-link (orig-fun &rest args)
+    "If `thing-at-point' is a org-link, then call `org-extract-link'
+  and apply ORIG-FUN with the extracted url in the car of original ARGS."
+    (when (and (eq major-mode 'org-mode)
+               (string= (car (org-thing-at-point)) "link"))
+      (setcar args (org-extract-link)))
+    (apply orig-fun args))
 
-  (advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
+    (advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
 #+END_SRC
 
 **** Export to datetree :disabled:
@@ -4418,76 +4421,73 @@ for exporting org-mode documents to various formats.
 
 #+NAME: org-ref-config
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-ref
-  :after ivy
-  :demand t
-  :custom
+  (use-package org-ref
+    :after ivy
+    :demand t
+    :custom
 
-  (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-default-bibliography
-   (list (dropbox-dir "org" "ref" "references.bib")))
-  (org-ref-bibliography-notes
-   (dropbox-dir "org" "ref" "refnotes.org"))
-  (org-ref-pdf-directory
-   (dropbox-dir "org" "papers" "pdfs"))
-  (org-ref-show-citation-on-enter t)
-  (org-ref-show-broken-links t)
-  (org-ref-bibtex-hydra-key-binding "\C-cj")
+    (org-ref-completion-library 'org-ref-ivy-cite)
+    (org-ref-default-bibliography
+     (list (dropbox-dir "org" "ref" "references.bib")))
+    (org-ref-bibliography-notes
+     (dropbox-dir "org" "ref" "refnotes.org"))
+    (org-ref-pdf-directory
+     (dropbox-dir "org" "papers" "pdfs"))
+    (org-ref-show-citation-on-enter t)
+    (org-ref-show-broken-links t)
+    (org-ref-bibtex-hydra-key-binding "\C-cj")
 
-  :init
-  ;; https://github.com/jkitchin/org-ref/issues/428
-  (progn
-    (require 'doi-utils)
-    (require 'org-ref-url-utils)
-    (require 'org-id)
-    (require 'org-ref-latex)
-    (require 'org-ref-bibtex)
-    (require 'org-ref-pdf)
-    (require 'org-ref-scopus)
-    (require 'org-ref-isbn)
-    (require 'org-ref-pubmed)
-    (require 'org-ref-arxiv)
-    (require 'org-ref-sci-id)
-    (require 'org-ref-wos)
-    (require 'org-ref-worldcat)
-    (require 'x2bib))
+    :init
+    ;; https://github.com/jkitchin/org-ref/issues/428
+    (progn
+      (require 'doi-utils)
+      (require 'org-ref-url-utils)
+      (require 'org-id)
+      (require 'org-ref-latex)
+      (require 'org-ref-bibtex)
+      (require 'org-ref-pdf)
+      (require 'org-ref-scopus)
+      (require 'org-ref-isbn)
+      (require 'org-ref-pubmed)
+      (require 'org-ref-arxiv)
+      (require 'org-ref-sci-id)
+      (require 'org-ref-wos)
+      (require 'org-ref-worldcat)
+      (require 'x2bib))
 
-  :config
+    :config
 
-  (defun goto-org-ref-manual (&optional path)
-    (interactive)
-    (if-not path
-        (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
-    (find-file path))
-
-
-  ;; Hydra
-  ;; See [[file:straight/repos/org-ref/org-ref.org::#citations][Citations]] section of the manual
-  (key-chord-define-global "kk" 'org-ref-cite-hydra/body)
-
-  ;; Org Ref Bibtex Interface
-  (defcustom halidom-org-ref-journal-abbrevs '()
-    "Extra abbreviations to add to `org-ref-bibtex-journal-abbreviations.'
-Each abbreviation is a list of the form (string journal-full-name journal-abbreviation)."
-    :type '(alist :value-type (group string)))
+    (defun goto-org-ref-manual (&optional path)
+      (interactive)
+      (if-not path
+          (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
+      (find-file path))
 
 
-  (setq hist109B-journal-abbrevs
-        '(("JPS" "Journal of Palestinian Studies")
-          ("JMEISA" "Journal of Middle Eastern and Islamic Studies (in Asia) Vol")
-          ("JHG" "Journal of Historical Geography")
-          ("MEAST" "International Journal of Middle East Studies")))
+    ;; Hydra
+    ;; See [[file:straight/repos/org-ref/org-ref.org::#citations][Citations]] section of the manual
+    (key-chord-define-global "kk" 'org-ref-cite-hydra/body)
 
-  (setq halidom-org-ref-journal-abbrevs
-        (seq-concatenate 'list
-                         halidom-org-ref-journal-abbrevs
-                         hist109B-journal-abbrevs))
+    ;; Org Ref Bibtex Interface
+    (defcustom halidom-org-ref-journal-abbrevs '()
+      "Extra abbreviations to add to `org-ref-bibtex-journal-abbreviations.'
+  Each abbreviation is a list of the form (string journal-abbreviation journal-full-name)."
+      :type '(alist :value-type (group string)))
+
+
+    (setq journal-abbrevs-extra
+          '(("CST" "The Handbook of Contemporary Syntactic Theory" )))
+
+    (setq halidom-org-ref-journal-abbrevs
+          (seq-concatenate 'list
+                           halidom-org-ref-journal-abbrevs
+                           journal-abbrevs-extra))
 
 
 
-  (with-eval-after-load 'org-ref
-    (dolist (elt halidom-org-ref-journal-abbrevs)
-      (add-to-list 'org-ref-bibtex-journal-abbreviations elt))))
+    (with-eval-after-load 'org-ref
+      (dolist (elt halidom-org-ref-journal-abbrevs)
+        (add-to-list 'org-ref-bibtex-journal-abbreviations elt))))
 
 #+END_SRC
 
@@ -5255,7 +5255,7 @@ different window configurations.
   (use-package window-purpose)
 
   (use-package ivy-purpose
-      :custom (pop-up-frames t)
+      :custom (pop-up-frames nil)
       :after (window-purpose)
       :init
       (ivy-purpose-setup)
@@ -6533,20 +6533,21 @@ any reason for me reconsider my choice.
 
 #+NAME: company-spec
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package company
-  :commands global-company-mode
-  :bind (("TAB" . company-indent-or-complete-common)
-         ("C-c /" . company-files)
-         ("M-SPC" . company-complete)
-          (:map company-mode-map
-                ("M-n" . company-select-next-or-abort)
-                ("M-p" . company-select-previous-or-abort)))
-  :init
-  (add-hook 'after-init-hook 'global-company-mode)
-  :config
+  (use-package company
+    :commands global-company-mode
+    :bind (("TAB" . company-indent-or-complete-common)
+           ("C-c /" . company-files)
+           ("M-SPC" . company-complete)
+            (:map company-mode-map
+                  ("M-n" . company-select-next-or-abort)
+                  ("M-p" . company-select-previous-or-abort)))
+    :init
+    (add-hook 'after-init-hook 'global-company-mode)
+    :config
     (setq company-tooltip-limit 20
           company-tooltip-align-annotations t
-          company-idle-delay .3
+          company-minimum-prefix-length 3
+          company-idle-delay 0.1
           company-begin-commands '(self-insert-command)))
 #+END_SRC
 
@@ -8094,18 +8095,18 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+NAME: prose-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Spellcheck
-<<prose-spellcheck>>
+<<prose/spellcheck>>
 ;; Completion
-<<prose-completion>>
+<<prose/completion>>
 ;; Notes
-<<prose-notes>>
+<<prose/notes>>
 ;; Readview
-<<prose-readview>>
+<<prose/readview>>
 #+END_SRC
 
 ** Spelling and Grammar
 
-#+NAME: prose-spellcheck
+#+NAME: prose/spellcheck
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Flyspell
 <<sc-flyspell>>
@@ -8146,7 +8147,7 @@ buffers[fn:17].
 
 #+NAME: flyspell-correct-config
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package flyspell-correct-ivy       ;
+  (use-package flyspell-correct-ivy
     :after (:all flyspell ivy)
     :demand t
     :config
@@ -8183,16 +8184,16 @@ checking for natural language.
 
 #+NAME: sc-proselint
 #+BEGIN_SRC emacs-lisp :tangle no
-(with-eval-after-load 'flycheck
-  (flycheck-define-checker proselint
-                           "A linter for prose."
-                           :command ("proselint" source-inplace)
-                           :error-patterns
-                           ((warning line-start (file-name) ":" line ":" column ": "
-	                                   (id (one-or-more (not (any " "))))
-	                                   (message) line-end))
-                           :modes (text-mode org-mode markdown-mode gfm-mode))
-  (add-to-list 'flycheck-checkers 'proselint))
+  (with-eval-after-load 'flycheck
+    (flycheck-define-checker proselint
+                             "A linter for prose."
+                             :command ("proselint" source-inplace)
+                             :error-patterns
+                             ((warning line-start (file-name) ":" line ":" column ": "
+                                       (id (one-or-more (not (any " "))))
+                                       (message) line-end))
+                             :modes (text-mode org-mode markdown-mode gfm-mode))
+    (add-to-list 'flycheck-checkers 'proselint))
 
 #+END_SRC
 
@@ -8240,7 +8241,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 ** Taking Notes
 
-#+NAME: prose-notes
+#+NAME: prose/notes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Deft
 <<notes/deft>>
@@ -8292,7 +8293,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 ** Writing mode
 
-#+NAME:  prose-writing
+#+NAME: prose-writing
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
 ;; Olivetti Mode
 <<writing-olivetti>>
@@ -8300,6 +8301,22 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 <<writing-writeroom>>
 ;: Org Variable Pitch Face Font
 <<writing-variable-pitch>>
+;; Typo Mode
+<<writing-typo>>
+;; Write good mode
+<<writing-writegood>>
+#+END_SRC
+
+*** Typo Mode
+#+NAME: writing-typo
+#+BEGIN_SRC emacs-lisp :tangle no
+ (use-package typo)
+#+END_SRC
+
+*** Writegood
+
+#+BEGIN_SRC emacs-lisp :tangle no
+ (use-package writegood-mode)
 #+END_SRC
 
 *** Variable Pitch
@@ -8342,11 +8359,6 @@ This works by frobbing `face-remapping-alist'."
     (->> halidom-org-fixed-pitch-faces
         (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
         (mapcar (lambda (x) (apply #'face-remap-add-relative x))))))
-
-
-
-;; (when (local-variable-if-set-p 'org-use-variable-pitch)
-;;   (add-hook 'org-mode-hook #'org-toggle-variable-pitch))
 #+END_SRC
 
 *** Olivetti
@@ -8379,7 +8391,7 @@ This works by frobbing `face-remapping-alist'."
 
 ** Reading and viewing
 
-#+NAME: prose-readview
+#+NAME: prose/readview
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Justify Kp
 <<readview-justify>>
