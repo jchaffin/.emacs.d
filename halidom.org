@@ -110,7 +110,7 @@
     - [[#undo-tree][Undo Tree]]
   - [[#startup][Startup]]
     - [[#buffer][Buffer]]
-    - [[#scratch][Scratch]]
+    - [[#inhibit-stuff][Inhibit stuff]]
     - [[#frame][Frame]]
     - [[#window-manager][Window Manager]]
   - [[#emacs][Emacs+]]
@@ -431,26 +431,26 @@ interactive minibuffer completion menu using ivy.
 **** Browse straight repository at GitHub
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defun straight--get-remote-url (pkg)
-  (let ((recipe (cdr (straight-recipes-retrieve pkg))))
-    (destructuring-bind (repo host)
-        `(,(plist-get recipe :repo)
-          ,(plist-get recipe :host))
-      (if (eq host 'github)
-          (concat "https://github.com/" repo)
-        (message "%s is not a GitHub repository :(" pkg)))))
+  (defun straight--get-remote-url (pkg)
+    (let ((recipe (cdr (straight-recipes-retrieve pkg))))
+      (destructuring-bind (repo host)
+          `(,(plist-get recipe :repo)
+            ,(plist-get recipe :host))
+        (if (eq host 'github)
+            (concat "https://github.com/" repo)
+          (message "%s is not a GitHub repository :(" pkg)))))
 
 
-(defun straight-browse-on-github (&optional package)
-  "Open a straight recipe on GitHub in the `browse-url-default-browser.'"
-  (interactive "P")
-  (let* ((pkg (if (interactive-p)
-                  (completing-read
-                   "Which recipe? "
-                   (straight-recipes-list straight-recipe-repositories)
-                o   nil 'require-match)))
-         (url (straight--get-remote-url (intern pkg))))
-    (browse-url url)))
+  (defun straight-browse-on-github (&optional package)
+    "Open a straight recipe on GitHub in the `browse-url-default-browser.'"
+    (interactive "P")
+    (let* ((pkg (if (interactive-p)
+                    (completing-read
+                     "Which recipe? "
+                     (straight-recipes-list straight-recipe-repositories)
+                     nil 'require-match)))
+           (url (straight--get-remote-url (intern pkg))))
+      (browse-url url)))
 #+END_SRC
 
 ****  Straight Hydra Menu
@@ -458,7 +458,7 @@ interactive minibuffer completion menu using ivy.
 #+NAME: straight/hydra
 #+BEGIN_SRC emacs-lisp :tangle yes
   (with-eval-after-load 'hydra
-    (defhydra hydra-straight (:hint nil)
+    (defhydra hydra-straight (:hint nil :exit t)
 
       "
     _c_heck all       |_f_etch all     |_m_erge all      |_n_ormalize all   |p_u_sh all
@@ -2847,8 +2847,6 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 <<org-docmgr-download>>
 ;; Org Links
 <<org-docmgr-links>>
-;; Org Bookmark
-<<org-docmgr-bookmark>>
 ;; Org Web Tools
 <<org-docmgr-web>>
 ;; org index
@@ -3035,6 +3033,8 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
     :if *is-mac*
     :bind (:map halidom/org-command-map
                 ("j" . org-journal-new-entry))
+    :custom
+    (org-journal-enable-agenda-integration t)
     ;; :bind
     ;; (("M-m j" . org-journal-new-entry))
     :config
@@ -3164,15 +3164,6 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
   ((dired-mode org-mode) . org-download-enable))
 #+END_SRC
 
-**** Org Bookmark heading
-
-#+NAME: org-docmgr-bookmark
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-bookmark-heading
-    :init
-    (require 'org-bookmark-heading))
-#+END_SRC
-
 **** Org Web Tools
 
 #+NAME: org-docmgr-web
@@ -3186,10 +3177,6 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Org Tags
  <<org-links-tags>>
-;; Org Man
-<<org-links-manpage>>
-;; Org Mac LInk
-<<org-links-mac>>
 ;; Cliplink
 <<org-links-cliplink>>
 ;; Org elisp help
@@ -3198,6 +3185,8 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 <<org-links-youtube>>
 ;; Org links minor mode
 <<org-links-minor>>
+;; Org Bookmark Heading
+<<org-links-bookmark>>
 #+END_SRC
 
 ***** Add Tags Link
@@ -3213,17 +3202,6 @@ With prefix argument, also display headlines without a TODO keyword."
  "tag" 'halidom/tag-link)
 #+END_SRC
 
-***** Org Man
-:PROPERTIES:
-:ID:       28D48CC9-4CAD-4B8C-85B9-9E2275BB338D
-:END:
-
-#+NAME: org-links-manpage
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :comments noweb
-(use-package org-man
-  :straight org)
-#+END_SRC
-
 ***** Org Elisp Help Links
 
 #+NAME: org-links-elisp-help
@@ -3232,18 +3210,51 @@ With prefix argument, also display headlines without a TODO keyword."
   :straight t)
 #+END_SRC
 
-***** Org Mac Link
 
-#+NAME: org-links-mac
+***** Org YouTube
+
+From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
+
+Embed YouTube Links in iframe.
+
+#+NAME: org-links-youtube
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-mac-link
-    :straight org)
+(org-link-set-parameters
+ "youtube"
+ :follow (lambda (path)
+	   (browse-url (format "https://youtu.be/%s" path)))
+ :export (lambda (path desc backend)
+	   (cond
+	    ((eq 'md backend)
+	     (format "[%s](%s)
 
-  (use-package org-mac-ical
-    :straight org)
+<a href=\"https://www.youtube.com/watch?v=%s\">
+<img src=\"http://img.youtube.com/vi/%s/0.jpg\"></a>"
+		     (or desc (format "https://youtu.be/%s" path))
+		     (format "https://youtu.be/%s" path)
+		     path path))))
+ :help-echo "A youtube video. Click to open in browser.")
+
 #+END_SRC
 
+***** Org Link Minor Mode
 
+#+NAME: org-links-minor
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-link-minor-mode
+  :hook (prog-mode . org-link-minor-mode))
+#+END_SRC
+
+***** Org Bookmark Heading
+
+:PROPERTIES:
+:ID:       B7904803-C4A6-439D-BD21-E449CF0B79F5
+:END:
+
+#+NAME: org-links-bookmark
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-bookmark-heading)
+#+END_SRC
 
 *** Task Management
 
@@ -3303,6 +3314,12 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :custom
     (org-tags-column 0)
     (diary-file (expand-file-name "diary.org" org-directory))
+    (org-agenda-skip-deadline-if-done t)
+    (org-agenda-skip-deadline-prewarning-if-scheduled t)
+    (org-agenda-time-leading-zero t)
+    ;; http://cachestocaches.com/2016/9/my-workflow-org-agenda/
+    (org-refile-targets (quote ((nil  :maxlevel . 9)
+                                (org-agenda-files :maxlevel . 9))))
 
     :init
 
@@ -3310,12 +3327,10 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       (interactive)
       (dired (agenda-dir)))
 
-    (defun goto-org-dir ()
-      (interactive)
-      (dired org-directory))
 
     (define-key goto-map "a" #'goto-agenda-dir)
-    (define-key goto-map "o" #'goto-org-dir)
+
+
 
     (setq org-agenda-category-icon-alist
      `(("syntax"     ,(list "Ᾱ")  nil nil :ascent center)
@@ -3669,48 +3684,6 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
           org-capture-templates)))
 #+END_SRC
 
-**** Org Drill
-
-#+NAME: org-ideamgr-drill
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-drill
-    :straight org)
-#+END_SRC
-
-**** Org Modules
-:PROPERTIES:
-:ID:       7197831D-BE24-417E-A84B-9A36C1466145
-:END:
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package org-notify
-    :straight org
-    :init
-    (require 'org-notify))
-
-  (use-package org-eval
-    :straight org
-    :init
-    (require 'org-eval))
-
-  (use-package org-learn
-    :straight org
-    :init (require 'org-learn))
-
-  (use-package org-panel
-    :straight org
-    :init
-    (require 'org-panel))
-
-
-  (use-package org-expiry
-    :straight org
-    :init (require 'org-expiry))
-
-#+END_SRC
-
-
-
 *** Org Hacks
 :PROPERTIES:
 :ID:       872F7F61-7971-42E4-BC24-FEA9D67634D2
@@ -3816,63 +3789,63 @@ Fix problem with  which puts point back in a folded position.
 
 #+NAME: org-hacks-tag-pos
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq ba/org-adjust-tags-column nil)
+  (setq ba/org-adjust-tags-column nil)
 
-(defun ba/org-adjust-tags-column-reset-tags ()
-  "In org-mode buffers it will reset tag position according to
-`org-tags-column'."
-  (when (and
-         (not (string= (buffer-name) "*Remember*"))
-         (eql major-mode 'org-mode))
-    (let ((b-m-p (buffer-modified-p)))
-      (condition-case nil
-          (save-excursion
-            (goto-char (point-min))
-            (command-execute 'outline-next-visible-heading)
-            ;; disable (message) that org-set-tags generates
-            (cl-flet ((message (&rest ignored) nil))
-            (org-set-tags 1 t))
-            (set-buffer-modified-p b-m-p))
-            (error nil)))))
+  (defun ba/org-adjust-tags-column-reset-tags ()
+    "In org-mode buffers it will reset tag position according to
+  `org-tags-column'."
+    (when (and
+           (not (string= (buffer-name) "*Remember*"))
+           (eql major-mode 'org-mode))
+      (let ((b-m-p (buffer-modified-p)))
+        (condition-case nil
+            (save-excursion
+              (goto-char (point-min))
+              (command-execute 'outline-next-visible-heading)
+              ;; disable (message) that org-set-tags generates
+              (cl-flet ((message (&rest ignored) nil))
+              (org-set-tags 1 t))
+              (set-buffer-modified-p b-m-p))
+              (error nil)))))
 
-(defun ba/org-adjust-tags-column-now ()
-  "Right-adjust `org-tags-column' value, then reset tag position."
-  (set (make-local-variable 'org-tags-column)
-       (- (- (window-width) (length org-ellipsis))))
-  (ba/org-adjust-tags-column-reset-tags))
+  (defun ba/org-adjust-tags-column-now ()
+    "Right-adjust `org-tags-column' value, then reset tag position."
+    (set (make-local-variable 'org-tags-column)
+         (- (- (window-width) (length org-ellipsis))))
+    (ba/org-adjust-tags-column-reset-tags))
 
-(defun ba/org-adjust-tags-column-maybe ()
-  "If `ba/org-adjust-tags-column' is set to non-nil, adjust tags."
-  (when ba/org-adjust-tags-column
-    (ba/org-adjust-tags-column-now)))
+  (defun ba/org-adjust-tags-column-maybe ()
+    "If `ba/org-adjust-tags-column' is set to non-nil, adjust tags."
+    (when ba/org-adjust-tags-column
+      (ba/org-adjust-tags-column-now)))
 
-(defun ba/org-adjust-tags-column-before-save ()
-  "Tags need to be left-adjusted when saving."
-  (when ba/org-adjust-tags-column
-     (setq org-tags-column 1)
-     (ba/org-adjust-tags-column-reset-tags)))
+  (defun ba/org-adjust-tags-column-before-save ()
+    "Tags need to be left-adjusted when saving."
+    (when ba/org-adjust-tags-column
+       (setq org-tags-column 1)
+       (ba/org-adjust-tags-column-reset-tags)))
 
-(defun ba/org-adjust-tags-column-after-save ()
-  "Revert left-adjusted tag position done by before-save hook."
-  (ba/org-adjust-tags-column-maybe)
-  (set-buffer-modified-p nil))
+  (defun ba/org-adjust-tags-column-after-save ()
+    "Revert left-adjusted tag position done by before-save hook."
+    (ba/org-adjust-tags-column-maybe)
+    (set-buffer-modified-p nil))
 
-; automatically align tags on right-hand side
-(add-hook 'window-configuration-change-hook
-          'ba/org-adjust-tags-column-maybe)
-(add-hook 'before-save-hook 'ba/org-adjust-tags-column-before-save)
-(add-hook 'after-save-hook 'ba/org-adjust-tags-column-after-save)
-(add-hook 'org-agenda-mode-hook '(lambda ()
-                                  (setq org-agenda-tags-column (- (window-width)))))
+  ; automatically align tags on right-hand side
+  (add-hook 'window-configuration-change-hook
+            'ba/org-adjust-tags-column-maybe)
+  (add-hook 'before-save-hook 'ba/org-adjust-tags-column-before-save)
+  (add-hook 'after-save-hook 'ba/org-adjust-tags-column-after-save)
+  (add-hook 'org-agenda-mode-hook '(lambda ()
+                                    (setq org-agenda-tags-column (- (window-width)))))
 
-; between invoking org-refile and displaying the prompt (which
-; triggers window-configuration-change-hook) tags might adjust,
-; which invalidates the org-refile cache
-(defadvice org-refile (around org-refile-disable-adjust-tags)
-  "Disable dynamically adjusting tags"
-  (let ((ba/org-adjust-tags-column nil))
-    ad-do-it))
-(ad-activate 'org-refile)
+  ; between invoking org-refile and displaying the prompt (which
+  ; triggers window-configuration-change-hook) tags might adjust,
+  ; which invalidates the org-refile cache
+  (defadvice org-refile (around org-refile-disable-adjust-tags)
+    "Disable dynamically adjusting tags"
+    (let ((ba/org-adjust-tags-column nil))
+      ad-do-it))
+  (ad-activate 'org-refile)
 #+END_SRC
 
 *** Ox
@@ -4595,45 +4568,45 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: project-projectile
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package projectile
-    :bind-keymap
-    ("C-c p" . projectile-command-map)
-    :custom
-    (projectile-completion-system 'ivy)
-    (projectile-switch-project-action #'projectile-dired)
-    (projectile-find-dir-includes-top-level t)
-    (projectile-indexing-method 'alien)
-    (projectile-enable-caching t)
+  (use-package projectile
+      :bind-keymap
+      ("C-c p" . projectile-command-map)
+      :custom
+      (projectile-completion-system 'ivy)
+      (projectile-switch-project-action #'projectile-dired)
+      (projectile-find-dir-includes-top-level t)
+      (projectile-indexing-method 'native)
+      (projectile-enable-caching t)
 
-    :init
-    (el-patch-feature projectile)
+      :init
+      (el-patch-feature projectile)
 
-    (el-patch-defun projectile-run-compilation (cmd)
-      "Run external or Elisp compilation command CMD."
-      (if (functionp cmd)
-          (funcall cmd)
-        (compile cmd (el-patch-add t))))
+      (el-patch-defun projectile-run-compilation (cmd)
+        "Run external or Elisp compilation command CMD."
+        (if (functionp cmd)
+            (funcall cmd)
+          (compile cmd (el-patch-add t))))
 
-    :config
-      (setq projectile-globally-ignored-directories
-            (append projectile-globally-ignored-directories
-                    '("gradle" "target" ".meghanada"
-                      ".gradle" "build" "bin" "node_modules"
-                      "ltximg" "CMakeFiles" ".cquery_cached_index")))
+      :config
+        (setq projectile-globally-ignored-directories
+              (append projectile-globally-ignored-directories
+                      '("gradle" "target" ".meghanada"
+                        ".gradle" "build" "bin" "node_modules"
+                        "ltximg" "CMakeFiles" ".cquery_cached_index")))
 
-      (defvar halidom/ignored-project-directories
-        '("~/.emacs.d/straight"))
+        (defvar halidom/ignored-project-directories
+          '("~/.emacs.d/straight"))
 
-      (defun projectile-ignore-projects-in-directory (project-root)
-        (cl-flet ((ignored-dir-or-subdir-p (path)
-                    (f-descendant-of?
-                     (f-expand project-root)
-                     path)))
-          (->> halidom/ignored-project-directories
-             (seq-filter #'ignored-dir-or-subdir-p)
-             seq-empty-p not)))
-      (setq projectile-ignored-project-function
-            #'projectile-ignore-projects-in-directory))
+        (defun projectile-ignore-projects-in-directory (project-root)
+          (cl-flet ((ignored-dir-or-subdir-p (path)
+                      (f-descendant-of?
+                       (f-expand project-root)
+                       path)))
+            (->> halidom/ignored-project-directories
+               (seq-filter #'ignored-dir-or-subdir-p)
+               seq-empty-p not)))
+        (setq projectile-ignored-project-function
+              #'projectile-ignore-projects-in-directory))
 #+END_SRC
 
 **** Projectile Codesearch
@@ -4662,7 +4635,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 #+NAME: skeletor-spec
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package skeletor
-      :custom
+    :custom
     (skeletor-user-directory (emacs-etc-dir "skeletons"))
     (skeletor-completing-read-function 'ivy-completing-read)
     (skeletor-python-bin-search-path
@@ -4670,7 +4643,6 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
     (skeletor-project-directory (projects-dir))
 
     :init
-
     (defun skeletor-add-pyenv-pythons ()
       "Add python binaries managed by pyenv to
    `skeletor-python-bin-search-path'."
@@ -4693,7 +4665,6 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 
     :config
-
     (add-to-list 'skeletor-global-substitutions
                  (cons "__TIME__"
                        (lambda () (format-time-string "%c"))))
@@ -4727,23 +4698,19 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
         (dired dir)
         (revert-buffer)))
 
-    (defun skeletor/redact-user-directory (pkg xs)
-      "When a pkg PKG is available,
-  add `skeletor-directory' to a list XS so that
-  templates are not marked as projects."
-      (when (and (featurep pkg)
-               (boundp xs))
-        (add-to-list xs skeletor-user-directory)))
+
 
     (defun skeletor/lsp-blacklist ()
-      (skeletor/redact-user-directory
-       'lsp-mode
-       'lsp-project-blacklist))
+      (with-eval-after-load 'lsp
+        (add-to-list
+         'lsp-project-blacklist
+         skeletor--directory)))
 
     (defun skeletor/projectile-ignore ()
-      (skeletor/redact-user-directory
-       'projectile
-       'projectile-ignored-projects))
+      (with-eval-after-load 'projectile
+        (add-to-list
+         'projectile-project-ignored-directories
+         skeletor--directory)))
 
     :hook
     (lsp-mode . skeletor/lsp-blacklist)
@@ -5076,9 +5043,11 @@ list that one may use in the wacky world of Emacs.
                             ( recents . 3)
                             ( bookmarks . 5)))
 
-    (setq initial-buffer-choice (dashboard/set-initial-buffer))
+    (defun dashboard/set-initial ()
+      (setq initial-buffer-choice (dashboard/set-initial-buffer)))
 
     :hook
+    (after-init     . dashboard/set-initial)
     (after-init     . dashboard-refresh-buffer)
     (dashboard-mode . halidom/dashboard-banner))
 
@@ -5094,15 +5063,14 @@ Just for the hell of it.
   :straight t)
 #+END_SRC
 
-
-*** Scratch
+*** Inhibit stuff
 
 #+NAME: startup-scratch
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq initial-scratch-message nil
-      inhibit-startup-message t
-      inhibit-startup-echo-area-message t
-      inhibit-startup-screen t)
+  (setq initial-scratch-message nil
+        inhibit-startup-message t
+        inhibit-startup-echo-area-message t
+        inhibit-startup-screen t)
   #+END_SRC
 
 *** Frame
@@ -5228,9 +5196,13 @@ different window configurations.
 
 #+NAME: popwin-config
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package popwin
+  (use-package popwin
+    :defines popwin:keymap
+    :bind-keymap ("C-z" . popwin:keymap)
+    :init
+    (require 'popwin)
     :config
-  (popwin-mode 1))
+    (popwin-mode 1))
 #+END_SRC
 
 **** Poporg
@@ -7553,55 +7525,58 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 
 #+NAME: xwidget-ns
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package xwidget
-    :straight nil
-    :bind (:map xwidget-webkit-mode-map
-                ("\C-s" . isearch-forward))
-    :init
-    (el-patch-feature xwidget)
-    (with-eval-after-load 'xwidget
-      (el-patch-defun xwidget-webkit-new-session (url)
-        "Create a new webkit session buffer with URL."
-        (let*
-            ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
-             xw)
-          (setq xwidget-webkit-last-session-buffer
-                ((el-patch-swap switch-to-buffer switch-to-buffer-other-window)
-                 (get-buffer-create bufname)))
-          ;; The xwidget id is stored in a text property, so we need to have
-          ;; at least character in this buffer.
-          ;; Insert invisible url, good default for next `g' to browse url.
-          (insert url)
-          (put-text-property 1 (+ 1 (length url)) 'invisible t)
-          (setq xw (xwidget-insert 1 'webkit bufname
-                                   (xwidget-window-inside-pixel-width (selected-window))
-                                   (xwidget-window-inside-pixel-height (selected-window))))
-          (xwidget-put xw 'callback 'xwidget-webkit-callback)
-          (xwidget-webkit-mode)
-          (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url))))
+    (use-package xwidget
+      :straight nil
+      :bind (:map xwidget-webkit-mode-map
+                  ("\C-s" . isearch-forward))
+      :init/el-patch
+      (el-patch-feature xwidget)
+      (with-eval-after-load 'xwidget
+        (el-patch-defun xwidget-webkit-new-session (url)
+          "Create a new webkit session buffer with URL."
+          (let*
+              ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
+               (el-patch-add (inhibit-message t))
+               xw)
 
-    (when (require 'xwidget)
-      (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
-      (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
+            (setq xwidget-webkit-last-session-buffer
+                  ((el-patch-swap switch-to-buffer switch-to-buffer-other-window)
+                   (get-buffer-create bufname)))
+            ;; The xwidget id is stored in a text property, so we need to have
+            ;; at least character in this buffer.
+            ;; Insert invisible url, good default for next `g' to browse url.
+            (insert url)
+            (put-text-property 1 (+ 1 (length url)) 'invisible t)
+            (setq xw (xwidget-insert 1 'webkit bufname
+                                     (xwidget-window-inside-pixel-width (selected-window))
+                                     (xwidget-window-inside-pixel-height (selected-window))))
+            (xwidget-put xw 'callback 'xwidget-webkit-callback)
+            (xwidget-webkit-mode)
+            (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url))))
+      :init
+      (when (require 'xwidget)
+        (defvar xwidget-webkit-bookmark-jump-new-session) ;; xwidget.el
+        (defvar xwidget-webkit-last-session-buffer) ;; xwidget.el
 
-      (require 'bookmark)
+        (require 'bookmark)
 
-      (add-hook 'pre-command-hook
-                (lambda ()
-                  (if (eq this-command #'bookmark-bmenu-list)
-                      (if-not (eq major-mode 'xwidget-webkit-mode)
-                          (setq xwidget-webkit-bookmark-jump-new-session t)
-                        (setq xwidget-webkit-bookmark-jump-new-session nil)
-                        (setq xwidget-webkit-last-session-buffer
-                              (current-buffer))))))
+        (add-hook 'pre-command-hook
+                  (lambda ()
+                    (if (eq this-command #'bookmark-bmenu-list)
+                        (if-not (eq major-mode 'xwidget-webkit-mode)
+                            (setq xwidget-webkit-bookmark-jump-new-session t)
+                          (setq xwidget-webkit-bookmark-jump-new-session nil)
+                          (setq xwidget-webkit-last-session-buffer
+                                (current-buffer))))))
 
-      (defun xwidget-webkit-open-file (&optional file)
-        "Render FILE using xwidget-webkit"
-        (interactive "fFile: ")
-        (xwidget-webkit-browse-url
-         (concat "file://"
-                 (and (memq system-type '(windows-nt ms-dos)) "/")
-                 (expand-file-name (or file (buffer-file-name))))))))
+        (defun xwidget-webkit-open-file (&optional file)
+          "Render FILE using xwidget-webkit"
+          (interactive "fFile: ")
+          (xwidget-webkit-browse-url
+           (concat "file://"
+                   (and (memq system-type '(windows-nt ms-dos)) "/")
+                   (expand-file-name (or file (buffer-file-name)))))))
+  )
 #+END_SRC
 
 **** xwidgete
