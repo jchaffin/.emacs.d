@@ -165,6 +165,12 @@
     - [[#sublimity-scroll][Sublimity Scroll]]
   - [[#buttons][Buttons]]
     - [[#button-lock][Button Lock]]
+  - [[#pretty][Pretty]]
+    - [[#prettify-symbols][Prettify Symbols]]
+    - [[#pretty-mode][Pretty Mode]]
+    - [[#outshine][Outshine]]
+    - [[#prettify-utilities][Prettify Utilities]]
+    - [[#modern-emacs][Modern Emacs]]
 - [[#completion][Completion]]
   - [[#company][Company]]
     - [[#company-quick-help][Company Quick Help]]
@@ -190,8 +196,6 @@
   - [[#eshell][Eshell]]
     - [[#eshell-bookmark][Eshell Bookmark]]
     - [[#eshell-z][Eshell Z]]
-    - [[#eshell-prompt][Eshell Prompt]]
-    - [[#eshell-prompt-extras][Eshell Prompt Extras]]
   - [[#shell][Shell]]
     - [[#shell-script-indentation][Shell script Indentation]]
     - [[#zsh-macfix][ZSH Macfix]]
@@ -259,6 +263,7 @@
   - [[#flycheck][Flycheck]]
   - [[#code-style][Code Style]]
     - [[#default][Default]]
+    - [[#hy-mode][Hy mode]]
     - [[#highlight-indentation][Highlight Indentation]]
     - [[#symbol-highlighting][Symbol Highlighting]]
     - [[#code-folding][Code Folding]]
@@ -303,6 +308,10 @@
   - [[#alfred-org-capture][Alfred Org Capture]]
   - [[#ess][ESS]]
 - [[#prologue][Prologue]]
+- [[#known-issues][Known Issues]]
+  - [[#halidom-literate-config-file-is-added-to-org-agenda-files][~halidom-literate-config-file~ is added to ~org-agenda-files~]]
+  - [[#dashboard-buffer-not--found-when-setting-value-of-initial-buffer][dashboard buffer not  found when setting value of initial buffer]]
+  - [[#improper-font-locking-by-org-highlight-latex-and-related][Improper font locking by ~org-highlight-latex-and-related~]]
 - [[#footnotes][Footnotes]]
 
 * Preface
@@ -391,41 +400,62 @@ interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 
-  (defun goto-repo (&optional build-dir)
-    "Go to a straight repository directory. If BUILD-DIR, then go to
+(cl-defun straight-browse-local (&optional build-dir)
+  "Go to a straight repository directory. If BUILD-DIR, then go to
   the build directory for that repository instead."
-    (interactive "P")
-    (let* ((dir (-> user-emacs-directory
-                   (f-join "straight"
-                           (if build-dir "build" "repos"))))
-           (pkg-keys (sort (hash-table-keys
-                            straight--recipe-cache)
-                           #'string-lessp))
-           (msg (format "(%s) Goto recipe: "
-                        (upcase-initials (f-base dir)))))
-      (ivy-read
-       msg
-       pkg-keys
-       :action
-       (lambda (package)
-         (let ((pkg-directory
-                (expand-file-name
-                 (plist-get
-                  (gethash package straight--recipe-cache)
-                  :local-repo)
-                 dir)))
-           (when (file-directory-p pkg-directory)
-             (let ((readme (car
-                            (directory-files
-                             pkg-directory
-                             t
-                             "\\README.*\\'"))))
-               (if readme
-                   (find-file readme)
-                 (dired pkg-directory)))))))))
+  (interactive "P")
+  (lexical-let* ((dir (-> user-emacs-directory
+                         (f-join "straight"
+                                 (if build-dir "build" "repos"))))
+                 (pkg-keys (--> straight--recipe-cache
+                                (hash-table-keys it)
+                                (seq-difference
+                                 it
+                                 (mapcar
+                                  #'symbol-name 
+                                  straight-built-in-pseudo-packages))
+                                (sort it #'string-lessp)))
+                 (msg (format "(%s) Goto recipe: "
+                              (upcase-initials (f-base dir)))))
+    (ivy-read
+     msg
+     pkg-keys
+     :action
+     (lambda (package)
+       (lexical-let (pkg-directory pkg-file)
+         (condition-case nil
+             (if (and build-dir
+                    (not (plist-get
+                        (gethash package straight--recipe-cache)
+                        :no-build)))
+                 (progn
+                   (setq pkg-directory (expand-file-name package dir))
+                   (and (file-directory-p pkg-directory)
+                      (dired pkg-directory)))
+               (let ((repo (plist-get
+                            (gethash package straight--recipe-cache)
+                            :local-repo)))
+                 (if repo
+                     (setq pkg-directory
+                           (expand-file-name
+                            repo
+                            (replace-regexp-in-string "build" "repos" dir))
+                           pkg-file
+                           (car
+                            (directory-files pkg-directory t
+                                             (concat "\\README.*\\'\\|" package ".el"))))
+                   (setq pkg-directory
+                         (file-name-directory (locate-library package))
+                         pkg-file
+                         (car (directory-files pkg-directory t
+                                               (concat package ".el\\(?:.gz\\)")))))
+                 (if pkg-file
+                     (and (file-exists-p pkg-file)
+                        (find-file pkg-file))
+                   (and (file-directory-p pkg-directory)
+                      (dired pkg-directory)))))))))))
 
-  ;; Add to goto-* keymap
-  (define-key goto-map "r" #'goto-repo)
+(define-key goto-map "r" #'straight-browse-local)
 #+END_SRC
 
 **** Browse straight repository at GitHub
@@ -441,7 +471,7 @@ interactive minibuffer completion menu using ivy.
           (message "%s is not a GitHub repository :(" pkg)))))
 
 
-  (defun straight-browse-on-github (&optional package)
+  (defun straight-browse-remote (&optional package)
     "Open a straight recipe on GitHub in the `browse-url-default-browser.'"
     (interactive "P")
     (let* ((pkg (if (interactive-p)
@@ -467,9 +497,11 @@ interactive minibuffer completion menu using ivy.
     _r_ebuild all     |_p_ull all      |_v_ersions freeze|_w_atcher start   |_g_et recipe
     _R_ebuild package |_P_ull package  |_V_ersions thaw  |_W_atcher quit    |pru_n_e build
     ----------------^^+--------------^^+---------------^^+----------------^^+------------
-    _b_rowse on Github
+    _b_rowse package local
+    _B_rowse package remote
     "
-      ("b" straight-browse-on-github)
+      ("b" straight-browse-local)
+      ("B" straight-browse-remote)
       ("c" straight-check-all)
       ("C" straight-check-package)
       ("r" straight-rebuild-all)
@@ -583,6 +615,19 @@ The string manipulation library.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package s)
+#+END_SRC
+
+**** =a=
+#+NAME: libs/a
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package a)
+#+END_SRC
+
+**** evil
+
+#+NAME: libs/evil
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package evil)
 #+END_SRC
 
 *** El Patch
@@ -1337,6 +1382,7 @@ killall gpg-agent
 (defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
+
 ** Keybindings
 
 #+NAME: keybindings-spec
@@ -1388,7 +1434,9 @@ common prefix.
 
 #+NAME: hydra-ivy
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ivy-hydra)
+(use-package ivy-hydra
+  :after (:all hydra ivy)
+  :demand t)
 #+END_SRC
 
 *** Smartrep
@@ -2122,12 +2170,16 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Preview Pane
 <<latex-latex-preview-pane>>
+;; Use single directory to store previews
+<<org-preview-directory>>
 ;; Clear Cache
 <<org-preview-clear-cache>>
 ;; Preview Parsing
 <<org-preview-parsing>>
 ;; Org Preview default
 <<org-preview-default>>
+;; Org Preview format options
+<<org-preview-format>>
 ;; XeLaTeX Fragments
 <<org-preview-xelatex>>
 ;; LuaLaTeX Fragments
@@ -2136,7 +2188,7 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 <<org-preview-dynamic>>
 #+END_SRC
 
-**** LaTeX Preview Pane
+***** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
 save.
@@ -2148,7 +2200,16 @@ save.
     :init (latex-preview-pane-enable))
 #+END_SRC
 
-**** Clear Cache
+***** Use single directory for storing latex fragments
+
+#+NAME: org-preview-directory
+#+BEGIN_SRC emacs-lisp :tangle no
+(let ((ltximg "~/.ltximg/"))
+  (when (file-directory-p ltximg)
+    (setq org-preview-latex-image-directory ltximg)))
+#+END_SRC
+
+***** Clear Cache
 
 #+NAME: org-preview-clear-cache
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2161,8 +2222,7 @@ save.
       (message "%s" "Directory 'ltximg' does not exist."))))
 #+END_SRC
 
-
-**** Set the default preview process
+***** Set the default preview process
 
 #+NAME: org-preview-default
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2171,7 +2231,15 @@ save.
   (setq org-preview-latex-default-process 'dvisvgm))
 #+END_SRC
 
-**** Parsing keywords
+***** Format Options
+
+#+NAME: org-preview-format
+#+BEGIN_SRC emacs-lisp :tangle no
+(when (boundp 'org-format-latex-options)
+  (plist-put org-format-latex-options :scale 1.2))
+#+END_SRC
+
+***** Parsing keywords
 
 #+NAME: org-preview-parsing
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2205,7 +2273,7 @@ save.
 
 #+END_SRC
 
-**** XeLaTeX fragments
+***** XeLaTeX fragments
 
 #+NAME: org-preview-xelatex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2268,11 +2336,11 @@ save.
            xelatex-preview-header)))
 #+END_SRC
 
-**** LuaLaTeX Fragments
+***** LuaLaTeX Fragments
 
 #+NAME: org-preview-lualatex
 #+BEGIN_SRC emacs-lisp :tangle no
-(defcustom lualatex-preview-header org-format-latex-header
+(defcustom lualatex-preview-header nil
   "The preamble to use for previewing LaTeX fragments with LuLaTeX."
   :type 'string)
 
@@ -2334,13 +2402,13 @@ save.
          lualatex-preview-header)))
 #+END_SRC
 
-**** Per-buffer latex fragment previews
+***** Per-buffer latex fragment previews
 
 Generate latex fragments based on the latex compiler and class in the current buffer.
 
 #+NAME: org-preview-dynamic
 #+BEGIN_SRC emacs-lisp :tangle no
-  (defun org-preview-process-hook ()
+  (defun org-preview-with-compiler ()
     (interactive)
     (let ((latex-compiler (org-preview/process-compiler)))
       (when-let (preview-process (org-preview/set-process))
@@ -2353,8 +2421,6 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
       (when (string= latex-compiler "lualatex")
         (org-preview-lualatex))))
-
-  (add-hook 'org-mode-hook 'org-preview-process-hook)
 #+END_SRC
 
 *** Company Auctex
@@ -2400,15 +2466,15 @@ Prettify dedicated org-mode latex buffers.
 
 #+NAME: latex-magic-latex-buffer
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package magic-latex-buffer
-    :custom
-    (magic-latex-enable-block-highlight t)
-    (magic-latex-enable-suscript nil)
-    (magic-latex-enable-pretty-symbols t)
-    (magic-latex-enable-block-align nil)
-    (magic-latex-enable-inline-image nil)
-    :hook
-    (LaTeX-mode . magic-latex-buffer))
+  (use-package magic-latex-buffer
+      :custom
+      (magic-latex-enable-block-highlight t)
+      (magic-latex-enable-suscript nil)
+      (magic-latex-enable-pretty-symbols t)
+      (magic-latex-enable-block-align nil)
+      (magic-latex-enable-inline-image nil)
+      :hook
+      (LaTeX-mode . magic-latex-buffer))
 #+END_SRC
 
 *** Auctex Latexmk
@@ -2460,88 +2526,88 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+NAME: latex-math-symbols
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package math-symbols
-  :init
+  (use-package math-symbols
+    :init
 
-  (defun latex/font (math-input before after)
-   "Insert a LaTeX font.
+    (defun latex/font (math-input before after)
+     "Insert a LaTeX font.
 
- MATH-INPUT is the input method to toggle in math environments.
+   MATH-INPUT is the input method to toggle in math environments.
 
- The BEFORE and AFTER arguments are the strings to insert around
- the marked region, when active. If the thing at point is a word,
- then wrap the word. Otherwise the two elements are joined at point."
-   (cond ((texmathp)
-          (if current-input-method
-              (set-input-method nil)
-            (set-input-method math-input)))
-         ((region-active-p)
-          (save-excursion
-            (goto-char (region-beginning))
-            (insert before)
-            (goto-char (region-end))
-            (insert after)))
-         ((thing-at-point 'word)
-          (save-excursion
-            (goto-char (beginning-of-thing 'word))
-            (insert before)
-            (goto-char (end-of-thing 'word))
-            (insert after)))
-         (t
-          (save-excursion
-            (insert (concat before after)))
-          (goto-char (+ (point) (length before))))))
+   The BEFORE and AFTER arguments are the strings to insert around
+   the marked region, when active. If the thing at point is a word,
+   then wrap the word. Otherwise the two elements are joined at point."
+     (cond ((texmathp)
+            (if current-input-method
+                (set-input-method nil)
+              (set-input-method math-input)))
+           ((region-active-p)
+            (save-excursion
+              (goto-char (region-beginning))
+              (insert before)
+              (goto-char (region-end))
+              (insert after)))
+           ((thing-at-point 'word)
+            (save-excursion
+              (goto-char (beginning-of-thing 'word))
+              (insert before)
+              (goto-char (end-of-thing 'word))
+              (insert after)))
+           (t
+            (save-excursion
+              (insert (concat before after)))
+            (goto-char (+ (point) (length before))))))
 
-  (defun latex/prettify-symbols-extra ()
-    (if osx-browse-mode
-        (osx-browse-mode nil))
+    (defun latex/prettify-symbols-extra ()
+      (if osx-browse-mode
+          (osx-browse-mode nil))
 
-    (when (fboundp 'prettify-symbols-mode)
-      (prettify-symbols-mode 1))
+      (when (fboundp 'prettify-symbols-mode)
+        (prettify-symbols-mode 1))
 
-    (setq prettify-symbols-alist
-          '(("\\complement" . "∁"))))
+      (setq prettify-symbols-alist
+            '(("\\complement" . "∁"))))
 
-  (setq-default abbrev-mode t)
-  (setq latex-mode-abbrev-table nil)
+    (setq-default abbrev-mode t)
+    (setq latex-mode-abbrev-table nil)
 
-  (define-abbrev-table 'latex-mode-abbrev-table
-      '(("uiff"  "⟷")
-        ("uif"  "⟶")
-        ("uand" "∧")
-        ("ulambda" "𝜆")
-        ("uor" "∨")
-        ("uxor" "⨁")
-        ("uexists" "∃")
-        ("unexists" "∄")
-        ("usubset" "⊂")
-        ("unsubset" "⊄")))
+    (define-abbrev-table 'latex-mode-abbrev-table
+        '(("uiff"  "⟷")
+          ("uif"  "⟶")
+          ("uand" "∧")
+          ("ulambda" "𝜆")
+          ("uor" "∨")
+          ("uxor" "⨁")
+          ("uexists" "∃")
+          ("unexists" "∄")
+          ("usubset" "⊂")
+          ("unsubset" "⊄")))
 
-  (defun latex/unbind-osx-browse ()
-    (when (fboundp 'osx-browse-mode)
-      (let ((map osx-browse-mode-map))
-        (define-key map (kbd "s-b") nil)
-        (define-key map (kbd "s-i") nil))))
+    (defun latex/unbind-osx-browse ()
+      (when (fboundp 'osx-browse-mode)
+        (let ((map osx-browse-mode-map))
+          (define-key map (kbd "s-b") nil)
+          (define-key map (kbd "s-i") nil))))
 
-  (defun latex/font-italic ()
-    "Insert a literal italic typeset command, or toggle input method
-in math environments with unicode math enabled."
-    (interactive)
-    (latex/font "math-symbols-italic" "\\textit{" "}"))
+    (defun latex/font-italic ()
+      "Insert a literal italic typeset command, or toggle input method
+  in math environments with unicode math enabled."
+      (interactive)
+      (latex/font "math-symbols-italic" "\\textit{" "}"))
 
-  (defun latex/font-bold ()
-    "Insert a literal bold typeset command, or toggle input method
-in math environments with unicode math enabled."
-    (interactive)
-    (latex/font "math-symbols-bold" "\\textbf{" "}"))
+    (defun latex/font-bold ()
+      "Insert a literal bold typeset command, or toggle input method
+  in math environments with unicode math enabled."
+      (interactive)
+      (latex/font "math-symbols-bold" "\\textbf{" "}"))
 
-  (let ((map LaTeX-mode-map))
-    (define-key map (kbd "s-b") 'latex/font-bold)
-    (define-key map (kbd "s-i") 'latex/font-italic))
+    (let ((map LaTeX-mode-map))
+      (define-key map (kbd "s-b") 'latex/font-bold)
+      (define-key map (kbd "s-i") 'latex/font-italic))
 
-  :hook
-  (LaTeX-mode . latex/unbind-osx-browse)
-  (LaTeX-mode . latex/prettify-symbols-extra))
+    :hook
+    (LaTeX-mode . latex/unbind-osx-browse)
+    (LaTeX-mode . latex/prettify-symbols-extra))
 
 #+END_SRC
 
@@ -2714,9 +2780,21 @@ The default set of bullet points can be modified via the
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-bullets
     :demand t
-    :config
-    (progn
-      (add-hook 'org-mode-hook (lambda () (org-bullets-mode +1)))))
+    :custom
+    (org-bullets-bullet-list '("‣" "•"))
+    :init
+    (defun org-bullets/enable ()
+      (org-bullets-mode +1))
+
+    (defun org-bullets/pretty ()
+      (setq org-pretty-entities t)
+      (setq org-pretty-entities-include-sub-superscripts nil)
+      (setq org-hide-emphasis-markers t)
+      (setq org-fontify-quote-and-verse-blocks t))
+
+    :hook
+    (org-mode . org-bullets/enable)
+    (org-bullets . org-bullets/pretty))
 #+END_SRC
 
 **** TOC Org
@@ -3413,7 +3491,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
      :repo "alphapapa/org-sidebar")
     :init
     (with-eval-after-load 'org-sidebar
-      (org-sidebar-defsidebar sidebar/syntax
+      (org-sidebar-defsidebar ling103/sidebar
         :header "Syntax"
         :sidebars (((and (not (done))
                        (or (deadline <=)
@@ -3428,7 +3506,23 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
       (defun syntax-sidebar ()
         (interactive)
-        (sidebar/syntax))))
+        (sidebar/syntax))
+
+      (org-sidebar-defsidebar cs131/sidebar
+        :header "Syntax"
+        :sidebars (((and (not (done))
+                       (or (deadline <=)
+                          (scheduled <=)))))
+        :super-groups '((:time-grid t)
+                        (:name "Overdue" :scheduled past :deadline past)
+                        (:name "Due"   :scheduled today :deadline today)
+                        (:name "Homework" :tag "homework")
+                        (:priority "A"))
+        :files '("~/Dropbox/courses/cs131/TODOs.org")))
+
+    (defun cs131-sidebar ()
+      (interactive)
+      (cs131/sidebar)))
 #+END_SRC
 
 **** Org Projectile
@@ -3696,9 +3790,8 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 <<org-hacks-saveplace-fix>>
 ;; Extract hyperlinks
 <<org-hacks-extract-hyperlink>>
-
 ;; Dynamically adjust tag position
-<<org-hacks-tag-pos>>
+;; <<org-hacks-tag-pos>>
 ;; End Org Hacks
 #+END_SRC
 
@@ -3720,7 +3813,6 @@ Fix problem with  which puts point back in a folded position.
                 (outline-previous-visible-heading 1)
                 (org-show-subtree)))))
 #+END_SRC
-
 
 **** Hyperlink extraction
 
@@ -3785,7 +3877,7 @@ Fix problem with  which puts point back in a folded position.
 
 #+END_SRC
 
-**** Dynamically set tag position
+**** Dynamically set tag position :disabled:
 
 #+NAME: org-hacks-tag-pos
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4192,33 +4284,35 @@ My custom mla-style LaTeX class.
 #+END_SRC
 
 ***** Unicode Math
+
 #+NAME: ox-class/unicode-math
 #+BEGIN_SRC emacs-lisp :tangle no
-(add-to-list 'org-latex-classes
-             '("unicode-math"
-               "\\documentclass{article}
-                [PACKAGES]
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]
-                \\usepackage{amsmath}
-                \\usepackage{xltxtra}
-                \\usepackage{unicode-math}
-                \\setmathfont{STIX2Math}[
-                  Path/Users/jacobchaffin/Library/Fonts/,
-                  Extension={.otf},
-                  Scale=1]
-                \\setmainfont{STIX2Text}[
-                  Path/Users/jacobchaffin/Library/Fonts/,
-                  Extension={.otf},
-                  UprightFont={*-Regular},
-                  BoldFont={*-Bold},
-                  ItalicFont={*-Italic},
-                  BoldItalicFont={*-BoldItalic}]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  (add-to-list 'org-latex-classes
+    '("unicode-math"
+      "\\documentclass{article}
+       [PACKAGES]
+       [NO-DEFAULT-PACKAGES]
+       [EXTRA]
+       \\usepackage{fontspec}
+       \\usepackage{amsmath}
+       \\usepackage{xltxtra}
+       \\usepackage{unicode-math}
+       \\setmathfont{STIX2Math}[
+         Path/Users/jacobchaffin/Library/Fonts/,
+         Extension={.otf},
+         Scale=1]
+       \\setmainfont{STIX2Text}[
+         Path/Users/jacobchaffin/Library/Fonts/,
+         Extension={.otf},
+         UprightFont={*-Regular},
+         BoldFont={*-Bold},
+         ItalicFont={*-Italic},
+         BoldItalicFont={*-BoldItalic}]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
 *** Ox Linguistics
@@ -4345,6 +4439,8 @@ for exporting org-mode documents to various formats.
 <<org-latex-org-ref>>
 ;; Org Latex PDF
 <<org-latex-pdf>>
+;; Org highlight latex and related
+<<org-latex-highlight-tex>>
 #+END_SRC
 
 *** LaTeX in Org Buffers
@@ -4354,7 +4450,7 @@ for exporting org-mode documents to various formats.
 ;; Org Edit Latex
 <<org-latex-edit-latex>>
 ;; Org Highlight LaTeX
-;; <<org-latex-highlight-tex>>
+<<org-latex-highlight-tex>>
 #+END_SRC
 
 *** Edit Latex
@@ -4365,11 +4461,14 @@ for exporting org-mode documents to various formats.
   :straight t)
 #+END_SRC
 
-*** Highlight inline LaTeX fragments :disabled:
+*** Highlight inline LaTeX fragments
+:PROPERTIES:
+:ID:       8E0531C6-0E85-4F0A-9340-2868F54F3A6D
+:END:
 
 #+NAME: org-latex-highlight-tex
 #+BEGIN_SRC emacs-lisp :tangle no
-  (setq org-highlight-latex-and-related '(latex))
+(setq org-highlight-latex-and-related '(latex))
 #+END_SRC
 
 *** Org Ref
@@ -4382,11 +4481,9 @@ for exporting org-mode documents to various formats.
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Org Ref
 <<org-ref-config>>
-
 (with-eval-after-load 'org-ref
   ;; Org ref vref
   <<org-ref-vref>>
-
   ;; Org ref pdf
   <<org-ref-pdf>>
 )
@@ -4575,7 +4672,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
       (projectile-completion-system 'ivy)
       (projectile-switch-project-action #'projectile-dired)
       (projectile-find-dir-includes-top-level t)
-      (projectile-indexing-method 'native)
+      (projectile-indexing-method 'turbo-alien)
       (projectile-enable-caching t)
 
       :init
@@ -4967,6 +5064,8 @@ interactive tree .
 <<buffer/page-break-lines>>
 ;; Emacs dashboard
 <<buffer/dashboard>>
+;; Autorevert
+<<buffer/revert>>
 ;; Fireplace
 <<buffer/fireplace>>
 #+END_SRC
@@ -4997,41 +5096,37 @@ list that one may use in the wacky world of Emacs.
 
 #+NAME: buffer/dashboard
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package dashboard
-    :init
-    (defun halidom/dashboard-banner ()
+(use-package dashboard
+  :init
+  (defun halidom/dashboard-banner ()
       "Set a dashboard banner including information on
   package initialization time and garbage collections."
-        (setq dashboard-banner-logo-title
-              (format
-               (concat "Emacs ready in %.2f seconds "
+      (setq dashboard-banner-logo-title
+            (format
+             (concat "Emacs ready in %.2f seconds "
                        "with %d garbage collections.")
-               (float-time (time-subtract
-                            after-init-time
-                            before-init-time))
-               gcs-done)))
+             (float-time (time-subtract
+                          after-init-time
+                          before-init-time))
+             gcs-done)))
 
-    (defun goto-dashboard ()
-      "Switch to the `dashboard-buffer-name'buffer."
-      (interactive)
-      (if (seq-contains
-           (mapcar #'buffer-name (buffer-list))
-           dashboard-buffer-name)
-          (switch-to-buffer dashboard-buffer-name)))
-
-    (define-key goto-map "d" #'goto-dashboard)
-
+  
     (unless global-page-break-lines-mode
       (global-page-break-lines-mode))
 
     (dashboard-setup-startup-hook)
 
-    (defun dashboard/set-initial-buffer ()
-      (when (and (boundp 'dashboard-buffer-name)
-               (bufferp (get-buffer dashboard-buffer-name)))
-        (get-buffer dashboard-buffer-name)))
-
     :config
+    ;; (defun goto-dashboard ()
+    ;;   "Switch to the *dashboard* buffe"
+    ;;   (interactive)
+    ;;   (if (seq-contains
+    ;;        (mapcar #'buffer-name (buffer-list))
+    ;;        "*dashboard*")
+    ;;       (switch-to-buffer "*dashboard*")))
+
+    ;; (define-key goto-map "d" #'goto-dashboard)
+
     (add-to-list 'dashboard-items '(agenda) t)
     ;; Get the week agenda.
     ;; See `dashboard-get-agenda' for how this
@@ -5043,14 +5138,25 @@ list that one may use in the wacky world of Emacs.
                             ( recents . 3)
                             ( bookmarks . 5)))
 
-    (defun dashboard/set-initial ()
-      (setq initial-buffer-choice (dashboard/set-initial-buffer)))
+    (defun dashboard/refresh ()
+      (dashboard-refresh-buffer)
+      (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
 
     :hook
-    (after-init     . dashboard/set-initial)
-    (after-init     . dashboard-refresh-buffer)
+    (after-init     . dashboard/refresh)
     (dashboard-mode . halidom/dashboard-banner))
 
+
+#+END_SRC
+
+**** Auto Revert Mode
+
+#+NAME: buffer/revert
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package autorevert
+  :straight nil
+  :config
+  (global-auto-revert-mode 1))
 
 #+END_SRC
 
@@ -5303,8 +5409,8 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package helpful
     :commands (helpful-at-point helpful-function helpful-command)
+    :after hydra
     :init
-
     (defhydra 'helpful (global-map "M-m h")
         "Helpful"
         ("d" helpful-at-point)
@@ -5561,6 +5667,8 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 <<ui/scroll>>
 ;; Buttons
 <<ui/buttons>>
+;; Pretty
+<<ui/pretty>>
 ;; End UI
 #+END_SRC
 
@@ -5702,12 +5810,12 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: theme-load-theme
 #+BEGIN_SRC emacs-lisp :tangle no
   (setq-default custom-enabled-themes (list halidom-theme))
+
   (defun remove-themes ()
     "Forcibly load the themes listed in `custom-enabled-themes'."
     (mapc #'disable-theme custom-enabled-themes))
 
   (defvar halidom/load-theme-hook nil)
-
 
   (defun halidom/load-theme (&optional theme)
     (interactive "P")
@@ -5718,9 +5826,13 @@ This disables Emacs asking questions about loading a new theme.
                                 (concat
                                  "halidom-"
                                  (format "%s"
-                                         (symbol-value 'halidom--theme-style))
+                                 (symbol-value 
+                                 'halidom--theme-style))
                                  "-theme")))))
-         (theme-symbol (if (symbolp theme-name) theme-name (intern theme-name))))
+           (theme-symbol
+            (if (symbolp theme-name)
+                theme-name
+              (intern theme-name))))
       (remove-themes)
       (if (not window-system)
           (load-theme halidom-term-theme)
@@ -5731,7 +5843,9 @@ This disables Emacs asking questions about loading a new theme.
                    (intern
                     (eval
                      `(concat
-                       ,(symbol-name (symbol-value 'halidom-theme)) "-colors")))))
+                       ,(symbol-name
+                         (symbol-value 'halidom-theme))
+                       "-colors")))))
           (setq halidom-theme-colors nil))
         (load-theme halidom-theme)
         (run-hooks 'halidom/load-theme-hook))))
@@ -5893,7 +6007,7 @@ face shall be used."
 
 #+NAME: theme/per-buffer
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package per-buffer-theme)
+(use-package per-buffer-theme)
 #+END_SRC
 
 ** Cursor
@@ -6225,10 +6339,10 @@ This mode actually degrades the quality of emoticons on macOS.
 
 #+NAME: icons/ivy
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package all-the-icons-ivy
-  :after (:all ivy all-the-icons)
-  :init
-  (all-the-icons-ivy-setup))
+  (use-package all-the-icons-ivy
+    :after (:all ivy all-the-icons)
+    :init
+    (all-the-icons-ivy-setup))
 
 #+END_SRC
 
@@ -6298,17 +6412,17 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 #+NAME: sl/setup
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun ml-spaceline-setup ()
-  "Setup the modeline for spaceline."
-  (setq spaceline-all-the-icons-separator-type 'arrow)
-  (require 'spaceline)
-  (require 'spaceline-segments)
-  (require 'spaceline-config)
-  (require 'all-the-icons)
-  (require 'spaceline-all-the-icons)
-  (spaceline-all-the-icons--setup-neotree)
-  (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
-  (spaceline-toggle-all-the-icons-flycheck-status-off))
+  (defun ml-spaceline-setup ()
+    "Setup the modeline for spaceline."
+    (setq spaceline-all-the-icons-separator-type 'arrow)
+    (require 'spaceline)
+    (require 'spaceline-segments)
+    (require 'spaceline-config)
+    (require 'all-the-icons)
+    (require 'spaceline-all-the-icons)
+    (spaceline-all-the-icons--setup-neotree)
+    (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
+    (spaceline-toggle-all-the-icons-flycheck-status-off))
 #+END_SRC
 
 *** Smart Mode Line
@@ -6386,6 +6500,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 (defun halidom/modeline-setup ()
   "Setup the modeline."
+  (interactive)
   (pcase halidom-modeline
     (`spaceline (ml-spaceline-setup))
     (`powerline (ml-powerline-setup))
@@ -6458,6 +6573,308 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 #+NAME: button/lock
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package button-lock)
+#+END_SRC
+
+** Pretty
+
+#+NAME: ui/pretty
+#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+;; Prettify Symbols Mode
+<<pretty/symbols>>
+;; Pretty Mode
+<<pretty/mode>>
+;; Outshine
+<<pretty/outshine>>
+;; pretty utils
+<<pretty/utils>>
+;; Ekaschalk Display Layer
+<<pretty/ekaschalk>>
+#+END_SRC
+
+*** Prettify Symbols
+
+Seems to be problems rendering symbols on Debian. Not sure if this is
+because the necessary fonts are not installed or if it's because of
+the absence of a window system. I'll check for the latter for now.
+
+#+NAME: pretty/symbols
+#+BEGIN_SRC emacs-lisp :tangle no
+  (when (display-graphic-p)
+    (add-hook 'prog-mode-hook 'prettify-symbols-mode))
+#+END_SRC
+
+*** Pretty Mode
+
+#+NAME: pretty/mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pretty-mode
+    :hook
+  (emacs-lisp-mode . turn-on-pretty-mode)
+  (LaTeX-mode . turn-on-pretty-mode))
+#+END_SRC
+
+*** Outshine
+
+#+NAME: pretty/outshine
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package outshine
+  :init (require 'outshine)
+  :hook
+  (outshine-minor-mode . outshine-hook-function)
+  ((message-mode clojure-mode LaTeX-mode emacs-lisp-mode) . outline-minor-mode))
+#+END_SRC
+
+*** Prettify Utilities
+
+#+NAME: pretty/utils
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package prettify-utils
+  :straight (prettify-utils
+             :host github
+             :repo "Ilazki/prettify-utils.el")
+  :init
+  (require 'prettify-utils))
+
+#+END_SRC
+
+*** Modern Emacs
+
+From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs display layer]].[fn:19]
+
+#+NAME: pretty/ekaschalk
+#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+;; Straight Recipe
+<<ekaschalk/recipe>>
+;; Pretty Fonts
+<<ekaschalk/fonts>>
+;; Pretty Outlines
+<<ekaschalk/outlines>>
+;; Pretty Eshell
+<<ekaschalk/eshell>>
+;; Pretty Magit
+<<ekaschalk/magit>>
+;; Pretty Code
+<<ekaschalk/code>>
+#+END_SRC
+
+**** Pretty recipe
+
+#+NAME: ekaschalk/recipe
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pretty-macros
+  :straight (pretty-macros
+             :repo "ekaschalk/.spacemacs.d"
+             :host github
+             :type git
+             :files ("layers/macros/local/macros/macros.el"))
+  :init
+  (require 'macros))
+
+#+END_SRC
+
+**** Pretty Fonts
+
+#+NAME: ekaschalk/fonts
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package pretty-fonts
+    :straight (pretty-fonts
+               :repo "ekaschalk/.spacemacs.d"
+               :host github
+               :type git
+               :files ("layers/display/local/pretty-fonts/pretty-fonts.el"))
+
+    :config
+    (setq pretty-fonts-hy-font '(("\\(self\\)" ?⊙)))
+    (pretty-fonts-set-kwds
+     '(;; Fira Code Ligatures
+       (pretty-fonts-fira-font prog-mode-hook org-mode-hook)
+
+       ;; Other ligatures that are easier to define as simple
+       ;; regexes so as to avoid `prettify-symbols-compose-predicate'
+       (pretty-fonts-hy-font hy-mode-hook)))
+
+    (pretty-fonts-set-fontsets
+     '(
+       ;; All-the-icons fontsets
+       ("fontawesome"
+        ;;                         
+        #xf07c #xf0c9 #xf0c4 #xf0cb #xf017 #xf101)
+
+       ("all-the-icons"
+        ;;    
+        #xe907 #xe928)
+
+       ("github-octicons"
+        ;;                          
+        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016)
+
+       ("material icons"
+        ;;        
+        #xe871 #xe918 #xe3e7
+        ;;            
+        #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
+#+END_SRC
+
+**** Pretty Outlines
+
+#+NAME: ekaschalk/outlines
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package pretty-outlines
+    :straight
+    (pretty-outlines
+     :repo "ekaschalk/.spacemacs.d"
+     :host github
+     :type git
+     :files ("layers/display/local/pretty-outlines/pretty-outlines.el"))
+    :after outshine
+    :demand t
+    :custom
+    (pretty-outlines-ellipsis "   ") 
+    (pretty-outlines-bullets-bullet-list '("" "" "" ""))
+    :hook
+    ((emacs-lisp hy-mode python-mode)
+     . pretty-outlines-add-bullets)
+    ((outline-mode outline-minor-mode)
+     . pretty-outlines-set-display-table))
+
+#+END_SRC
+
+**** Outline Ivy
+
+#+NAME: ekaschalk/ivy
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package outline-ivy
+  :after (:all ivy outshine)
+  :demand t
+  :straight
+  (outline-ivy
+     :repo "ekaschalk/.spacemacs.d"
+     :host github
+     :type git
+     :files ("layers/personal/local/outline-ivy/outline-ivy.el"))
+  :init
+  (global-set-key (kbd "C-j") 'oi-jump))
+
+#+END_SRC
+
+**** Pretty Eshell
+
+#+NAME: ekaschalk/eshell
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pretty-eshell
+  :straight (pretty-eshell
+             :repo "ekaschalk/.spacemacs.d"
+             :host github
+             :type git
+             :files ("layers/display/local/pretty-eshell/pretty-eshell.el"))
+  :custom-face
+  (eshell-prompt ((t (:foreground "gray83"))))
+  :custom
+  ;; Eshell prompt header
+  ;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.
+  ;; your login, these can be the same.
+  (eshell-prompt-regexp "λ ")   ; or "└─> "
+  :init
+  (progn
+    (setq pretty-eshell-header "\n ")
+    (setq pretty-eshell-prompt-string "λ ")
+    ;; Directory
+    (pretty-eshell-section
+     esh-dir
+     "\xf07c"  ; 
+     (abbreviate-file-name (eshell/pwd))
+     '(:foreground "gold" :bold ultra-bold :underline t))
+
+    ;; Git Branch
+    (pretty-eshell-section
+     esh-git
+     "\xe907"  ; 
+     (magit-get-current-branch)
+     '(:foreground "pink"))
+
+    ;; Python Virtual Environment
+    (pretty-eshell-section
+     esh-python
+     "\xe928"  ; 
+     pyvenv-virtual-env-name)
+
+    ;; Time
+    (pretty-eshell-section
+     esh-clock
+     "\xf017"  ; 
+     (format-time-string "%H:%M" (current-time))
+     '(:foreground "forest green"))
+
+    ;; Prompt Number
+    (pretty-eshell-section
+     esh-num
+     "\xf0c9"  ; 
+     (number-to-string pretty-eshell-prompt-num)
+     '(:foreground "brown"))
+
+    (setq pretty-eshell-funcs
+          (list esh-dir esh-git esh-python esh-clock esh-num))))
+#+END_SRC
+
+**** Pretty Magit
+
+#+NAME: ekaschalk/magit
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package pretty-magit
+    :straight (pretty-magit
+               :repo "ekaschalk/.spacemacs.d"
+               :host github
+               :type git
+               :files ("layers/display/local/pretty-magit/pretty-magit.el"))
+    :after (:all magit ivy)
+    :config
+    (pretty-magit-add-leader
+     "Feature"
+     ?
+     (:foreground "slate gray" :height 1.2))
+
+     (pretty-magit-add-leader
+      "Add"
+      ?
+      (:foreground "#375E97" :height 1.2))
+
+     (pretty-magit-add-leader
+      "Fix"
+      ?
+      (:foreground "#FB6542" :height 1.2))
+
+     (pretty-magit-add-leader
+      "Clean"
+      ?
+      (:foreground "#FFBB00" :height 1.2))
+
+     (pretty-magit-add-leader
+      "Docs"
+      ?
+      (:foreground "#3F681C" :height 1.2)))
+
+#+END_SRC
+
+**** Pretty Code
+
+#+NAME: ekaschalk/code
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(use-package pretty-code
+  :straight (pretty-code
+             :repo "ekaschalk/.spacemacs.d"
+             :host github
+             :type git
+             :files ("layers/display/local/pretty-code/pretty-code.el"))
+  :after prettify-utils
+  :config
+  (pretty-code-set-pairs
+             `((hy-mode-hook
+                ,(pretty-code-get-pairs '(:lambda "fn" :def "defn")))
+               (python-mode-hook
+                ,(pretty-code-get-pairs '(:lambda "lambda" :def "def")))
+               (emacs-lisp-mode-hook
+                ,(pretty-code-get-pairs '(:def "defun"))))))
 #+END_SRC
 
 * Completion
@@ -6672,18 +7089,18 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 
 #+NAME: mb-ivy
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Ivy
-<<ivy/spec>>
-;; Ivy Prescient
-<<ivy/prescient>>
-;; Ivy Xref
-<<ivy/xref>>
-;; Ivy Todo
-<<ivy/todo>>
-;; Ivy rich
-<<ivy/rich>>
-;; Ivy pages
-<<ivy/pages>>
+  ;; Ivy
+  <<ivy/spec>>
+  ;; Ivy Prescient
+  <<ivy/prescient>>
+  ;; Ivy Xref
+  <<ivy/xref>>
+  ;; Ivy Todo
+  <<ivy/todo>>
+  ;; Ivy rich
+  <<ivy/rich>>
+  ;; Ivy pages
+  <<ivy/pages>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -6698,63 +7115,17 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 #+NAME: ivy/spec
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package ivy
-      :init
-      ;; Lazy Load Ivy
-      ;; https://github.com/raxod502/el-patch#lazy-loading-packages
-    :init/el-patch
-    (defvar ivy-mode-map
-      (let ((map (make-sparse-keymap)))
-        (define-key map [remap switch-to-buffer]
-          'ivy-switch-buffer)
-        (define-key map [remap switch-to-buffer-other-window]
-          'ivy-switch-buffer-other-window)
-        map)
-      "Keymap for `ivy-mode'.")
-
-      (define-minor-mode ivy-mode
-          (el-patch-concat
-            "Toggle Ivy mode on or off.
-  Turn Ivy mode on if ARG is positive, off otherwise.
-  Turning on Ivy mode sets `completing-read-function' to
-  `ivy-completing-read'.
-
-  Global bindings:
-  \\{ivy-mode-map}}
-
-  Minibuffer bindings:
-  \\{ivy-minibuffer-map}")
-            :group 'ivy
-            :global t
-            :keymap ivy-mode-map
-            (el-patch-remove
-              :lighter "ivy")
-            (if ivy-mode
-                (progn
-                  (setq completing-read-function 'ivy-completing-read)
-                  (el-patch-splice 2
-                      (when ivy-do-completion-in-region
-                        (setq completion-in-region-function 'ivy-completion-in-region))))
-              (setq completing-read-function 'completing-read-default)
-              (setq completion-in-region-function 'completion--in-region)))
-
-      (ivy-mode +1)
-
-    :bind (("C-c C-r" . ivy-resume)
-           ("C-`"     . ivy-avy))
-
-    :custom
-    (ivy-use-virtual-buffers t)
-    (ivy-initial-inputs-alist nil)
-    (ivy-sort-max-size 50000)
-    (ivy-re-builders-alist '((t . ivy--regex-plus)))
-    (ivy-use-selectable-prompt t)
-
-    :config
-    (ivy-mode 1)
-
-    :blackout t)
-
+(use-package ivy
+  :bind (("C-c C-r" . ivy-resume)
+         ("C-`"     . ivy-avy))
+  :init
+  (ivy-mode +1)
+  :custom
+  (ivy-use-virtual-buffers t)
+  (ivy-initial-inputs-alist nil)
+  (ivy-sort-max-size 50000)
+  (ivy-re-builders-alist '((t . ivy--regex-plus)))
+  (ivy-use-selectable-prompt nil))
 #+END_SRC
 
 **** Prescient
@@ -6775,7 +7146,6 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
   :demand t
   :after ivy
   :config
-
   ;; Use `prescient' for Ivy menus.
   (ivy-prescient-mode +1))
 
@@ -6872,67 +7242,9 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
            (:map org-agenda-mode-map
                  ("C-c M-t" . counsel-org-tag-agenda)
                  ("C-c C-j" . counsel-org-agenda-headlines)))
-    :init/el-patch
-    ;; Lazy-load `counsel'.
-
-    (defvar counsel-mode-map
-      (let ((map (make-sparse-keymap)))
-        (dolist (binding
-                  '((execute-extended-command . counsel-M-x)
-                    (describe-bindings . counsel-descbinds)
-                    (describe-function . counsel-describe-function)
-                    (describe-variable . counsel-describe-variable)
-                    (apropos-command . counsel-apropos)
-                    (describe-face . counsel-describe-face)
-                    (list-faces-display . counsel-faces)
-                    (find-file . counsel-find-file)
-                    (find-library . counsel-find-library)
-                    (imenu . counsel-imenu)
-                    (load-library . counsel-load-library)
-                    (load-theme . counsel-load-theme)
-                    (yank-pop . counsel-yank-pop)
-                    (info-lookup-symbol . counsel-info-lookup-symbol)
-                    (pop-to-mark-command . counsel-mark-ring)
-                    (bookmark-jump . counsel-bookmark)))
-          (define-key map (vector 'remap (car binding)) (cdr binding)))
-        map)
-   "Map for `counsel-mode'.
-  Remaps built-in functions to counsel replacements.")
-
-
-    (el-patch-defcustom counsel-mode-override-describe-bindings nil
-      "Whether to override `describe-bindings' when `counsel-mode' is active."
-      :group 'ivy
-      :type 'boolean)
-
-    (el-patch-define-minor-mode counsel-mode
-      "Toggle Counsel mode on or off.
-  Turn Counsel mode on if ARG is positive, off otherwise. Counsel
-  mode remaps built-in emacs functions that have counsel
-  replacements.
-
-  Local bindings (`counsel-mode-map'):
-  \\{counsel-mode-map}"
-      :group 'ivy
-      :global t
-      :keymap counsel-mode-map
-      :lighter " counsel"
-      (if counsel-mode
-          (progn
-            (when (and (fboundp 'advice-add)
-                       counsel-mode-override-describe-bindings)
-              (advice-add #'describe-bindings :override #'counsel-descbinds))
-            (define-key minibuffer-local-map (kbd "C-r")
-              'counsel-minibuffer-history))
-        (when (fboundp 'advice-remove)
-          (advice-remove #'describe-bindings #'counsel-descbinds))))
-
-    ;; Use customized Ivy configurations for built-in Emacs commands.
+    :init
     (counsel-mode +1)
-
-    ;; Diminish the lazy-loaded version of `counsel-mode'.
-    (blackout 'counsel-mode)
-
+    
     :config
     (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
     (setq counsel-mode-override-describe-bindings t)
@@ -7163,8 +7475,6 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 (add-hook 'comint-output-filter-functions 'ansi-color-process-output)
-(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-
 
 (defun display-ansi-colors ()
   (interactive)
@@ -7206,8 +7516,6 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
   <<esh-bookmark>>
   ;; eshell z
   <<esh-z>>
-  ;; eshell prompt extras
-  <<esh-prompt-extras>>
   ;; End Eshell
 #+END_SRC
 
@@ -7226,118 +7534,11 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 
 (use-package eshell-z
     :init
-    (defun eshell-z-hook ()
+    (defun eshell-z/enable ()
       (require 'eshell-z))
-    (add-hook 'eshell-mode-hook #'eshell-z-hook))
-
-#+END_SRC
-
-*** Eshell Prompt
-
-#+NAME: eshell/prompt
-#+BEGIN_SRC emacs-lisp :tangle no
-  (with-eval-after-load "esh-opt"
-    (pyvenv-mode 1)
-    (defmacro with-face (STR &rest PROPS)
-      "Return STR propertized with PROPS."
-      `(propertize ,STR 'face (list ,@PROPS)))
-
-    (defmacro esh-section (NAME ICON FORM &rest PROPS)
-      "Build eshell section NAME with ICON prepended to evaled FORM with PROPS."
-      `(setq ,NAME
-             (lambda () (when ,FORM
-                     (-> ,ICON
-                        (concat esh-section-delim ,FORM)
-                        (with-face ,@PROPS))))))
-
-    (defun esh-acc (acc x)
-      "Accumulator for evaluating and concatenating esh-sections."
-      (--if-let (funcall x)
-          (if (s-blank? acc)
-              it
-            (concat acc esh-sep it))
-        acc))
-
-    (defun esh-prompt-func ()
-      "Build `eshell-prompt-function'"
-      (concat esh-header
-              (-reduce-from 'esh-acc "" eshell-funcs)
-              "\n"
-              eshell-prompt-string))
-
-    (esh-section esh-dir
-                 "\xf07c"  ;  (faicon folder)
-                 (abbreviate-file-name (eshell/pwd))
-                 '(:foreground "gold" :weight 'bold :underline t))
-
-    (esh-section esh-git
-                 "\xe907"  ;  (git icon)
-                 (magit-get-current-branch)
-                 '(:foreground "pink"))
-
-    (esh-section esh-python
-                 "\xe928"  ;  (python icon)
-                 pyvenv-virtual-env-name)
-
-    (esh-section esh-clock
-                 "\xf017"  ;  (clock icon)
-                 (format-time-string "%H:%M" (current-time))
-                 '(:foreground "forest green"))
-
-    ;; Below I implement a "prompt number" section
-    (setq esh-prompt-num 0)
-    (add-hook 'eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
-    (advice-add 'eshell-send-input :before
-                (lambda (&rest args) (setq esh-prompt-num (incf esh-prompt-num))))
-
-    (esh-section esh-num
-                 "\xf0c9"  ;  (list icon)
-                 (number-to-string esh-prompt-num)
-                 '(:foreground "brown"))
-
-    ;; Separator between esh-sections
-    (setq esh-sep "  ")  ; or " | "
-
-    ;; Separator between an esh-section icon and form
-    (setq esh-section-delim " ")
-
-    ;; Eshell prompt header
-    (setq esh-header "\n")  ; or "\n ┌─ ┎
-
-    ;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.
-    ;; your login, these can be the same.
-    (setq eshell-prompt-regexp "λ\\s-")   ; or "└─> "
-    (setq eshell-prompt-string "λ ")   ; or "└─> "
-
-    ;; Choose which eshell-funcs to enable
-    (setq eshell-funcs (list esh-dir esh-git esh-python esh-clock esh-num))
-
-    ;; Enable the new eshell prompt
-    (setq eshell-prompt-function 'esh-prompt-func)
-    )
-#+END_SRC
-
-*** Eshell Prompt Extras
-
-#+NAME: esh-prompt-extras
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package eshell-prompt-extras
-    :custom-face
-    (eshell-prompt ((t (:foreground "gray83"))))
-    :custom
-    (eshell-modify-global-environment t)
-    :init
-    (with-eval-after-load "esh-opt"
-      (autoload 'epe-theme-lambda "eshell-prompt-extras")
-      (setq eshell-highlight-prompt t))
-
-    (defun eshell/fortune-banner ()
-      (setq eshell-banner-message
-          (if (executable-find "fortune")
-              (concat (shell-command-to-string "fortune -s") "\n")
-            (concat "Welcome to the Emacs shell " user-login-name "\n\n"))))
     :hook
-    (eshell-banner-load . eshell/fortune-banner))
+    (eshell-mode . eshell-z/enable))
+
 #+END_SRC
 
 ** Shell
@@ -8298,42 +8499,42 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME: writing-variable-pitch
 #+BEGIN_SRC emacs-lisp :tangle no
-(defcustom halidom-org-fixed-pitch-faces
-  '(org-table
-    org-code
-    org-special-keyword
-    org-verbatim
-    org-meta-line
-    org-block
-    org-block-begin-line
-    org-block-end-line
-    org-document-info-keyword)
-  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
-  :type '(list symbol))
+  (defcustom halidom-org-fixed-pitch-faces
+    '(org-table
+      org-code
+      org-special-keyword
+      org-verbatim
+      org-meta-line
+      org-block
+      org-block-begin-line
+      org-block-end-line
+      org-document-info-keyword)
+    "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
+    :type '(list symbol))
 
-(defvar org-fixed-pitch-font
-  (face-attribute 'fixed-pitch :family))
+  (defvar org-fixed-pitch-font
+    (face-attribute 'fixed-pitch :family))
 
-(defvar org-variable-pitch-font
-  (face-attribute 'variable-pitch :family))
+  (defvar org-variable-pitch-font
+    (face-attribute 'variable-pitch :family))
 
-(setq org-fixed-pitch-font "Operator Mono")
-(setq org-variable-pitch-font "ETBembo")
+  (setq org-fixed-pitch-font "Iosevka")
+  (setq org-variable-pitch-font "ETBembo")
 
-(setq face-remapping-alist nil)
+  (setq face-remapping-alist nil)
 
-(defun org-toggle-variable-pitch ()
-  "Toggle use of face `variable-pitch'.
-This works by frobbing `face-remapping-alist'."
-  (interactive)
-  (if face-remapping-alist
-      (setq face-remapping-alist nil)
-    (face-remap-add-relative 'variable-pitch
-                             :family org-variable-pitch-font)
-    (face-remap-add-relative 'default 'variable-pitch)
-    (->> halidom-org-fixed-pitch-faces
-        (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
-        (mapcar (lambda (x) (apply #'face-remap-add-relative x))))))
+  (defun org-toggle-variable-pitch ()
+    "Toggle use of face `variable-pitch'.
+  This works by frobbing `face-remapping-alist'."
+    (interactive)
+    (if face-remapping-alist
+        (setq face-remapping-alist nil)
+      (face-remap-add-relative 'variable-pitch
+                               :family org-variable-pitch-font)
+      (face-remap-add-relative 'default 'variable-pitch)
+      (->> halidom-org-fixed-pitch-faces
+          (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
+          (mapcar (lambda (x) (apply #'face-remap-add-relative x))))))
 #+END_SRC
 
 *** Olivetti
@@ -8356,12 +8557,12 @@ This works by frobbing `face-remapping-alist'."
 
 #+NAME: writing-writeroom
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package writeroom-mode
-  :config
-  (defun halidom/writeroom-mode-hook ()
-    (org-toggle-variable-pitch)
-    (auto-fill-mode -1))
-  (add-hook 'writeroom-mode #'halidom/writeroom-mode-hook))
+  (use-package writeroom-mode
+    :config
+    (defun halidom/writeroom-mode-hook ()
+      (org-toggle-variable-pitch)
+      (auto-fill-mode -1))
+    (add-hook 'writeroom-mode #'halidom/writeroom-mode-hook))
 #+END_SRC
 
 ** Reading and viewing
@@ -8725,6 +8926,13 @@ school's WLAN.
 
 #+END_SRC
 
+*** Hy mode
+
+#+NAME: code/hy
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package hy-mode)
+#+END_SRC
+
 *** Highlight Indentation
 
 #+NAME: code/indent
@@ -8759,11 +8967,10 @@ school's WLAN.
 (use-package visual-indentation-mode)
 #+END_SRC
 
-
 *** Symbol Highlighting
 
 #+NAME: symbol-hl
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
 ;; Overlay Highlight
 <<hl-ov>>
 ;; Highlight Sexp
@@ -8772,10 +8979,6 @@ school's WLAN.
 <<hl-hl-todo>>
 ;; Highlight Symbol
 <<hl-highlight-symbol>>
-;; Prettify Symbols
-<<hl-prettify-symbol>>
-;; Pretty Mode
-<<hl-pretty>>
 #+END_SRC
 
 **** Highlight :disabled:
@@ -8809,6 +9012,7 @@ Minor mode to highlight sexp.
 **** Hl Todo
 
 Highlight =TODO= keywords:
+
 #+NAME: hl-hl-todo
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package hl-todo
@@ -8821,30 +9025,7 @@ Highlight =TODO= keywords:
 
 #+NAME: hl-highlight-symbol
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package highlight-symbol
-  :straight t)
-#+END_SRC
-
-**** Prettify Symbols
-
-Seems to be problems rendering symbols on Debian. Not sure if this is
-because the necessary fonts are not installed or if it's because of
-the absence of a window system. I'll check for the latter for now.
-
-#+NAME: hl-prettify-symbol
-#+BEGIN_SRC emacs-lisp :tangle no
-(when (display-graphic-p)
-  (add-hook 'prog-mode-hook 'prettify-symbols-mode))
-#+END_SRC
-
-**** Pretty Mode
-
-#+NAME: hl-pretty
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package pretty-mode
-    :hook
-  (emacs-lisp-mode . turn-on-pretty-mode)
-  (LaTeX-mode . turn-on-pretty-mode))
+(use-package highlight-symbol)
 #+END_SRC
 
 *** Code Folding
@@ -9016,7 +9197,9 @@ Disabling for now.
 
 #+NAME: parinfer-config
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+; Lispy
 <<lispy-config>>
+;; parinfer
 <<parinfer-base>>
 #+END_SRC
 
@@ -10938,7 +11121,7 @@ Real jsx support.
 (use-package pyvenv
     :requires virtualenvwrapper
     :init
-  (pyvenv-mode))
+  (pyvenv-mode +1))
 #+END_SRC
 
 **** LSP Python
@@ -11142,10 +11325,12 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
     (dune . "opam install dune")
 
     :init
-    (when (featurep 'projectile)
-      (projectile-register-project-type 'dune '("dune-project")
+    (when (functionp 'projectile-register-project-type)
+      (projectile-register-project-type 'dune
+                                        '("dune-project")
                                         :compile "dune build"
-                                        :test "dune runtest"))
+                                        :test "dune runtest"
+                                        :run "dune exec"))
 
     (require 'dune)
 
@@ -11248,12 +11433,13 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 #+NAME: ocaml/lsp
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package lsp-ocaml
-    :ensure-system-package
-    (ocaml-language-server
-     .
-     "yarn global add ocaml-language-server")
-    :commands lsp-ocaml-enable)
+(use-package lsp-ocaml
+  :custom-face (lsp-face-highlight-write ((t nil)))
+  :ensure-system-package
+  (ocaml-language-server
+   .
+   "yarn global add ocaml-language-server")
+  :commands lsp-ocaml-enable)
 #+END_SRC
 
 **** Setup Ocaml
@@ -11751,9 +11937,18 @@ and slim-mode using company.
 
 #+BEGIN_SRC emacs-lisp :tangle yes :exports none
 
-;;; halidom.el
+;;; end halidom.el
 
 #+END_SRC
+
+* Known Issues
+** ~halidom-literate-config-file~ is added to ~org-agenda-files~
+** dashboard buffer not  found when setting value of initial buffer
+** Improper font locking by ~org-highlight-latex-and-related~
+
+Makes emacs really slow.
+
+See[[id:8E0531C6-0E85-4F0A-9340-2868F54F3A6D][ Highlight inline LaTeX fragments]] for temporary fix.
 
 * Footnotes
 
@@ -11797,6 +11992,9 @@ dialects of Lisp.
 [fn:17] https://joelkuiper.eu/spellcheck_emacs
 
 [fn:18] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
+
+[fn:19] [[http://www.modernemacs.com/#spacemacs][Modern Emacs]] 
+
 
 
 
