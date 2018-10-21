@@ -1,0 +1,18 @@
+# -*- mode: tuareg-opam-mode -*-
+# name: opam-header
+# key: <o
+# --
+opam-version: "`(and (executable-find "opam") (replace-regexp-in-string "\n" "" (shell-command-to-string "opam --version"))))`"
+version: "1.0"
+maintainer: "`user-mail-address`"
+authors: ["`user-full-name`"]
+homepage: "${1:https://github.com/jchaffin/`(car (last (split-string default-directory "/" t)))`}"
+dev-repo: "$1.git"
+license: "Apache-2.0"
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+build-test: [[["dune" "runtest" "-p" name "-j" jobs]]]
+$2
+# -
