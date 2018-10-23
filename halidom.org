@@ -1163,9 +1163,11 @@ contributing to the solution.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (defun halidom/rev-up-gc ()
+   (interactive)
   (setq gc-cons-threshold most-positive-fixnum))
 
 (defun halidom/rev-down-gc ()
+   (interactive)
   (setq gc-cons-threshold 800000))
 
 (add-hook 'minibuffer-setup-hook #'halidom/rev-up-gc)
@@ -1815,12 +1817,10 @@ editors and various other applications on macOS.
   :commands (macos-iterm-command-map macos-open-with-command-map)
   :init
   (require 'macos-dev-utils)
-  (which-key-add-key-based-replacements "M-m m t"
-      '("iTerm" . "iTerm keys"))
-  (which-key-add-key-based-replacements "M-m m o"
-      '("Open" . "Open With keys"))
   (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
-  (define-key 'macos-prefix-map "o" 'macos-open-with-command-map))
+  (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)
+  (which-key-add-prefix-title "M-m m t" "")
+  (which-key-add-prefix-title "M-m m o" ""))
 
 #+END_SRC
 
@@ -2666,9 +2666,9 @@ Entered on [2018-06-13 Wed 11:42]
   (define-key 'halidom-prefix-map (kbd "o")
    'halidom/org-command-map)
 
-  (which-key-add-prefix-title "M-m o" "Org Mode")
+  (which-key-add-prefix-title "M-m o" "")
 #+END_SRC
-
+ 
 
 *** Org Babel
 
@@ -5029,7 +5029,7 @@ Jump to arbitrary point in Buffer
       :commands (dired-sidebar-toggle-sidebar)
       :custom
       (dired-sidebar-should-follow-file nil)
-      (dired-sidebar-theme 'vscode)
+      (dired-sidebar-theme 'none)
       :init
       :bind
       ("C-c d" . dired-sidebar-toggle-sidebar))
@@ -5316,7 +5316,8 @@ different window configurations.
 #+NAME: window/ace
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package ace-window
-      :bind ("M-o" . ace-window)
+      :bind 
+      ("M-o" . ace-window)
       :custom
       (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
       (aw-background nil))
@@ -6001,14 +6002,15 @@ This disables Emacs asking questions about loading a new theme.
 
 #+NAME: theme-italicize-for-modes
 #+BEGIN_SRC emacs-lisp :tangle no
-(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode org-mode)
+(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
   "Major modes for which an italicized font lock keyword
 face shall be used."
   :type '(symbol))
 
 (defun halidom/italicize-keyword-fn ()
 (face-remap-add-relative 'font-lock-keyword-face
-                           '(:slant italic)))
+                         '(:slant italic
+                           :family "Operator Mono")))
 
 (defun halidom/italicize-keyword-faces ()
   (cl-flet ((mode->hook (mode)
@@ -6181,7 +6183,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: fonts/default
 #+BEGIN_SRC emacs-lisp :tangle no
   (defcustom halidom-fonts
-    '(("Operator Mono" . extralight)
+    '(("Fira Code" . light)
+      ("Operator Mono" . extralight)
       ("SF Mono" . normal)
       ("Lucida Sans Typewriter" . nil)
       ("Ubuntu Mono" . nil)
@@ -6230,7 +6233,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: fonts/unicode
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Unicode Fonts
-<<unicode/fonts>>
+;; <<unicode/fonts>>
 ;; Emojis
 <<unicode/emojis>>
 #+END_SRC
@@ -6257,6 +6260,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+END_SRC
 
 ***** Symbol Font
+
 
 #+NAME: emoji/symbol-font
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6341,7 +6345,11 @@ This mode actually degrades the quality of emoticons on macOS.
 
 #+NAME: icons/vscode
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package vscode-icon)
+(use-package vscode-icon
+  :init
+  (require 'vscode-icon)
+  :commands (vscode-icon-for-file))
+
 #+END_SRC
 
 *** All the icons
@@ -6683,14 +6691,8 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 <<ekaschalk/recipe>>
 ;; Pretty Fonts
 <<ekaschalk/fonts>>
-;; Pretty Outlines
-<<ekaschalk/outlines>>
 ;; Pretty Eshell
 <<ekaschalk/eshell>>
-;; Pretty Magit
-<<ekaschalk/magit>>
-;; Pretty Code
-<<ekaschalk/code>>
 #+END_SRC
 
 **** Pretty recipe
@@ -6751,7 +6753,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
         #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
 #+END_SRC
 
-**** Pretty Outlines
+**** Pretty Outlines :disabled:
 
 #+NAME: ekaschalk/outlines
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6768,14 +6770,15 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
     (pretty-outlines-ellipsis "   ")
     (pretty-outlines-bullets-bullet-list '("" "" "" ""))
     :hook
-    ((emacs-lisp hy-mode python-mode)
-     . pretty-outlines-add-bullets)
-    ((outline-mode outline-minor-mode)
-     . pretty-outlines-set-display-table))
+    ;; ((emacs-lisp hy-mode python-mode)
+    ;;  . pretty-outlines-add-bullets)
+    ;; ((outline-mode outline-minor-mode)
+    ;;  . pretty-outlines-set-display-table)
+    )
 
 #+END_SRC
 
-**** Outline Ivy
+**** Outline Ivy :disabled:
 
 #+NAME: ekaschalk/ivy
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6852,7 +6855,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
           (list esh-dir esh-git esh-python esh-clock esh-num))))
 #+END_SRC
 
-**** Pretty Magit
+**** Pretty Magit :disabled:
 
 #+NAME: ekaschalk/magit
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -6891,7 +6894,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 
 #+END_SRC
 
-**** Pretty Code
+**** Pretty Code :disabled:
 
 #+NAME: ekaschalk/code
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -9639,9 +9642,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 #+NAME: docker-cmds
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(use-package docker
-    :bind
-  ("M-m d" . docker))
+(use-package docker)
 #+END_SRC
 
 **** Dockerfile mode
@@ -11346,9 +11347,11 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 ;; Begin Ocaml
 (when (halidom/proglang-enabled-p 'ocaml)
   ;; Ocaml user setup
-  <<ocaml/user-setup>>
+  ;; <<ocaml/user-setup>>
   ;; Merlin
   <<ocaml/merlin>>
+  ;; Utop
+  <<ocaml/utop>>
   ;; Tuareg
   <<ocaml/tuareg>>
   ;; Dune
@@ -11364,7 +11367,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 ) ;; End Ocaml
 #+END_SRC
 
-**** Ocaml User Setup
+**** Ocaml User Setup :disabled:
 
 #+NAME: ocaml/user-setup
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -11373,38 +11376,11 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
       (load-file (expand-file-name "opam-user-setup.el" opam-user-setup-dir))))
 #+END_SRC
 
-**** Dune
+**** Utop
 
-#+NAME: ocaml/dune
+#+NAME: ocaml/utop
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package dune
-  :straight (dune
-             :host github
-             :type git
-             :repo "ocaml/dune"
-             :files ("editor-integration/emacs/dune"
-                     "editor-integration/emacs/dune.el"
-                     "editor-integration/emacs/dune-flymake.el"))
-  :mode
-  ("dune\\'" . dune-mode)
-  ("dune-project\\'" . dune-mode)
-
-  :ensure-system-package
-  (dune . "opam install dune")
-
-  :init
-
-  (require 'dune)
-
-  (with-eval-after-load 'projectile
-    (projectile-register-project-type 'dune
-                                      '("dune-project")
-                                      :compile "dune build"
-                                      :test "dune runtest"
-                                      :run "dune exec"))
-
-  :hook
-  (dune-mode . enable-paredit-mode))
+(use-package utop)
 #+END_SRC
 
 **** Merlin
@@ -11428,6 +11404,22 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package flycheck-ocaml)
 
+#+END_SRC
+
+**** Caml mode
+
+#+NAME: ocaml/caml
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package caml
+  :init
+
+  (defun caml/lsp ()
+    (when (functionp 'ocaml/setup-lsp)
+      (ocaml/setup-lsp)))
+
+  :hook
+  (caml . caml/lsp)
+  (caml . ocaml/merlin))
 #+END_SRC
 
 **** Tuareg
@@ -11467,6 +11459,40 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
     (tuareg-mode . ocaml/merlin))
 #+END_SRC
 
+**** Dune
+
+#+NAME: ocaml/dune
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package dune
+  :straight (dune
+             :host github
+             :type git
+             :repo "ocaml/dune"
+             :files ("editor-integration/emacs/dune"
+                     "editor-integration/emacs/dune.el"
+                     "editor-integration/emacs/dune-flymake.el"))
+  :mode
+  ("dune\\'" . dune-mode)
+  ("dune-project\\'" . dune-mode)
+
+  :ensure-system-package
+  (dune . "opam install dune")
+
+  :init
+
+  (require 'dune)
+
+  (with-eval-after-load 'projectile
+    (projectile-register-project-type 'dune
+                                      '("dune-project")
+                                      :compile "dune build"
+                                      :test "dune runtest"
+                                      :run "dune exec"))
+
+  :hook
+  (dune-mode . enable-paredit-mode))
+#+END_SRC
+
 **** Reason Mode
 
 #+NAME: ocaml/reason
@@ -11479,22 +11505,6 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
   :hook
   (reason . reason/lsp)
   (reason . ocaml/merlin))
-#+END_SRC
-
-**** Caml mode
-
-#+NAME: ocaml/caml
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package caml
-  :init
-
-  (defun caml/lsp ()
-    (when (functionp 'ocaml/setup-lsp)
-      (ocaml/setup-lsp)))
-
-  :hook
-  (caml . caml/lsp)
-  (caml . ocaml/merlin))
 #+END_SRC
 
 **** Lsp Ocaml
@@ -11518,6 +11528,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
   (require 'lsp-mode)
   (require 'lsp-ocaml)
   (lsp-ocaml-enable))
+
 #+END_SRC
 
 *** Scala
@@ -11969,10 +11980,10 @@ and slim-mode using company.
 #+END_SRC
 
 * Misc
-** Scimax
+** Scimax :disabled:
 
 #+NAME: research/scimax
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package scimax
   :straight nil
   :if (file-directory-p (emacs-etc-dir "local" "scimax"))
@@ -11989,337 +12000,6 @@ and slim-mode using company.
   (require 'scimax-link-thumbnails)
   (require 'ore)
   (require 'ox-word))
-
-(defun scimax-align-result-table ()
-  "Align tables in the subtree."
-  (save-restriction
-    (save-excursion
-      (unless (org-before-first-heading-p) (org-narrow-to-subtree))
-      (org-element-map (org-element-parse-buffer) 'table
-        (lambda (tbl)
-          (goto-char (org-element-property :post-affiliated tbl))
-          (org-table-align))))))
-
-(add-hook 'org-babel-after-execute-hook
-          'scimax-align-result-table)
-
-(defun org-latex-math-region-or-point (&optional arg)
-  "Wrap the selected region in latex math markup.
-\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
-Or insert those and put point in the middle to add an equation."
-  (interactive "P")
-  (let ((chars
-	 (cond
-	  ((null arg)
-	   '("\\(" . "\\)"))
-	  ((equal arg '(4))
-	   '("$" . "$"))
-	  ((equal arg '(16))
-	   '("@@latex:" . "@@")))))
-    (if (region-active-p)
-	(progn
-	  (goto-char (region-end))
-	  (insert (cdr chars))
-	  (goto-char (region-beginning))
-	  (insert (car chars)))
-      (insert (concat  (car chars) (cdr chars)))
-      (backward-char (length (cdr chars))))))
-
-(if (fboundp 'org-link-set-parameters)
-    (org-link-set-parameters
-     "attachfile"
-     :follow (lambda (link-string) (org-open-file link-string))
-     :export (lambda (keyword desc format)
-	       (cond
-		((eq format 'html) (format ""))	; no output for html
-		((eq format 'latex)
-		 ;; write out the latex command
-		 (format "\\attachfile{%s}" keyword)))))
-
-  (org-add-link-type
-   "attachfile"
-   (lambda (link-string) (org-open-file link-string))
-   ;; formatting
-   (lambda (keyword desc format)
-     (cond
-      ((eq format 'html) (format ""))	; no output for html
-      ((eq format 'latex)
-       ;; write out the latex command
-       (format "\\attachfile{%s}" keyword))))))
-
-;; ivy navigation
-(defun ivy-org-jump-to-visible-headline ()
-  "Jump to visible headline in the buffer."
-  (interactive)
-  (org-mark-ring-push)
-  (avy-with avy-goto-line (avy--generic-jump "^\\*+" nil avy-style)))
-
-
-(defun ivy-jump-to-visible-sentence ()
-  "Jump to visible sentence in the buffer."
-  (interactive)
-  (org-mark-ring-push)
-  (avy-with avy-goto-line (avy--generic-jump (sentence-end) nil avy-style))
-  (forward-sentence))
-
-
-(defun ivy-org-jump-to-heading ()
-  "Jump to heading in the current buffer."
-  (interactive)
-  (let ((headlines '()))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward
-	      ;; this matches org headings in elisp too.
-	      "^\\(;; \\)?\\(\\*+\\)\\(?: +\\(.*?\\)\\)?[ 	]*$"  nil t)
-	(cl-pushnew (list
-		     (format "%-80s"
-			     (match-string 0))
-		     (cons 'position (match-beginning 0)))
-		    headlines)))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(goto-char (cdr (assoc 'position candidate)))
-			(outline-show-entry)))))
-
-
-(defun ivy-org-jump-to-agenda-heading ()
-  "Jump to a heading in an agenda file."
-  (interactive)
-  (let ((headlines '()))
-    ;; these files should be open already since they are agenda files.
-    (loop for file in (org-agenda-files) do
-	  (with-current-buffer (find-file-noselect file)
-	    (save-excursion
-	      (goto-char (point-min))
-	      (while (re-search-forward org-heading-regexp nil t)
-		(cl-pushnew (list
-			     (format "%-80s (%s)"
-				     (match-string 0)
-				     (file-name-nondirectory file))
-			     :file file
-			     :position (match-beginning 0))
-			    headlines)))))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(find-file (plist-get (cdr candidate) :file))
-			(goto-char (plist-get (cdr candidate) :position))
-			(outline-show-entry)))))
-
-
-(defun ivy-org-jump-to-heading-in-files (files &optional fontify)
-  "Jump to org heading in FILES.
-Optional FONTIFY colors the headlines. It might slow things down
-a lot with large numbers of org-files or long org-files. This
-function does not open the files."
-  (let ((headlines '()))
-    (loop for file in files do
-	  (with-temp-buffer
-	    (insert-file-contents file)
-	    (when fontify
-	      (org-mode)
-	      (font-lock-fontify-buffer))
-	    (goto-char (point-min))
-	    (while (re-search-forward org-heading-regexp nil t)
-	      (cl-pushnew (list
-			   (format "%-80s (%s)"
-				   (match-string 0)
-				   (file-name-nondirectory file))
-			   :file file
-			   :position (match-beginning 0))
-			  headlines))))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(find-file (plist-get (cdr candidate) :file))
-			(goto-char (plist-get (cdr candidate) :position))
-			(outline-show-entry)))))
-
-
-(defun ivy-org-jump-to-heading-in-directory (&optional recursive)
-  "Jump to heading in an org file in the current directory.
-Use a prefix arg to make it RECURSIVE.
-Use a double prefix to make it recursive and fontified."
-  (interactive "P")
-  (let ((fontify nil))
-    (when (equal recursive '(16))
-      (setq fontify t))
-    (ivy-org-jump-to-heading-in-files
-     (f-entries "."
-		(lambda (f)
-		  (and
-		   (f-ext? f "org")
-		   (not (s-contains? "#" f))))
-		recursive)
-     fontify)))
-
-
-(defun ivy-org-jump-to-project-headline (&optional fontify)
-  "Jump to a headline in an org-file in the current project.
-The project is defined by projectile. Use a prefix arg FONTIFY
-for colored headlines."
-  (interactive "P")
-  (ivy-org-jump-to-heading-in-files
-   (mapcar
-    (lambda (f) (expand-file-name f (projectile-project-root)))
-    (-filter (lambda (f)
-	       (and
-		(f-ext? f "org")
-		(not (s-contains? "#" f))))
-	     (projectile-current-project-files)))
-   fontify))
-
-
-(defun ivy-org-jump-to-open-headline (&optional fontify)
-  "Jump to a headline in an open org-file.
-Use a prefix arg FONTIFY for colored headlines."
-  (interactive "P")
-  (ivy-org-jump-to-heading-in-files
-   (mapcar 'buffer-file-name
-	   (-filter (lambda (b)
-		      (-when-let (f (buffer-file-name b))
-			(f-ext? f "org")))
-		    (buffer-list)))
-   fontify))
-
-
-
-(defvar org-inline-image-resize-function
-  #'org-inline-image-resize
-  "Function that takes a filename and resize argument and returns
- a new filename pointing to the resized image.")
-
-
-(defun org-display-inline-images (&optional include-linked refresh beg end)
-  "Display inline images.
-
-An inline image is a link which follows either of these
-conventions:
-
-  1. Its path is a file with an extension matching return value
-     from `image-file-name-regexp' and it has no contents.
-
-  2. Its description consists in a single link of the previous
-     type.
-
-When optional argument INCLUDE-LINKED is non-nil, also links with
-a text description part will be inlined.  This can be nice for
-a quick look at those images, but it does not reflect what
-exported files will look like.
-
-When optional argument REFRESH is non-nil, refresh existing
-images between BEG and END.  This will create new image displays
-only if necessary.  BEG and END default to the buffer
-boundaries."
-  (interactive "P")
-  (when (display-graphic-p)
-    (unless refresh
-      (org-remove-inline-images)
-      (when (fboundp 'clear-image-cache) (clear-image-cache)))
-    (org-with-wide-buffer
-     (goto-char (or beg (point-min)))
-     (let ((case-fold-search t)
-	   (file-extension-re (image-file-name-regexp)))
-       (while (re-search-forward "[][]\\[\\(?:file\\|[./~]\\)" end t)
-	 (let ((link (save-match-data (org-element-context))))
-	   ;; Check if we're at an inline image.
-	   (when (and (equal (org-element-property :type link) "file")
-		      (or include-linked
-			  (not (org-element-property :contents-begin link)))
-		      (let ((parent (org-element-property :parent link)))
-			(or (not (eq (org-element-type parent) 'link))
-			    (not (cdr (org-element-contents parent)))))
-		      (org-string-match-p file-extension-re
-					  (org-element-property :path link)))
-	     (let ((file (expand-file-name
-			  (org-link-unescape
-			   (org-element-property :path link)))))
-	       (when (file-exists-p file)
-		 (let ((width
-			;; Apply `org-image-actual-width' specifications.
-			(cond
-			 ((and (not (image-type-available-p 'imagemagick))
-			       (not org-inline-image-resize-function))
-			  nil)
-			 ((eq org-image-actual-width t) nil)
-			 ((listp org-image-actual-width)
-			  (or
-			   ;; First try to find a width among
-			   ;; attributes associated to the paragraph
-			   ;; containing link.
-			   (let* ((paragraph
-				   (let ((e link))
-				     (while (and (setq e (org-element-property
-							  :parent e))
-						 (not (eq (org-element-type e)
-							  'paragraph))))
-				     e))
-				  (attr_org (org-element-property :attr_org paragraph)))
-			     (when attr_org
-			       (plist-get
-				(org-export-read-attribute :attr_org  paragraph) :width)))
-			   ;; Otherwise, fall-back to provided number.
-			   (car org-image-actual-width)))
-			 ((numberp org-image-actual-width)
-			  org-image-actual-width)))
-		       (old (get-char-property-and-overlay
-			     (org-element-property :begin link)
-			     'org-image-overlay)))
-		   (if (and (car-safe old) refresh)
-		       (image-refresh (overlay-get (cdr old) 'display))
-
-		     (when (and width org-inline-image-resize-function)
-		       (setq file (funcall  org-inline-image-resize-function file width)
-			     width nil))
-		     (let ((image (create-image file
-						(cond
-						 ((image-type-available-p 'imagemagick)
-						  (and width 'imagemagick))
-						 (t nil))
-						nil
-						:width width)))
-		       (when image
-			 (let* ((link
-				 ;; If inline image is the description
-				 ;; of another link, be sure to
-				 ;; consider the latter as the one to
-				 ;; apply the overlay on.
-				 (let ((parent
-					(org-element-property :parent link)))
-				   (if (eq (org-element-type parent) 'link)
-				       parent
-				     link)))
-				(ov (make-overlay
-				     (org-element-property :begin link)
-				     (progn
-				       (goto-char
-					(org-element-property :end link))
-				       (skip-chars-backward " \t")
-				       (point)))))
-			   (overlay-put ov 'display image)
-			   (overlay-put ov 'face 'default)
-			   (overlay-put ov 'org-image-overlay t)
-			   (overlay-put
-			    ov 'modification-hooks
-			    (list 'org-display-inline-remove-overlay))
-			   (push ov org-inline-image-overlays)))))))))))))))
-
-
-;; * Enable pdf and eps images in org-mode
-;; Suggested on the org-mode maillist by Julian Burgos
-(add-to-list 'image-file-name-extensions "pdf")
-(add-to-list 'image-file-name-extensions "eps")
-
-(add-to-list 'image-type-file-name-regexps '("\\.eps\\'" . imagemagick))
-(add-to-list 'image-file-name-extensions "eps")
-(add-to-list 'image-type-file-name-regexps '("\\.pdf\\'" . imagemagick))
-(add-to-list 'image-file-name-extensions "pdf")
-(setq imagemagick-types-inhibit (remove 'PDF imagemagick-types-inhibit))
 #+END_SRC
 
 ** Alfred Org Capture
@@ -12330,11 +12010,11 @@ boundaries."
               "local/alfred-org-capture/alfred-org-capture.el")))
 #+END_SRC
 
-** ESS
+** ESS :disabled:
 
 #+NAME: research/ess
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package ess)
+#+BEGIN_SRC emacs-lisp :tangle no
+  ;; (use-package ess)
 #+END_SRC
 
 * Prologue
