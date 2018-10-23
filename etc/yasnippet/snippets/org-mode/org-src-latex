@@ -1,9 +1,0 @@
-# -*- mode: org-mode -*-
-# name: org-src-latex
-# key: <l
-# --
-
-#+BEGIN_LATEX latex
-$1
-#+END_LATEX
-

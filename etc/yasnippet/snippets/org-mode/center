@@ -1,7 +1,0 @@
-# -*- mode: org -*-
-# name: center
-# key: <c
-# --
-#+BEGIN_CENTER
-$1
-#+END_CENTER

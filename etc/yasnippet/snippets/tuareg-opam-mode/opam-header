@@ -1,4 +1,4 @@
-# -*- mode: tuareg-opam-mode -*-
+# -*- mode: snippet -*-
 # name: opam-header
 # key: <o
 # --
@@ -13,6 +13,7 @@ build: [
   ["dune" "subst"] {pinned}
   ["dune" "build" "-p" name "-j" jobs]
 ]
-build-test: [[["dune" "runtest" "-p" name "-j" jobs]]]
+build-test: [
+  ["dune" "runtest" "-p" name "-j" jobs]
+]
 $2
-# -

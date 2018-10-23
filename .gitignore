@@ -1,7 +1,12 @@
 var/**
 straight/**
 !/straight/versions
+# Cache
 .yas-compiled-snippets.el
+company-statistics-cache.el
+# Local Packages
 /etc/local
+# Auto generated
 opam-user-setup.el
+# Tangled file
 halidom.el
