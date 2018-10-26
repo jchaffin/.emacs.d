@@ -171,6 +171,7 @@
     - [[#pretty-mode][Pretty Mode]]
     - [[#prettify-utilities][Prettify Utilities]]
     - [[#modern-emacs][Modern Emacs]]
+    - [[#pretty-eshell][Pretty Eshell]]
 - [[#completion][Completion]]
   - [[#company][Company]]
     - [[#company-quick-help][Company Quick Help]]
@@ -6644,85 +6645,16 @@ the absence of a window system. I'll check for the latter for now.
 #+END_SRC
 
 *** Modern Emacs
+*** Pretty Eshell
 
 From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs display layer]].[fn:19]
-
-#+NAME: pretty/ekaschalk
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
-;; Straight Recipe
-<<ekaschalk/recipe>>
-;; Pretty Eshell
-<<ekaschalk/eshell>>
-#+END_SRC
-
-**** Pretty recipe
-
-#+NAME: ekaschalk/recipe
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package pretty-macros
-  :straight (pretty-macros
-             :repo "ekaschalk/.spacemacs.d"
-             :host github
-             :type git
-             :files ("layers/macros/local/macros/macros.el"))
-  :init
-  (require 'macros))
-
-#+END_SRC
-
-**** Pretty Fonts
-
-#+NAME: ekaschalk/fonts
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package pretty-fonts
-    :straight (pretty-fonts
-               :repo "ekaschalk/.spacemacs.d"
-               :host github
-               :type git
-               :files ("layers/display/local/pretty-fonts/pretty-fonts.el"))
-
-    :config
-    (setq pretty-fonts-hy-font '(("\\(self\\)" ?⊙)))
-    (pretty-fonts-set-kwds
-     '(;; Fira Code Ligatures
-       (pretty-fonts-fira-font prog-mode-hook org-mode-hook)
-
-       ;; Other ligatures that are easier to define as simple
-       ;; regexes so as to avoid `prettify-symbols-compose-predicate'
-       (pretty-fonts-hy-font hy-mode-hook)))
-
-    (pretty-fonts-set-fontsets
-     '(
-       ;; All-the-icons fontsets
-       ("fontawesome"
-        ;;                         
-        #xf07c #xf0c9 #xf0c4 #xf0cb #xf017 #xf101)
-
-       ("all-the-icons"
-        ;;    
-        #xe907 #xe928)
-
-       ("github-octicons"
-        ;;                          
-        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016)
-
-       ("material icons"
-        ;;        
-        #xe871 #xe918 #xe3e7
-        ;;            
-        #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
-#+END_SRC
-
-**** Pretty Eshell
 
 #+NAME: ekaschalk/eshell
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-eshell
-  :straight (pretty-eshell
-             :repo "ekaschalk/.spacemacs.d"
-             :host github
-             :type git
-             :files ("layers/display/local/pretty-eshell/pretty-eshell.el"))
+  :if (file-exists-p (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
+  :straight nil
+  :load-path "etc/local/pretty-eshell/pretty-eshell.el"
   :custom-face
   (eshell-prompt ((t (:foreground "gray83"))))
   :custom
@@ -7638,7 +7570,7 @@ x
 #+NAME: browser-xwidget
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes
 <<xwidget-ns>>
-<<xwidget-xwid>>
+<<xwidget-xwidgete>>
 #+END_SRC
 
 **** nsxwidget
@@ -7703,7 +7635,7 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 
 **** xwidgete
 
-#+NAME: xwidget-xwid
+#+NAME: xwidget-xwidgete
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package xwidgete
   :after (xwidget))
@@ -8245,7 +8177,7 @@ checking for natural language.
   :demand t
   :config
   (progn
-    (setq langtool-language-tool-jar "/usr/local/Cellar/languagetool/4.1/libexec/languagetool-commandline.jar"
+    (setq langtool-language-tool-jar "/usr/local/opt/languagetool/libexec/languagetool-commandline.jar"
           langtool-mother-tongue "en"
           langtool-disabled-rules '("WHITESPACE_RULE"))))
 #+END_SRC
@@ -8254,8 +8186,7 @@ checking for natural language.
 
 #+NAME: sc-academic
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package academic-phrases
-  :straight t)
+(use-package academic-phrases)
 #+END_SRC
 
 *** Proselint
