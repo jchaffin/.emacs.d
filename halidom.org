@@ -147,7 +147,7 @@
     - [[#font-variables][Font variables]]
     - [[#set-font-interactively][Set font interactively]]
     - [[#set-the-default-font][Set the default font]]
-    - [[#unicode-fonts][Unicode Fonts]]
+    - [[#unicode][Unicode]]
   - [[#icons][Icons]]
     - [[#vs-code-icons][VS Code Icons]]
     - [[#all-the-icons][All the icons]]
@@ -169,7 +169,6 @@
   - [[#pretty][Pretty]]
     - [[#prettify-symbols][Prettify Symbols]]
     - [[#pretty-mode][Pretty Mode]]
-    - [[#outshine][Outshine]]
     - [[#prettify-utilities][Prettify Utilities]]
     - [[#modern-emacs][Modern Emacs]]
 - [[#completion][Completion]]
@@ -338,7 +337,7 @@ compiler.
 - [[http://aaronbedra.com/emacs.d/][Aaron Bedra's Emacs Configuration]]
 - [[https://github.com/Wasamasa/dotemacs/blob/master/init.org][wasamasa/dotemacs]]
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
-
+  
 * Base Configuration
 ** Tangle File
 :PROPERTIES:
@@ -622,13 +621,6 @@ The string manipulation library.
 #+NAME: libs/a
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package a)
-#+END_SRC
-
-**** evil
-
-#+NAME: libs/evil
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package evil)
 #+END_SRC
 
 *** El Patch
@@ -1809,6 +1801,7 @@ editors and various other applications on macOS.
 #+NAME: macos-dev-utils
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package macos-dev-utils
+  :if *is-mac*
   :straight
   (macos-dev-utils
    :host github
@@ -1817,10 +1810,14 @@ editors and various other applications on macOS.
   :commands (macos-iterm-command-map macos-open-with-command-map)
   :init
   (require 'macos-dev-utils)
+
   (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
   (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)
-  (which-key-add-prefix-title "M-m m t" "")
-  (which-key-add-prefix-title "M-m m o" ""))
+
+  
+  (which-key-add-key-based-replacements "M-m m t" '("iTerm" . "iTerm"))
+
+  (which-key-add-key-based-replacements "M-m m o" '("Open With" . "Open With")))
 
 #+END_SRC
 
@@ -3597,7 +3594,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (org-projectile-per-project)
 
     (add-to-list 'org-capture-templates
-                 (org-projectile-project-todo-entry
+                 (org-projectile-capture-for-current-project
                   :capture-character "p"
                   :capture-heading "Linked Project TODO")))
 
@@ -4708,7 +4705,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
   :config
 
   ;; Which Key integration
-  (which-key-add-prefix-title "C-c p" "")
+  (which-key-add-key-based-replacements "C-c p" " Projectile")
 
   (push '((nil . "projectile-\\(.+\\)") . (nil . "\\1"))
         which-key-replacement-alist)
@@ -6228,12 +6225,12 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+END_SRC
 
-*** Unicode Fonts
+*** Unicode
 
 #+NAME: fonts/unicode
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Unicode Fonts
-;; <<unicode/fonts>>
+<<unicode/fonts>>
 ;; Emojis
 <<unicode/emojis>>
 #+END_SRC
@@ -6261,7 +6258,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 ***** Symbol Font
 
-
 #+NAME: emoji/symbol-font
 #+BEGIN_SRC emacs-lisp :tangle no
   (cond
@@ -6277,21 +6273,11 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+END_SRC
 
-
 ***** Unicode Emoticons
 
 #+NAME: emoji/unicode-emoticons
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package unicode-emoticons)
-#+END_SRC
-
-***** Emojify Mode :disabled:
-
-This mode actually degrades the quality of emoticons on macOS.
-
-#+NAME: emoji/emojify
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package emojify)
 #+END_SRC
 
 ***** Company Emoji
@@ -6337,7 +6323,6 @@ This mode actually degrades the quality of emoticons on macOS.
 <<icons/dired>>
 ;; All the icons ivy
 <<icons/ivy>>
-
 ;; End icons Group
 #+END_SRC
 
@@ -6358,16 +6343,7 @@ This mode actually degrades the quality of emoticons on macOS.
 
 #+NAME: icons/all-the-icons
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package all-the-icons
-  :straight
-  (all-the-icons
-   :type git
-   :files (:defaults "data")
-   :host github
-   :repo "domtronn/all-the-icons.el"
-   :fork (:host github
-          :repo  "ubolonton/all-the-icons.el"
-          :branch "font-lock-fix")))
+(use-package all-the-icons)
 #+END_SRC
 
 *** Dired Icons
@@ -6536,7 +6512,6 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 #+END_SRC
 
-
 *** Set the modeline format
 
 #+NAME: ml/setup
@@ -6627,8 +6602,6 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 <<pretty/symbols>>
 ;; Pretty Mode
 <<pretty/mode>>
-;; Outshine
-<<pretty/outshine>>
 ;; pretty utils
 <<pretty/utils>>
 ;; Ekaschalk Display Layer
@@ -6657,17 +6630,6 @@ the absence of a window system. I'll check for the latter for now.
   (LaTeX-mode . turn-on-pretty-mode))
 #+END_SRC
 
-*** Outshine
-
-#+NAME: pretty/outshine
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package outshine
-  :init (require 'outshine)
-  :hook
-  (outshine-minor-mode . outshine-hook-function)
-  ((message-mode clojure-mode LaTeX-mode emacs-lisp-mode) . outline-minor-mode))
-#+END_SRC
-
 *** Prettify Utilities
 
 #+NAME: pretty/utils
@@ -6689,8 +6651,6 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 #+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
 ;; Straight Recipe
 <<ekaschalk/recipe>>
-;; Pretty Fonts
-<<ekaschalk/fonts>>
 ;; Pretty Eshell
 <<ekaschalk/eshell>>
 #+END_SRC
@@ -6753,49 +6713,6 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
         #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
 #+END_SRC
 
-**** Pretty Outlines :disabled:
-
-#+NAME: ekaschalk/outlines
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package pretty-outlines
-    :straight
-    (pretty-outlines
-     :repo "ekaschalk/.spacemacs.d"
-     :host github
-     :type git
-     :files ("layers/display/local/pretty-outlines/pretty-outlines.el"))
-    :after outshine
-    :demand t
-    :custom
-    (pretty-outlines-ellipsis "   ")
-    (pretty-outlines-bullets-bullet-list '("" "" "" ""))
-    :hook
-    ;; ((emacs-lisp hy-mode python-mode)
-    ;;  . pretty-outlines-add-bullets)
-    ;; ((outline-mode outline-minor-mode)
-    ;;  . pretty-outlines-set-display-table)
-    )
-
-#+END_SRC
-
-**** Outline Ivy :disabled:
-
-#+NAME: ekaschalk/ivy
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package outline-ivy
-  :after (:all ivy outshine)
-  :demand t
-  :straight
-  (outline-ivy
-     :repo "ekaschalk/.spacemacs.d"
-     :host github
-     :type git
-     :files ("layers/personal/local/outline-ivy/outline-ivy.el"))
-  :init
-  (global-set-key (kbd "C-j") 'oi-jump))
-
-#+END_SRC
-
 **** Pretty Eshell
 
 #+NAME: ekaschalk/eshell
@@ -6853,67 +6770,6 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 
     (setq pretty-eshell-funcs
           (list esh-dir esh-git esh-python esh-clock esh-num))))
-#+END_SRC
-
-**** Pretty Magit :disabled:
-
-#+NAME: ekaschalk/magit
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package pretty-magit
-    :straight (pretty-magit
-               :repo "ekaschalk/.spacemacs.d"
-               :host github
-               :type git
-               :files ("layers/display/local/pretty-magit/pretty-magit.el"))
-    :after (:all magit ivy)
-    :config
-    (pretty-magit-add-leader
-     "Feature"
-     ?
-     (:foreground "slate gray" :height 1.2))
-
-     (pretty-magit-add-leader
-      "Add"
-      ?
-      (:foreground "#375E97" :height 1.2))
-
-     (pretty-magit-add-leader
-      "Fix"
-      ?
-      (:foreground "#FB6542" :height 1.2))
-
-     (pretty-magit-add-leader
-      "Clean"
-      ?
-      (:foreground "#FFBB00" :height 1.2))
-
-     (pretty-magit-add-leader
-      "Docs"
-      ?
-      (:foreground "#3F681C" :height 1.2)))
-
-#+END_SRC
-
-**** Pretty Code :disabled:
-
-#+NAME: ekaschalk/code
-#+BEGIN_SRC emacs-lisp :tangle no
-
-(use-package pretty-code
-  :straight (pretty-code
-             :repo "ekaschalk/.spacemacs.d"
-             :host github
-             :type git
-             :files ("layers/display/local/pretty-code/pretty-code.el"))
-  :after prettify-utils
-  :config
-  (pretty-code-set-pairs
-             `((hy-mode-hook
-                ,(pretty-code-get-pairs '(:lambda "fn" :def "defn")))
-               (python-mode-hook
-                ,(pretty-code-get-pairs '(:lambda "lambda" :def "def")))
-               (emacs-lisp-mode-hook
-                ,(pretty-code-get-pairs '(:def "defun"))))))
 #+END_SRC
 
 * Completion
@@ -7130,8 +6986,6 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
   ;; Ivy
   <<ivy/spec>>
-  ;; Ivy Prescient
-  <<ivy/prescient>>
   ;; Ivy Xref
   <<ivy/xref>>
   ;; Ivy Todo
@@ -7356,9 +7210,9 @@ friends.
      (define-key map "n" '("Next" . counsel-itunes-next-track))
      (define-key map "b" '("Previous" . counsel-itunes-previous-track))
      (define-key map "s" '("Shuffle" . counsel-itunes-shuffle)))
-
-   (define-key 'macos-prefix-map (kbd "i") 'counsel-itunes-prefix-map)
-   (which-key-add-prefix-title "M-m m i" "iTunes"))
+   
+  (define-key 'macos-prefix-map (kbd "i") 'counsel-itunes-prefix-map)
+  (which-key-add-prefix-title "M-m m i" "iTunes"))
 
 #+END_SRC
 
@@ -7968,8 +7822,7 @@ Interactively.
     (setq browse-url-browser-function browser-function)))
 (define-key 'web-browse-prefix-map "B" 'set-browser-function)
 
-(which-key-add-key-based-replacements "M-m w B"
-    '("Default Browser" . "Set the default web browser"))
+  (which-key-add-key-based-replacements "M-m w B" '( "Configure" . "Set the default browser" ))
 
 (cl-defun make-browser-function (browser)
   `(defun ,(intern (concat "set-browser-function-" browser)) ()
@@ -7993,140 +7846,122 @@ Interactively.
 
 (define-key 'web-browse-prefix-map "b" 'web-browse-browser-prefix-map)
 
-(which-key-add-prefix-title "M-m w b" "Configure")
+
 #+END_SRC
 
 *** Engine Mode
 
 #+NAME: browser-engine
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package engine-mode
-    :init
-    (engine-mode t)
+(use-package engine-mode
+  :init
+  (engine-mode t)
 
-    (defun engine-add-which-key-replacement (engine prefix &optional keybinding)
-      (let* ((keyseq (concat prefix " " keybinding))
-       (engine-string (upcase-initials (symbol-name engine)))
-       (replacement (list engine-string
-        (concat "Search " engine-string))))
-  (which-key-add-key-based-replacements keyseq engine-string)))
+  :config
 
-    (cl-defun engine-key-replacement (orig-function &rest args)
-      (let ((keybinding (plist-get (cddr args) :keybinding))
-      (engine (car args))
-      (prefix "M-m w e"))
-        (engine-add-which-key-replacement engine prefix keybinding)
-        (apply orig-function args)))
+  (setq halidom-web-engine-prefix "M-m w e")
 
-    (with-eval-after-load 'engine-mode
-      (advice-add 'defengine :around #'engine-key-replacement))
+  (when engine/keybinding-prefix
+    (define-key engine-mode-map (kbd "C-x /") nil)
+    (define-key 'web-browse-prefix-map "e" engine-mode-prefixed-map))
 
+  (defengine cassi
+    "http://cassi.cas.org/search.jsp")
 
-    :config
+  (defengine ctan
+    "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
+    :keybinding "c"
+    :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
 
-    (setq halidom-web-engine-prefix "M-m w e")
+  (defengine github
+    "https://github.com/search?ref=simplesearch&q=%s"
+    :keybinding "h"
+    :docstring "Search Github")
 
-    (when engine/keybinding-prefix
-      (define-key engine-mode-map (kbd "C-x /") nil)
-      (define-key 'web-browse-prefix-map "e" engine-mode-prefixed-map))
+  (defengine google
+    "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+    :keybinding "g"
+    :docstring "Search Google")
 
-    (defengine cassi
-      "http://cassi.cas.org/search.jsp")
+  (defengine google-bookmarks
+    "chrome://bookmarks/?q=%s"
+    :keybinding "Gb"
+    :docstring "Search bookmarks in Google Chrome")
 
-    (defengine ctan
-      "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
-      :keybinding "c"
-      :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
+  (defengine google-images
+    "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
+    :keybinding "Gi"
+    :docstring "Search google-images")
 
-    (defengine github
-      "https://github.com/search?ref=simplesearch&q=%s"
-      :keybinding "h"
-      :docstring "Search Github")
+  (defengine google-maps
+    "http://maps.google.com/maps?q=%s"
+    :keybinding "Gm"
+    :docstring "Mappin' it up.")
 
-    (defengine google
-      "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
-      :keybinding "g"
-      :docstring "Search Google")
+  (defengine google-schoolar
+    "http://scholar.google.com/scholar?q=%s"
+    :keybinding "Gs"
+    :docstring "Schoolin'it up.")
 
-    (defengine google-bookmarks
-       "chrome://bookmarks/?q=%s"
-      :keybinding "Gb"
-      :docstring "Search bookmarks in Google Chrome")
+  (defengine project-gutenberg
+    "http://www.gutenberg.org/ebooks/search/?query=%s"
+    :docstring "Read good")
 
-    (defengine google-images
-        "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-      :keybinding "Gi"
-      :docstring "Search google-images")
+  (defengine proquest
+    "https://search.proquest.com"
+    :keybinding "p"
+    :docstring "Search Proquest")
 
-    (defengine google-maps
-      "http://maps.google.com/maps?q=%s"
-      :keybinding "Gm"
-      :docstring "Mappin' it up.")
+  (defengine rfcs
+    "http://pretty-rfc.herokuapp.com/search?q=%s")
 
-    (defengine google-schoolar
-      "http://scholar.google.com/scholar?q=%s"
-      :keybinding "Gs"
-      :docstring "Schoolin'it up.")
+  (defengine stack-overflow
+    "https://stackoverflow.com/search?q=%s"
+    :keybinding "s"
+    :docstring "Search StackOverflow.")
 
-    (defengine project-gutenberg
-      "http://www.gutenberg.org/ebooks/search/?query=%s"
-      :docstring "Read good")
+  (defengine twitter
+    "https://twitter.com/search?q=%s")
 
-    (defengine proquest
-       "https://search.proquest.com"
-      :keybinding "p"
-      :docstring "Search Proquest")
+  (defengine wikipedia
+    "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+    :keybinding "w"
+    :docstring "Search wikipedia.")
 
-    (defengine rfcs
-      "http://pretty-rfc.herokuapp.com/search?q=%s")
+  (defengine wiktionary
+    "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
 
-    (defengine stack-overflow
-      "https://stackoverflow.com/search?q=%s"
-      :keybinding "s"
-      :docstring "Search StackOverflow.")
+  (defengine wolfram-alpha
+    "http://www.wolframalpha.com/input/?i=%s"
+    :keybinding "a"
+    :docstring "Search Wolfram Alfa")
 
-    (defengine twitter
-      "https://twitter.com/search?q=%s")
+  (defengine worldcat
+    "https://ucla.worldcat.org/search?q=%s"
+    :keybinding "W"
+    :docstring "Search Worldcat"
+    :browser 'osx-browse-url-chrome)
 
-    (defengine wikipedia
-      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
-      :keybinding "w"
-      :docstring "Search wikipedia.")
+  (defengine youtube
+    "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
+    :keybinding "y"
+    :docstring "Search Youtube")
 
-    (defengine wiktionary
-      "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
+  :config
 
-    (defengine wolfram-alpha
-      "http://www.wolframalpha.com/input/?i=%s"
-      :keybinding "a"
-      :docstring "Search Wolfram Alfa")
-
-    (defengine worldcat
-      "https://ucla.worldcat.org/search?q=%s"
-      :keybinding "W"
-      :docstring "Search Worldcat"
-      :browser 'osx-browse-url-chrome)
-
-    (defengine youtube
-      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
-  :keybinding "y"
-  :docstring "Search Youtube")
-
-
-   (cl-flet* ((ks (&rest k)
-                  (let ((p halidom-web-engine-prefix))
-                    (if k (join (push p k) " ") p)))
-              (wkr (rep &rest k)
-                   (let ((kk (apply #'ks k)))
-                     (which-key-add-key-based-replacements kk rep))))
-     (wkr "Search Engine")
-     (wkr "Google+" "G")
-     (wkr "Google Images" "G" "i")
-     (wkr "Google Bookmarks" "G" "b")
-     (wkr "Google Maps" "G" "m")
-     (wkr "Google Scholar" "G" "s")))
-
-
+  (when *is-mac*
+    (cl-flet* ((ks (&rest k)
+                   (let ((p halidom-web-engine-prefix))
+                     (if k (join (push p k) " ") p)))
+               (wkr (rep &rest k)
+                    (let ((kk (apply #'ks k)))
+                      (which-key-add-key-based-replacements kk rep))))
+      (wkr "Search Engine")
+      (wkr " Google" "G")
+      (wkr " Images" "G" "i")
+      (wkr " Bookmarks" "G" "b")
+      (wkr " Maps" "G" "m")
+      (wkr " Scholar" "G" "s"))))
 #+END_SRC
 
 ** Email

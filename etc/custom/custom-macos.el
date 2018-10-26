@@ -15,15 +15,6 @@
  '(aw-keys '(97 115 100 102 103 104 106 107 108) t)
  '(browse-url-chromium-program "/Applications/Chromium.app/Contents/MacOS/Chromium")
  '(cdlatex-insert-auto-labels-in-env-templates t)
- '(cfw:display-calendar-holidays nil)
- '(cfw:fchar-horizontal-line 9552)
- '(cfw:fchar-junction 9580)
- '(cfw:fchar-left-junction 9568)
- '(cfw:fchar-right-junction 9571)
- '(cfw:fchar-top-junction 9574)
- '(cfw:fchar-top-left-corner 9556)
- '(cfw:fchar-top-right-corner 9559)
- '(cfw:fchar-vertical-line 9553)
  '(cfw:org-capture-template
    '("c" "calfw2org" entry
      (file "agenda/schedule.org")
@@ -50,7 +41,8 @@
      :cacheFormat "msgpack" :completion
      (:detailedLabel t)) t)
  '(css-indent-offset nil t)
- '(default-input-method "latin-1-prefix")
+ '(describe-char-unidata-list
+   '(name old-name general-category decomposition numeric-value iso-10646-comment))
  '(diary-file "/Users/jacobchaffin/Dropbox/org/diary.org")
  '(dired-sidebar-should-follow-file nil t)
  '(dired-sidebar-theme 'none t)
@@ -66,7 +58,7 @@
  '(global-auto-revert-mode t)
  '(global-display-line-numbers-mode t)
  '(ivy-initial-inputs-alist nil t)
- '(ivy-re-builders-alist '((t . ivy-prescient-re-builder)) t)
+ '(ivy-re-builders-alist '((t . ivy--regex-plus)) t)
  '(ivy-sort-max-size 50000)
  '(ivy-todo-file "/Users/jacobchaffin/Dropbox/org/agenda/ivy-todo.org" t)
  '(ivy-use-selectable-prompt nil)
@@ -136,8 +128,6 @@
  '(pdf-annot-activate-created-annotations t t)
  '(pdf-view-display-size 'fit-page)
  '(pdf-view-resize-factor 1.1)
- '(pretty-outlines-bullets-bullet-list '("" "" "" "") t)
- '(pretty-outlines-ellipsis "   " t)
  '(projectile-completion-system 'ivy)
  '(projectile-enable-caching t)
  '(projectile-find-dir-includes-top-level t)
@@ -171,7 +161,8 @@
  '(wakatime-cli-path
    "/Users/jacobchaffin/.local/lib/python3.6/site-packages/wakatime/cli.py")
  '(wakatime-python-bin "/Users/jacobchaffin/.pyenv/shims/python")
-)
+ '(which-key-allow-multiple-replacements t)
+ '(which-key-enable-extended-define-key t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
