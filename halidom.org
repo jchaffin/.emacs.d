@@ -2339,7 +2339,7 @@ save.
     (set (make-local-variable 'org-preview-latex-process-alist)
          xelatex-preview-process-alist)
 
-    (when org-edit-latex-mode
+    (when (assoc 'latex org-babel-load-languages)
       (setq org-edit-latex-frag-master preview-file))
 
 
@@ -2408,7 +2408,7 @@ save.
     (set (make-local-variable 'org-preview-latex-process-alist)
          lualatex-preview-process-alist)
 
-    (when org-edit-latex-mode
+    (when (assoc 'latex org-babel-load-languages)
       (setq org-edit-latex-frag-master preview-file))
 
     (set (make-local-variable 'org-format-latex-header)
@@ -2438,6 +2438,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
       (when (string= latex-compiler "lualatex")
         (org-preview-lualatex))))
 
+(add-hook 'org-mode-hook 'org-preview-with-compiler)
 #+END_SRC
 
 *** Company Auctex
@@ -4476,8 +4477,7 @@ for exporting org-mode documents to various formats.
 
 #+NAME: org-latex-edit-latex
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-edit-latex
-  :straight t)
+(use-package org-edit-latex)
 #+END_SRC
 
 *** Highlight inline LaTeX fragments
@@ -6664,6 +6664,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
   (eshell-prompt-regexp "λ ")   ; or "└─> "
   :init
   (progn
+    (require 'pretty-eshell)
     (setq pretty-eshell-header "\n ")
     (setq pretty-eshell-prompt-string "λ ")
     ;; Directory

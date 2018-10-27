@@ -34,107 +34,25 @@
 
 \usepackage{adjustbox}
 \usepackage{tikz}
-\
-\usetikzlibrary{calc}
+\usetikzlibrary{positioning,shapes,fit,arrows.meta,calc}
 
-% https://tex.stackexchange.com/a/394431
-\newcommand\tikzmark[1]{\tikz[remember picture, baseline=(#1.base)] \node[anchor=base,inner sep=0pt, outer sep=0pt] (#1) {#1};}
 
-% https://tex.stackexchange.com/a/394431
-\newcommand\tmark[2]{\tikz[remember picture, baseline=(#1.base)] \node[anchor=base,inner sep=0pt, outer sep=0pt] (#1) {#2};}
+\newcommand{\sfeat}[1]{[\textbullet#1\textbullet]}
+\newcommand{\sfeatc}[1]{\sfeat{#1} \boldcheckmark}
+\newcommand{\sfeats}[1]{\sout{\sfeat{#1}}}
+\newcommand{\pfeat}[1]{$[$+#1+$]$}
+\newcommand{\pagree}[1]{$[\star\pi$: #1 $*]$}
+\newcommand{\nagree}[1]{$[\star\#$: #1 $*]$}
+\newcommand{\ppagree}[1]{$[\pi$: #1$]$}
+\newcommand{\nnagree}[1]{$[\#$: #1$]$}
+\newcommand{\pfeatc}[1]{\plusf{#1} $\boldcheckmark$}
+\newcommand{\tns}[1]{Tns$_{\text{#1}}$}
+\newcommand{\proj}[1]{$\overline{\text{#1}}$} % Deprecated
 
-% This code from http://tex.stackexchange.com/q/55068/2693
-\tikzset{
-  ncbar angle/.initial=90,
-  ncbar/.style={
-      to path=(\tikztostart)
-      -- ($(\tikztostart)!#1!\pgfkeysvalueof{/tikz/ncbar angle}:(\tikztotarget)$)
-      -- ($(\tikztotarget)!($(\tikztostart)!#1!\pgfkeysvalueof{/tikz/ncbar angle}:(\tikztotarget)$)!\pgfkeysvalueof{/tikz/ncbar angle}:(\tikztostart)$)
-      -- (\tikztotarget)
-  },
-  ncbar/.default=0.5cm,
-} 
 
-% Thanks to Paul Gessler adn Percusse for code improvement here
-\newcommand{\arrow}[2]{\begin{tikzpicture}[remember picture,overlay,semithick]
- \draw[->,shorten >=3pt,shorten <=3pt] (#1.base) to [ncbar=\arrowht] (#2.base);
- \end{tikzpicture}
- \setlength{\arrowht}{0ex}
+\newcommand*{\boldcheckmark}{%
+  \textpdfrender{
+    TextRenderingMode=FillStroke,
+    LineWidth=.5pt, % half of the line width is outside the normal glyph
+  }{\checkmark}%
 }
-
-\usepackage{gb4e}
-\noautomath
-\newlength{\arrowht}
-\setlength{\arrowht}{0ex}
-\newcommand*\cgdepthstrut{{\vrule height 0pt depth \arrowht width 0pt}}
-\renewcommand\eachwordone{\cgdepthstrut\rmfamily}
-\renewcommand\glt{\vskip -\topsep}
-\let\trans=\glt
-\newcommand\arrowex{\setlength{\arrowht}{2.5ex}\ex}
-
-\usepackage[linguistics]{forest}
-
-
-\forestset{
-  % Begin nice nodes
-  nice nodes/.style={
-    for tree={
-      inner sep=1 pt,
-      s sep=12pt,
-      fit=band
-    }
-  },
-  % Begin fairly nice empty nodes
-  fairly nice empty nodes/.style={
-    delay={
-      where content={}{
-        shape=coordinate,
-        for parent={
-          for children={anchor=north}
-        }
-      }
-    }
-  },
-  % Begin pretty nice empty nodes
-  pretty nice empty nodes/.style={
-    for tree={
-      calign=fixed edge angles,
-      parent anchor=children,
-      delay={
-        if content={}{
-          inner sep=0pt,
-          edge path={
-            \noexpand\path [\forestoption{edge}] (!u.parent anchor) --
-            (.children)\forestoption{edge label} ;
-          }
-        }{}
-      }
-    }
-  },
-  % Begin perfectly nice empty nodes
-  perfectly nice empty nodes/.style={
-    for tree={
-      calign=fixed edge angles,
-      parent anchor=south
-    },
-    before typesetting nodes={
-      where content={}{
-        text width=.001pt,
-        inner sep=0pt,
-        before drawing tree={
-          shape=coordinate,
-          typeset node
-        },
-        for parent={
-          for children={
-            anchor=north
-          }
-        }
-      }{}
-    }
-  },
-  default preamble={
-    nice nodes
-  }
-}
-
