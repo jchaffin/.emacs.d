@@ -1,5 +1,5 @@
 # -*- mode: org-mode -*-
 # name: latex-header
-# key: <lh
+# key: lh
 # --
 #+LaTeX_HEADER: $1

@@ -1,6 +1,6 @@
-# -*- mode: org -*-
+# -*- mode: snippet -*-
 # name: latex-export
-# key: <el
+# key: <le
 # --
 
 #+BEGIN_EXPORT latex

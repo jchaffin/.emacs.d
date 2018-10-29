@@ -1,5 +1,5 @@
-# -*- mode: org-mode -*-
-# name: attr-latex
-# key: <al
+# -*- mode: snippet -*-
+# name: latex attribute
+# key: al
 # --
-#+ATTR_LATEX: $1
+#+ATTR_LATEX: ${1::placement [H]} ${2::width 300}$0

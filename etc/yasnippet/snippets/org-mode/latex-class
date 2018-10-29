@@ -1,5 +1,9 @@
-# -*- mode: org-mode -*-
+# -*- mode: snippet -*-
+# contributor: John Kitchin <jkitchin@andrew.cmu.edu>
 # name: latex-class
-# key: <lc
+# key: lc
+# expand-env: ((classes (mapcar 'car org-latex-classes)))
 # --
-#+LATEX_CLASS: $1
+#+LATEX_CLASS: ${1:$$(yas-choose-value classes)}
+$0
+

@@ -1,5 +1,5 @@
-# -*- mode: org-mode -*-
-# name: name
+# -*- mode: snippet -*-
+# name: name tag
 # key: <n
 # --
 #+NAME: $1

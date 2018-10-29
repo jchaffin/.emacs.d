@@ -1,11 +1,11 @@
-# -*- mode: emacs-lisp -*-
+# -*- mode: snippet -*-
 # name: emacs-header
 # key: ;;;
 # --
 ;;; `(buffer-name)` -- ${1:PKG_DESCRIPTION}
 ;;
-;; Copyright (c) 2017 `(user-full-name)`
-;; Author `(user-full-name)`
+;; Copyright (c) 2018 `(user-full-name)`
+;; Author: `(user-full-name)`
 ;; Keywords: ${2: PKG_KEYWORDS}
 ;; Homepage: https://github.com/${3:`(car (last (split-string default-directory "/" t)))`}
 ;; Package Requires: ${4: PKG_DEPENDENCIES}

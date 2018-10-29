@@ -1,5 +1,0 @@
-# -*- mode: org-mode -*-
-# name: attr-html
-# key: <ah
-# --
-#+ATTR_HTML: $1
