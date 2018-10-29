@@ -7530,7 +7530,7 @@ x
 :END:
 
 #+NAME: term-unix
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :export none
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Wget
 <<unix/wget>>
 #+END_SRC
@@ -8124,7 +8124,7 @@ Interactively.
 ** Cloud Integration
 
 #+NAME: web-cloud
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :epxorts none
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<cloud-onenote>>
 #+END_SRC
 
