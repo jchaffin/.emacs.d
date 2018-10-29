@@ -4110,6 +4110,8 @@ recursively processing #+INCLUDEs."
 (require 'ox-latex)
 ;; Prefer user labels
 <<oxl/labels>>
+;; Subfigure 
+<<oxl/subfigure>>
 ;; PDF Process Interface
 <<oxl/pdf>>
 ;; Hyperref Template
@@ -4118,11 +4120,27 @@ recursively processing #+INCLUDEs."
 <<oxl/classes>>
 #+END_SRC
 
-**** Prefer user provided labeling system
+**** Prefer user provided labeling
 
-#+NAME: ox/labels
+#+NAME: oxl/labels
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-latex-prefer-user-labels t)
+#+END_SRC
+
+**** LaTeX Subfigures
+
+#+NAME: oxl/subfigure
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ox-latex-subfigure
+  :straight
+  (ox-latex-subfigure
+   :type git
+   :host github
+   :repo "linktohack/ox-latex-subfigure")
+  :config
+  (require 'ox-latex-subfigure)
+  (add-to-list 'org-latex-packages-alist (("" "subcaption" nil))))
+
 #+END_SRC
 
 **** Set latex pdf process
@@ -4345,7 +4363,9 @@ My custom mla-style LaTeX class.
                :host github
                :repo "wyleyr/ox-linguistics"
                :files ("lisp/*.el"))
-    :after (ox)
+    :after (ox-latex)
+    :init
+    (require 'ox-linguistics)
     :demand t)
 
 #+END_SRC
@@ -4545,7 +4565,6 @@ for exporting org-mode documents to various formats.
       (require 'x2bib))
 
     :config
-    (setq org-latex-prefer-user-labels t)
     (defun goto-org-ref-manual (&optional path)
       (interactive)
       (if-not path
