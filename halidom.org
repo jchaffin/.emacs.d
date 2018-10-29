@@ -13,6 +13,9 @@
 - [[#base-configuration][Base Configuration]]
   - [[#tangle-file][Tangle File]]
   - [[#straightel][straight.el]]
+    - [[#goto-local-package-repository][Goto local package repository]]
+    - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
+    -  [[#straight-hydra-menu][Straight Hydra Menu]]
   - [[#user-information][User Information]]
   - [[#customization-group][Customization Group]]
   - [[#core][Core]]
@@ -394,7 +397,7 @@ Insert conventional elisp header.[fn:1]
 It took me a while to figure out how straight works and to
 conceptualize the way it loads packages  - primarily because documentation is also for people who understand things - but now that I've gotten through the substantial learning curve (made substantially harder due to my misconception regrading the value of reading documentation), I've come to find it reduces a lot of the weirdness of the Emacs loading process and increases the rapidity (shall I say agility? no..) with which I comprehend the way third-party packages are implemented and modify them as I deem necessary.
 
-**** Goto local package repository
+*** Goto local package repository
 
 Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
@@ -459,7 +462,7 @@ interactive minibuffer completion menu using ivy.
 (define-key goto-map "r" #'straight-browse-local)
 #+END_SRC
 
-**** Browse straight repository at GitHub
+*** Browse straight repository at GitHub
 
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defun straight--get-remote-url (pkg)
@@ -484,7 +487,7 @@ interactive minibuffer completion menu using ivy.
       (browse-url url)))
 #+END_SRC
 
-****  Straight Hydra Menu
+***  Straight Hydra Menu
 
 #+NAME: straight/hydra
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -3415,6 +3418,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+NAME: agenda/org-agenda
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package org-agenda
+
     :straight org
     :custom
     (org-tags-column 0)
@@ -3468,6 +3472,10 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                 (setq face-remapping-alist
                       (delq f face-remapping-alist)))
               org-level-remap-face))))
+
+    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org")
+    (when (file-exists-p halidom/default-agenda-file)
+      (add-to-list 'org-agenda-files halidom/default-agenda-file))
 
     :hook
     (org-mode . halidom/org-agenda-face))
@@ -6083,14 +6091,15 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+NAME: cursor/mc
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package multiple-cursors
-    :init
-    (global-unset-key (kbd "M-<down-mouse-1>"))
-    :bind
-    (("C-c C-s-." . mc/edit-lines)
-     ("C->" . mc/mark-next-like-this)
-     ("C-c C->" . mc/mark-all-like-this)
-     ("M-<mouse-1>" . mc/add-cursor-on-click)))
+(use-package multiple-cursors
+  :init
+  (global-unset-key (kbd "M-<down-mouse-1>"))
+  :bind
+  (("C-c C-s-." . mc/edit-lines)
+   ("C->" . mc/mark-next-like-this)
+   ("C-M->" . mc/mark-next-lines)
+   ("C-c C->" . mc/mark-all-like-this)
+   ("M-<mouse-1>" . mc/add-cursor-on-click)))
 #+END_SRC
 
 *** Centered Cursor Mode
@@ -6909,16 +6918,18 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 
 #+NAME: mb-ivy
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-  ;; Ivy
-  <<ivy/spec>>
-  ;; Ivy Xref
-  <<ivy/xref>>
-  ;; Ivy Todo
-  <<ivy/todo>>
-  ;; Ivy rich
-  <<ivy/rich>>
-  ;; Ivy pages
-  <<ivy/pages>>
+;; Ivy
+<<ivy/spec>>
+;; Ivy Xref
+<<ivy/xref>>
+;; Ivy Todo
+<<ivy/todo>>
+;; Ivy rich
+<<ivy/rich>>
+;; Ivy pages
+<<ivy/pages>>
+;; Ivy Prescient
+<<ivy/prescient>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -6934,8 +6945,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+NAME: ivy/spec
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy
-  :bind (("C-c C-r" . ivy-resume)
-         ("C-`"     . ivy-avy))
+  :bind (("C-c C-r" . ivy-resume))
   :init
   (ivy-mode +1)
   :custom
@@ -10433,6 +10443,7 @@ Java bytecode inside Emacs buffers.
   (java-mode . java-setup-lsp))
 
 #+END_SRC
+
 **** Javadoc lookup
 
 #+NAME: 
@@ -11769,10 +11780,10 @@ and slim-mode using company.
 #+END_SRC
 
 * Misc
-** Scimax :disabled:
+** Scimax
 
 #+NAME: research/scimax
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package scimax
   :straight nil
   :if (file-directory-p (emacs-etc-dir "local" "scimax"))
