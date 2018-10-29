@@ -1482,7 +1482,7 @@ common prefix.
 **** Straight Reloading
 
 #+NAME: reload-eval-straight
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Reload Init
 <<straight-reload-init>>
 ;; Eval Buffer
@@ -7530,7 +7530,7 @@ x
 :END:
 
 #+NAME: term-unix
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :export none
 ;; Wget
 <<unix/wget>>
 #+END_SRC
@@ -7606,7 +7606,7 @@ x
 *** Webkit xwidget
 
 #+NAME: browser-xwidget
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<xwidget-ns>>
 <<xwidget-xwidgete>>
 #+END_SRC
@@ -8124,7 +8124,7 @@ Interactively.
 ** Cloud Integration
 
 #+NAME: web-cloud
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :epxorts none
 <<cloud-onenote>>
 #+END_SRC
 
@@ -8177,7 +8177,7 @@ buffers[fn:17].
 *** Flyspell
 
 #+NAME: sc-flyspell
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<flyspell-base>>
 <<flyspell-correct-config>>
 #+END_SRC
@@ -8346,7 +8346,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 ** Writing mode
 
 #+NAME: prose-writing
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Olivetti Mode
 <<writing-olivetti>>
 ;; Writeroom Mode
@@ -8572,7 +8572,7 @@ Artist mode is a built-in Emacs package.
 *** UML Diagrams
 
 #+NAME: uml-spec
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<uml-ditaa>>
 <<uml-plantuml>>
 #+END_SRC
@@ -8663,7 +8663,7 @@ school's WLAN.
 ** LSP
 
 #+NAME: lsp-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; LSP Mode
 <<lsp/mode>>
 ;; LSP UI Mode
@@ -10534,7 +10534,7 @@ Java bytecode inside Emacs buffers.
 **** JS Backend
 
 #+NAME: js-backend
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<js-backend-interface>>
 ;; Tern
 <<js-backend-tern>>
