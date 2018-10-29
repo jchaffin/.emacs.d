@@ -1225,6 +1225,13 @@ This might come back to bite me one day but I never use them.
 (setq make-backup-files nil)
 #+END_SRC
 
+***** Inhibit Autosave message
+
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(setq auto-save-no-message t)
+#+END_SRC
+
 ***** Lockfiles
 
 Causes a conflict with ~lsp-mode~.
@@ -2665,7 +2672,7 @@ Entered on [2018-06-13 Wed 11:42]
   (define-key 'halidom-prefix-map (kbd "o")
    'halidom/org-command-map)
 
-  (which-key-add-prefix-title "M-m o" "")
+  (which-key-add-prefix-title "M-m o" "Org")
 #+END_SRC
  
 
@@ -3356,22 +3363,24 @@ Embed YouTube Links in iframe.
 
 #+NAME: org/tasks
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-  ;; Begin Org Task Manager
-  ;; Org Habit
-  <<org-taskmgr-habit>>
-  ;; Org Agenda
-  <<org-taskmgr-agenda>>
-  ;; Org Pomodoro
-  <<org-taskmgr-pomodoro>>
-  ;; Calfw
-  <<org-taskmgr-calfw>>
-  ;; Org Counsel Clock
-  <<org-taskmgr-coclock>>
-  ;; Org Projectile
-  <<org-taskmgr-projectile>>
-  ;; Org Mru
-  <<org-taskmgr-mru-clock>>
-  ;; End Org Task Manager
+;; Begin Org Task Manager
+;; Org Habit
+<<org-taskmgr-habit>>
+;; Org Agenda
+<<org-taskmgr-agenda>>
+;; Org Pomodoro
+<<org-taskmgr-pomodoro>>
+;; Google Maps
+<<org-taskmgr-maps>>
+;; Calfw
+<<org-taskmgr-calfw>>
+;; Org Counsel Clock
+<<org-taskmgr-coclock>>
+;; Org Projectile
+<<org-taskmgr-projectile>>
+;; Org Mru
+<<org-taskmgr-mru-clock>>
+;; End Org Task Manager
 #+END_SRC
 
 **** Org Habit
@@ -3604,6 +3613,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 **** Org Gcal :disabled:
 
+
 The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode integration with Google
 Calendar.
 
@@ -3622,60 +3632,37 @@ Calendar.
 
 #+END_SRC
 
+**** Google maps
+
+#+NAME: org-taskmgr-maps
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package google-maps)
+#+END_SRC
+
 **** calfw
 
 #+NAME: org-taskmgr-calfw
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package calfw
   :custom
+  (cfw:org-capture-template
+     '("c" "calfw2org" entry
+       (file "agenda/schedule.org")
+       "*  %?
+   %(cfw:org-capture-day)"))
   (cfw:render-line-breaker 'cfw:render-line-breaker-wordwrap)
   (cfw:display-calendar-holidays nil)
-  (cfw:fchar-junction ?╬)
-  (cfw:fchar-vertical-line ?║)
-  (cfw:fchar-horizontal-line ?═)
-  (cfw:fchar-left-junction ?╠)
-  (cfw:fchar-right-junction ?╣)
-  (cfw:fchar-top-junction ?╦)
-  (cfw:fchar-top-left-corner ?╔)
-  (cfw:fchar-top-right-corner ?╗)
-  :custom-face
-  (cfw:face-title              ((t (:foreground "#f0dfaf"
-                                    :weight bold
-                                    :height 2.0
-                                    :inherit variable-pitch))))
-
-  (cfw:face-header             ((t (:foreground "#d0bf8f"
-                                    :weight bold))))
-  (cfw:face-sunday             ((t :foreground "#cc9393"
-                                   :background "grey10"
-                                   :weight bold)))
-  (cfw:face-saturday           ((t :foreground "#8cd0d3"
-                                   :background "grey10"
-                                   :weight bold)))
-  (cfw:face-holiday            ((t :background "grey10"
-                                   :foreground "#8c5353"
-                                   :weight bold)))
-  (cfw:face-grid               ((t :foreground "DarkGrey")))
-  (cfw:face-default-content    ((t :foreground "#bfebbf")))
-  (cfw:face-periods            ((t :foreground "cyan")))
-  (cfw:face-day-title          ((t :background "grey10")))
-  (cfw:face-default-day        ((t :weight bold
-                                   :inherit cfw:face-day-title)))
-  (cfw:face-annotation         ((t :foreground "RosyBrown"
-                                   :inherit cfw:face-day-title)))
-  (cfw:face-disable            ((t :foreground "DarkGray"
-                                   :inherit cfw:face-day-title)))
-  (cfw:face-today-title        ((t :background "#7f9f7f" :weight bold)))
-  (cfw:face-today              ((t :background: "grey10" :weight bold)))
-  (cfw:face-select             ((t :background "#2f2f2f")))
-  (cfw:face-toolbar            ((t :foreground "Steelblue4"
-                                   :background "Steelblue4")))
-  (cfw:face-toolbar-button-off ((t (:foreground "Gray10"
-                                    :weight bold
-                                    :inherit (cfw:face-toolbar)))))
-  (cfw:face-toolbar-button-on  ((t :foreground "Gray50"
-                                   :weight bold
-                                   :inherit (cfw:face-toolbar)))))
+  (cfw:fchar-junction ?╋)    
+  (cfw:fchar-vertical-line ?┃)          
+  (cfw:fchar-horizontal-line ?━)          
+  (cfw:fchar-left-junction ?┣)          
+  (cfw:fchar-right-junction ?┫)          
+  (cfw:fchar-top-junction ?┯)          
+  (cfw:fchar-top-left-corner ?┏)          
+  (cfw:fchar-top-right-corner ?┓)
+    
+  :hook
+  (cfw:details-mode . org-link-minor-mode))
 
 (use-package calfw-org
   :demand t
@@ -3694,8 +3681,14 @@ Calendar.
            :contents-sources
            (list
             (cfw:org-create-file-source
-             "schedule" "~/Dropbox/org/agenda/schedule.org" "Steelblue4")))))
-     (switch-to-buffer (cfw:cp-get-buffer cp)))))
+             "syntax" "~/Dropbox/courses/ling165b/TODOS.org" "#91E5DD")
+            (cfw:org-create-file-source
+             "phonetics" "~/Dropbox/courses/ling103/TODOs.org" "purple")
+            (cfw:org-create-file-source
+             "programming languages" "~/Dropbox/courses/cs131/TODOs.org" "tomato1")))))
+     (switch-to-buffer (cfw:cp-get-buffer cp))))
+
+  (define-key 'halidom/org-command-map (kbd "c") '(" Calendar" . cfw:open-calendar)))
 #+END_SRC
 
 **** Org Pomodoro
@@ -4137,12 +4130,13 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 (setq org-latex-listings 'minted)
 
+(setq org-latex-packages-alist '(("" "booktabs" nil)))
+
 (defun latex-toggle-default-minted ()
   (interactive)
   (if enable-default-minted
       (progn
-        (setq org-latex-packages-alist '(("" "minted"))
-            org-latex-minted-options
+        (setq org-latex-minted-options
             '(("mathescape" "true")
               ("linenos" "true")
               ("breaklines" "true")
@@ -4152,8 +4146,6 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
         (setq enable-default-minted nil)
         (message "%s" "Exporting with default minted."))
     (progn
-      (setq org-latex-packages-alist '()
-            org-latex-minted-options '())
       (setq enable-default-minted t)
       (message "%s" "Disabled default minted."))))
 
@@ -4545,7 +4537,7 @@ for exporting org-mode documents to various formats.
       (require 'x2bib))
 
     :config
-
+    (setq org-latex-prefer-user-labels t)
     (defun goto-org-ref-manual (&optional path)
       (interactive)
       (if-not path
@@ -5163,7 +5155,7 @@ list that one may use in the wacky world of Emacs.
 
     (defun dashboard/refresh ()
       (dashboard-refresh-buffer)
-      (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
+      (setq initial-buffer-choice (lambda () (or (get-buffer "*dashboard*") nil))))
 
     :hook
     (after-init     . dashboard/refresh)
@@ -6654,7 +6646,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 (use-package pretty-eshell
   :if (file-exists-p (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
   :straight nil
-  :load-path "etc/local/pretty-eshell/pretty-eshell.el"
+  :load-path "~/.emacs.d/etc/local/pretty-eshell/pretty-eshell.el"
   :custom-face
   (eshell-prompt ((t (:foreground "gray83"))))
   :custom
@@ -9745,7 +9737,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
         (user-error "%s" "cquery didn't work")))
 
     :hook
-    (c-mode-common . cquery/enable)
+    ((c-mode c++-mode)  . cquery/enable)
     ((c-mode c++-mode) . halidom/flycheck-enable-hook)
 
     :config
@@ -10280,6 +10272,10 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   <<java-disass>>
   ;; Gradle Mode
   <<java-gradle>>
+  ;; LSP Java
+  <<java/lsp>>
+  ;; Javadoc lookup
+  <<java/doc>>
 ) ;;End Java
 
 #+END_SRC
@@ -10421,6 +10417,32 @@ Java bytecode inside Emacs buffers.
 #+NAME: java-disass
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package autodisass-java-bytecode)
+#+END_SRC
+
+**** Lsp Java
+
+#+NAME: java/lsp
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-java
+  :defines (lsp-java-enable)
+  :init
+  (defun java-setup-lsp ()
+    (require 'lsp-java)
+    (lsp-java-enable))
+  :hook
+  (java-mode . java-setup-lsp))
+
+#+END_SRC
+**** Javadoc lookup
+
+#+NAME: 
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package javadoc-lookup
+  :bind
+  ("C-h j" . javadoc-lookup)
+  :custom
+  (javadoc-lookup-completing-read-function #'ivy-completing-read))
+
 #+END_SRC
 
 *** JavaScript
