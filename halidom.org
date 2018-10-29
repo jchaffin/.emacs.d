@@ -1424,7 +1424,7 @@ killall gpg-agent
 common prefix.
 
 #+NAME: kb-hydra
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Hydra
 <<hydra-hydra>>
 ;; Ivy Hydra
@@ -1725,7 +1725,7 @@ external programs.
 *** MacOS Keys
 
 #+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; MacOS prefix
 <<macos-prefix>>
 ;; Modifer Keys
@@ -1968,7 +1968,7 @@ running macOS.
 * Tex and Org Mode
 
 #+NAME: core/orgtex
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;;; Org and LateX Group
 ;; LaTeX Mode
 <<orgtex/tex>>
@@ -4023,7 +4023,7 @@ Fix problem with  which puts point back in a folded position.
 :END:
 
 #+NAME: ox/backends
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; utilities
 <<backends/utilities>>
 ;; enable by default
@@ -4254,7 +4254,7 @@ The default cross-referencing and hyperlink styles provided by
 **** Export classes
 
 #+NAME: oxl/classes
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Org Ling
 <<ox-class/orgling>>
 ;; UCLA CS
@@ -5240,7 +5240,7 @@ Just for the hell of it.
 *** Frame
 
 #+NAME: startup-frame
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Disable toolbar and scrollbar
 <<frame-tool-and-scroll>>
 ;; Disable menubar unless system is macOS.
@@ -6350,7 +6350,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 ** Icons
 
 #+NAME: ui/icons
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Begin icons Group
 ;; VS Code Icons
 <<icons/vscode>>
@@ -6442,7 +6442,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 *** Spaceline
 
 #+NAME: ml/spaceline
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<sl/spaceline>>
 ;; Spaceline icons
 <<sl/icons>>
@@ -6485,7 +6485,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 *** Smart Mode Line
 
 #+NAME: ml/sml
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<sml/smart-mode-line>>
 ;; Smart Mode Line setup
 <<sml/setup>>
@@ -6620,7 +6620,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 ** Buttons
 
 #+NAME: ui/buttons
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 <<button/lock>>
 #+END_SRC
 
@@ -6634,7 +6634,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 ** Pretty
 
 #+NAME: ui/pretty
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Prettify Symbols Mode
 <<pretty/symbols>>
 ;; Pretty Mode
@@ -7262,7 +7262,7 @@ A smart M-x enhancement for Emacs.
 *** Omnibox
 
 #+NAME: mb-omnibox
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Omnibox
 <<omnibox/spec>>
 #+END_SRC
@@ -8777,7 +8777,7 @@ school's WLAN.
 *** Default
 
 #+NAME: code/default
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Disable Tabs
 <<default/notabs>>
 ;; Display line numbers
@@ -8812,7 +8812,7 @@ school's WLAN.
 *** Highlight Indentation
 
 #+NAME: code/indent
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Highlight indent guides
 <<hli/guides>>
 ;; Highlight Indentation
@@ -8846,7 +8846,7 @@ school's WLAN.
 *** Symbol Highlighting
 
 #+NAME: symbol-hl
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Overlay Highlight
 <<hl-ov>>
 ;; Highlight Sexp
@@ -8907,7 +8907,7 @@ Highlight =TODO= keywords:
 *** Code Folding
 
 #+NAME: code/fold
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Origami
 <<fold/origami>>
 ;; Hideshow
@@ -9425,7 +9425,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 ** DevOps
 
 #+NAME: code/devops
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Docker
 <<devops/docker>>
 ;; AWS
@@ -9435,7 +9435,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 *** Docker
 
 #+NAME: devops/docker
-#+BEGIN_SRC emacs-lisp :tangle no :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Docker
 <<docker-cmds>>
 ;; Dockerfile Mode
@@ -9932,7 +9932,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
 *** Common Lisp
 
 #+NAME: lang/clisp
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin CLisp
 (when (halidom/proglang-enabled-p 'common-lisp)
   ;; CL Hooks
@@ -9991,7 +9991,7 @@ Configuration for common-lisp.
 *** Clojure
 
 #+NAME: lang/clj
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Clojure
 (when (halidom/proglang-enabled-p 'clojure)
   ;; Clojure Mode
@@ -10212,7 +10212,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 *** Emacs Lisp
 
 #+NAME: lang/emacs-lisp
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin emacs-lisp
 <<elisp/core>>
 ;; Cask
@@ -10307,7 +10307,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 *** Java
 
 #+NAME: lang/java
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Java
 (when (halidom/proglang-enabled-p 'java)
   ;; Java Backend
@@ -10506,7 +10506,7 @@ Java bytecode inside Emacs buffers.
 *** JavaScript
 
 #+NAME: lang/js
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin JavaScript
 (when (halidom/proglang-enabled-p 'javascript)
   ;; Set up backend
@@ -11190,7 +11190,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 
 *** Ocaml
 
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Ocaml
 (when (halidom/proglang-enabled-p 'ocaml)
   ;; Ocaml user setup
