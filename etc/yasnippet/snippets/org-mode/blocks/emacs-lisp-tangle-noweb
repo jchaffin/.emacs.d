@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: emacs-lisp with :noweb strip-export 
-# key: <elw
+# key: <setw
 # --
 #+NAME: $0
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb strip-export

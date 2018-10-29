@@ -3,6 +3,7 @@
 #+AUTHOR: Jacob Chaffin
 #+STARTUP: hideblock
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
+#+PROPERTY: header-args:emacs-lisp :tangle no
 #+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
 * Table Of Contents :TOC_3_gh:noexport:
@@ -4127,7 +4128,7 @@ recursively processing #+INCLUDEs."
 (setq org-latex-prefer-user-labels t)
 #+END_SRC
 
-**** LaTeX Subfigures
+**** Subfigure Export
 
 #+NAME: oxl/subfigure
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4143,6 +4144,45 @@ recursively processing #+INCLUDEs."
 
 #+END_SRC
 
+**** Minted
+
+Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
+
+#+NAME: oxl/minted
+#+BEGIN_SRC emacs-lisp :tangle no
+(eval-and-compile
+  (defvar enable-default-minted nil))
+
+(setq org-latex-listings 'minted)
+
+(setq org-latex-packages-alist '(("" "booktabs" nil)))
+(setq org-latex-minted-options
+      '(("mathescape" "true")
+        ("linenos" "true")
+        ("breaklines" "true")
+        ("numbersep" "5pt")
+        ("frame" "lines")
+        ("framesep" "2mm")))
+
+(defun latex-toggle-default-minted ()
+  (interactive)
+  (if (not enable-default-minted)
+      (progn
+        (setq org-latex-packages-alist
+              (append org-latex-packages-alist '(("newfloat" "minted"))))
+        (setq enable-default-minted t)
+        (message "%s" "Exporting with default minted."))
+    (progn
+      (setq enable-default-minted nil)
+      (dolist (elt org-latex-packages-alist)
+        (if (string= (cadr elt) "minted")
+            (setq org-latex-packages-alist (remove elt org-latex-packages-alist))))
+      (message "%s" "Disabled default minted."))))
+
+
+#+END_SRC
+
+
 **** Set latex pdf process
 
 [[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
@@ -4151,30 +4191,6 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 #+NAME: oxl/pdf
 #+BEGIN_SRC emacs-lisp :tangle no
-(eval-and-compile
-  (defvar enable-default-minted nil))
-
-(setq org-latex-listings 'minted)
-
-(setq org-latex-packages-alist '(("" "booktabs" nil)))
-
-(defun latex-toggle-default-minted ()
-  (interactive)
-  (if enable-default-minted
-      (progn
-        (setq org-latex-minted-options
-            '(("mathescape" "true")
-              ("linenos" "true")
-              ("breaklines" "true")
-              ("numbersep" "5pt")
-              ("frame" "lines")
-              ("framesep" "2mm")))
-        (setq enable-default-minted nil)
-        (message "%s" "Exporting with default minted."))
-    (progn
-      (setq enable-default-minted t)
-      (message "%s" "Disabled default minted."))))
-
 (setq latex-process-latex
   '("%latex -interaction nonstopmode -output-directory %o %f"
     "%latex -interaction nonstopmode -output-directory %o %f"

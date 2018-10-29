@@ -1,8 +1,8 @@
 # -*- mode: snippet -*-
 # name: emacs-lisp
-# key: <el
+# key: <se
 # --
-#+NAME: $0
+#+NAME: $1
 #+BEGIN_SRC emacs-lisp :tangle no
-$1
+$2
 #+END_SRC

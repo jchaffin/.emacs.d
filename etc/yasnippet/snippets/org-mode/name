@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: name tag
+# key: <n
+# --
+#+NAME: $1
