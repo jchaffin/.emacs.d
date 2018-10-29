@@ -8100,7 +8100,12 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+NAME: cloud-onenote
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-onenote
-  :straight t)
+  :init 
+  (require 'secrets)
+  (require 'org-onenote)
+  :custom
+  (org-onenote-token-file
+   (emacs-etc-dir "org-onenote-oauth2.plstore")))
 #+END_SRC
 
 * Prose
@@ -10439,6 +10444,13 @@ Java bytecode inside Emacs buffers.
   (defun java-setup-lsp ()
     (require 'lsp-java)
     (lsp-java-enable))
+  :custom
+  (lsp-java-workspace-dir
+   (if *is-mac*
+       "~/Developer/Workspace/"
+     (emacs-var-dir "workspace/")))
+  (lsp-java-server-install-dir
+   (file-name-as-directory (emacs-var-dir "lsp-java" "server")))
   :hook
   (java-mode . java-setup-lsp))
 
