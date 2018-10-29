@@ -6655,7 +6655,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 (use-package pretty-eshell
   :if (file-exists-p (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
   :straight nil
-  :load-path "~/.emacs.d/etc/local/pretty-eshell/pretty-eshell.el"
+  :load-path "~/.emacs.d/etc/local/pretty-eshell"
   :custom-face
   (eshell-prompt ((t (:foreground "gray83"))))
   :custom
