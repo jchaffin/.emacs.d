@@ -8873,6 +8873,8 @@ school's WLAN.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; LSP Mode
 <<lsp/mode>>
+;; LSP imenu
+<<lsp/imenu>>
 ;; LSP UI Mode
 <<lsp/ui-mode>>
 ;; Company LSP
