@@ -271,6 +271,7 @@
 - [[#code][Code]]
   - [[#lsp][LSP]]
     - [[#lsp-mode][LSP Mode]]
+    - [[#lsp-imenu][Lsp iMenu]]
     - [[#lsp-ui-mode][LSP UI Mode]]
     - [[#company-lsp][Company LSP]]
   - [[#flycheck][Flycheck]]
@@ -6826,7 +6827,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
      esh-dir
      "\xf07c"  ; 
      (abbreviate-file-name (eshell/pwd))
-     '(:foreground "gold" :bold ultra-bold :underline t))
+     '(:foreground "gold" :weight bold :underline t))
 
     ;; Git Branch
     (pretty-eshell-section
@@ -8316,7 +8317,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
 (use-package org-onenote
   :init 
   (require 'secrets)
-  (require 'org-onenote)
   :custom
   (org-onenote-token-file
    (emacs-etc-dir "org-onenote-oauth2.plstore")))
@@ -8401,7 +8401,7 @@ checking for natural language.
   (langtool-language-tool-jar
    "/usr/local/opt/languagetool/libexec/languagetool-commandline.jar")
   (langtool-mother-tongue "en")
-  (langtool-disabled-rules '("DASH_RULE")))
+  (langtool-disabled-rules '("DASH_RULE"))
   :init
   (defun langtool-autoshow-detail-popup (overlays)
     (when (require 'popup nil t)
@@ -8887,23 +8887,17 @@ school's WLAN.
   :custom
   (lsp-inhibit-message t)
   (lsp-message-project-root-warning t)
-  (lsp-project-blacklist '("^/ssh:" "node_modules"))
-  :config
+  (lsp-project-blacklist '("^/ssh:" "node_modules")))
+#+END_SRC
 
-  (require 'lsp-imenu)
-  (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)
+*** Lsp iMenu
 
-  (defun lsp/set-projectile-root ()
-    (when lsp--cur-workspace
-      (setq projectile-project-root (lsp--workspace-root lsp--cur-workspace))))
-
-  (add-hook 'lsp-before-open-hook 'lsp/set-projectile-root)
-
-  (defun lsp/save-file-immediately ()
-    (when lsp--cur-workspace
-      (save-buffer)))
-
-  (add-hook 'lsp-after-open-hook 'lsp/save-file-immediately))
+#+NAME: lsp/imenu
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-imenu
+  :straight lsp-mode
+  :init
+  (add-hook 'lsp-after-open-hook #'lsp-enable-imenu))
 #+END_SRC
 
 *** LSP UI Mode
@@ -10699,12 +10693,13 @@ Gradle is a build tool for Java. It's awesome.
 (use-package lsp-java
   :defines (lsp-java-enable)
   :custom
-  (lsp-java-workspace-dir
-   (emacs-var-dir "workspace/"))
   (lsp-java-server-install-dir
-   (file-name-as-directory (emacs-var-dir "lsp-java" "server")))
-  :hook
-  (java-mode . java-setup-lsp))
+   (file-name-as-directory (emacs-var-dir "eclipse.jdt.ls" "server")))
+  (lsp-highlight-symbol-at-point nil)
+  (lsp-ui-sideline-update-mode 'point)
+  (lsp-eldoc-render-all nil)
+  (lsp-java-compilation-guess-arguments t))
+
 #+END_SRC
 
 ****** Lsp Java Treemacs
@@ -10761,6 +10756,7 @@ Gradle is a build tool for Java. It's awesome.
 #+NAME: dap/java
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package dap-java
+  :straight dap-mode
   :after (lsp-java))
 #+END_SRC
 
