@@ -3,7 +3,6 @@
 #+AUTHOR: Jacob Chaffin
 #+STARTUP: hideblock
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
-#+PROPERTY: header-args:emacs-lisp :tangle no
 #+SETUPFILE: ./etc/html-theme/theme-readtheorg.setup
 
 * Table Of Contents :TOC_3_gh:noexport:
@@ -96,6 +95,9 @@
 - [[#customizing-emacs][Customizing Emacs]]
   - [[#project-management][Project Management]]
     - [[#projectile][Projectile]]
+    - [[#projectile-codesearch][Projectile Codesearch]]
+    - [[#projectile-ripgrep][Projectile Ripgrep]]
+    - [[#projectile-treemacs][Projectile Treemacs]]
     - [[#skeletor][Skeletor]]
     - [[#find-file-in-project][Find File in Project]]
   - [[#file-system][File System]]
@@ -141,12 +143,13 @@
     - [[#org-mode-faces][Org Mode Faces]]
     - [[#italicize-font-lock-keyword-face][Italicize font lock keyword face]]
   - [[#cursor][Cursor]]
-    - [[#bar-cursor][Bar Cursor]]
     - [[#disable-blink][Disable Blink]]
     - [[#only-show-cursor-in-selected-window][Only show cursor in selected window]]
     - [[#smart-cursor-color][Smart Cursor Color]]
     - [[#multiple-cursors][Multiple Cursors]]
     - [[#centered-cursor-mode][Centered Cursor Mode]]
+    - [[#bar-cursor][Bar Cursor]]
+    - [[#change-cursor][Change Cursor]]
   - [[#fonts][Fonts]]
     - [[#font-variables][Font variables]]
     - [[#set-font-interactively][Set font interactively]]
@@ -174,7 +177,6 @@
     - [[#prettify-symbols][Prettify Symbols]]
     - [[#pretty-mode][Pretty Mode]]
     - [[#prettify-utilities][Prettify Utilities]]
-    - [[#modern-emacs][Modern Emacs]]
     - [[#pretty-eshell][Pretty Eshell]]
 - [[#completion][Completion]]
   - [[#company][Company]]
@@ -214,7 +216,13 @@
   - [[#unix-programs][Unix Programs]]
     - [[#wget][Wget]]
 - [[#web][Web]]
-  - [[#web-servers-and-utilities][Web Servers and Utilities]]
+  - [[#web-libraries][Web Libraries]]
+    - [[#simple-httpd][Simple httpd]]
+    - [[#websocket][WebSocket]]
+    - [[#uuid][UUID]]
+    - [[#web-server][Web Server]]
+    - [[#request][Request]]
+    - [[#oauth][OAuth]]
   - [[#browsing][Browsing]]
     - [[#browser-prefix-command][Browser prefix command]]
     - [[#webkit-xwidget][Webkit xwidget]]
@@ -578,6 +586,9 @@ Functional bindings i.e thread =->= macro.
   :config
   (eval-after-load 'dash
     '(dash-enable-font-lock)))
+
+
+(use-package dash-functional)
 
 #+END_SRC
 
@@ -1552,19 +1563,20 @@ from within Emacs.
 #+NAME: reload-eval-commander
 #+BEGIN_SRC emacs-lisp :tangle yes
 
-  (define-prefix-command 'reload-eval-prefix-map)
+(define-prefix-command 'reload-eval-prefix-map)
 
-  (let ((map reload-eval-prefix-map))
-    (define-key map "i" 'straight-reload-init)
-    (define-key map "b" 'straight-eval-buffer)
-    (define-key map "r" 'eval-region)
-    (define-key map "f" 'straight-eval-defun)
-    (define-key map "q" 'restart-emacs))
+(let ((map reload-eval-prefix-map))
+  (define-key map "i" 'straight-reload-init)
+  (define-key map "b" 'straight-eval-buffer)
+  (define-key map "r" 'eval-region)
+  (define-key map "f" 'straight-eval-defun)
+  (define-key map "q" 'restart-emacs))
 
-  (define-key 'halidom-prefix-map (kbd "s") 'hydra-straight/body)
-  (define-key 'halidom-prefix-map (kbd "r") 'reload-eval-prefix-map)
-  (which-key-add-prefix-title "M-m r" "Reload/Eval")
+(define-key 'halidom-prefix-map (kbd "s") 'hydra-straight/body)
+(which-key-add-key-based-replacements "M-m s" '(" " . "straight.el"))
 
+(define-key 'halidom-prefix-map (kbd "r") 'reload-eval-prefix-map)
+(which-key-add-key-based-replacements "M-m r" '("" . "reload/eval"))
 #+END_SRC
 
 *** Speed Type
@@ -1741,7 +1753,7 @@ external programs.
 (define-prefix-command 'macos-prefix-map)
 (define-key 'halidom-prefix-map "m" 'macos-prefix-map)
 
-(which-key-add-prefix-title "M-m m" "")
+(which-key-add-prefix-title "M-m m" " ")
 #+END_SRC
 
 **** Modifier Keys
@@ -1826,10 +1838,12 @@ editors and various other applications on macOS.
   (define-key 'macos-prefix-map "t" 'macos-iterm-command-map)
   (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)
 
-  
-  (which-key-add-key-based-replacements "M-m m t" '("iTerm" . "iTerm"))
+  (which-key-add-key-based-replacements
+    "M-m m t" '(" " . "iTerm"))
 
-  (which-key-add-key-based-replacements "M-m m o" '("Open With" . "Open With")))
+  (which-key-add-key-based-replacements "M-m m o"
+    `(,(propertize
+        " " 'display '(raise -0.20)) . "Open With")))
 
 #+END_SRC
 
@@ -1917,9 +1931,15 @@ running macOS.
       "Open `word' at point in Dictionary.app."
 
       (shell-command (format "open dict://%s" (thing-at-point 'word))))
+
     (define-prefix-command 'osx-dictionary-keymap)
+
     (define-key 'macos-prefix-map
-        "d" 'osx-dictionary-keymap)
+      "d" 'osx-dictionary-keymap)
+
+    (set-fontset-font "fontset-default" '#xE8CE "Material Icons" nil 'prepend)
+    (which-key-add-key-based-replacements "M-m m d" '("" . "macOS Dictionary"))
+
     (define-key 'osx-dictionary-keymap
         "d" 'osx-dictionary-search-word-at-point)
     (define-key 'osx-dictionary-keymap
@@ -1962,7 +1982,7 @@ running macOS.
   :demand t
   :commands counsel-osx-app
   :config
-  (define-key 'macos-prefix-map "a" 'counsel-osx-app))
+  (define-key 'macos-prefix-map "a" `(,(propertize "  " 'display '(raise -0.24)) .  counsel-osx-app)))
 #+END_SRC
 
 * Tex and Org Mode
@@ -2676,9 +2696,16 @@ Entered on [2018-06-13 Wed 11:42]
   (define-key 'halidom-prefix-map (kbd "o")
    'halidom/org-command-map)
 
-  (which-key-add-prefix-title "M-m o" "Org")
+;; This remaps the atom icon from 'all the icons'
+(set-fontset-font "fontset-default" '#xE917 "file-icons" nil 'prepend)
+
+(which-key-add-key-based-replacements "M-m o"
+  `(,(propertize ""
+                 'font-lock-string-face
+                 '(:family "file-icons") 'fontified nil) . "Org Mode"))
+
 #+END_SRC
- 
+
 
 *** Org Babel
 
@@ -3360,7 +3387,9 @@ Embed YouTube Links in iframe.
 
 #+NAME: org-links-bookmark
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-bookmark-heading)
+(use-package org-bookmark-heading
+  :init
+  (require 'org-bookmark-heading))
 #+END_SRC
 
 *** Task Management
@@ -3440,10 +3469,9 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     (define-key goto-map "a" #'goto-agenda-dir)
 
-
-
     (setq org-agenda-category-icon-alist
-     `(("syntax"     ,(list "Ᾱ")  nil nil :ascent center)
+     `(("global"     ,(list "")  nil nil :ascent center)
+       ("syntax"     ,(list "")  nil nil :ascent center)
        ("phonetics"  ,(list "ə")  nil nil :ascent center)
        ("algorithms" ,(list "𝛺") nil nil :ascent center)
        ("languages"  ,(list "𝜆") nil nil :ascent center)))
@@ -3519,48 +3547,63 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+NAME: agenda/sidebar
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-sidebar
-    :straight
-    (org-sidebar
-     :host github
-     :repo "alphapapa/org-sidebar")
+(use-package org-sidebar
+  :requires (dash-functional)
+  :straight
+  (org-sidebar
+   :host github
+   :repo "alphapapa/org-sidebar")
 
-    :init
-    (require 'org-ql)
-    :config
-      (org-sidebar-defsidebar ling103/sidebar
-                              :header "Syntax"
-        :sidebars (((and (not (done))
-                       (or (deadline <=)
-                          (scheduled <=)))))
-        :super-groups '((:time-grid t)
-                        (:name "Overdue" :scheduled past :deadline past)
-                        (:name "Due"   :scheduled today :deadline today)
-                        (:name "Homework" :tag "homework")
-                        (:priority "A"))
-        :files '("~/Dropbox/courses/ling165b/TODOs.org"))
+  :init
+  (require 'org-ql)
+  (require 'org-sidebar)
+
+  :config
+  (cl-defmacro course-sidebar (name description &optional extra)
+    `(progn
+       (org-sidebar-defsidebar ,(intern (concat name "/sidebar"))
+         :header ,description
+         :sidebars (((and (not (done))
+                        (todo)
+                        (or (deadline <=)
+                           (scheduled <=))
+                        (not (tags "optional")))))
+         :super-groups ',(append
+                           '((:name " Overdue" :scheduled past :deadline past)
+                             (:name " Today" :scheduled today :deadline today)
+                             (:name " Homework" :tag "homework"))
+                           (list extra))
+         :files ,(expand-file-name
+                  "TODOS.org"
+                  (concat "~/Dropbox/courses/" name "/")))
+       (defun ,(intern (concat name "-sidebar")) ()
+         (interactive)
+         (funcall ',(intern (concat name "/sidebar"))))))
+
+  (course-sidebar "ling165b" "Ling 165B Syntax"
+                   (:name " Paper" :tag "paper"))
+  
+  (course-sidebar "cs131" "Programming Languages"
+                  (:name " Upcoming" :anything))
+  (course-sidebar "ling103" "Phonetics" (:name " Project" :tag "project"))
+
+  (cl-defun org-course-sidebar ()
+    (interactive)
+    (let ((todo-file
+           (car
+            (directory-files (projectile-project-root) t "TODOs.org")))
+          (sidebar-function
+           (intern
+            (concat
+             (basename (projectile-project-root))
+             "-sidebar"))))
+      (when (and (member todo-file org-agenda-files)
+               (functionp sidebar-function))
+        (message "%s" sidebar-function)
+        (funcall sidebar-function))))
 
 
-      (defun syntax-sidebar ()
-        (interactive)
-        (sidebar/syntax))
-
-      (org-sidebar-defsidebar cs131/sidebar
-        :header "Syntax"
-        :sidebars (((and (not (done))
-                       (or (deadline <=)
-                          (scheduled <=)))))
-        :super-groups '((:time-grid t)
-                        (:name "Overdue" :scheduled past :deadline past)
-                        (:name "Due"   :scheduled today :deadline today)
-                        (:name "Homework" :tag "homework")
-                        (:priority "A"))
-        :files '("~/Dropbox/courses/cs131/TODOs.org")))
-
-    (defun cs131-sidebar ()
-      (interactive)
-      (cs131/sidebar))
-
+  (add-hook 'projectile-after-switch-project-hook #'org-course-sidebar))
 #+END_SRC
 
 **** Org Projectile
@@ -4770,7 +4813,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
         #'projectile-ignore-projects-in-directory))
 #+END_SRC
 
-**** Projectile Codesearch
+*** Projectile Codesearch
 
 #+NAME: project-codesearch
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -4780,7 +4823,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
                   ("s c" . projectile-codesearch-search)))
 #+END_SRC
 
-**** Projectile Ripgrep
+*** Projectile Ripgrep
 
 #+NAME: project-ripgrep
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4789,6 +4832,15 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
       ;; takes a cons in the form of `(binary . package-name)`
       :ensure-system-package (rg . ripgrep))
 
+#+END_SRC
+
+*** Projectile Treemacs
+
+#+NAME: projectile/treemacs
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package treemacs-projectile
+  :after (treemacs)
+  :demand t)
 #+END_SRC
 
 *** Skeletor
@@ -4989,7 +5041,63 @@ Adds extensions and functionality to dired mode.
 *** Treemacs
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package treemacs)
+(use-package treemacs
+  :demand t
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  :custom
+  (treemacs-collapse-dirs
+    (if (executable-find "python") 3 0))
+  (treemacs-deferred-git-apply-delay   0.5)          
+  (treemacs-display-in-side-window     t)          
+  (treemacs-file-event-delay           5000)          
+  (treemacs-file-follow-delay          0.2)          
+  (treemacs-follow-after-init          t)          
+  (treemacs-follow-recenter-distance   0.1)          
+  (treemacs-goto-tag-strategy          'refetch-index)          
+  (treemacs-indentation                2)          
+  (treemacs-indentation-string         " ")          
+  (treemacs-is-never-other-window      nil)          
+  (treemacs-max-git-entries            5000)          
+  (treemacs-no-png-images              nil)          
+  (treemacs-project-follow-cleanup     nil)          
+  (treemacs-persist-file
+   (no-littering-expand-var-file-name "treemacs-persist"))          
+  (treemacs-recenter-after-file-follow nil)          
+  (treemacs-recenter-after-tag-follow  nil)          
+  (treemacs-show-cursor                nil)          
+  (treemacs-show-hidden-files          t)          
+  (treemacs-silent-filewatch           nil)          
+  (treemacs-silent-refresh             nil)          
+  (treemacs-sorting                    'alphabetic-desc)          
+  (treemacs-space-between-root-nodes   t)          
+  (treemacs-tag-follow-cleanup         t)          
+  (treemacs-tag-follow-delay           1.5)          
+  (treemacs-width                      35)
+
+  :config
+  ;; The default width and height of the icons is 22 pixels. If you are
+  ;; using a Hi-DPI display, uncomment this to double the icon size.
+  ;;(treemacs-resize-icons 44)
+
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-fringe-indicator-mode t)
+  (pcase (cons (not (null (executable-find "git")))
+               (not (null (executable-find "python3"))))
+    (`(t . t)
+     (treemacs-git-mode 'extended))
+    (`(t . _)
+     (treemacs-git-mode 'simple)))
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))
 #+END_SRC
 
 *** Speedbar
@@ -5477,7 +5585,7 @@ different window configurations.
         ("c" helpful-command))
 
     (which-key-add-key-based-replacements
-        "M-m h" "helpful"))
+      "M-m h" '("" . "helpful")))
 #+END_SRC
 
 **** Image+
@@ -5578,11 +5686,12 @@ n
 #+END_SRC
 
 **** Bookmark File
+
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq bookmark-default-file
  (no-littering-expand-var-file-name "bookmarks"))
-
 #+END_SRC
+
 **** Bookmark+
 
 #+NAME: bookmark-plus
@@ -6082,15 +6191,8 @@ face shall be used."
 <<cursor/centered>>
 ;; bar cursor
 <<cursor/bar>>
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-*** Bar Cursor
-
-#+NAME: cursor/bar
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package bar-cursor
-  :init (bar-cursor-mode 1))
+;; Change Cursor 
+<<cursor/chg>>
 #+END_SRC
 
 *** Disable Blink
@@ -6145,6 +6247,23 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
     :init
   (centered-cursor-mode 1))
 #+END_SRC
+
+*** Bar Cursor
+
+#+NAME: cursor/bar
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package bar-cursor
+  :init (bar-cursor-mode 1))
+#+END_SRC
+
+*** Change Cursor 
+
+#+NAME: cursor/chg
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package cursor-chg)
+#+END_SRC
+
+
 
 ** Fonts
 
@@ -6642,7 +6761,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 ;; pretty utils
 <<pretty/utils>>
 ;; Ekaschalk Display Layer
-<<pretty/ekaschalk>>
+<<pretty/eshell>>
 #+END_SRC
 
 *** Prettify Symbols
@@ -6680,12 +6799,11 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-*** Modern Emacs
 *** Pretty Eshell
 
 From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs display layer]].[fn:19]
 
-#+NAME: ekaschalk/eshell
+#+NAME: pretty/eshell
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-eshell
   :if (file-exists-p (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
@@ -7050,8 +7168,9 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+NAME: ivy/rich
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package ivy-rich
-      :after (counsel)
-      :init
+    :after (counsel)
+    :demand t
+    :init
     (ivy-rich-mode 1))
 #+END_SRC
 
@@ -7127,7 +7246,9 @@ friends.
     :after (:all projectile counsel)
     :demand t
     :init
-    (counsel-projectile-mode t))
+    (counsel-projectile-mode t)
+    ;; Use Dired
+    (setcar counsel-projectile-switch-project-action 4))
 #+END_SRC
 
 **** Counsel Gtags
@@ -7182,7 +7303,7 @@ friends.
      (define-key map "s" '("Shuffle" . counsel-itunes-shuffle)))
    
   (define-key 'macos-prefix-map (kbd "i") 'counsel-itunes-prefix-map)
-  (which-key-add-prefix-title "M-m m i" "iTunes"))
+  (which-key-add-key-based-replacements "M-m m i" '("" . "iTunes")))
 
 #+END_SRC
 
@@ -7550,6 +7671,8 @@ x
 
 #+NAME: web-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+;; Web Libraries
+<<web/lib>>
 ;; Browser
 <<web-browser>>
 ;; Email
@@ -7558,23 +7681,70 @@ x
 <<web-cloud>>
 #+END_SRC
 
-** Web Servers and Utilities
+** Web Libraries
 
-#+NAME: emacs-web-serve
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+NAME: web/lib
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Simple httpd
+<<lib/httpd>>
+;; Web Socket
+<<lib/websocket>>
+;; UUID
+<<lib/uuid>>
+;; Web Server
+<<lib/webserver>>
+;; Request
+<<lib/request>>
+;; Oauth2
+<<lib/oauth2>>
+#+END_SRC
+
+
+*** Simple httpd
+
+#+NAME: lib/httpd
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package simple-httpd
     :straight (simple-httpd
                :type git
                :host github
                :repo "skeeto/emacs-web-server"
                :local-repo "simple-httpd"))
+#+END_SRC
 
+*** WebSocket
+
+#+NAME: lib/websocket
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package websocket)
+#+END_SRC
 
-(use-package uuidgen)
+*** UUID
 
+#+NAME: lib/uuid
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package uuid)
+#+END_SRC
+
+*** Web Server
+
+#+NAME: lib/webserver
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package web-server)
+#+END_SRC
 
+*** Request
+
+#+NAME: lib/request
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package request)
+#+END_SRC
+
+*** OAuth
+
+#+NAME: lib/oauth2
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package oauth2)
 #+END_SRC
 
 ** Browsing
@@ -7599,7 +7769,7 @@ x
 #+BEGIN_SRC emacs-lisp :tangle no
 (define-prefix-command 'web-browse-prefix-map)
 (define-key 'halidom-prefix-map (kbd "w") 'web-browse-prefix-map)
-(which-key-add-prefix-title "M-m w" "Web Browser")
+(which-key-add-key-based-replacements "M-m w" '("" .  "Web Browsing"))
 
 #+END_SRC
 
@@ -7916,9 +8086,9 @@ Interactively.
     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
     :keybinding "y"
     :docstring "Search Youtube")
-
   :config
-
+  (set-fontset-font "fontset-default" '#xE600 "file-icons" nil 'prepend)
+  (set-fontset-font "fontset-default" '#xE80C "Material Icons" nil 'prepend)
   (when *is-mac*
     (cl-flet* ((ks (&rest k)
                    (let ((p halidom-web-engine-prefix))
@@ -7926,7 +8096,16 @@ Interactively.
                (wkr (rep &rest k)
                     (let ((kk (apply #'ks k)))
                       (which-key-add-key-based-replacements kk rep))))
-      (wkr "Search Engine")
+      (wkr "")
+      (wkr " Youtube" "y")
+      (wkr " Proquest" "p")
+      (wkr " GitHub" "h")
+      (wkr " Google" "g")
+      (wkr " Wolfram Alpha" "a")
+      (wkr " Wikipedia" "w")
+      (wkr " Stack Overflow" "s")
+      (wkr " Worldcat" "W")
+      (wkr " ctan" "c")
       (wkr " Google" "G")
       (wkr " Images" "G" "i")
       (wkr " Bookmarks" "G" "b")
@@ -8218,11 +8397,22 @@ checking for natural language.
   :if *is-mac*
   :after (flyspell)
   :demand t
+  :custom
+  (langtool-language-tool-jar
+   "/usr/local/opt/languagetool/libexec/languagetool-commandline.jar")
+  (langtool-mother-tongue "en")
+  (langtool-disabled-rules '("DASH_RULE")))
+  :init
+  (defun langtool-autoshow-detail-popup (overlays)
+    (when (require 'popup nil t)
+      ;; Do not interrupt current popup
+      (unless (or popup-instances
+                 ;; suppress popup after type `C-g` .
+                 (memq last-command '(keyboard-quit)))
+        (let ((msg (langtool-details-error-message overlays)))
+          (popup-tip msg)))))
   :config
-  (progn
-    (setq langtool-language-tool-jar "/usr/local/opt/languagetool/libexec/languagetool-commandline.jar"
-          langtool-mother-tongue "en"
-          langtool-disabled-rules '("WHITESPACE_RULE"))))
+  (setq langtool-autoshow-message-function 'langtool-autoshow-detail-popup))
 #+END_SRC
 
 *** Academic Phrases
@@ -8375,42 +8565,59 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME: writing-variable-pitch
 #+BEGIN_SRC emacs-lisp :tangle no
-  (defcustom halidom-org-fixed-pitch-faces
-    '(org-table
-      org-code
-      org-special-keyword
-      org-verbatim
-      org-meta-line
-      org-block
-      org-block-begin-line
-      org-block-end-line
-      org-document-info-keyword)
-    "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
-    :type '(list symbol))
+(defcustom halidom-org-fixed-pitch-faces
+  '(org-table
+    org-code
+    org-special-keyword
+    org-verbatim
+    org-meta-line
+    org-block
+    org-block-begin-line
+    org-block-end-line
+    org-document-info-keyword)
+  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
+  :type '(list symbol))
 
-  (defvar org-fixed-pitch-font
-    (face-attribute 'fixed-pitch :family))
+(defvar org-fixed-pitch-font
+  (face-attribute 'fixed-pitch :family))
 
-  (defvar org-variable-pitch-font
-    (face-attribute 'variable-pitch :family))
+(defvar org-variable-pitch-font
+  (face-attribute 'variable-pitch :family))
 
-  (setq org-fixed-pitch-font "Iosevka")
-  (setq org-variable-pitch-font "ETBembo")
 
-  (setq face-remapping-alist nil)
+(setq org-fixed-pitch-font "Iosevka")
+(setq org-variable-pitch-font "Libertinus Sans")
 
-  (defun org-toggle-variable-pitch ()
-    "Toggle use of face `variable-pitch'.
+
+(setq face-remapping-alist nil)
+
+(defvar variable-pitch-toggle-hook nil
+  "Hooks to run when `org-toggle-variable-pitch' is called.")
+
+(defun org-toggle-variable-pitch ()
+  "Toggle use of face `variable-pitch'.
   This works by frobbing `face-remapping-alist'."
-    (interactive)
-    (if face-remapping-alist
-        (setq face-remapping-alist nil)
-      (face-remap-add-relative 'variable-pitch
-                               :family org-variable-pitch-font)
-      (face-remap-add-relative 'default 'variable-pitch)
-      (->> halidom-org-fixed-pitch-faces
-          (mapcar (lambda (x) (list x :family org-fixed-pitch-font)))
-          (mapcar (lambda (x) (apply #'face-remap-add-relative x))))))
+  (interactive)
+  (if face-remapping-alist
+      (setq face-remapping-alist nil)
+    (face-remap-add-relative 'variable-pitch
+                             :family org-variable-pitch-font
+                             :height 140)
+    (face-remap-add-relative 'default 'variable-pitch)
+    (->> halidom-org-fixed-pitch-faces
+       (mapcar (lambda (x) (list x
+                            :family org-fixed-pitch-font
+                            :height 140)))
+       (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
+  (run-hooks 'variable-pitch-toggle-hook))
+
+
+(add-hook 'variable-pitch-toggle-hook
+          (lambda ()
+            (setq-local left-margin-width 2)
+            (setq-local right-margin-width 2)
+            (setq-local line-spacing 2)
+            (set-window-buffer nil (current-buffer))))
 #+END_SRC
 
 *** Olivetti
@@ -8931,7 +9138,7 @@ Highlight =TODO= keywords:
 #+NAME: fold/hs
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package hideshow
-    :straight nil)
+  :straight nil)
 #+END_SRC
 
 **** Hideshowvis
@@ -9832,7 +10039,6 @@ Spacemacs =dotspacemacs-configuration-layers=.
      (c++-mode . rtags-start-process-unless-running)
      (objc-mode . rtags-start-process-unless-running)))
 
-
 #+END_SRC
 
 ***** Ivy Rtags
@@ -10324,8 +10530,12 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   <<java-gradle>>
   ;; LSP Java
   <<java/lsp>>
+  ;; Dap
+  <<java/dap>>
   ;; Javadoc lookup
   <<java/doc>>
+  ;; Setup java
+  <<java/setup>>
 ) ;;End Java
 
 #+END_SRC
@@ -10348,6 +10558,19 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   (add-hook 'java-mode-hook 'java-mode-dash-docsets-hook))
 #+END_SRC
 
+**** Autodisass Java Bytecode
+:PROPERTIES:
+:ID:       892B3341-D8D3-4E12-A540-5A19DD54A459
+:END:
+
+The [[https://github.com/gbalats/autodisass-java-bytecode][autodisass-java-bytecode]] package enables automatic disassembly of
+Java bytecode inside Emacs buffers.
+
+#+NAME: java-disass
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package autodisass-java-bytecode)
+#+END_SRC
+
 **** Gradle Mode
 :PROPERTIES:
 :ID:       0D4DEC79-5E2D-48D0-A8B1-38E2432565C8
@@ -10368,7 +10591,7 @@ Gradle is a build tool for Java. It's awesome.
 
 #+NAME: java-backend
 #+BEGIN_SRC emacs-lisp :tangle no
-(defcustom halidom-java-backend 'meghanada
+(defcustom halidom-java-backend 'lsp
   "Select a backend to use when opening a *.java file."
   :type '(symbol)
   :options '(meghanada ensime eclim lsp))
@@ -10459,36 +10682,86 @@ Gradle is a build tool for Java. It's awesome.
                :branch "2.0"))
 #+END_SRC
 
-**** Autodisass Java Bytecode
-
-The [[https://github.com/gbalats/autodisass-java-bytecode][autodisass-java-bytecode]] package enables automatic disassembly of
-Java bytecode inside Emacs buffers.
-
-#+NAME: java-disass
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package autodisass-java-bytecode)
-#+END_SRC
-
-**** Lsp Java
+***** Lsp Java
 
 #+NAME: java/lsp
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Lsp Java Mode
+<<lsp/java>>
+;; Lsp Java Treemacs
+<<lsp/treemacs>>
+#+END_SRC
+
+****** Lsp Java Mode
+
+#+NAME: lsp/java
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lsp-java
   :defines (lsp-java-enable)
-  :init
-  (defun java-setup-lsp ()
-    (require 'lsp-java)
-    (lsp-java-enable))
   :custom
   (lsp-java-workspace-dir
-   (if *is-mac*
-       "~/Developer/Workspace/"
-     (emacs-var-dir "workspace/")))
+   (emacs-var-dir "workspace/"))
   (lsp-java-server-install-dir
    (file-name-as-directory (emacs-var-dir "lsp-java" "server")))
   :hook
   (java-mode . java-setup-lsp))
+#+END_SRC
 
+****** Lsp Java Treemacs
+
+#+NAME: lsp/treemacs
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lsp-java-treemacs
+  :straight lsp-java
+  :after (treemacs))
+#+END_SRC
+
+
+**** Setup Java Backend
+
+#+NAME: java/setup
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun java-setup ()
+  "Setup the backend for `java-mode'."
+  (require 'lsp-java)
+  (lsp-java-enable)
+  (company-mode 1)
+  (setq-local company-backends (list 'company-lsp))
+  (flycheck-mode 1)
+  (lsp-ui-mode 1))
+
+(add-hook 'java-mode-hook 'java-setup)
+#+END_SRC
+
+**** Dap
+
+#+NAME: java/dap
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+;; Dap Mode
+<<dap/mode>>
+;; Dap Java
+<<dap/java>>
+#+END_SRC
+
+
+***** Dap Mode
+
+#+NAME: dap/mode
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package dap-mode
+  :after lsp-mode
+  :demand t
+  :config
+  (dap-mode t)
+  (dap-ui-mode t))
+#+END_SRC
+
+***** Dap Java
+
+#+NAME: dap/java
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package dap-java
+  :after (lsp-java))
 #+END_SRC
 
 **** Javadoc lookup
@@ -10502,6 +10775,8 @@ Java bytecode inside Emacs buffers.
   (javadoc-lookup-completing-read-function #'ivy-completing-read))
 
 #+END_SRC
+
+
 
 *** JavaScript
 

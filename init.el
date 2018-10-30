@@ -1,4 +1,4 @@
-;;; init.el -- Emacs Initialization File
+t;;; init.el -- Emacs Initialization File
 ;;
 ;; Copyright (c) 2018 Jacob Chaffin
 ;;
