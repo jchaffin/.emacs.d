@@ -8612,12 +8612,6 @@ whistles, it makes up for in compatibility and hackability [fn:18].
   (run-hooks 'variable-pitch-toggle-hook))
 
 
-(add-hook 'variable-pitch-toggle-hook
-          (lambda ()
-            (setq-local left-margin-width 2)
-            (setq-local right-margin-width 2)
-            (setq-local line-spacing 2)
-            (set-window-buffer nil (current-buffer))))
 #+END_SRC
 
 *** Olivetti
