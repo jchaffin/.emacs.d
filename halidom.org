@@ -4287,12 +4287,9 @@ The default cross-referencing and hyperlink styles provided by
 
 #+NAME: oxl/hyperref
 #+BEGIN_SRC emacs-lisp :tangle no
-  (setq org-latex-hyperref-template
-        (concat "\\hypersetup{\n"
-                " colorlinks=true,"
-                " urlcolor=black"
-                " linkcolor=black"
-                "\n}"))
+;; TODO: Dynamically set to a sensible default if using 'article class
+;; or a class in `org-latex-classes' that includes hyperref. 
+(setq org-latex-hyperref-template nil)
 #+END_SRC
 
 **** Export classes
@@ -4311,7 +4308,9 @@ The default cross-referencing and hyperlink styles provided by
 <<ox-class/unicode-math>>
 #+END_SRC
 
-***** Article no default packages
+***** Article Standalone
+
+From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
 
 #+NAME: ox-class/article-standalone
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -11258,7 +11257,7 @@ Real jsx support.
                 (pyenv-mode-set project)
               (pyenv-mode-unset))))
 
-        (add-hook 'projectile-after-switch-project-hook
+TO        (add-hook 'projectile-after-switch-project-hook
                   'projectile-pyenv-mode-set))
 
       ;; http://rakan.me/emacs/python-dev-with-emacs-and-pyenv/
