@@ -5287,16 +5287,6 @@ list that one may use in the wacky world of Emacs.
     (dashboard-setup-startup-hook)
 
     :config
-    ;; (defun goto-dashboard ()
-    ;;   "Switch to the *dashboard* buffe"
-    ;;   (interactive)
-    ;;   (if (seq-contains
-    ;;        (mapcar #'buffer-name (buffer-list))
-    ;;        "*dashboard*")
-    ;;       (switch-to-buffer "*dashboard*")))
-
-    ;; (define-key goto-map "d" #'goto-dashboard)
-
     (add-to-list 'dashboard-items '(agenda) t)
     ;; Get the week agenda.
     ;; See `dashboard-get-agenda' for how this
@@ -6059,11 +6049,17 @@ theme in \"quick mode\" by eliding hooks specified in `halidom/load-theme-hook'.
         (sans-font "Source Sans Pro")
         (header-font "EtBembo"))
     (if (and fg2 bg2)
-        (set-face-attribute 'org-block-begin-line nil
+        (progn
+          (set-face-attribute 'org-document-info-keyword nil
+                              :foreground fg2
+                              :slant 'italic
+                              :inherit 'org-document-info-face)
+          (set-face-attribute 'org-block-begin-line nil
                             :height 0.8
                             :foreground fg2
                             :background bg2
-                            :inherit 'org-meta-line)
+                            :inherit 'org-meta-line))
+
       (set-face-attribute 'org-block-begin-line nil
                           :height 0.8
                           :inherit 'fixed-pitch
