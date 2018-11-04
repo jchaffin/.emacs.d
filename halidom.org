@@ -1402,7 +1402,6 @@ killall gpg-agent
 (defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
-
 ** Keybindings
 
 #+NAME: keybindings-spec
@@ -1907,7 +1906,9 @@ query it with the marked region or symbol at point.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
   :if *is-mac*
-  :commands (reveal-in-osx-finder))
+  :commands (reveal-in-osx-finder)
+  :init
+  (define-key 'macos-prefix-map (kbd "f") '("" . reveal-in-osx-finder)))
 #+END_SRC
 
 *** OSX Dictionary
@@ -2178,6 +2179,7 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
   (latex/no-fill-environments
    '("equation"
      "equation*"
+     "exe"
      "align"
      "align*"
      "forest"
@@ -2457,19 +2459,19 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 #+NAME: org-preview-dynamic
 #+BEGIN_SRC emacs-lisp :tangle no
-  (defun org-preview-with-compiler ()
-    (interactive)
-    (let ((latex-compiler (org-preview/process-compiler)))
-      (when-let (preview-process (org-preview/set-process))
-        (set (make-local-variable 'org-preview-latex-default-process)
-             preview-process))
+(defun org-preview-with-compiler ()
+  (interactive)
+  (let ((latex-compiler (org-preview/process-compiler)))
+    (when-let (preview-process (org-preview/set-process))
+      (set (make-local-variable 'org-preview-latex-default-process)
+           preview-process))
 
-      (when (or  (string= latex-compiler "xelatex")
-                (string= latex-compiler "xetex"))
-        (org-preview-xelatex))
+    (when (or (string= latex-compiler "xelatex")
+             (string= latex-compiler "xetex"))
+      (org-preview-xelatex))
 
-      (when (string= latex-compiler "lualatex")
-        (org-preview-lualatex))))
+    (when (string= latex-compiler "lualatex")
+      (org-preview-lualatex))))
 
 (add-hook 'org-mode-hook 'org-preview-with-compiler)
 #+END_SRC
@@ -3550,7 +3552,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+NAME: agenda/sidebar
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-sidebar
-  :requires (dash-functional)
   :straight
   (org-sidebar
    :host github
@@ -3558,26 +3559,27 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
   :init
   (require 'org-ql)
+  (require 'dash-functional)
   (require 'org-sidebar)
 
   :config
   (cl-defmacro course-sidebar (name description &optional extra)
     `(progn
        (org-sidebar-defsidebar ,(intern (concat name "/sidebar"))
-         :header ,description
-         :sidebars (((and (not (done))
-                        (todo)
-                        (or (deadline <=)
-                           (scheduled <=))
-                        (not (tags "optional")))))
-         :super-groups ',(append
-                           '((:name " Overdue" :scheduled past :deadline past)
-                             (:name " Today" :scheduled today :deadline today)
-                             (:name " Homework" :tag "homework"))
-                           (list extra))
-         :files ,(expand-file-name
-                  "TODOS.org"
-                  (concat "~/Dropbox/courses/" name "/")))
+                               :header ,description
+                               :sidebars (((and (not (done))
+                                              (todo)
+                                              (or (deadline <=)
+                                                 (scheduled <=))
+                                              (not (tags "optional")))))
+                               :super-groups ',(append
+                                                '((:name " Overdue" :scheduled past :deadline past)
+                                                  (:name " Today" :scheduled today :deadline today)
+                                                  (:name " Homework" :tag "homework"))
+                                                (list extra))
+                               :files ,(expand-file-name
+                                        "TODOS.org"
+                                        (concat "~/Dropbox/courses/" name "/")))
        (defun ,(intern (concat name "-sidebar")) ()
          (interactive)
          (funcall ',(intern (concat name "/sidebar"))))))
@@ -3631,6 +3633,9 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :init
 
+    (defvar-local org-default-agenda-file (file-truename "~/Dropbox/org/todos/TODOS.org"))
+
+
     (defun org-projectile-files-to-agenda ()
       "Add projectile project files to agenda."
       (interactive)
@@ -3656,12 +3661,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :config
 
-    (org-projectile-per-project)
-
-    (add-to-list 'org-capture-templates
-                 (org-projectile-capture-for-current-project
-                  :capture-character "p"
-                  :capture-heading "Linked Project TODO")))
+    (org-projectile-per-project))
 
 #+END_SRC
 
@@ -4201,6 +4201,8 @@ Allow toggling of minted inclusion in exported header. This might be necessary w
 (setq org-latex-listings 'minted)
 
 (setq org-latex-packages-alist '(("" "booktabs" nil)))
+(setq org-latex-tables-booktabs t)
+
 (setq org-latex-minted-options
       '(("mathescape" "true")
         ("linenos" "true")
@@ -4226,7 +4228,6 @@ Allow toggling of minted inclusion in exported header. This might be necessary w
 
 
 #+END_SRC
-
 
 **** Set latex pdf process
 
@@ -4600,6 +4601,8 @@ for exporting org-mode documents to various formats.
      (list (dropbox-dir "org" "ref" "references.bib")))
     (org-ref-bibliography-notes
      (dropbox-dir "org" "ref" "refnotes.org"))
+    (org-ref-notes-directory
+     (dropbox-dir "org" "ref" "notes.org"))
     (org-ref-pdf-directory
      (dropbox-dir "org" "papers" "pdfs"))
     (org-ref-show-citation-on-enter t)
@@ -5305,12 +5308,8 @@ list that one may use in the wacky world of Emacs.
                             ( recents . 3)
                             ( bookmarks . 5)))
 
-    (defun dashboard/refresh ()
-      (dashboard-refresh-buffer)
-      (setq initial-buffer-choice (lambda () (or (get-buffer "*dashboard*") nil))))
-
     :hook
-    (after-init     . dashboard/refresh)
+    (after-init     . dashboard-refresh-buffer)
     (dashboard-mode . halidom/dashboard-banner))
 
 
@@ -5639,7 +5638,9 @@ different window configurations.
 ****** Rainbow Mode
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package rainbow-mode)
+(use-package rainbow-mode
+  :init
+  (rainbow-mode 1))
 #+END_SRC
 
 ****** Col Highlight
@@ -6057,19 +6058,16 @@ theme in \"quick mode\" by eliding hooks specified in `halidom/load-theme-hook'.
         (bg2 (or (plist-get halidom-theme-colors :base01)))
         (sans-font "Source Sans Pro")
         (header-font "EtBembo"))
-    (when (and fg2 bg2)
-
+    (if (and fg2 bg2)
+        (set-face-attribute 'org-block-begin-line nil
+                            :height 0.8
+                            :foreground fg2
+                            :background bg2
+                            :inherit 'org-meta-line)
       (set-face-attribute 'org-block-begin-line nil
-                          :height 1.0
-                          :foreground fg2
-                          :background bg2
-                          :inherit 'org-meta-line)
-
-      (set-face-attribute 'org-document-info-keyword nil
-                          :foreground fg2
-                          :slant 'italic
-                          :inherit 'org-document-info-face))
-
+                          :height 0.8
+                          :inherit 'fixed-pitch
+                          :background 'org-block-line))
     (set-face-attribute 'org-level-2 nil
                         :family header-font
                         :height 1.2
@@ -7302,7 +7300,7 @@ friends.
      (define-key map "-" '("Volume Down" . counsel-itunes-volume-down))
      (define-key map "+" '("Volume Up" .  counsel-itunes-volume-up))
      (define-key map "t" '("Tracklist" . counsel-itunes-tracklist))
-     (define-key map "p" '("Playlist" . counsel-itunes-playlist))
+     (define-key map "p" '("Playlist" . counsel-itunes-play-pause))
      (define-key map "c" '("Now Playing" . counsel-itunes-current-track))
      (define-key map "P" '("Playlist" . counsel-itunes-playlist))
      (define-key map "n" '("Next" . counsel-itunes-next-track))
@@ -8592,7 +8590,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 
 
 (setq org-fixed-pitch-font "Iosevka")
-(setq org-variable-pitch-font "Libertinus Sans")
+(setq org-variable-pitch-font "Baskerville")
 
 
 (setq face-remapping-alist nil)
@@ -8608,7 +8606,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
       (setq face-remapping-alist nil)
     (face-remap-add-relative 'variable-pitch
                              :family org-variable-pitch-font
-                             :height 140)
+                             :height 130)
     (face-remap-add-relative 'default 'variable-pitch)
     (->> halidom-org-fixed-pitch-faces
        (mapcar (lambda (x) (list x
@@ -8617,7 +8615,12 @@ whistles, it makes up for in compatibility and hackability [fn:18].
        (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
   (run-hooks 'variable-pitch-toggle-hook))
 
-
+(add-hook 'org-variable-pitch-toggle-hook
+          (lambda ()
+            (setq-local left-margin-width 2)
+            (setq-local right-margin-width 2)
+            (blink-cursor-mode 0)
+            (typo-mode 1)))
 #+END_SRC
 
 *** Olivetti
@@ -11264,7 +11267,7 @@ Real jsx support.
                 (pyenv-mode-set project)
               (pyenv-mode-unset))))
 
-TO        (add-hook 'projectile-after-switch-project-hook
+        (add-hook 'projectile-after-switch-project-hook
                   'projectile-pyenv-mode-set))
 
       ;; http://rakan.me/emacs/python-dev-with-emacs-and-pyenv/
