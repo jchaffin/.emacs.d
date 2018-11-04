@@ -59,6 +59,7 @@
     - [[#bibtex][BibTex]]
     - [[#extra][Extra]]
     - [[#preview][Preview]]
+    - [[#latex-preview-pane][LaTeX Preview Pane]]
     - [[#company-auctex][Company Auctex]]
     - [[#company-reftex][Company Reftex]]
     - [[#cdlatex][cdlatex]]
@@ -2229,7 +2230,7 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 <<org-preview-dynamic>>
 #+END_SRC
 
-***** LaTeX Preview Pane
+*** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
 save.
@@ -2241,16 +2242,16 @@ save.
     :init (latex-preview-pane-enable))
 #+END_SRC
 
-***** Use single directory for storing latex fragments
+**** Use single directory for storing latex fragments
 
 #+NAME: org-preview-directory
 #+BEGIN_SRC emacs-lisp :tangle no
-(let ((ltximg "~/.ltximg/"))
+(let ((ltximg (file-truename '"~/.tmp/ltximg/")))
   (when (file-directory-p ltximg)
     (setq org-preview-latex-image-directory ltximg)))
 #+END_SRC
 
-***** Clear Cache
+**** Clear Cache
 
 #+NAME: org-preview-clear-cache
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2263,7 +2264,7 @@ save.
       (message "%s" "Directory 'ltximg' does not exist."))))
 #+END_SRC
 
-***** Set the default preview process
+**** Set the default preview process
 
 #+NAME: org-preview-default
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2272,7 +2273,7 @@ save.
   (setq org-preview-latex-default-process 'dvisvgm))
 #+END_SRC
 
-***** Format Options
+**** Format Options
 
 #+NAME: org-preview-format
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2280,7 +2281,7 @@ save.
   (plist-put org-format-latex-options :scale 1.2))
 #+END_SRC
 
-***** Parsing keywords
+**** Parsing keywords
 
 #+NAME: org-preview-parsing
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2314,7 +2315,7 @@ save.
 
 #+END_SRC
 
-***** XeLaTeX fragments
+**** XeLaTeX fragments
 
 #+NAME: org-preview-xelatex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2382,7 +2383,7 @@ save.
   )
 #+END_SRC
 
-***** LuaLaTeX Fragments
+**** LuaLaTeX Fragments
 
 #+NAME: org-preview-lualatex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2450,7 +2451,7 @@ save.
            lualatex-preview-header))))
 #+END_SRC
 
-***** Per-buffer latex fragment previews
+**** Per-buffer latex fragment previews
 
 Generate latex fragments based on the latex compiler and class in the current buffer.
 
@@ -5975,66 +5976,72 @@ This disables Emacs asking questions about loading a new theme.
 
 #+NAME: theme-load-theme
 #+BEGIN_SRC emacs-lisp :tangle no
-  (setq-default custom-enabled-themes (list halidom-theme))
+(setq-default custom-enabled-themes (list halidom-theme))
 
-  (defun remove-themes ()
-    "Forcibly load the themes listed in `custom-enabled-themes'."
-    (mapc #'disable-theme custom-enabled-themes))
+(defun remove-themes ()
+  "Forcibly load the themes listed in `custom-enabled-themes'."
+  (mapc #'disable-theme custom-enabled-themes))
 
-  (defvar halidom/load-theme-hook nil)
+(defvar halidom/load-theme-hook nil
+  "List of functions to run when `halidom/load-theme' is invoked.")
 
-  (defun halidom/load-theme (&optional theme)
-    (interactive "P")
-    (let* ((options (mapcar 'symbol-name (custom-available-themes)))
-           (theme-name (if (interactive-p)
-                           (completing-read "Theme: " options)
-                         (eval (intern
-                                (concat
-                                 "halidom-"
-                                 (format "%s"
-                                 (symbol-value
-                                 'halidom--theme-style))
-                                 "-theme")))))
-           (theme-symbol
-            (if (symbolp theme-name)
-                theme-name
-              (intern theme-name))))
-      (remove-themes)
-      (if (not window-system)
-          (load-theme halidom-term-theme)
-        (setq halidom-theme theme-symbol)
-        (if (halidom--base16-p halidom-theme)
-            (setq halidom-theme-colors
-                  (symbol-value
-                   (intern
-                    (eval
-                     `(concat
-                       ,(symbol-name
-                         (symbol-value 'halidom-theme))
-                       "-colors")))))
-          (setq halidom-theme-colors nil))
-        (load-theme halidom-theme)
-        (run-hooks 'halidom/load-theme-hook))))
+(defun halidom--default-theme ()
+  (eval (intern
+         (concat "halidom-"
+                 (format "%s"
+                         (symbol-value
+                          'halidom--theme-style))
+                 "-theme"))))
 
-  (defun halidom/load-theme-with-frame (frame)
-    (with-selected-frame frame
-      (unless (daemonp)
-        (halidom/load-theme))))
+(cl-defun halidom/load-theme (&optional (theme (halidom--default-theme)))
+  "Opionated theme loading. If invoked without arguments, this
+function will load the theme associated with `halidom--theme-style'.
 
-  (defun halidom--toggle-theme-style ()
-    (interactive)
-    (if (eq halidom--theme-style 'dark)
-        (setq halidom--theme-style 'light)
-      (setq halidom--theme-style 'dark)))
+Calling this function with the universal-argument `C-u' loads the new
+theme in \"quick mode\" by eliding hooks specified in `halidom/load-theme-hook'."
 
-  (defun halidom/toggle-theme ()
-    (interactive)
-    (halidom--toggle-theme-style)
-    (halidom/load-theme))
+  (interactive
+   (let ((themes (mapcar 'symbol-name (custom-available-themes))))
+     (list
+      (completing-read "Theme: " themes))))
+  (interactive "p")
 
-  (add-hook 'after-init-hook #'halidom/load-theme)
-  ;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
+  (let ((theme-symbol (if (symbolp theme) theme (intern theme))))
+    (remove-themes)
+    (if (not window-system)
+        (load-theme halidom-term-theme)
+      (setq halidom-theme theme-symbol)
+      (if (halidom--base16-p halidom-theme)
+          (setq halidom-theme-colors
+                (symbol-value
+                 (intern
+                  (eval
+                   `(concat
+                     ,(symbol-name (symbol-value 'halidom-theme))
+                     "-colors")))))
+        (setq halidom-theme-colors nil))
+      (load-theme halidom-theme))
+    (unless (equal current-prefix-arg '(4))
+      (run-hooks 'halidom/load-theme-hook))))
 
+(defun halidom/load-theme-with-frame (frame)
+  (with-selected-frame frame
+    (unless (daemonp)
+      (halidom/load-theme))))
+
+(defun halidom--toggle-theme-style ()
+  (interactive)
+  (if (eq halidom--theme-style 'dark)
+      (setq halidom--theme-style 'light)
+    (setq halidom--theme-style 'dark)))
+
+(defun halidom/toggle-theme ()
+  (interactive)
+  (halidom--toggle-theme-style)
+  (halidom/load-theme))
+
+(add-hook 'after-init-hook #'halidom/load-theme)
+;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
 #+END_SRC
 
 *** Org Mode Faces
@@ -6042,102 +6049,102 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: theme-org-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 
-  ;; Org Mode faces
-    (defun halidom/org-faces ()
-      "Customize `org-mode' faces for base-16 themes."
-      (let ((fg (face-foreground 'default nil 'default))
-      (fg2 (or (plist-get halidom-theme-colors :base04)))
-      (bg2 (or (plist-get halidom-theme-colors :base01)))
-      (sans-font "Source Sans Pro")
-      (header-font "EtBembo"))
-        (when (and fg2 bg2)
+;; Org Mode faces
+(defun halidom/org-faces ()
+  "Customize `org-mode' faces for base-16 themes."
+  (let ((fg (face-foreground 'default nil 'default))
+        (fg2 (or (plist-get halidom-theme-colors :base04)))
+        (bg2 (or (plist-get halidom-theme-colors :base01)))
+        (sans-font "Source Sans Pro")
+        (header-font "EtBembo"))
+    (when (and fg2 bg2)
 
-          (set-face-attribute 'org-block-begin-line nil
-                              :height 1.0
-                              :foreground fg2
-                              :background bg2
-                              :inherit 'org-meta-line)
+      (set-face-attribute 'org-block-begin-line nil
+                          :height 1.0
+                          :foreground fg2
+                          :background bg2
+                          :inherit 'org-meta-line)
 
-          (set-face-attribute 'org-document-info-keyword nil
-                              :foreground fg2
-                              :slant 'italic
-                              :inherit 'org-document-info-face))
+      (set-face-attribute 'org-document-info-keyword nil
+                          :foreground fg2
+                          :slant 'italic
+                          :inherit 'org-document-info-face))
 
-        (set-face-attribute 'org-level-2 nil
-                            :family header-font
-                            :height 1.2
-                            :inherit 'outline-2)
-        (set-face-attribute 'org-level-1 nil
-                            :family sans-font
-                            :height 1.6
-                            :inherit 'outline-1)
-        (set-face-attribute 'org-level-2 nil
-                            :family sans-font
-                            :height 1.3
-                            :inherit 'outline-2)
-        (set-face-attribute 'org-level-3 nil
-                            :family sans-font
-                            :height 1.2
-                            :slant 'normal
-                            :inherit 'outline-3)
-        (set-face-attribute 'org-level-4 nil
-                            :family sans-font
-                            :height 1.1
-                            :slant 'normal
-                            :inherit 'outline-3)
-        (set-face-attribute 'org-level-5 nil
-                            :family sans-font
-                            :height 1.1
-                            :slant 'normal
-                            :inherit 'outline-4)
-        (set-face-attribute 'org-level-6 nil
-                            :family sans-font
-                            :height 1.1
-                            :slant 'normal
-                            :inherit 'outline-3)
-        (set-face-attribute 'org-level-7 nil
-                            :family sans-font
-                            :height 1.0
-                            :slant 'normal
-                            :inherit 'outline-3)
+    (set-face-attribute 'org-level-2 nil
+                        :family header-font
+                        :height 1.2
+                        :inherit 'outline-2)
+    (set-face-attribute 'org-level-1 nil
+                        :family sans-font
+                        :height 1.6
+                        :inherit 'outline-1)
+    (set-face-attribute 'org-level-2 nil
+                        :family sans-font
+                        :height 1.3
+                        :inherit 'outline-2)
+    (set-face-attribute 'org-level-3 nil
+                        :family sans-font
+                        :height 1.2
+                        :slant 'normal
+                        :inherit 'outline-3)
+    (set-face-attribute 'org-level-4 nil
+                        :family sans-font
+                        :height 1.1
+                        :slant 'normal
+                        :inherit 'outline-4)
+    (set-face-attribute 'org-level-5 nil
+                        :family sans-font
+                        :height 1.1
+                        :slant 'normal
+                        :inherit 'outline-5)
+    (set-face-attribute 'org-level-6 nil
+                        :family sans-font
+                        :height 1.1
+                        :slant 'normal
+                        :inherit 'outline-6)
+    (set-face-attribute 'org-level-7 nil
+                        :family sans-font
+                        :height 1.0
+                        :slant 'normal
+                        :inherit 'outline-7)
 
-        (set-face-attribute 'org-block nil
-                            :height 1.0
-                            :slant 'normal
-                            :foreground fg)
+    (set-face-attribute 'org-block nil
+                        :height 1.0
+                        :slant 'normal
+                        :foreground fg)
 
-        (set-face-attribute 'org-document-title nil
-                            :family header-font
-                            :foreground fg
-                            :height 1.8
-                            :underline nil
-                            :inherit 'variable-pitch)
+    (set-face-attribute 'org-document-title nil
+                        :family header-font
+                        :foreground fg
+                        :height 1.8
+                        :underline nil
+                        :inherit 'variable-pitch)
 
-        (set-face-attribute 'org-block-end-line nil
-                            :inherit 'org-block-begin-line)))
+    (set-face-attribute 'org-block-end-line nil
+                        :inherit 'org-block-begin-line)))
 
-    ;; https://github.com/syl20bnr/spacemacs/pull/7667
-    (defun halidom/org-restart ()
-      "Restart all open org-mode buffers."
-      (let ((org-buffers (org-buffer-list)))
-        (dolist (buf org-buffers)
-    (with-current-buffer buf
-      (org-mode-restart)))))
+;; https://github.com/syl20bnr/spacemacs/pull/7667
+(defun halidom/org-restart ()
+  "Restart all open org-mode buffers."
+  (let ((org-buffers (org-buffer-list)))
+    (dolist (buf org-buffers)
+      (with-current-buffer buf
+        (org-mode-restart)))))
 
-    (defun halidom/org-theme-hook ()
-        (halidom/org-faces)
-        (halidom/org-restart))
+(defun halidom/org-theme-hook ()
+  (halidom/org-faces)
+  (halidom/org-restart))
 
-    (defun halidom/disable-scroll-bar (&optional frame)
-      (if frame
-          (with-selected-frame frame
-            (toggle-scroll-bar -1))
-        (toggle-scroll-bar -1)))
+(defun halidom/disable-scroll-bar (&optional frame)
+  (if frame
+      (with-selected-frame frame
+        (toggle-scroll-bar -1))
+    (toggle-scroll-bar -1)))
 
-    ;; Add Hooks
-    (add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
-    (add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
-    (add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
+;; Add Hooks
+(add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
+(add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
+(add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
 #+END_SRC
 
 *** Italicize font lock keyword face
