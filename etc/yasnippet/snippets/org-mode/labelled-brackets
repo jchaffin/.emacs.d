@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: labelled-brackets
+# key: lb
+# --
+\lb{$1} $2 \rb{}

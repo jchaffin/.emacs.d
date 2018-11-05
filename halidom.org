@@ -6055,15 +6055,16 @@ theme in \"quick mode\" by eliding hooks specified in `halidom/load-theme-hook'.
                               :slant 'italic
                               :inherit 'org-document-info-face)
           (set-face-attribute 'org-block-begin-line nil
-                            :height 0.8
-                            :foreground fg2
-                            :background bg2
-                            :inherit 'org-meta-line))
-
+                              :height 1.0
+                              :foreground fg2
+                              :background bg2
+                              :inherit 'org-meta-line))
+      
       (set-face-attribute 'org-block-begin-line nil
-                          :height 0.8
+                          :height 1.0
                           :inherit 'fixed-pitch
-                          :background 'org-block-line))
+                          :background 'org-meta-line))
+
     (set-face-attribute 'org-level-2 nil
                         :family header-font
                         :height 1.2
@@ -6123,7 +6124,8 @@ theme in \"quick mode\" by eliding hooks specified in `halidom/load-theme-hook'.
   (let ((org-buffers (org-buffer-list)))
     (dolist (buf org-buffers)
       (with-current-buffer buf
-        (org-mode-restart)))))
+        (org-mode-restart)
+        (halidom/org-faces)))))
 
 (defun halidom/org-theme-hook ()
   (halidom/org-faces)
@@ -7169,7 +7171,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+NAME: ivy/rich
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package ivy-rich
-    :after (counsel)
+    :after (:all ivy counsel)
     :demand t
     :init
     (ivy-rich-mode 1))
@@ -8585,7 +8587,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
   (face-attribute 'variable-pitch :family))
 
 
-(setq org-fixed-pitch-font "Iosevka")
+(setq org-fixed-pitch-font "Fira Code")
 (setq org-variable-pitch-font "Baskerville")
 
 
@@ -8607,16 +8609,10 @@ whistles, it makes up for in compatibility and hackability [fn:18].
     (->> halidom-org-fixed-pitch-faces
        (mapcar (lambda (x) (list x
                             :family org-fixed-pitch-font
-                            :height 140)))
+                            :height 100)))
        (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
   (run-hooks 'variable-pitch-toggle-hook))
 
-(add-hook 'org-variable-pitch-toggle-hook
-          (lambda ()
-            (setq-local left-margin-width 2)
-            (setq-local right-margin-width 2)
-            (blink-cursor-mode 0)
-            (typo-mode 1)))
 #+END_SRC
 
 *** Olivetti
@@ -9074,7 +9070,9 @@ school's WLAN.
   :straight (ov-highlight
              :host github
              :repo "jkitchin/ov-highlight")
-  :after ov)
+  :init
+  (require 'ov)
+  (require 'ov-highlight))
 #+END_SRC
 
 **** Hlsexp
@@ -9426,14 +9424,21 @@ As a git client though, magit is awesome.
 
 #+END_SRC
 
+
 ***** Magit topgit
+
+
+#+BEGIN_SRC shell :tangle no
+git config --global --add magit.extension topgit
+#+END_SRC
+
 
 #+NAME: magit-topgit-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit-topgit
-  :init
-  (progn
-    (add-hook 'magit-mode-hook 'turn-on-magit-topgit))
+  :if (executable-find "tg")
+  :hook
+  (magit-mode . turn-on-magit-topgit)
   :demand t
   :after (magit))
 #+END_SRC
@@ -9449,9 +9454,9 @@ git config --global --add magit.extension stgit
 #+NAME: magit-stgit-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit-stgit
-  :init
-  (progn
-    (add-hook 'magit-mode-hook 'magit-stgit-mode))
+  :if (executable-find "stgit")
+  :hook
+  (magit-mode . magit-stgit-mode)
   :demand t
   :after (magit))
 #+END_SRC
