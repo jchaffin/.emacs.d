@@ -1,0 +1,10 @@
+#+PROPERTY: eval no-export
+* Better colors in Org mode LaTeX fragment previews. :latex:
+#+BEGIN_SRC emacs-lisp
+(defun org-preview--complement-bg ()
+  (with-eval-after-load 'color
+    (substring
+       (apply #'color-rgb-to-hex
+         (color-complement
+           (frame-parameter nil 'background-color))) 0 7)))
+#+END_SRC
