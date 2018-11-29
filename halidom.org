@@ -313,6 +313,7 @@
     - [[#web-1][Web]]
     - [[#markdown][Markdown]]
     - [[#applescript][Applescript]]
+    - [[#racket][Racket]]
 - [[#misc][Misc]]
   - [[#scimax][Scimax]]
   - [[#evil][Evil]]
@@ -693,7 +694,7 @@ Clojure-like =if-not= macro in elisp.
   (declare (indent 2))
   `(progn
      (if (not ,condition)
-	 ,then-form
+	       ,then-form
        ,@rest-forms)))
 #+END_SRC
 
@@ -836,7 +837,7 @@ From the melpa installation:
 (defun buffer-list-names ()
   "Get list of buffer names."
   (let ((f (lambda (b) (buffer-name b)))
-	(buffer-alist (buffer-list)))
+	      (buffer-alist (buffer-list)))
     (mapcar f buffer-alist)))
 
 #+END_SRC
@@ -12205,6 +12206,16 @@ and slim-mode using company.
 #+NAME: lang/applescript
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package apples-mode)
+#+END_SRC
+
+*** Racket
+
+#+NAME: prog/racket
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package racket-mode
+  :hook
+  (racket . paredit-mode))
+
 #+END_SRC
 
 * Misc
