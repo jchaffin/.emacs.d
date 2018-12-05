@@ -3519,7 +3519,6 @@ Embed YouTube Links in iframe.
   (require 'org-bookmark-heading))
 #+END_SRC
 
-
 *** Task Management
 
 #+NAME: org/tasks
@@ -3621,7 +3620,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
            org-level-faces)
           (setq-local org-use-level-faces t))))
 
-    (defun halidom/org-agenda-face ()
+    (defun halidom/org-agenda-file-face ()
       (cond ((org-agenda-file-p) (halidom/remap-org-level-faces))
             (org-use-level-faces
              (mapcar
@@ -3630,12 +3629,15 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                       (delq f face-remapping-alist)))
               org-level-remap-face))))
 
-    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org")
+
+    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
+      "The file path of the default agenda file.")
+
     (when (file-exists-p halidom/default-agenda-file)
       (add-to-list 'org-agenda-files halidom/default-agenda-file))
 
     :hook
-    (org-mode . halidom/org-agenda-face))
+    (org-mode . halidom/org-agenda-file-face))
 #+END_SRC
 
 ***** Agenda ng
@@ -6877,7 +6879,8 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 #+NAME: pretty/eshell
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-eshell
-  :if (file-exists-p (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
+  :if (file-exists-p
+       (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
   :straight nil
   :load-path "~/.emacs.d/etc/local/pretty-eshell"
   :custom-face
@@ -12205,7 +12208,8 @@ and slim-mode using company.
 
 #+NAME: lang/applescript
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package apples-mode)
+(use-package apples-mode
+  :mode "\\.applescript\\'")
 #+END_SRC
 
 *** Racket
