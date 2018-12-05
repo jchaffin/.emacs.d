@@ -5,6 +5,5 @@ straight/**
 .python-version
 company-statistics-cache.el
 /etc/local
-opam-user-setup.el
 halidom.el
 workspace/
