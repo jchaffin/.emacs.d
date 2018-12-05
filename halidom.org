@@ -24,9 +24,11 @@
     - [[#constants][Constants]]
     - [[#macros][Macros]]
     - [[#functions][Functions]]
-    - [[#default-setup][Default Setup]]
+    - [[#garbage-collection][Garbage Collection]]
+    - [[#files][Files]]
+    - [[#modernize-emacs][Modernize Emacs]]
     - [[#encryption][Encryption]]
-    - [[#alias-yes-or-no][Alias Yes Or No]]
+    - [[#text-editing][Text Editing]]
   - [[#keybindings][Keybindings]]
     - [[#global-prefix-map][Global Prefix Map]]
     - [[#hydra][Hydra]]
@@ -59,6 +61,7 @@
     - [[#bibtex][BibTex]]
     - [[#extra][Extra]]
     - [[#preview][Preview]]
+    - [[#latex-preview-pane][LaTeX Preview Pane]]
     - [[#company-auctex][Company Auctex]]
     - [[#company-reftex][Company Reftex]]
     - [[#cdlatex][cdlatex]]
@@ -74,24 +77,13 @@
     - [[#task-management][Task Management]]
     - [[#concept-mapping][Concept Mapping]]
     - [[#org-hacks][Org Hacks]]
-    - [[#ox][Ox]]
-    - [[#ox-backends][Ox Backends]]
-    - [[#ox-extra][Ox Extra]]
-    - [[#ox-publish][Ox Publish]]
-    - [[#ox-org][Ox Org]]
-    - [[#ox-latex][Ox Latex]]
-    - [[#ox-linguistics][Ox Linguistics]]
-    - [[#ox-bibtex][Ox Bibtex]]
-    - [[#ox-pandoc][Ox Pandoc]]
-    - [[#ox-gfm][Ox GFM]]
-    - [[#ox-hugo][Ox Hugo]]
-    - [[#ox-html][Ox HTML]]
+    - [[#org-export][Org Export]]
   - [[#org-latex][Org Latex]]
     - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
     - [[#edit-latex][Edit Latex]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
     - [[#org-ref][Org Ref]]
-    - [[#org-pdf][Org PDF]]
+    - [[#pdf-reader][PDF Reader]]
 - [[#customizing-emacs][Customizing Emacs]]
   - [[#project-management][Project Management]]
     - [[#projectile][Projectile]]
@@ -192,6 +184,7 @@
     - [[#counsel][Counsel]]
     - [[#swiper][Swiper]]
     - [[#smex][Smex]]
+    - [[#flx][Flx]]
     - [[#omnibox][Omnibox]]
 - [[#terminal][Terminal]]
   - [[#with-editor][With Editor]]
@@ -234,6 +227,7 @@
     - [[#set-default-browser][Set default browser]]
     - [[#engine-mode][Engine Mode]]
   - [[#email][Email]]
+    - [[#org-mime][Org Mime]]
     - [[#offlineimap][Offlineimap]]
     - [[#mu][Mu]]
   - [[#cloud-integration][Cloud Integration]]
@@ -312,15 +306,18 @@
     - [[#java][Java]]
     - [[#javascript][JavaScript]]
     - [[#python][Python]]
+    - [[#proglog][Proglog]]
     - [[#ruby][Ruby]]
     - [[#ocaml][Ocaml]]
     - [[#scala][Scala]]
     - [[#web-1][Web]]
     - [[#markdown][Markdown]]
+    - [[#applescript][Applescript]]
+    - [[#racket][Racket]]
 - [[#misc][Misc]]
   - [[#scimax][Scimax]]
+  - [[#evil][Evil]]
   - [[#alfred-org-capture][Alfred Org Capture]]
-  - [[#ess][ESS]]
 - [[#prologue][Prologue]]
 - [[#known-issues][Known Issues]]
   - [[#halidom-literate-config-file-is-added-to-org-agenda-files][~halidom-literate-config-file~ is added to ~org-agenda-files~]]
@@ -351,7 +348,7 @@ compiler.
 - [[http://aaronbedra.com/emacs.d/][Aaron Bedra's Emacs Configuration]]
 - [[https://github.com/Wasamasa/dotemacs/blob/master/init.org][wasamasa/dotemacs]]
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
-  
+
 * Base Configuration
 ** Tangle File
 :PROPERTIES:
@@ -456,13 +453,16 @@ interactive minibuffer completion menu using ivy.
                             (replace-regexp-in-string "build" "repos" dir))
                            pkg-file
                            (car
-                            (directory-files pkg-directory t
-                                             (concat "\\README.*\\'\\|" package ".el"))))
+                            (directory-files
+                             pkg-directory t
+                             (concat "\\README.*\\'\\|" package ".el"))))
                    (setq pkg-directory
                          (file-name-directory (locate-library package))
                          pkg-file
-                         (car (directory-files pkg-directory t
-                                               (concat package ".el\\(?:.gz\\)")))))
+                         (car
+                          (directory-files
+                           pkg-directory t
+                           (concat package ".el\\(?:.gz\\)")))))
                  (if pkg-file
                      (and (file-exists-p pkg-file)
                         (find-file pkg-file))
@@ -694,7 +694,7 @@ Clojure-like =if-not= macro in elisp.
   (declare (indent 2))
   `(progn
      (if (not ,condition)
-	 ,then-form
+	       ,then-form
        ,@rest-forms)))
 #+END_SRC
 
@@ -837,7 +837,7 @@ From the melpa installation:
 (defun buffer-list-names ()
   "Get list of buffer names."
   (let ((f (lambda (b) (buffer-name b)))
-	(buffer-alist (buffer-list)))
+	      (buffer-alist (buffer-list)))
     (mapcar f buffer-alist)))
 
 #+END_SRC
@@ -1149,8 +1149,7 @@ that is a member of `read-only-directories'."
 
 #+END_SRC
 
-*** Default Setup
-**** Garbage Collection
+*** Garbage Collection
 
 Consider the following from the documentation:
 
@@ -1183,7 +1182,7 @@ contributing to the solution.
 (add-hook 'minibuffer-exit-hook #'halidom/rev-down-gc)
 #+END_SRC
 
-**** Files
+*** Files
 ***** No Littering
 
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -1239,6 +1238,7 @@ This might come back to bite me one day but I never use them.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq make-backup-files nil)
+(setq auto-save-default nil)
 #+END_SRC
 
 ***** Inhibit Autosave message
@@ -1280,42 +1280,78 @@ Causes a conflict with ~lsp-mode~.
 
 #+END_SRC
 
-**** Load Secrets
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(when (and (executable-find "gpg") *is-mac*)
-  (if-not (string-empty-p
-       (shell-command-to-string
-	      (concat "gpg --list-keys | grep " user-mail-address)))
-      (progn
-        (add-to-list 'load-path (emacs-etc-dir "secrets"))
-        (require 'secrets))
-    (print (format "GPG key(s) for %s not found"
-                   (or user-full-name user-mail-address)))))
-#+END_SRC
-
-**** Fill Column
+***** Fill Column
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq-default fill-column 80)
 #+END_SRC
 
-**** Modernize Emacs
+*** Modernize Emacs
 
 - makuto's [[https://github.com/makuto/editorPreferences/blob/master/Emacs/emacsConfig.txt][emacsConfig.txt]]
 - Xah Lee [[http://ergoemacs.org/emacs/emacs_make_modern.html][emacs make modern]]
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(global-subword-mode 0)
-(delete-selection-mode 1)
 (global-hl-line-mode -1)
 (save-place-mode 1)
 #+END_SRC
+*
+***** Global Autorevert
 
-**** Prefer newer bytecode
+#+BEGIN_SRC emacs-lisp :tangle yes
+(global-auto-revert-mode t)
+#+END_SRC
+
+***** Cleanup Whitespace
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(setq require-final-newline t)
+#+END_SRC
+
+***** Prefer newer bytecode
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (setq load-prefer-newer t)
+#+END_SRC
+
+***** Better Beginning of Line
+
+From Bozhidar Batsov, the author or prelude.
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+(defun smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
+
+  ;; Move lines first
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
+
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
+
+(global-set-key (kbd "C-a") 'smarter-move-beginning-of-line)
+(global-set-key (kbd "s-<left>") 'smarter-move-beginning-of-line)
+
+#+END_SRC
+
+***** Alias Yes Or No
+
+#+NAME: yes-or-no-p
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
 *** Encryption
@@ -1394,13 +1430,48 @@ killall gpg-agent
           ".git/" ".hg/" ".svn" ".svn-base"))
 #+END_SRC
 
-*** Alias Yes Or No
+**** Load Secrets
 
-#+NAME: yes-or-no-p
 #+BEGIN_SRC emacs-lisp :tangle yes
-(defalias 'yes-or-no-p 'y-or-n-p)
+(when (and (executable-find "gpg") *is-mac*)
+  (if-not (string-empty-p
+       (shell-command-to-string
+	      (concat "gpg --list-keys | grep " user-mail-address)))
+      (progn
+        (add-to-list 'load-path (emacs-etc-dir "secrets"))
+        (require 'secrets))
+    (print (format "GPG key(s) for %s not found"
+                   (or user-full-name user-mail-address)))))
 #+END_SRC
 
+*** Text Editing
+**** Delete Selection Mode
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(delete-selection-mode 1)
+#+END_SRC
+
+**** Mark Forward Sexp
+:PROPERTIES:
+:ID:       38FC590F-CB08-44C6-BAC8-A088BDBEFD03
+:END:
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package mark-forward-sexp
+  :bind (("C-c o" . mark-forward-sexp)
+         ("C-c O" . mark-backward-sexp)
+         ("C-c i" . mark-inside-forward-sexp)
+         ("C-c I" . mark-inside-backwad-sexp)))
+#+END_SRC
+
+**** Expand Region
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package expand-region
+  :bind
+  ("s-'" .  er/expand-region)
+  ("s-S-'" . er/contract-region))
+#+END_SRC
 
 ** Keybindings
 
@@ -1727,9 +1798,10 @@ external programs.
   ;; macOS Trash
   <<macos-trash>>
 
-  ;; macOS clipboard
+  ;; macOS pbcopy
   <<macos-pbcopy>>
 
+  <<macos-simpleclip>>
   ;; macOS app
   <<macos-counsel-osx-app>>)
 ;; End MacOS
@@ -1754,7 +1826,7 @@ external programs.
 (define-prefix-command 'macos-prefix-map)
 (define-key 'halidom-prefix-map "m" 'macos-prefix-map)
 
-(which-key-add-prefix-title "M-m m" " ")
+(which-key-add-prefix-title "M-m m" " MacOS")
 #+END_SRC
 
 **** Modifier Keys
@@ -1779,7 +1851,7 @@ Also sets terminal coding system to "utf-8".
   (global-set-key (kbd "s-]")  'next-buffer)
   (global-set-key (kbd "s-}")  'ns-next-frame)
   (global-set-key (kbd "s-{")  'ns-prev-frame)
-  (global-set-key (kbd "s-L")   'mark-sexp))
+  (global-set-key (kbd "s-L")  'mark-sexp))
 
 #+END_SRC
 
@@ -1906,7 +1978,9 @@ query it with the marked region or symbol at point.
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
   :if *is-mac*
-  :commands (reveal-in-osx-finder))
+  :commands (reveal-in-osx-finder)
+  :init
+  (define-key 'macos-prefix-map (kbd "f") '(" Reveal in Finder" . reveal-in-osx-finder)))
 #+END_SRC
 
 *** OSX Dictionary
@@ -1966,12 +2040,26 @@ running macOS.
 
 *** OSX Clipboard
 
+**** In Terminal
+
 #+NAME: macos-pbcopy
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pbcopy
   :if (and *is-mac* (not (display-graphic-p)))
   :init (turn-on-pbcopy))
 #+END_SRC
+
+**** Separate Emacs clipboard from system
+
+#+NAME: macos-simpleclip
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package simpleclip
+  :init
+  (simpleclip-mode 1))
+#+END_SRC
+
+
+
 
 *** Counsel OSX App
 
@@ -2059,9 +2147,6 @@ it to work properly:
 
 *** Tex
 
-Note that LaTeX packages are loaded, configured, and installed when
-='latex= is a member of =org-export-enabled-backends=.
-
 #+NAME: latex-tex
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package tex
@@ -2135,7 +2220,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
       (turn-on-reftex)
       (setq reftex-plug-into-AUCTeX '(nil nil t t t)
             reftex-use-fonts t
-            reftex-default-bibliography (list (file-truename "~/Dropbox/org/papers/references.bib"))))
+            reftex-default-bibliography (list (file-truename "~/Dropbox/org/ref/references.bib"))))
     :hook
     (LaTeX-mode . halidom/latex-reftex-hook))
 #+END_SRC
@@ -2177,6 +2262,7 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
   (latex/no-fill-environments
    '("equation"
      "equation*"
+     "exe"
      "align"
      "align*"
      "forest"
@@ -2229,7 +2315,7 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 <<org-preview-dynamic>>
 #+END_SRC
 
-***** LaTeX Preview Pane
+*** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
 save.
@@ -2241,16 +2327,16 @@ save.
     :init (latex-preview-pane-enable))
 #+END_SRC
 
-***** Use single directory for storing latex fragments
+**** Use single directory for storing latex fragments
 
 #+NAME: org-preview-directory
 #+BEGIN_SRC emacs-lisp :tangle no
-(let ((ltximg "~/.ltximg/"))
+(let ((ltximg (file-truename '"~/.tmp/ltximg/")))
   (when (file-directory-p ltximg)
     (setq org-preview-latex-image-directory ltximg)))
 #+END_SRC
 
-***** Clear Cache
+**** Clear Cache
 
 #+NAME: org-preview-clear-cache
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2263,7 +2349,7 @@ save.
       (message "%s" "Directory 'ltximg' does not exist."))))
 #+END_SRC
 
-***** Set the default preview process
+**** Set the default preview process
 
 #+NAME: org-preview-default
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2272,7 +2358,7 @@ save.
   (setq org-preview-latex-default-process 'dvisvgm))
 #+END_SRC
 
-***** Format Options
+**** Format Options
 
 #+NAME: org-preview-format
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2280,7 +2366,7 @@ save.
   (plist-put org-format-latex-options :scale 1.2))
 #+END_SRC
 
-***** Parsing keywords
+**** Parsing keywords
 
 #+NAME: org-preview-parsing
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2314,7 +2400,7 @@ save.
 
 #+END_SRC
 
-***** XeLaTeX fragments
+**** XeLaTeX fragments
 
 #+NAME: org-preview-xelatex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2372,8 +2458,8 @@ save.
          xelatex-preview-process-alist)
 
     (when (assoc 'latex org-babel-load-languages)
-      (setq org-edit-latex-frag-master preview-file))
-
+      (set (make-local-variable 'org-edit-latex-frag-master)
+           preview-file))
 
     (set (make-local-variable 'org-format-latex-header)
          (if (org-preview/orgling-p)
@@ -2382,7 +2468,7 @@ save.
   )
 #+END_SRC
 
-***** LuaLaTeX Fragments
+**** LuaLaTeX Fragments
 
 #+NAME: org-preview-lualatex
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2441,7 +2527,8 @@ save.
          lualatex-preview-process-alist)
 
     (when (assoc 'latex org-babel-load-languages)
-      (setq org-edit-latex-frag-master preview-file))
+      (set (make-local-variable 'org-edit-latex-frag-master)
+           preview-file))
 
     (set (make-local-variable 'org-format-latex-header)
          (if (org-preview/uclacs-p)
@@ -2450,25 +2537,25 @@ save.
            lualatex-preview-header))))
 #+END_SRC
 
-***** Per-buffer latex fragment previews
+**** Per-buffer latex fragment previews
 
 Generate latex fragments based on the latex compiler and class in the current buffer.
 
 #+NAME: org-preview-dynamic
 #+BEGIN_SRC emacs-lisp :tangle no
-  (defun org-preview-with-compiler ()
-    (interactive)
-    (let ((latex-compiler (org-preview/process-compiler)))
-      (when-let (preview-process (org-preview/set-process))
-        (set (make-local-variable 'org-preview-latex-default-process)
-             preview-process))
+(defun org-preview-with-compiler ()
+  (interactive)
+  (let ((latex-compiler (org-preview/process-compiler)))
+    (when-let (preview-process (org-preview/set-process))
+      (set (make-local-variable 'org-preview-latex-default-process)
+           preview-process))
 
-      (when (or  (string= latex-compiler "xelatex")
-                (string= latex-compiler "xetex"))
-        (org-preview-xelatex))
+    (when (or (string= latex-compiler "xelatex")
+             (string= latex-compiler "xetex"))
+      (org-preview-xelatex))
 
-      (when (string= latex-compiler "lualatex")
-        (org-preview-lualatex))))
+    (when (string= latex-compiler "lualatex")
+      (org-preview-lualatex))))
 
 (add-hook 'org-mode-hook 'org-preview-with-compiler)
 #+END_SRC
@@ -2689,24 +2776,19 @@ Entered on [2018-06-13 Wed 11:42]
 *** Org Command Map
 #+NAME: org/commander
 #+BEGIN_SRC emacs-lisp :tangle no
-  (define-prefix-command 'halidom/org-command-map)
+(define-prefix-command 'halidom/org-command-map)
 
-  ;; (let ((map halidom/org-command-map))
-  ;;   (define-key map "j" 'org-journal-new-entry))
+(define-key 'halidom-prefix-map (kbd "o")
+  'halidom/org-command-map)
 
-  (define-key 'halidom-prefix-map (kbd "o")
-   'halidom/org-command-map)
+(when *is-mac*
 
-;; This remaps the atom icon from 'all the icons'
-(set-fontset-font "fontset-default" '#xE917 "file-icons" nil 'prepend)
-
-(which-key-add-key-based-replacements "M-m o"
-  `(,(propertize ""
-                 'font-lock-string-face
-                 '(:family "file-icons") 'fontified nil) . "Org Mode"))
-
+  (set-fontset-font "fontset-default" '#xE917 "file-icons" nil 'prepend)
+  (which-key-add-key-based-replacements "M-m o"
+    `(,(propertize " Org Mode"
+                   'font-lock-string-face
+                   '(:family "file-icons") 'fontified nil) . "Org Mode")))
 #+END_SRC
-
 
 *** Org Babel
 
@@ -2782,6 +2864,10 @@ org-mode buffers.
 <<org-ui-fixedwidth-image>>
 ;; UI Org Bullets
 <<org-ui-org-bullets>>
+;; Org Pretty Table
+<<org-ui-table>>
+;; Insert literal entities
+<<org-ui-literal>>
 ;; UI Toc Org
 <<org-ui-toc-org>>
 ;; UI Column View
@@ -2799,12 +2885,12 @@ org-mode buffers.
 #+NAME: org-ui-fill
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(defun halidom/vfc-hook ()
+(defun org-visual-fill-column ()
   (visual-fill-column-mode 1)
   (visual-line-mode 1))
 
 
-(add-hook 'org-mode-hook #'halidom/vfc-hook)
+(add-hook 'org-mode-hook #'org-visual-fill-column)
 
 
 #+END_SRC
@@ -2852,6 +2938,73 @@ The default set of bullet points can be modified via the
     :hook
     (org-mode . org-bullets/enable)
     (org-bullets . org-bullets/pretty))
+#+END_SRC
+
+**** Org Pretty Table
+
+#+NAME: org-ui-table
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-pretty-table
+  :straight (org-pretty-table
+             :host github
+             :type git
+             :repo "Fuco1/org-pretty-table"))
+#+END_SRC
+
+**** Insert literal entities
+
+From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
+
+#+NAME: org-ui-literal
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun modi/org-entity-get-name (char)
+  "Return the entity name for CHAR. For example, return \"ast\" for *."
+  (let ((ll (append org-entities-user
+                    org-entities))
+        e name utf8)
+    (catch 'break
+      (while ll
+        (setq e (pop ll))
+        (when (not (stringp e))
+          (setq utf8 (nth 6 e))
+          (when (string= char utf8)
+            (setq name (car e))
+            (throw 'break name)))))))
+
+(defun modi/org-insert-org-entity-maybe (&rest args)
+  "When the universal prefix C-u is used before entering any character,
+    insert the character's `org-entity' name if available.
+
+    If C-u prefix is not used and if `org-entity' name is not available, the
+    returned value `entity-name' will be nil."
+  ;; It would be fine to use just (this-command-keys) instead of
+  ;; (substring (this-command-keys) -1) below in emacs 25+.
+  ;; But if the user pressed "C-u *", then
+  ;;  - in emacs 24.5, (this-command-keys) would return "^U*", and
+  ;;  - in emacs 25.x, (this-command-keys) would return "*".
+  ;; But in both versions, (substring (this-command-keys) -1) will return
+  ;; "*", which is what we want.
+  ;; http://thread.gmane.org/gmane.emacs.orgmode/106974/focus=106996
+  (let ((pressed-key (substring (this-command-keys) -1))
+        entity-name)
+    (when (and (listp args) (eq 4 (car args)))
+      (setq entity-name (modi/org-entity-get-name pressed-key))
+      (when entity-name
+        (setq entity-name (concat "\\" entity-name "{}"))
+        (insert entity-name)
+        (message (concat "Inserted `org-entity' "
+                         (propertize entity-name
+                                     'face 'font-lock-function-name-face)
+                         " for the symbol "
+                         (propertize pressed-key
+                                     'face 'font-lock-function-name-face)
+                         "."))))
+    entity-name))
+
+;; Run `org-self-insert-command' only if `modi/org-insert-org-entity-maybe'
+;; returns nil.
+(advice-add 'org-self-insert-command :before-until #'modi/org-insert-org-entity-maybe)
+
 #+END_SRC
 
 **** TOC Org
@@ -2967,6 +3120,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+END_SRC
 
+****
 *** Structure and Editing
 
 #+NAME: org/structure
@@ -2993,12 +3147,15 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 ;; End Org Doc Manager
 #+END_SRC
 
-**** Org Capture
+**** Org Capture :tasks:
 
 #+NAME: org-docmgr-capture
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; org capture templates
 <<org-capture-templates>>
+;; Org Protocol App
+<<org-protocol-app>>
+;; Org Protocol Mac
 <<org-protocol-mac>>
 ;; org capture html
 <<org-capture-html>>
@@ -3008,9 +3165,10 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+NAME: org-capture-templates
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-capture-templates
-      '(("t" "Todo" entry (file+headline "~/Dropbox/org/todos/TODOs.org" "Tasks")
-         "* TODO %?\n %i\n %a")))
+(require 'org-capture)
+
+(add-to-list 'org-capture-templates
+  '("t" "Todo" entry (file+headline "~/Dropbox/todos/TODOs.org" "Tasks")))
 
 (defvar org-capture/created-property-string "
   :PROPERTIES:
@@ -3018,81 +3176,28 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
   :END:")
 #+END_SRC
 
-***** Org Protocol Handler :disabled:
+***** Org Protocol Handler
 
-#+NAME: org-protocol-handler
+#+NAME: org-protocol-app
 #+BEGIN_SRC emacs-lisp :tangle no
-(require 'org-protocol)
-
-(defvar org-protocol-install-directory (no-littering-expand-var-file-name "org-protocol-handler"))
-
-(defun org-protocol-handler-install ()
-  (interactive)
-  (let* ((install-dir org-protocol-install-directory)
-         (op-app-path (expand-file-name "Org Protocol Handler.app" install-dir)))
-    (unwind-protect
-         (unless (f-dir-p install-dir)
-           (mkdir install-dir)
-           (when (featurep 'magit)
-             (magit-clone
-              "https://github.com/aaronbieber/org-protocol-handler.git" install-dir))
-           (f-symlink op-app-path "/Applications/")))))
-
-(defun org-protocol-handler-uninstall ()
-  (interactive)
-  (let ((app-link-path "/Applications/Org Protocol Handler.app"))
-  (when (yes-or-no-p "Are you sure you want to uninstall org-protocol-handler? ")
-    (when (file-exists-p app-link-path)
-      (delete-file app-link-path t))
-    (when (file-directory-p org-protocol-install-directory)
-      (delete-directory org-protocol-install-directory t t)))))
-
-;; (with-eval-after-load 'server
-;;   (unless (server-running-p)
-;;     ;; (setq server-socket-dir (f-expand "server" user-emacs-directory))
-;;     (server-start))
-
-;; 	(if (and *is-mac* (server-running-p))
-;; 	    (org-protocol-handler-install)))
-(if *is-mac*
-    (org-protocol-handler-install))
-
+(setq org-protocol-default-template-key "l")
 (add-to-list 'org-capture-templates
-             '("l" "A link, for reading later." entry
-               (file+headline "notes.org" "Reading List")
-               "* %:description\n%u\n\n%c\n\n%i"
-               :empty-lines 1))
+             '("l" "Link" entry
+               (file+olp "~/Dropbox/org/capture.org" "Web Links")
+               "* %:description\n%u\n\n%c\n\n%i"))
+
+(require 'server)
+(unless (server-running-p)
+  (server-start))
+
+(require 'org-protocol)
 #+END_SRC
 
 ***** Org Mac Protocol
 
 #+NAME: org-protocol-mac
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-mac-protocol
-    :config
-  (defun org-mac-protocol-install ()
-    (interactive)
-     "Install system dependencies provided by org-mac-protocol."
-     (cl-flet ((f (file)
-                  (let ((app-dir (no-littering-expand-var-file-name
-                                  "org-mac-protocol"))
-                       (script-dir (user-home "Library" "Scripts"))
-                       (file-path (concat (straight-dir "repos" "org-mac-protocol") file)))
-                   (if-not (file-directory-p app-dir)
-                       (progn
-                         (mkdir app-dir)
-                         (message "Created directory %s" app-dir)))
-                   (cond ((and (file-directory-p file-path)
-                               (not (file-directory-p
-                                     (concat script-dir (file-name-base file-path)))))
-                          (copy-directory file-path script-dir))
-                         ((string= (file-name-extension file-path) "scpt")
-                          (copy-file file-path script-dir t))
-                         ((string= (file-name-extension file-path) "applescript")
-                          (copy-file file-path app-dir t))))))
-       (let ((files (remove ".git" (directory-files-no-wildcards
-                                    (straight-dir "repos" "org-mac-protocol")))))
-         (mapcar #'f files)))))
+(use-package org-mac-protocol)
 #+END_SRC
 
 ***** Org Protocol Capture HTML
@@ -3140,8 +3245,9 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-contacts
   :straight org
-  :config
-  (push '("c" "Contacts" entry (file "~/Dropbox/org/contacts.org")
+  :init
+  (require 'org-contacts)
+  (push '("E" "Contacts" entry (file "~/Dropbox/org/contacts.org")
            "* %(org-contacts-template-name)
               :PROPERTIES:
               :EMAIL: %(org-contacts-template-email)
@@ -3160,7 +3266,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+END_SRC
 
-**** Org Journal
+**** Org Journal :notetaking:
 
 #+NAME: org-docmgr-journal
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -3186,7 +3292,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+END_SRC
 
-**** Org ID
+**** Org ID :structure:
 
 #+NAME: org-docmgr-id
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
@@ -3268,22 +3374,21 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
                     (org-add-ids-to-headlines-in-file))))))
 #+END_SRC
 
-**** Org Index
-
+**** Org Index :notetaking:
 
 #+NAME: org-docmgr-index
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-index)
 #+END_SRC
 
-**** Org Interleave
+**** Org Interleave :notetaking:
 
 #+NAME: org-docmgr-interleave
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package interleave)
+(use-package org-noter)
 #+END_SRC
 
-**** Org Download
+**** Org Download :web:
 
 Drag and Drop images directly from a web browser to an org-mode buffer.
 
@@ -3299,14 +3404,14 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
   ((dired-mode org-mode) . org-download-enable))
 #+END_SRC
 
-**** Org Web Tools
+**** Org Web Tools :web:
 
 #+NAME: org-docmgr-web
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-web-tools)
 #+END_SRC
 
-**** Org Links
+**** Org Links :structure:
 
 #+NAME: org-docmgr-links
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -3320,6 +3425,8 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 <<org-links-youtube>>
 ;; Org links minor mode
 <<org-links-minor>>
+;; LaTeX markup
+<<org-links-latex>>
 ;; Org Bookmark Heading
 <<org-links-bookmark>>
 #+END_SRC
@@ -3379,6 +3486,25 @@ Embed YouTube Links in iframe.
 (use-package org-link-minor-mode
   :hook (prog-mode . org-link-minor-mode))
 #+END_SRC
+
+***** Org Latex Links
+
+#+NAME: org-links-latex
+#+BEGIN_SRC emacs-lisp :tangle no
+;; From https://orgmode.org/worg/org-tutorials/org-latex-export.html
+(org-add-link-type
+ "latex" nil
+ (lambda (path desc format)
+   (cond
+    ((eq format 'html)
+     (format "<span class=\"%s\">%s</span>" path desc))
+    ((eq format 'latex)
+     (format "\\%s{%s}" path desc)))))
+
+;; See https://lists.gnu.org/archive/html/emacs-orgmode/2014-08/msg00982.html
+(setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
+#+END_SRC
+
 
 ***** Org Bookmark Heading
 
@@ -3494,7 +3620,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
            org-level-faces)
           (setq-local org-use-level-faces t))))
 
-    (defun halidom/org-agenda-face ()
+    (defun halidom/org-agenda-file-face ()
       (cond ((org-agenda-file-p) (halidom/remap-org-level-faces))
             (org-use-level-faces
              (mapcar
@@ -3503,12 +3629,15 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                       (delq f face-remapping-alist)))
               org-level-remap-face))))
 
-    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org")
+
+    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
+      "The file path of the default agenda file.")
+
     (when (file-exists-p halidom/default-agenda-file)
       (add-to-list 'org-agenda-files halidom/default-agenda-file))
 
     :hook
-    (org-mode . halidom/org-agenda-face))
+    (org-mode . halidom/org-agenda-file-face))
 #+END_SRC
 
 ***** Agenda ng
@@ -3549,7 +3678,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+NAME: agenda/sidebar
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-sidebar
-  :requires (dash-functional)
   :straight
   (org-sidebar
    :host github
@@ -3557,12 +3685,14 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
   :init
   (require 'org-ql)
+  (require 'dash-functional)
   (require 'org-sidebar)
 
   :config
   (cl-defmacro course-sidebar (name description &optional extra)
     `(progn
-       (org-sidebar-defsidebar ,(intern (concat name "/sidebar"))
+       (org-sidebar-defsidebar
+         ,(intern (concat name "/sidebar"))
          :header ,description
          :sidebars (((and (not (done))
                         (todo)
@@ -3570,12 +3700,12 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                            (scheduled <=))
                         (not (tags "optional")))))
          :super-groups ',(append
-                           '((:name " Overdue" :scheduled past :deadline past)
-                             (:name " Today" :scheduled today :deadline today)
-                             (:name " Homework" :tag "homework"))
-                           (list extra))
+                          '((:name " Overdue" :scheduled past :deadline past)
+                            (:name " Today" :scheduled today :deadline today)
+                            (:name " Homework" :tag "homework"))
+                          (list extra))
          :files ,(expand-file-name
-                  "TODOS.org"
+                  "TODOs.org"
                   (concat "~/Dropbox/courses/" name "/")))
        (defun ,(intern (concat name "-sidebar")) ()
          (interactive)
@@ -3583,7 +3713,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
   (course-sidebar "ling165b" "Ling 165B Syntax"
                    (:name " Paper" :tag "paper"))
-  
+
   (course-sidebar "cs131" "Programming Languages"
                   (:name " Upcoming" :anything))
   (course-sidebar "ling103" "Phonetics" (:name " Project" :tag "project"))
@@ -3630,6 +3760,9 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :init
 
+    (defvar-local org-default-agenda-file (file-truename "~/Dropbox/org/todos/TODOS.org"))
+
+
     (defun org-projectile-files-to-agenda ()
       "Add projectile project files to agenda."
       (interactive)
@@ -3655,12 +3788,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :config
 
-    (org-projectile-per-project)
-
-    (add-to-list 'org-capture-templates
-                 (org-projectile-capture-for-current-project
-                  :capture-character "p"
-                  :capture-heading "Linked Project TODO")))
+    (org-projectile-per-project))
 
 #+END_SRC
 
@@ -3699,21 +3827,18 @@ Calendar.
 (use-package calfw
   :custom
   (cfw:org-capture-template
-     '("c" "calfw2org" entry
-       (file "agenda/schedule.org")
-       "*  %?
-   %(cfw:org-capture-day)"))
+   '("c" "calfw2org" entry (file "agenda/schedule.org")  "* %?n %(cfw:org-capture-day)"))
   (cfw:render-line-breaker 'cfw:render-line-breaker-wordwrap)
   (cfw:display-calendar-holidays nil)
-  (cfw:fchar-junction ?╋)    
-  (cfw:fchar-vertical-line ?┃)          
-  (cfw:fchar-horizontal-line ?━)          
-  (cfw:fchar-left-junction ?┣)          
-  (cfw:fchar-right-junction ?┫)          
-  (cfw:fchar-top-junction ?┯)          
-  (cfw:fchar-top-left-corner ?┏)          
+  (cfw:fchar-junction ?╋)
+  (cfw:fchar-vertical-line ?┃)
+  (cfw:fchar-horizontal-line ?━)
+  (cfw:fchar-left-junction ?┣)
+  (cfw:fchar-right-junction ?┫)
+  (cfw:fchar-top-junction ?┯)
+  (cfw:fchar-top-left-corner ?┏)
   (cfw:fchar-top-right-corner ?┓)
-    
+
   :hook
   (cfw:details-mode . org-link-minor-mode))
 
@@ -4006,7 +4131,7 @@ Fix problem with  which puts point back in a folded position.
   (ad-activate 'org-refile)
 #+END_SRC
 
-*** Ox
+*** Org Export
 :PROPERTIES:
 :ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
 :CUSTOM_ID: sec:ox
@@ -4014,91 +4139,30 @@ Fix problem with  which puts point back in a folded position.
 
 #+NAME: org/ox
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Backends Interface
-<<ox/backends>>
-;; Enable Extras
+;; extras
 <<ox/extra>>
-;; Org Publish
+;; Publish
 <<ox/publish>>
-;; ox org
+;; Org
 <<ox/org>>
-;; ox latex
-(when (halidom/org-export-enabled-backend-p 'latex)
-  <<ox/latex>>
-)
-
-;; ox linguistics
-(when (halidom/org-export-enabled-backend-p 'linguistics)
-  <<ox/linguistics>>
-)
-
-;; ox bibtex
-(when (halidom/org-export-enabled-backend-p 'bibtex)
-  <<ox/bibtex>>
-)
-
-;; ox gfm
-(when (halidom/org-export-enabled-backend-p 'gfm)
-  <<ox/gfm>>
-)
-
-
-;; ox pandoc
-(when (halidom/org-export-enabled-backend-p 'pandoc)
-  <<ox/pandoc>>
-)
-
-;; ox hugo
-(when (halidom/org-export-enabled-backend-p 'hugo)
-  <<ox/hugo>>
-)
-
-;; ox html
-(when (halidom/org-export-enabled-backend-p 'html)
-  <<ox/html>>
-)
+;; Latex
+<<ox/latex>>
+;; Linguistics
+<<ox/linguistics>>
+;; Bibtex
+<<ox/bibtex>>
+;; GFM
+<<ox/gfm>>
+;; Pandoc
+<<ox/pandoc>>
+;; Huge
+<<ox/hugo>>
+;; HTML
+<<ox/html>>
 
 #+END_SRC
 
-*** Ox Backends
-:PROPERTIES:
-:ID:       59AEA962-792E-4AB7-ACDE-3EC61C45D279
-:CUSTOM_ID: sec:ox-backends
-:END:
-
-#+NAME: ox/backends
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; utilities
-<<backends/utilities>>
-;; enable by default
-<<backends/default>>
-#+END_SRC
-
-**** Utilities for export backend
-
-#+NAME: backends/utilities
-#+BEGIN_SRC emacs-lisp :tangle no
-(defvar org-export-enabled-backends '()
-  "alist of symbols representing enabled `org-mode' export backends")
-
-(defun halidom/org-export-enabled-backend-p (backend)
-  (member backend org-export-enabled-backends))
-#+END_SRC
-
-And opt-in to all back ends when on local machine.
-
-**** Enable By Default
-
-#+NAME: backends/default
-#+BEGIN_SRC emacs-lisp :tangle no
-(when *is-mac*
-  (mapcar (lambda (backend)
-            (setq org-export-enabled-backends
-                  (cons backend org-export-enabled-backends)))
-          '(extra gfm latex hugo html pandoc linguistics)))
-#+END_SRC
-
-*** Ox Extra
+**** Ox Extra
 
 Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents
 and subtrees of the ignored headlines will be retained.
@@ -4113,7 +4177,7 @@ and subtrees of the ignored headlines will be retained.
                         org-export-filter-parse-tree-functions)))
 #+END_SRC
 
-*** Ox Publish
+**** Ox Publish
 
 #+NAME: ox/publish
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4124,7 +4188,7 @@ and subtrees of the ignored headlines will be retained.
   :bind (("M-m r p" . org-publish-project)))
 #+END_SRC
 
-*** Ox Org
+**** Ox Org
 
 #+NAME: ox/org
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4145,7 +4209,7 @@ recursively processing #+INCLUDEs."
     (save-buffer)))
 #+END_SRC
 
-*** Ox Latex
+**** Ox Latex
 :PROPERTIES:
 :CUSTOM_ID: sec:ox-latex
 :END:
@@ -4155,7 +4219,7 @@ recursively processing #+INCLUDEs."
 (require 'ox-latex)
 ;; Prefer user labels
 <<oxl/labels>>
-;; Subfigure 
+;; Subfigure
 <<oxl/subfigure>>
 ;; PDF Process Interface
 <<oxl/pdf>>
@@ -4165,14 +4229,14 @@ recursively processing #+INCLUDEs."
 <<oxl/classes>>
 #+END_SRC
 
-**** Prefer user provided labeling
+***** Prefer user provided labeling
 
 #+NAME: oxl/labels
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq org-latex-prefer-user-labels t)
 #+END_SRC
 
-**** Subfigure Export
+***** Subfigure Export
 
 #+NAME: oxl/subfigure
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4188,7 +4252,7 @@ recursively processing #+INCLUDEs."
 
 #+END_SRC
 
-**** Minted
+***** Minted
 
 Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
 
@@ -4200,6 +4264,8 @@ Allow toggling of minted inclusion in exported header. This might be necessary w
 (setq org-latex-listings 'minted)
 
 (setq org-latex-packages-alist '(("" "booktabs" nil)))
+(setq org-latex-tables-booktabs t)
+
 (setq org-latex-minted-options
       '(("mathescape" "true")
         ("linenos" "true")
@@ -4226,8 +4292,7 @@ Allow toggling of minted inclusion in exported header. This might be necessary w
 
 #+END_SRC
 
-
-**** Set latex pdf process
+***** Set latex pdf process
 
 [[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
 
@@ -4280,22 +4345,19 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 
 #+END_SRC
 
-**** Hyperref Template
+***** Hyperref Template
 
 The default cross-referencing and hyperlink styles provided by
 =hyperref= are awful. This makes them less awful.
 
 #+NAME: oxl/hyperref
 #+BEGIN_SRC emacs-lisp :tangle no
-  (setq org-latex-hyperref-template
-        (concat "\\hypersetup{\n"
-                " colorlinks=true,"
-                " urlcolor=black"
-                " linkcolor=black"
-                "\n}"))
+;; TODO: Dynamically set to a sensible default if using 'article class
+;; or a class in `org-latex-classes' that includes hyperref.
+(setq org-latex-hyperref-template nil)
 #+END_SRC
 
-**** Export classes
+***** Export classes
 
 #+NAME: oxl/classes
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -4311,7 +4373,9 @@ The default cross-referencing and hyperlink styles provided by
 <<ox-class/unicode-math>>
 #+END_SRC
 
-***** Article no default packages
+****** Article Standalone
+
+From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
 
 #+NAME: ox-class/article-standalone
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4328,7 +4392,7 @@ The default cross-referencing and hyperlink styles provided by
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Orgling
+****** Orgling
 
 #+NAME: ox-class/orgling
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4347,7 +4411,7 @@ The default cross-referencing and hyperlink styles provided by
                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
 #+END_SRC
 
-***** UCLA CS
+****** UCLA CS
 
 #+NAME: ox-class/uclacs
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4363,7 +4427,7 @@ The default cross-referencing and hyperlink styles provided by
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Humanities
+****** Humanities
 
 My custom mla-style LaTeX class.
 
@@ -4381,7 +4445,7 @@ My custom mla-style LaTeX class.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Unicode Math
+****** Unicode Math
 
 #+NAME: ox-class/unicode-math
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4413,7 +4477,7 @@ My custom mla-style LaTeX class.
       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-*** Ox Linguistics
+**** Ox Linguistics
 
 #+NAME: ox/linguistics
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4430,7 +4494,7 @@ My custom mla-style LaTeX class.
 
 #+END_SRC
 
-*** Ox Bibtex
+**** Ox Bibtex
 
 #+NAME: ox/bibtex
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -4446,7 +4510,7 @@ My custom mla-style LaTeX class.
     (setq org-bibtex-file "references.org")))
 #+END_SRC
 
-*** Ox Pandoc
+**** Ox Pandoc
 
 [[https://pandoc.org/][Pandoc]] is a document conversion tool that can convert pretty much
 anything. The [[https://github.com/kawabata/ox-pandoc][ox-pandoc]] package allows us to utiliize this capability
@@ -4497,7 +4561,7 @@ for exporting org-mode documents to various formats.
       (add-to-list 'org-file-apps '("\\.docx?\\'" . system)))))
 #+END_SRC
 
-*** Ox GFM
+**** Ox GFM
 
 #+NAME: ox/gfm
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4506,7 +4570,7 @@ for exporting org-mode documents to various formats.
   :demand t)
 #+END_SRC
 
-*** Ox Hugo
+**** Ox Hugo
 
 [[https://ox-hugo.scripter.co/][ox-hugo]] is an org exporter for Hugo-compatible markdown.
 
@@ -4516,7 +4580,7 @@ for exporting org-mode documents to various formats.
   :after (ox))
 #+END_SRC
 
-*** Ox HTML
+**** Ox HTML
 
 #+NAME: ox/html
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -4528,6 +4592,7 @@ for exporting org-mode documents to various formats.
       :local-repo-name org-html-themes
       :files ("setup/*" "styles/*")))
 #+END_SRC
+
 
 ** Org Latex
 
@@ -4557,7 +4622,9 @@ for exporting org-mode documents to various formats.
 
 #+NAME: org-latex-edit-latex
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-edit-latex)
+(use-package org-edit-latex
+  :custom
+  (org-edit-latex-frag-master (emacs-etc-dir "preview" "frag-master.tex")))
 #+END_SRC
 
 *** Highlight inline LaTeX fragments
@@ -4597,11 +4664,13 @@ for exporting org-mode documents to various formats.
 
     (org-ref-completion-library 'org-ref-ivy-cite)
     (org-ref-default-bibliography
-     (list (dropbox-dir "org" "ref" "references.bib")))
+     '("~/Dropbox/org/ref/references.bib"))
     (org-ref-bibliography-notes
-     (dropbox-dir "org" "ref" "refnotes.org"))
+     "~/Dropbox/org/ref/refnotes.org")
+    (org-ref-notes-directory
+     "~/Dropbox/org/notebooks")
     (org-ref-pdf-directory
-     (dropbox-dir "org" "papers" "pdfs"))
+     "~/Dropbox/Documents/pdfs/")
     (org-ref-show-citation-on-enter t)
     (org-ref-show-broken-links t)
     (org-ref-bibtex-hydra-key-binding "\C-cj")
@@ -4625,37 +4694,16 @@ for exporting org-mode documents to various formats.
       (require 'x2bib))
 
     :config
+
     (defun goto-org-ref-manual (&optional path)
       (interactive)
-      (if-not path
-          (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
+      (unless path
+        (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
       (find-file path))
-
 
     ;; Hydra
     ;; See [[file:straight/repos/org-ref/org-ref.org::#citations][Citations]] section of the manual
-    (key-chord-define-global "kk" 'org-ref-cite-hydra/body)
-
-    ;; Org Ref Bibtex Interface
-    (defcustom halidom-org-ref-journal-abbrevs '()
-      "Extra abbreviations to add to `org-ref-bibtex-journal-abbreviations.'
-  Each abbreviation is a list of the form (string journal-abbreviation journal-full-name)."
-      :type '(alist :value-type (group string)))
-
-
-    (setq journal-abbrevs-extra
-          '(("CST" "The Handbook of Contemporary Syntactic Theory" )))
-
-    (setq halidom-org-ref-journal-abbrevs
-          (seq-concatenate 'list
-                           halidom-org-ref-journal-abbrevs
-                           journal-abbrevs-extra))
-
-
-
-    (with-eval-after-load 'org-ref
-      (dolist (elt halidom-org-ref-journal-abbrevs)
-        (add-to-list 'org-ref-bibtex-journal-abbreviations elt))))
+    (key-chord-define-global "kk" 'org-ref-cite-hydra/body))
 
 #+END_SRC
 
@@ -4702,13 +4750,14 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
 #+END_SRC
 
-*** Org PDF
+*** PDF Reader
 
 #+NAME: org-latex-pdf
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 (when (display-graphic-p)
-  <<org-pdf-pdftools>>
-  <<org-pdf-pdfview>>
+  ;; PDF Tools
+  <<pdf/tools>>
+  <<pdf/org>>
 )
 #+END_SRC
 
@@ -4720,7 +4769,7 @@ PDF documents in Emacs. It serves as a replacement for DocView mode.
 Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 [[http://pragmaticemacs.com/category/emacs/][blogpost]] demonstrating how to get the most out of this package.
 
-#+NAME: org-pdf-pdftools
+#+NAME: pdf/tools
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pdf-tools
   :mode (("\\.pdf\\'" . pdf-view-mode))
@@ -4742,7 +4791,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 
 Now we can open pdf files with =org-pdfview= [fn:12]:
 
-#+NAME: org-pdf-pdfview
+#+NAME: pdf/org
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-pdfview
   :after (:all pdf-tools)
@@ -4943,7 +4992,8 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: project-ffip
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package find-file-in-project)
+(use-package find-file-in-project
+  :bind ("s-p" . ffip))
 #+END_SRC
 
 ** File System
@@ -5050,31 +5100,31 @@ Adds extensions and functionality to dired mode.
   :custom
   (treemacs-collapse-dirs
     (if (executable-find "python") 3 0))
-  (treemacs-deferred-git-apply-delay   0.5)          
-  (treemacs-display-in-side-window     t)          
-  (treemacs-file-event-delay           5000)          
-  (treemacs-file-follow-delay          0.2)          
-  (treemacs-follow-after-init          t)          
-  (treemacs-follow-recenter-distance   0.1)          
-  (treemacs-goto-tag-strategy          'refetch-index)          
-  (treemacs-indentation                2)          
-  (treemacs-indentation-string         " ")          
-  (treemacs-is-never-other-window      nil)          
-  (treemacs-max-git-entries            5000)          
-  (treemacs-no-png-images              nil)          
-  (treemacs-project-follow-cleanup     nil)          
+  (treemacs-deferred-git-apply-delay   0.5)
+  (treemacs-display-in-side-window     t)
+  (treemacs-file-event-delay           5000)
+  (treemacs-file-follow-delay          0.2)
+  (treemacs-follow-after-init          t)
+  (treemacs-follow-recenter-distance   0.1)
+  (treemacs-goto-tag-strategy          'refetch-index)
+  (treemacs-indentation                2)
+  (treemacs-indentation-string         " ")
+  (treemacs-is-never-other-window      nil)
+  (treemacs-max-git-entries            5000)
+  (treemacs-no-png-images              nil)
+  (treemacs-project-follow-cleanup     nil)
   (treemacs-persist-file
-   (no-littering-expand-var-file-name "treemacs-persist"))          
-  (treemacs-recenter-after-file-follow nil)          
-  (treemacs-recenter-after-tag-follow  nil)          
-  (treemacs-show-cursor                nil)          
-  (treemacs-show-hidden-files          t)          
-  (treemacs-silent-filewatch           nil)          
-  (treemacs-silent-refresh             nil)          
-  (treemacs-sorting                    'alphabetic-desc)          
-  (treemacs-space-between-root-nodes   t)          
-  (treemacs-tag-follow-cleanup         t)          
-  (treemacs-tag-follow-delay           1.5)          
+   (no-littering-expand-var-file-name "treemacs-persist"))
+  (treemacs-recenter-after-file-follow nil)
+  (treemacs-recenter-after-tag-follow  nil)
+  (treemacs-show-cursor                nil)
+  (treemacs-show-hidden-files          t)
+  (treemacs-silent-filewatch           nil)
+  (treemacs-silent-refresh             nil)
+  (treemacs-sorting                    'alphabetic-desc)
+  (treemacs-space-between-root-nodes   t)
+  (treemacs-tag-follow-cleanup         t)
+  (treemacs-tag-follow-delay           1.5)
   (treemacs-width                      35)
 
   :config
@@ -5111,7 +5161,8 @@ Adds extensions and functionality to dired mode.
 #+NAME: projectile-speedbar
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package projectile-speedbar
-    :bind ("M-<f2>" . projectile-speedbar-open-current-buffer-in-tree))
+  :after (:all speedbar projectile)
+  :bind ("M-<f2>" . projectile-speedbar-open-current-buffer-in-tree))
 #+END_SRC
 
 ** Search
@@ -5192,7 +5243,8 @@ Jump to arbitrary point in Buffer
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package visual-regexp
     :bind
-    (("C-c r" . vr/replace)
+    (("M-s-f" . vr/replace)
+     ("C-c r" . vr/replace)
      ("C-c q" . vr/query-replace)
      ("C-c m" . vr/mc-mark)))
 #+END_SRC
@@ -5205,8 +5257,16 @@ interactive tree .
 #+NAME: search/undo-tree
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package undo-tree
+  :custom
+  (undo-tree-auto-save-history t)
+  (undo-tree-visualizer-timestamps t)
+  (undo-tree-visualizer-diff t)
   :init
-  (global-undo-tree-mode))
+  (global-undo-tree-mode)
+  :config
+  (when *is-mac*
+    (global-set-key (kbd "s-z") 'undo-tree-undo)
+    (global-set-key (kbd "s-Z") 'undo-tree-redo)))
 #+END_SRC
 
 ** Startup
@@ -5284,16 +5344,6 @@ list that one may use in the wacky world of Emacs.
     (dashboard-setup-startup-hook)
 
     :config
-    ;; (defun goto-dashboard ()
-    ;;   "Switch to the *dashboard* buffe"
-    ;;   (interactive)
-    ;;   (if (seq-contains
-    ;;        (mapcar #'buffer-name (buffer-list))
-    ;;        "*dashboard*")
-    ;;       (switch-to-buffer "*dashboard*")))
-
-    ;; (define-key goto-map "d" #'goto-dashboard)
-
     (add-to-list 'dashboard-items '(agenda) t)
     ;; Get the week agenda.
     ;; See `dashboard-get-agenda' for how this
@@ -5305,12 +5355,8 @@ list that one may use in the wacky world of Emacs.
                             ( recents . 3)
                             ( bookmarks . 5)))
 
-    (defun dashboard/refresh ()
-      (dashboard-refresh-buffer)
-      (setq initial-buffer-choice (lambda () (or (get-buffer "*dashboard*") nil))))
-
     :hook
-    (after-init     . dashboard/refresh)
+    (after-init     . dashboard-refresh-buffer)
     (dashboard-mode . halidom/dashboard-banner))
 
 
@@ -5340,10 +5386,12 @@ Just for the hell of it.
 
 #+NAME: startup-scratch
 #+BEGIN_SRC emacs-lisp :tangle no
-  (setq initial-scratch-message nil
-        inhibit-startup-message t
-        inhibit-startup-echo-area-message t
-        inhibit-startup-screen t)
+(setq echo-keystrokes 0.1
+      initial-scratch-message nil
+      initial-major-mode 'org-mode
+      inhibit-startup-echo-area-message t
+      sentence-end-double-space nil
+      help-window-select t)
   #+END_SRC
 
 *** Frame
@@ -5406,6 +5454,15 @@ recommended for Spacemacs users on macOS[fn:14].
         (ns-appearance . dark)))
 #+END_SRC
 
+**** Frame Title Format
+
+Show full path in the title bar.
+
+#+NAME: frame/title
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq-default frame-title-format "%b (%f)")
+#+END_SRC
+
 **** Transpose Frame
 
 #+NAME: frame-transpose
@@ -5458,7 +5515,7 @@ different window configurations.
 #+NAME: window/ace
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package ace-window
-      :bind 
+      :bind
       ("M-o" . ace-window)
       :custom
       (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
@@ -5473,6 +5530,8 @@ different window configurations.
   (use-package popwin
     :defines popwin:keymap
     :bind-keymap ("C-z" . popwin:keymap)
+    :bind (:map popwin:keymap
+                ("m" . popwin:messages))
     :init
     (require 'popwin)
     :config
@@ -5542,18 +5601,6 @@ different window configurations.
                ("s-S" . projectile-persp-switch-project))))
 #+END_SRC
 
-
-
-**** Copy and Paste
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package mark-forward-sexp
-  :bind (("C-c o" . mark-forward-sexp)
-         ("C-c O" . mark-backward-sexp)
-         ("C-c i" . mark-inside-forward-sexp)
-         ("C-c I" . mark-inside-backwad-sexp)))
-#+END_SRC
-
 ** Emacs+
 *** Help+
 
@@ -5586,7 +5633,7 @@ different window configurations.
         ("c" helpful-command))
 
     (which-key-add-key-based-replacements
-      "M-m h" '("" . "helpful")))
+      "M-m h" '(" Helpful" . "helpful")))
 #+END_SRC
 
 **** Image+
@@ -5639,7 +5686,9 @@ different window configurations.
 ****** Rainbow Mode
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package rainbow-mode)
+(use-package rainbow-mode
+  :init
+  (rainbow-mode 1))
 #+END_SRC
 
 ****** Col Highlight
@@ -5681,7 +5730,6 @@ n
 *** Bookmark
 
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<bookmark-plus>>
 <<bookmark-bm>>
 <<bookmark-zsh>>
 #+END_SRC
@@ -5697,6 +5745,8 @@ n
 
 #+NAME: bookmark-plus
 #+BEGIN_SRC emacs-lisp :tangle no
+(use-package linkd)
+
 (use-package bookmark+)
 #+END_SRC
 
@@ -5774,7 +5824,7 @@ setopt cd_able_vars
 ** Multimedia
 
 #+NAME: media-spec
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; EMMS
 <<media-emms>>
 ;; SoundCloud
@@ -5797,6 +5847,7 @@ setopt cd_able_vars
     (emms-all)
     (emms-default-players)
     :config
+
     ;; add flv and ogv
     (define-emms-simple-player mplayer '(file url)
       (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
@@ -5976,66 +6027,72 @@ This disables Emacs asking questions about loading a new theme.
 
 #+NAME: theme-load-theme
 #+BEGIN_SRC emacs-lisp :tangle no
-  (setq-default custom-enabled-themes (list halidom-theme))
+(setq-default custom-enabled-themes (list halidom-theme))
 
-  (defun remove-themes ()
-    "Forcibly load the themes listed in `custom-enabled-themes'."
-    (mapc #'disable-theme custom-enabled-themes))
+(defun remove-themes ()
+  "Forcibly load the themes listed in `custom-enabled-themes'."
+  (mapc #'disable-theme custom-enabled-themes))
 
-  (defvar halidom/load-theme-hook nil)
+(defvar halidom/load-theme-hook nil
+  "List of functions to run when `halidom/load-theme' is invoked.")
 
-  (defun halidom/load-theme (&optional theme)
-    (interactive "P")
-    (let* ((options (mapcar 'symbol-name (custom-available-themes)))
-           (theme-name (if (interactive-p)
-                           (completing-read "Theme: " options)
-                         (eval (intern
-                                (concat
-                                 "halidom-"
-                                 (format "%s"
-                                 (symbol-value
-                                 'halidom--theme-style))
-                                 "-theme")))))
-           (theme-symbol
-            (if (symbolp theme-name)
-                theme-name
-              (intern theme-name))))
-      (remove-themes)
-      (if (not window-system)
-          (load-theme halidom-term-theme)
-        (setq halidom-theme theme-symbol)
-        (if (halidom--base16-p halidom-theme)
-            (setq halidom-theme-colors
-                  (symbol-value
-                   (intern
-                    (eval
-                     `(concat
-                       ,(symbol-name
-                         (symbol-value 'halidom-theme))
-                       "-colors")))))
-          (setq halidom-theme-colors nil))
-        (load-theme halidom-theme)
-        (run-hooks 'halidom/load-theme-hook))))
+(defun halidom--default-theme ()
+  (eval (intern
+         (concat "halidom-"
+                 (format "%s"
+                         (symbol-value
+                          'halidom--theme-style))
+                 "-theme"))))
 
-  (defun halidom/load-theme-with-frame (frame)
-    (with-selected-frame frame
-      (unless (daemonp)
-        (halidom/load-theme))))
+(cl-defun halidom/load-theme (&optional (theme (halidom--default-theme)))
+  "Opionated theme loading. If invoked without arguments, this
+function will load the theme associated with `halidom--theme-style'.
 
-  (defun halidom--toggle-theme-style ()
-    (interactive)
-    (if (eq halidom--theme-style 'dark)
-        (setq halidom--theme-style 'light)
-      (setq halidom--theme-style 'dark)))
+Calling this function with the universal-argument `C-u' loads the new
+theme in \"quick mode\" by eliding hooks specified in `halidom/load-theme-hook'."
 
-  (defun halidom/toggle-theme ()
-    (interactive)
-    (halidom--toggle-theme-style)
-    (halidom/load-theme))
+  (interactive
+   (let ((themes (mapcar 'symbol-name (custom-available-themes))))
+     (list
+      (completing-read "Theme: " themes))))
+  (interactive "p")
 
-  (add-hook 'after-init-hook #'halidom/load-theme)
-  ;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
+  (let ((theme-symbol (if (symbolp theme) theme (intern theme))))
+    (remove-themes)
+    (if (not window-system)
+        (load-theme halidom-term-theme)
+      (setq halidom-theme theme-symbol)
+      (if (halidom--base16-p halidom-theme)
+          (setq halidom-theme-colors
+                (symbol-value
+                 (intern
+                  (eval
+                   `(concat
+                     ,(symbol-name (symbol-value 'halidom-theme))
+                     "-colors")))))
+        (setq halidom-theme-colors nil))
+      (load-theme halidom-theme))
+    (unless (equal current-prefix-arg '(4))
+      (run-hooks 'halidom/load-theme-hook))))
 
+(defun halidom/load-theme-with-frame (frame)
+  (with-selected-frame frame
+    (unless (daemonp)
+      (halidom/load-theme))))
+
+(defun halidom--toggle-theme-style ()
+  (interactive)
+  (if (eq halidom--theme-style 'dark)
+      (setq halidom--theme-style 'light)
+    (setq halidom--theme-style 'dark)))
+
+(defun halidom/toggle-theme ()
+  (interactive)
+  (halidom--toggle-theme-style)
+  (halidom/load-theme))
+
+(add-hook 'after-init-hook #'halidom/load-theme)
+;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
 #+END_SRC
 
 *** Org Mode Faces
@@ -6043,102 +6100,107 @@ This disables Emacs asking questions about loading a new theme.
 #+NAME: theme-org-mode
 #+BEGIN_SRC emacs-lisp :tangle no
 
-  ;; Org Mode faces
-    (defun halidom/org-faces ()
-      "Customize `org-mode' faces for base-16 themes."
-      (let ((fg (face-foreground 'default nil 'default))
-      (fg2 (or (plist-get halidom-theme-colors :base04)))
-      (bg2 (or (plist-get halidom-theme-colors :base01)))
-      (sans-font "Source Sans Pro")
-      (header-font "EtBembo"))
-        (when (and fg2 bg2)
-
+;; Org Mode faces
+(defun halidom/org-faces ()
+  "Customize `org-mode' faces for base-16 themes."
+  (let ((fg (face-foreground 'default nil 'default))
+        (fg2 (or (plist-get halidom-theme-colors :base04)))
+        (bg2 (or (plist-get halidom-theme-colors :base01)))
+        (sans-font "Source Sans Pro")
+        (header-font "EtBembo"))
+    (if (and fg2 bg2)
+        (progn
+          (set-face-attribute 'org-document-info-keyword nil
+                              :foreground fg2
+                              :slant 'italic
+                              :inherit 'org-document-info-face)
           (set-face-attribute 'org-block-begin-line nil
                               :height 1.0
                               :foreground fg2
                               :background bg2
-                              :inherit 'org-meta-line)
+                              :inherit 'org-meta-line))
 
-          (set-face-attribute 'org-document-info-keyword nil
-                              :foreground fg2
-                              :slant 'italic
-                              :inherit 'org-document-info-face))
+      (set-face-attribute 'org-block-begin-line nil
+                          :height 1.0
+                          :inherit 'fixed-pitch
+                          :background 'org-meta-line))
 
-        (set-face-attribute 'org-level-2 nil
-                            :family header-font
-                            :height 1.2
-                            :inherit 'outline-2)
-        (set-face-attribute 'org-level-1 nil
-                            :family sans-font
-                            :height 1.6
-                            :inherit 'outline-1)
-        (set-face-attribute 'org-level-2 nil
-                            :family sans-font
-                            :height 1.3
-                            :inherit 'outline-2)
-        (set-face-attribute 'org-level-3 nil
-                            :family sans-font
-                            :height 1.2
-                            :slant 'normal
-                            :inherit 'outline-3)
-        (set-face-attribute 'org-level-4 nil
-                            :family sans-font
-                            :height 1.1
-                            :slant 'normal
-                            :inherit 'outline-3)
-        (set-face-attribute 'org-level-5 nil
-                            :family sans-font
-                            :height 1.1
-                            :slant 'normal
-                            :inherit 'outline-4)
-        (set-face-attribute 'org-level-6 nil
-                            :family sans-font
-                            :height 1.1
-                            :slant 'normal
-                            :inherit 'outline-3)
-        (set-face-attribute 'org-level-7 nil
-                            :family sans-font
-                            :height 1.0
-                            :slant 'normal
-                            :inherit 'outline-3)
+    (set-face-attribute 'org-level-2 nil
+                        :family header-font
+                        :height 1.2
+                        :inherit 'outline-2)
+    (set-face-attribute 'org-level-1 nil
+                        :family sans-font
+                        :height 1.6
+                        :inherit 'outline-1)
+    (set-face-attribute 'org-level-2 nil
+                        :family sans-font
+                        :height 1.3
+                        :inherit 'outline-2)
+    (set-face-attribute 'org-level-3 nil
+                        :family sans-font
+                        :height 1.2
+                        :slant 'normal
+                        :inherit 'outline-3)
+    (set-face-attribute 'org-level-4 nil
+                        :family sans-font
+                        :height 1.1
+                        :slant 'normal
+                        :inherit 'outline-4)
+    (set-face-attribute 'org-level-5 nil
+                        :family sans-font
+                        :height 1.1
+                        :slant 'normal
+                        :inherit 'outline-5)
+    (set-face-attribute 'org-level-6 nil
+                        :family sans-font
+                        :height 1.1
+                        :slant 'normal
+                        :inherit 'outline-6)
+    (set-face-attribute 'org-level-7 nil
+                        :family sans-font
+                        :height 1.0
+                        :slant 'normal
+                        :inherit 'outline-7)
 
-        (set-face-attribute 'org-block nil
-                            :height 1.0
-                            :slant 'normal
-                            :foreground fg)
+    (set-face-attribute 'org-block nil
+                        :height 1.0
+                        :slant 'normal
+                        :foreground fg)
 
-        (set-face-attribute 'org-document-title nil
-                            :family header-font
-                            :foreground fg
-                            :height 1.8
-                            :underline nil
-                            :inherit 'variable-pitch)
+    (set-face-attribute 'org-document-title nil
+                        :family header-font
+                        :foreground fg
+                        :height 1.8
+                        :underline nil
+                        :inherit 'variable-pitch)
 
-        (set-face-attribute 'org-block-end-line nil
-                            :inherit 'org-block-begin-line)))
+    (set-face-attribute 'org-block-end-line nil
+                        :inherit 'org-block-begin-line)))
 
-    ;; https://github.com/syl20bnr/spacemacs/pull/7667
-    (defun halidom/org-restart ()
-      "Restart all open org-mode buffers."
-      (let ((org-buffers (org-buffer-list)))
-        (dolist (buf org-buffers)
-    (with-current-buffer buf
-      (org-mode-restart)))))
+;; https://github.com/syl20bnr/spacemacs/pull/7667
+(defun halidom/org-restart ()
+  "Restart all open org-mode buffers."
+  (let ((org-buffers (org-buffer-list)))
+    (dolist (buf org-buffers)
+      (with-current-buffer buf
+        (org-mode-restart)
+        (halidom/org-faces)))))
 
-    (defun halidom/org-theme-hook ()
-        (halidom/org-faces)
-        (halidom/org-restart))
+(defun halidom/org-theme-hook ()
+  (halidom/org-faces)
+  (halidom/org-restart))
 
-    (defun halidom/disable-scroll-bar (&optional frame)
-      (if frame
-          (with-selected-frame frame
-            (toggle-scroll-bar -1))
-        (toggle-scroll-bar -1)))
+(defun halidom/disable-scroll-bar (&optional frame)
+  (if frame
+      (with-selected-frame frame
+        (toggle-scroll-bar -1))
+    (toggle-scroll-bar -1)))
 
-    ;; Add Hooks
-    (add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
-    (add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
-    (add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
+;; Add Hooks
+(add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
+(add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
+(add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
 #+END_SRC
 
 *** Italicize font lock keyword face
@@ -6192,7 +6254,7 @@ face shall be used."
 <<cursor/centered>>
 ;; bar cursor
 <<cursor/bar>>
-;; Change Cursor 
+;; Change Cursor
 <<cursor/chg>>
 #+END_SRC
 
@@ -6230,6 +6292,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: cursor/mc
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package multiple-cursors
+  :custom
+  (mc/always-run-for-all t)
   :init
   (global-unset-key (kbd "M-<down-mouse-1>"))
   :bind
@@ -6237,7 +6301,13 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
    ("C->" . mc/mark-next-like-this)
    ("C-M->" . mc/mark-next-lines)
    ("C-c C->" . mc/mark-all-like-this)
-   ("M-<mouse-1>" . mc/add-cursor-on-click)))
+   ("M-<mouse-1>" . mc/add-cursor-on-click))
+  :config
+  (when *is-mac*
+    (global-set-key (kbd "s-d")  'mc/mark-next-like-this)
+    (global-set-key (kbd "s-D")  'mc/mark-all-dwin)
+    (global-set-key (kbd "M-s-d" 'mc/edit-beginnings-of-lines))
+    (define-key mc/keymap (kbd "<return>" nil))))
 #+END_SRC
 
 *** Centered Cursor Mode
@@ -6257,14 +6327,12 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   :init (bar-cursor-mode 1))
 #+END_SRC
 
-*** Change Cursor 
+*** Change Cursor
 
 #+NAME: cursor/chg
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package cursor-chg)
 #+END_SRC
-
-
 
 ** Fonts
 
@@ -6723,9 +6791,13 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
   :init
   (smooth-scrolling-mode 1)
   :config
-  (setq scroll-preserve-screen-position t
-        scroll-margin 0
-        scroll-conservatively 101))
+  (setq scroll-step 1
+        scroll-margin 10
+        next-line-add-newlines nil
+        scroll-preserve-screen-position 1)
+
+  (setq mouse-wheel-follow-mouse 't)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
 #+END_SRC
 
 *** Sublimity Scroll
@@ -6807,7 +6879,8 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 #+NAME: pretty/eshell
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-eshell
-  :if (file-exists-p (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
+  :if (file-exists-p
+       (emacs-etc-dir "local/pretty-eshell/pretty-eshell.el"))
   :straight nil
   :load-path "~/.emacs.d/etc/local/pretty-eshell"
   :custom-face
@@ -6919,7 +6992,7 @@ any reason for me reconsider my choice.
     (setq company-tooltip-limit 20
           company-tooltip-align-annotations t
           company-minimum-prefix-length 3
-          company-idle-delay 0.1
+          company-idle-delay 0.3
           company-begin-commands '(self-insert-command)))
 #+END_SRC
 
@@ -7018,24 +7091,10 @@ snippets corresponding to the major mode of the current buffer mode.
 
 #+NAME: snippets-code-library
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package code-library
-    :after (org)
-    :init
-    (progn
-      (setq code-library-directory (emacs-etc-dir "codelibrary"))
-      (if-not (file-exists-p code-library-directory)
-          (if (yes-or-no-p
-               (format-message "Directory `%s' doesn't exist. Make directory?" code-library-directory))
-              (mkdir code-library-directory))))
-    :config
-    (progn
-      (append 'code-library-mode-file-alist
-              '((latex-mode . "latex.org")
-                (org-mode .  "latex.org")
-                (clojure-mode . "clojure.org")
-                (makefile-mode . "makefile.org")
-                (makefile-gmake-mode . "makefile.org")))n
-      (setq code-library-sync-to-gist t)))
+(use-package code-library
+    :custom
+    (code-library-directory (emacs-etc-dir "codelibrary"))
+    (code-library-sync-to-gist t))
 #+END_SRC
 
 ** Minibuffer
@@ -7052,6 +7111,8 @@ snippets corresponding to the major mode of the current buffer mode.
 <<mb-swiper>>
 ;; Smex
 <<mb-smex>>
+;; Flx
+<<mb-flx>>
 ;; Omnibox
 <<mb-omnibox>>
 #+END_SRC
@@ -7084,6 +7145,8 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 <<ivy/pages>>
 ;; Ivy Prescient
 <<ivy/prescient>>
+;; Ivy posframe
+<<ivy/posframe>>
 #+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
@@ -7106,7 +7169,9 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
   (ivy-use-virtual-buffers t)
   (ivy-initial-inputs-alist nil)
   (ivy-sort-max-size 50000)
-  (ivy-re-builders-alist '((t . ivy--regex-plus)))
+  (ivy-re-builders-alist
+   '((swiper . ivy--regex-plus)
+     (t      . ivy--regex-fuzzy)))
   (ivy-use-selectable-prompt nil))
 #+END_SRC
 
@@ -7169,10 +7234,9 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+NAME: ivy/rich
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package ivy-rich
-    :after (counsel)
-    :demand t
-    :init
-    (ivy-rich-mode 1))
+    :config
+    (ivy-rich-mode 1)
+    (setq ivy-rich-path-style 'abbrev))
 #+END_SRC
 
 **** Ivy Pages
@@ -7181,6 +7245,13 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package ivy-pages
     :after (ivy))
+#+END_SRC
+
+**** Ivy Posframe
+
+#+NAME: ivy/posframe
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ivy-posframe)
 #+END_SRC
 
 
@@ -7296,15 +7367,15 @@ friends.
      (define-key map "-" '("Volume Down" . counsel-itunes-volume-down))
      (define-key map "+" '("Volume Up" .  counsel-itunes-volume-up))
      (define-key map "t" '("Tracklist" . counsel-itunes-tracklist))
-     (define-key map "p" '("Playlist" . counsel-itunes-playlist))
+     (define-key map "p" '("Playlist" . counsel-itunes-play-pause))
      (define-key map "c" '("Now Playing" . counsel-itunes-current-track))
      (define-key map "P" '("Playlist" . counsel-itunes-playlist))
      (define-key map "n" '("Next" . counsel-itunes-next-track))
      (define-key map "b" '("Previous" . counsel-itunes-previous-track))
      (define-key map "s" '("Shuffle" . counsel-itunes-shuffle)))
-   
+
   (define-key 'macos-prefix-map (kbd "i") 'counsel-itunes-prefix-map)
-  (which-key-add-key-based-replacements "M-m m i" '("" . "iTunes")))
+  (which-key-add-key-based-replacements "M-m m i" '(" iTunes" . "iTunes")))
 
 #+END_SRC
 
@@ -7366,7 +7437,10 @@ documentation browser.
     :custom
     (enable-recursive-minibuffers t)
     :bind
-    ("\C-s" . swiper))
+    ("\C-s" . swiper)
+    :config
+    (if *is-mac*
+        (global-set-key (kbd "s-f") 'swiper)))
 #+END_SRC
 
 *** Smex
@@ -7381,52 +7455,24 @@ A smart M-x enhancement for Emacs.
   (setq-default smex-history-length 32))
 #+END_SRC
 
+*** Flx
+
+Fuzzy matching.
+
+#+NAME: mb-flx
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package flx)
+#+END_SRC
+
 *** Omnibox
 
 #+NAME: mb-omnibox
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Omnibox
-<<omnibox/spec>>
-#+END_SRC
-
-
-#+NAME: omnibox/spec
 #+BEGIN_SRC emacs-lisp :tangle no
+;; Omnibox
 (use-package omnibox
   :commands omnibox-M-x
   :bind (:map omnibox-mode-map
               ("M-x" . omnibox-M-x)))
-#+END_SRC
-
-**** Icons in terminal :disabled:
-
-#+NAME: omnibox/icons
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package icons-in-terminal
-  :straight nil
-  :if (file-directory-p "~/.local/share/icons-in-terminal")
-  :load-path "~/.local/share/icons-in-terminal"
-  :init
-  (when (locate-library "font-lock+")
-    (require 'font-lock+)
-    (require 'icons-in-terminal))
-  :config
-  (when (featurep 'all-the-icons)
-    (with-eval-after-load 'all-the-icons
-      (defun icons-in-terminal-data ()
-        (let (result)
-          (dolist (icon icons-in-terminal-alist result)
-            (setq result
-                  (append
-                   result
-                   (list (cons (symbol-name (car icon)) (cdr icon))))))))
-
-
-      (setq all-the-icons-data/icons-in-terminal-alist (icons-in-terminal-data))
-
-
-      (define-icon icon-in-terminal all-the-icons-data/icons-in-terminal-alist "icons-in-terminal"))))
-
 #+END_SRC
 
 * Terminal
@@ -7469,7 +7515,7 @@ A smart M-x enhancement for Emacs.
    ("C-c M-RET T" . sane-term-create))
   :config
   (when *is-mac*
-    (setq sane-term-shell-command "/bin/zsh")))
+    (setq sane-term-shell-command "/usr/bin/zsh")))
 #+END_SRC
 
 ** Compilation Command
@@ -7770,7 +7816,8 @@ x
 #+BEGIN_SRC emacs-lisp :tangle no
 (define-prefix-command 'web-browse-prefix-map)
 (define-key 'halidom-prefix-map (kbd "w") 'web-browse-prefix-map)
-(which-key-add-key-based-replacements "M-m w" '("" .  "Web Browsing"))
+(which-key-add-key-based-replacements "M-m w"
+  '(" Web" .  "Web Browsing"))
 
 #+END_SRC
 
@@ -8088,9 +8135,9 @@ Interactively.
     :keybinding "y"
     :docstring "Search Youtube")
   :config
-  (set-fontset-font "fontset-default" '#xE600 "file-icons" nil 'prepend)
-  (set-fontset-font "fontset-default" '#xE80C "Material Icons" nil 'prepend)
   (when *is-mac*
+    (set-fontset-font "fontset-default" '#xE600 "file-icons" nil 'prepend)
+    (set-fontset-font "fontset-default" '#xE80C "Material Icons" nil 'prepend))
     (cl-flet* ((ks (&rest k)
                    (let ((p halidom-web-engine-prefix))
                      (if k (join (push p k) " ") p)))
@@ -8106,12 +8153,12 @@ Interactively.
       (wkr " Wikipedia" "w")
       (wkr " Stack Overflow" "s")
       (wkr " Worldcat" "W")
-      (wkr " ctan" "c")
+      (wkr " CTan" "c")
       (wkr " Google" "G")
       (wkr " Images" "G" "i")
       (wkr " Bookmarks" "G" "b")
       (wkr " Maps" "G" "m")
-      (wkr " Scholar" "G" "s"))))
+      (wkr " Scholar" "G" "s")))
 #+END_SRC
 
 ** Email
@@ -8122,6 +8169,40 @@ Interactively.
 <<mail/imap>>
 ;; Mu
 <<mail/mu>>
+;; Org Mime
+<<mail/mime>>
+#+END_SRC
+
+*** Org Mime
+
+#+NAME: mail/mime
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-mime
+  :config
+  (setq org-mime-export-options
+        '(:section-numbers nil
+          :with-author nil
+          :with-toc nil))
+
+
+  (defun org-mime/style ()
+    (org-mime-change-element-style
+     "pre" (format "color: %s; background-color: %s; padding: 0.5em;"
+                   "#E6E1DC" "#232323"))
+    (org-mime-change-element-style
+     "blockquote" "border-left: 2px solid gray; padding-left: 4px;"))
+
+  (defun org-mime/message-mode-hook ()
+    (local-set-key (kbd "C-c M-h") 'org-mime-htmlize))
+
+  (defun org-mime/org-mode-hook ()
+      (local-set-key (kbd  "C-c M-h") 'org-mime-org-buffer-htmlize))
+
+  :hook
+  (message-mode . org-mime/message-mode-hook)
+  (org-mode     . org-mime/org-mode-hook)
+  (org-mime-html . org-mime/style))
+
 #+END_SRC
 
 *** Offlineimap
@@ -8198,7 +8279,7 @@ Interactively.
             `(,(make-mu4e-context
                 :name "personal"
                 :enter-func
-                (lambda () (mu4e-message "Using Personal gmail account.k"))
+                (lambda () (mu4e-message "Using Personal gmail account."))
                 :leave-func
                 (lambda () (mu4e-message "leaving Personal gmail account."))
                 :match-func
@@ -8315,7 +8396,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+NAME: cloud-onenote
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-onenote
-  :init 
+  :init
   (require 'secrets)
   :custom
   (org-onenote-token-file
@@ -8570,6 +8651,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
     org-code
     org-special-keyword
     org-verbatim
+    org-latex-and-related
     org-meta-line
     org-block
     org-block-begin-line
@@ -8585,8 +8667,8 @@ whistles, it makes up for in compatibility and hackability [fn:18].
   (face-attribute 'variable-pitch :family))
 
 
-(setq org-fixed-pitch-font "Iosevka")
-(setq org-variable-pitch-font "Libertinus Sans")
+(setq org-fixed-pitch-font "Fira Code")
+(setq org-variable-pitch-font "Baskerville")
 
 
 (setq face-remapping-alist nil)
@@ -8602,22 +8684,15 @@ whistles, it makes up for in compatibility and hackability [fn:18].
       (setq face-remapping-alist nil)
     (face-remap-add-relative 'variable-pitch
                              :family org-variable-pitch-font
-                             :height 140)
+                             :height 130)
     (face-remap-add-relative 'default 'variable-pitch)
     (->> halidom-org-fixed-pitch-faces
        (mapcar (lambda (x) (list x
                             :family org-fixed-pitch-font
-                            :height 140)))
+                            :height 100)))
        (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
   (run-hooks 'variable-pitch-toggle-hook))
 
-
-(add-hook 'variable-pitch-toggle-hook
-          (lambda ()
-            (setq-local left-margin-width 2)
-            (setq-local right-margin-width 2)
-            (setq-local line-spacing 2)
-            (set-window-buffer nil (current-buffer))))
 #+END_SRC
 
 *** Olivetti
@@ -8779,7 +8854,7 @@ Artist mode is a built-in Emacs package.
 *** UML Diagrams
 
 #+NAME: uml-spec
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 <<uml-ditaa>>
 <<uml-plantuml>>
 #+END_SRC
@@ -8807,16 +8882,16 @@ Artist mode is a built-in Emacs package.
 (use-package plantuml-mode
   :if (executable-find "plantuml")
   :defines (org-plantuml-jar-path plantuml-jar-path)
-  :config
-  (progn
-    (defun halidom/plantuml-resolve-jar-path ()
+  :init
+  (defun halidom/plantuml-resolve-jar-path ()
       (when (executable-find "plantuml")
-        (replace-regexp-in-string "\n" ""
-                                  (shell-command-to-string
-                                   "realpath $(brew --prefix plantuml)/libexec/plantuml.jar"))))
-      (when *is-mac*
-        (setq org-plantuml-jar-path (halidom/plantuml-resolve-jar-path))
-        (setq plantuml-jar-path (halidom/plantuml-resolve-jar-path)))))
+        (replace-regexp-in-string
+         "\n" ""
+         (shell-command-to-string
+          "realpath $(brew --prefix plantuml)/libexec/plantuml.jar"))))
+  (when *is-mac*
+    (setq org-plantuml-jar-path (halidom/plantuml-resolve-jar-path))
+    (setq plantuml-jar-path (halidom/plantuml-resolve-jar-path))))
 #+END_SRC
 
 *** Graphviz
@@ -8873,6 +8948,8 @@ school's WLAN.
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; LSP Mode
 <<lsp/mode>>
+;; LSP imenu
+<<lsp/imenu>>
 ;; LSP UI Mode
 <<lsp/ui-mode>>
 ;; Company LSP
@@ -9073,7 +9150,12 @@ school's WLAN.
   :straight (ov-highlight
              :host github
              :repo "jkitchin/ov-highlight")
-  :after ov)
+  :bind
+  (:map org-mode-map
+        ("C-c h" . ov-highlight/body))
+  :init
+  (require 'ov)
+  (require 'ov-highlight))
 #+END_SRC
 
 **** Hlsexp
@@ -9362,6 +9444,8 @@ Disabling for now.
   <<git-git-messenger>>
   ;; Git Modes
   <<git-git-modes>>
+  ;; Git Gutter
+  <<git/gutter>>
 )
 #+END_SRC
 
@@ -9425,14 +9509,21 @@ As a git client though, magit is awesome.
 
 #+END_SRC
 
+
 ***** Magit topgit
+
+
+#+BEGIN_SRC shell :tangle no
+git config --global --add magit.extension topgit
+#+END_SRC
+
 
 #+NAME: magit-topgit-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit-topgit
-  :init
-  (progn
-    (add-hook 'magit-mode-hook 'turn-on-magit-topgit))
+  :if (executable-find "tg")
+  :hook
+  (magit-mode . turn-on-magit-topgit)
   :demand t
   :after (magit))
 #+END_SRC
@@ -9448,9 +9539,9 @@ git config --global --add magit.extension stgit
 #+NAME: magit-stgit-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package magit-stgit
-  :init
-  (progn
-    (add-hook 'magit-mode-hook 'magit-stgit-mode))
+  :if (executable-find "stgit")
+  :hook
+  (magit-mode . magit-stgit-mode)
   :demand t
   :after (magit))
 #+END_SRC
@@ -9577,6 +9668,15 @@ Pop-up feature for viewing the last git commit.
 (use-package git-modes
   :straight t
   :mode (".projectile\\'" . gitignore-mode))
+#+END_SRC
+
+**** Git gutter
+
+#+NAME: git/gutter
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode 't))
 #+END_SRC
 
 *** Mercurial
@@ -10762,7 +10862,7 @@ Gradle is a build tool for Java. It's awesome.
 
 **** Javadoc lookup
 
-#+NAME: 
+#+NAME:
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package javadoc-lookup
   :bind
@@ -10771,8 +10871,6 @@ Gradle is a build tool for Java. It's awesome.
   (javadoc-lookup-completing-read-function #'ivy-completing-read))
 
 #+END_SRC
-
-
 
 *** JavaScript
 
@@ -11219,7 +11317,7 @@ Real jsx support.
                   "scipy" "salt" "pandas" "matplotlib"
                   "cvp")))
   (when *is-mac*
-    (add-hook #'python-dash-docsets)))
+    (add-hook 'python-mode-hook #'python-dash-docsets)))
 
 #+END_SRC
 
@@ -11354,6 +11452,15 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 (use-package ein
     :config
     (setq ein:use-smartrep t))
+#+END_SRC
+
+*** Proglog
+
+#+NAME: lang/prolog
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package prolog-mode
+  :straight nil
+  :mode "\\.pl\\'")
 #+END_SRC
 
 *** Ruby
@@ -12048,7 +12155,7 @@ and slim-mode using company.
 
       :hook
       ((markdown-mode gfm-mode) . md-setup)
-      ((markdown-mode gfm-mode) . halidom/vfc-hook))
+      ((markdown-mode gfm-mode) . org-visual-fill-column))
 #+END_SRC
 
 
@@ -12097,6 +12204,24 @@ and slim-mode using company.
           (xwidget-webkit-browse-url "http://localhost:1337"))))
 #+END_SRC
 
+*** Applescript
+
+#+NAME: lang/applescript
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package apples-mode
+  :mode "\\.applescript\\'")
+#+END_SRC
+
+*** Racket
+
+#+NAME: prog/racket
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package racket-mode
+  :hook
+  (racket . paredit-mode))
+
+#+END_SRC
+
 * Misc
 ** Scimax
 
@@ -12118,6 +12243,204 @@ and slim-mode using company.
   (require 'scimax-link-thumbnails)
   (require 'ore)
   (require 'ox-word))
+
+;; copied from scimax
+;; * Fragment overlays
+(defun org-latex-fragment-tooltip (beg end image imagetype)
+  "Add the fragment tooltip to the overlay and set click function to toggle it."
+  (overlay-put (ov-at) 'help-echo
+	       (concat (buffer-substring beg end)
+		       "\nmouse-1 to toggle."))
+  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
+				    (define-key map [mouse-1]
+				      `(lambda ()
+					 (interactive)
+					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
+				    map)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
+
+(defun org-latex-fragment-justify (justification)
+  "Justify the latex fragment at point with JUSTIFICATION.
+JUSTIFICATION is a symbol for 'left, 'center or 'right."
+  (interactive
+   (list (intern-soft
+          (completing-read "Justification (left): " '(left center right)
+                           nil 'require-match))))
+
+  (let* ((ov (ov-at))
+	 (beg (ov-beg ov))
+	 (end (ov-end ov))
+	 (shift (- beg (line-beginning-position)))
+	 (img (overlay-get ov 'display))
+	 (img (and (and img (consp img) (eq (car img) 'image)
+			(image-type-available-p (plist-get (cdr img) :type)))
+		   img))
+	 space-left offset)
+    (when (and img (= beg (line-beginning-position)))
+      (setq space-left (- (window-max-chars-per-line) (car (image-display-size img)))
+	    offset (floor (cond
+			   ((eq justification 'center)
+			    (- (/ space-left 2) shift))
+			   ((eq justification 'right)
+			    (- space-left shift))
+			   (t
+			    0))))
+      (when (>= offset 0)
+	(overlay-put ov 'before-string (make-string offset ?\ ))))))
+
+(defun org-latex-fragment-justify-advice (beg end image imagetype)
+  "After advice function to justify fragments."
+  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
+
+;; ** numbering latex equations
+(defun org-renumber-environment (orig-func &rest args)
+  "A function to inject numbers in LaTeX fragment previews."
+  (let ((results '())
+	(counter -1)
+	(numberp))
+
+    (setq results (loop for (begin .  env) in
+			(org-element-map (org-element-parse-buffer) 'latex-environment
+			  (lambda (env)
+			    (cons
+			     (org-element-property :begin env)
+			     (org-element-property :value env))))
+			collect
+			(cond
+			 ((and (string-match "\\\\begin{equation}" env)
+			       (not (string-match "\\\\tag{" env)))
+			  (incf counter)
+			  (cons begin counter))
+			 ((string-match "\\\\begin{align}" env)
+			  (prog2
+			      (incf counter)
+			      (cons begin counter)
+			    (with-temp-buffer
+			      (insert env)
+			      (goto-char (point-min))
+			      ;; \\ is used for a new line. Each one leads to a number
+			      (incf counter (count-matches "\\\\$"))
+			      ;; unless there are nonumbers.
+			      (goto-char (point-min))
+			      (decf counter (count-matches "\\nonumber")))))
+			 (t
+			  (cons begin nil)))))
+
+    (when (setq numberp (cdr (assoc (point) results)))
+      (setf (car args)
+	    (concat
+	     (format "\\setcounter{equation}{%s}\n" numberp)
+	     (car args)))))
+
+  (apply orig-func args))
+
+(advice-add 'org-create-formula-image :around #'org-renumber-environment)
+
+
+;; * Markup commands for org-mode
+(loop for (type beginning-marker end-marker)
+      in '((subscript "_{" "}")
+	   (superscript "^{" "}")
+	   (italics "/" "/")
+	   (bold "*" "*")
+	   (verbatim "=" "=")
+	   (code "~" "~")
+	   (underline "_" "_")
+	   (strikethrough "+" "+"))
+      do
+      (eval `(defun ,(intern (format "org-%s-region-or-point" type)) ()
+	       ,(format "%s the region, word or character at point"
+			(upcase (symbol-name type)))
+	       (interactive)
+	       (cond
+		;; We have an active region we want to apply
+		((region-active-p)
+		 (let* ((bounds (list (region-beginning) (region-end)))
+			(start (apply 'min bounds))
+			(end (apply 'max bounds))
+			(lines))
+		   (unless (memq ',type '(subscript superscript))
+		     (save-excursion
+		       (goto-char start)
+		       (unless (looking-at " \\|\\<")
+			 (backward-word)
+			 (setq start (point)))
+		       (goto-char end)
+		       (unless (looking-at " \\|\>")
+			 (forward-word)
+			 (setq end (point)))))
+		   (setq lines
+			 (s-join "\n" (mapcar
+				       (lambda (s)
+					 (if (not (string= (s-trim s) ""))
+					     (concat ,beginning-marker
+						     (s-trim s)
+						     ,end-marker)
+					   s))
+				       (split-string
+					(buffer-substring start end) "\n"))))
+		   (setf (buffer-substring start end) lines)
+		   (forward-char (length lines))))
+		;; We are on a word with no region selected
+		((thing-at-point 'word)
+		 (cond
+		  ;; beginning of a word
+		  ((looking-back " " 1)
+		   (insert ,beginning-marker)
+		   (re-search-forward "\\>")
+		   (insert ,end-marker))
+		  ;; end of a word
+		  ((looking-back "\\>" 1)
+		   (insert ,(concat beginning-marker end-marker))
+		   (backward-char ,(length end-marker)))
+		  ;; not at start or end, so we just sub/sup the character at point
+		  ((memq ',type '(subscript superscript))
+		   (insert ,beginning-marker)
+		   (forward-char ,(- (length beginning-marker) 1))
+		   (insert ,end-marker))
+		  ;; somewhere else in a word, and handled sub/sup. mark up the
+		  ;; whole word.
+		  (t
+		   (re-search-backward "\\<")
+		   (insert ,beginning-marker)
+		   (re-search-forward "\\>")
+		   (insert ,end-marker))))
+		;; not at a word or region, insert markers and put point between
+		;; them.
+		(t
+		 (insert ,(concat beginning-marker end-marker))
+		 (backward-char ,(length end-marker)))))))
+
+(defun org-latex-math-region-or-point (&optional arg)
+  "Wrap the selected region in latex math markup.
+\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
+Or insert those and put point in the middle to add an equation."
+  (interactive "P")
+  (let ((chars
+	 (cond
+	  ((null arg)
+	   '("\\(" . "\\)"))
+	  ((equal arg '(4))
+	   '("$" . "$"))
+	  ((equal arg '(16))
+	   '("@@latex:" . "@@")))))
+    (if (region-active-p)
+	(progn
+	  (goto-char (region-end))
+	  (insert (cdr chars))
+	  (goto-char (region-beginning))
+	  (insert (car chars)))
+      (insert (concat  (car chars) (cdr chars)))
+      (backward-char (length (cdr chars))))))
+#+END_SRC
+
+** Evil
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package evil)
 #+END_SRC
 
 ** Alfred Org Capture
@@ -12126,13 +12449,6 @@ and slim-mode using company.
 (when *is-mac*
   (load-file (no-littering-expand-etc-file-name
               "local/alfred-org-capture/alfred-org-capture.el")))
-#+END_SRC
-
-** ESS :disabled:
-
-#+NAME: research/ess
-#+BEGIN_SRC emacs-lisp :tangle no
-  ;; (use-package ess)
 #+END_SRC
 
 * Prologue
@@ -12196,7 +12512,3 @@ dialects of Lisp.
 [fn:18] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
 
 [fn:19] [[http://www.modernemacs.com/#spacemacs][Modern Emacs]]
-
-
-
-

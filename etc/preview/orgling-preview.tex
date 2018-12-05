@@ -20,6 +20,7 @@
 \usepackage{amsmath}
 \usepackage{unicode-math}
 
+
 \setmathfont{STIX2Math}[
   Extension = .otf,
 ]
@@ -29,17 +30,19 @@
   UprightFont    = *-Regular,
   BoldFont       = *-Bold,
   ItalicFont     = *-Italic,
-  BoldItalicFont = *-BoldItalic
+  BoldItalicFont = *-BoldItalic,
 ]
+
+
 
 \usepackage{gb4e}
 \noautomath
 \usepackage{adjustbox}
 \usepackage{tikz}
-\usetikzlibrary{positioning,shapes,fit,arrows.meta,calc}
+\usetikzlibrary{decorations,decorations.pathreplacing,calc,fit,positioning,shapes,arrows.meta}
 \tikzset{
   exarrows/.style={%
-  semithick,
+    semithick,
     arrows={%
       -Stealth[
         scale=1,
@@ -49,11 +52,86 @@
     }
   }
 }
+\tikzset{
+    dc/.style = {rounded corners=1pt, semithick},
+    case/.style = {o, semithick, rounded corners=1pt},
+    mvt/.style = {rounded corners=1pt, semithick},
+    agree/.style = {rounded corners=1pt, semithick, o},
+    icon/.style = {pos=0.25, yshift=-0.7ex},
+    arrow-label/.style = {font=\scshape\itshape},
+    o/.style = {
+        shorten >=#1,
+        shorten <=#1,
+        decoration={
+            markings,
+            mark= at position 0 with
+                { \fill circle [xshift=#1,radius=#1]; } ,
+            mark= at position 1 with
+                { \fill circle [xshift=-#1,radius=#1]; } ,
+        },
+        postaction=decorate
+    },
+    o/.default=1.75pt
+}
+% In-line Tikz nodes.
+\newcommand{\tkn}[2]{%
+  ~\tikz[na]{\node[yshift=-0.2ex](#1){\hspace*{-0.5ex}#2};~}}
+\tikzstyle{na} = [remember picture,
+                  baseline=-0.2ex,
+                  inner xsep=0pt,
+                  inner ysep=4pt,
+                  outer xsep=0ex]
+
+% Bracket diagrams.
+\newenvironment{tikzbracket}{\begin{tikzpicture}[overlay, remember
+    picture]}{\end{tikzpicture}}
+% Movement arrows.
+\tikzset{
+    pics/mvt/.style n args={2}{code={
+        \draw [->, mvt] (#1.south) -- ++(0, -\ArrowHeight) -| (#2.south);
+    }},
+    pics/mvt-above/.style n args={2}{code={
+        \draw [->, mvt] (#1.north) -- ++(0, \ArrowHeight) -| (#2.north);
+    }},
+    pics/mvt-label/.style n args={3}{code={
+        \draw [->, mvt] (#1.south) -- ++(0, -\ArrowHeight) -| (#2.south)
+            node [arrow-label] {#3};
+    }},
+    pics/mvt-above-label/.style n args={3}{code={
+        \draw [->, mvt] (#1.north) -- ++(0, \ArrowHeight) -| (#2.north)
+            node [arrow-label-below] {#3};
+    }},
+}
+
+% Case lines.
+\tikzset{
+    pics/case/.style n args={2}{code={
+        \draw [case] (#1.south) -- ++(0, -\ArrowHeight) -| (#2.south);
+    }},
+    pics/case-above/.style n args={2}{code={
+        \draw [case] (#1.north) -- ++(0, \ArrowHeight) -| (#2.north);
+    }},
+    pics/case-label/.style n args={3}{code={
+        \draw [case] (#1.south) -- ++(0, -\ArrowHeight) -| (#2.south)
+            node [arrow-label] {#3};
+    }},
+    pics/case-nej/.style n args={2}{code={
+        \draw [case] (#1.south) -- ++(0, -\ArrowHeight) -| (#2.south)
+            node[icon]{\nej};
+    }}
+}
+\tikzstyle{label} = [draw, thin, rounded corners=1pt, fill=white, inner
+sep=4pt, yshift =-3pt, font=\small\itshape, text height=.7em]
+\tikzstyle{arrow-label} = [font=\small\itshape, pos=0.25, yshift=0.9ex]
+\newlength{\ArrowHeight}
+\setlength{\ArrowHeight}{3ex}
+\newlength{\BelowArrowSkip}
+\setlength{\BelowArrowSkip}{3ex}
 
 \DeclareDocumentCommand \tikzexsetup {} {%
   \tikzstyle{every picture}+=[
-  remember picture, inner sep=0pt,
-  baseline, anchor=base
+    remember picture, inner sep=0pt,
+    baseline, anchor=base
   ]
 }
 % arg 1: optional strut; arg 2: node name; arg 3: node content
@@ -117,28 +195,77 @@
         }
       }{}
     }
+  },
+  default preamble = {
+    for tree={
+      text height=1em, inner ysep=0.5ex, s sep=1em, edge={semithick},
+      text depth={}, l sep=1em
+    }
   }
 }
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% https://tex.stackexchange.com/questions/132783/how-to-write-checkmark-in-latex
+\ifpdf
+  \newcommand*{\boldcheckmark}{%
+    \textpdfrender{
+      TextRenderingMode=FillStroke,
+      LineWidth=.5pt, % half of the line width is outside the normal glyph
+    }{\checkmark}%
+  }
+\else
+ \newcommand*{\boldcheckmark}{\textbf{$🗸$}}
+\fi
+
+
 \newcommand{\nl}{$\varnothing$}
 \newcommand{\ml}[1]{\textsc{#1}}
-
-\newcommand{\self}[1]{$[$\textbullet#1\textbullet$]$}
-\newcommand{\sself}[1]{\self{#1} \boldcheckmark}
-\newcommand{\ssself}[1]{\sout{\self{#1}}}
-
-\newcommand{\plusfeat}[1]{$[$+#1+$[$}
-\newcommand{\pplusfeat}[1]{$[$\sout{\plusfeat{#1}}$[$}
-\newcommand{\ppplusfeat}[1]{\sout{\self{#1}}}
+% Features
+\newcommand{\self}[1]{\feature{$\bullet$#1$\bullet$}}
+\newcommand{\plusf}[1]{\feature{$+$#1$+$}}
+\newcommand{\selfc}[1]{\self{#1} $🗸$}
+\newcommand{\plusfc}[1]{\sout{\plusf{#1}}}
+\newcommand{\selfs}[1]{\sout{\self{#1}}}
+\newcommand{\plusfs}[1]{$[$\sout{\plusfeat{#1}}$[$}
 
 \newcommand{\pagree}[1]{$[\star\pi$: #1 $*]$}
 \newcommand{\ppagree}[1]{$[\pi$: #1$]$}
-
 \newcommand{\nagree}[1]{$[\star\#$: #1 $*]$}
 \newcommand{\nnagree}[1]{$[\#$: #1$]$}
-
 \newcommand{\tns}[1]{Tns$_{\text{#1}}$}
+\newcommand{\vP}[0]{\textit{v}P\xspace}
+\newcommand{\littlev}[0]{\textit{v}\xspace}
 
+% Data macros.
+\newcommand{\objlang}[2][]{\textit{#2}\ifx&#1&\else\ `#1'\fi}
+\newcommand{\ja}[0]{\ding{51}}
+\newcommand{\gap}[0]{\rule[-1.25pt]{1.5em}{0.75pt}\,}
+\newcommand{\ind}[1]{\ensuremath{_{#1}}}
 
+% Features.
+\newcommand{\feature}[1]{{\scshape [#1]}}
+\newcommand{\mf}[1]{\feature{$\bullet$#1$\bullet$}}
+\newcommand{\hf}[1]{\feature{$+$#1$+$}}
+\newcommand{\agrf}[1]{\feature{$\star$#1$\star$}}
 
+% Satisfied features.
+\newcommand{\shf}[1]{\hf{#1}{\scriptsize\,\ja}}
+\newcommand{\smf}[1]{\mf{#1}{\scriptsize\,\ja}}
+\newcommand{\sagrf}[1]{\agrf{#1}{\scriptsize\,\ja}}
 
+% Phrase structure.
+\newcommand{\head}[1]{#1$^0$}
+\newcommand{\spec}[1]{\mbox{[Spec, #1]}}
+\newcommand{\comp}[1]{\mbox{[Comp, #1]}}
+\newcommand{\xbar}[1]{$\overline{\textrm{#1}}$}
+
+% Semantics.
+\newcommand{\denotation}[1]{\denotationbase{\text{#1}}}
+\newcommand{\denotationbase}[1]{\ensuremath{\left\lsem#1\right\rsem}}
+\newcommand{\startfn}[0]{\ensuremath{\ .\ }}
+
+\newcommand{\Agree}[0]{\textsc{Agree}\xspace}
+\newcommand{\abar}[0]{\xbar{A}}

@@ -1,5 +1,6 @@
 # -*- mode: org-mode -*-
 # name: attr-ling
-# key: <exe
+# key: ling
 # --
 #+ATTR_LINGUISTICS: :package gb4e
+$1

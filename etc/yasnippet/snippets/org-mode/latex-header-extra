@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: latex-header-extra
+# key: lhe
+# --
+#+LaTeX_HEADER_EXTRA: $1

@@ -10,3 +10,4 @@ company-statistics-cache.el
 opam-user-setup.el
 # Tangled file
 halidom.el
+workspace/
