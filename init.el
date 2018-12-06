@@ -264,22 +264,9 @@
         (interactive)
         (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
 
-      ;; (if noninteractive
-      ;;     (load-literate)
-      ;;   (let ((target-file (concat (file-name-base halidom-literate-config-file) ".el")))
-      ;;     (cond ((bound-and-true-p use-literate-p)
-      ;;            (if (not (file-exists-p (expand-file-name target-file user-emacs-directory)))
-      ;;                (when (yes-or-no-p "Literate configuration enabled. Tangle? ")
-      ;;                  (load-literate))
-      ;;              (load-literate)))
-      ;;           ((boundp 'use-literate-p)
-      ;;            (literate-debug-enabled)
-      ;;            (when (fboundp 'paredit-mode)
-      ;;              (paredit-mode 1)))
-      ;;           (t
-      ;;            (when (yes-or-no-p (format "Tangle and load %s? "  halidom-literate-config-file))
-      ;;              (load-literate))))))
-      (load-literate))
+      (if (and (boundp 'use-literate-p) (not use-literate-p))
+          (literate-debug-enabled)
+        (load-literate)))
 
   (straight-finalize-transaction))
 
