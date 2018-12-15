@@ -3747,6 +3747,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :bind (:map projectile-command-map
                 ("n" . org-projectile-project-todo-completing-read))
     :custom
+    (org-todo-keywords
+          '((sequence "TODO(t)" "|" "DONE(d)")
+            (sequence "|" "CANCELLED(c)")))
+    (org-todo-keyword-faces
+     '(("CANCELLED" . (:foreground "yellow"))))
     (org-projectile-per-project-filepath "TODOs.org")
 
     (org-projectile-capture-template
@@ -3756,7 +3761,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :init
 
-    (defvar-local org-default-agenda-file (file-truename "~/Dropbox/org/todos/TODOS.org"))
+    (defvar-local org-default-agenda-file
+      (file-truename "~/Dropbox/org/todos/TODOS.org"))
 
 
     (defun org-projectile-files-to-agenda ()
@@ -3783,7 +3789,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (dashboard-mode . org-projectile-files-to-agenda)
 
     :config
-
     (org-projectile-per-project))
 
 #+END_SRC
@@ -4169,8 +4174,9 @@ and subtrees of the ignored headlines will be retained.
   :straight org
   :demand t
   :config
-  (ox-extras-activate '(ignore-headlines
-                        org-export-filter-parse-tree-functions)))
+  (ox-extras-activate
+   '(ignore-headlines
+     org-export-filter-parse-tree-functions)))
 #+END_SRC
 
 **** Ox Publish
@@ -4404,7 +4410,7 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
                    ("\\subsection{%s}" . "\\subsection*{%s}")
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
 #+END_SRC
 
 ****** UCLA CS
@@ -4477,17 +4483,13 @@ My custom mla-style LaTeX class.
 
 #+NAME: ox/linguistics
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (use-package ox-linguistics
     :straight (ox-linguistics
                :host github
-               :repo "wyleyr/ox-linguistics"
+               :repo "jchaffin/ox-linguistics"
                :files ("lisp/*.el"))
-    :after (ox-latex)
-    :init
-    (require 'ox-linguistics)
+    :after (:all ox ox-latex)
     :demand t)
-
 #+END_SRC
 
 **** Ox Bibtex
@@ -6560,8 +6562,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: icons/all-the-icons
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons
-  :after (font-lock+)
-  :demand t)
+    :demand t)
 #+END_SRC
 
 *** Dired Icons
@@ -6569,8 +6570,10 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: icons/dired
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons-dired
-  :after (all-the-icons)
+  :after (:all all-the-icons font-lock+)
   :demand t
+  :init
+  (require 'font-lock+)
   :hook
   (dired-mode . all-the-icons-dired-mode))
 #+END_SRC
@@ -7817,7 +7820,8 @@ x
                     "github-octicons" nil 'prepend))
 
 (which-key-add-key-based-replacements
-  "M-m w" '(" Web" . "Web Browsing"))
+  "M-m m w" '(" Web" . "Web Browsing"))
+
 #+END_SRC
 
 *** Webkit xwidget
