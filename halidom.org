@@ -319,10 +319,6 @@
   - [[#evil][Evil]]
   - [[#alfred-org-capture][Alfred Org Capture]]
 - [[#prologue][Prologue]]
-- [[#known-issues][Known Issues]]
-  - [[#halidom-literate-config-file-is-added-to-org-agenda-files][~halidom-literate-config-file~ is added to ~org-agenda-files~]]
-  - [[#dashboard-buffer-not--found-when-setting-value-of-initial-buffer][dashboard buffer not  found when setting value of initial buffer]]
-  - [[#improper-font-locking-by-org-highlight-latex-and-related][Improper font locking by ~org-highlight-latex-and-related~]]
 - [[#footnotes][Footnotes]]
 
 * Preface
@@ -1645,10 +1641,10 @@ from within Emacs.
   (define-key map "q" 'restart-emacs))
 
 (define-key 'halidom-prefix-map (kbd "s") 'hydra-straight/body)
-(which-key-add-key-based-replacements "M-m s" '(" " . "straight.el"))
+(which-key-add-key-based-replacements "M-m s" " Straight")
 
 (define-key 'halidom-prefix-map (kbd "r") 'reload-eval-prefix-map)
-(which-key-add-key-based-replacements "M-m r" '("" . "reload/eval"))
+(which-key-add-key-based-replacements "M-m r" " reload/eval")
 #+END_SRC
 
 *** Speed Type
@@ -1826,7 +1822,7 @@ external programs.
 (define-prefix-command 'macos-prefix-map)
 (define-key 'halidom-prefix-map "m" 'macos-prefix-map)
 
-(which-key-add-prefix-title "M-m m" " MacOS")
+(which-key-add-key-based-replacements "M-m m" " MacOS")
 #+END_SRC
 
 **** Modifier Keys
@@ -1912,11 +1908,8 @@ editors and various other applications on macOS.
   (define-key 'macos-prefix-map "o" 'macos-open-with-command-map)
 
   (which-key-add-key-based-replacements
-    "M-m m t" '(" " . "iTerm"))
-
-  (which-key-add-key-based-replacements "M-m m o"
-    `(,(propertize
-        " " 'display '(raise -0.20)) . "Open With")))
+    "M-m m t" " iTerm"
+    "M-m m o" " Editors"))
 
 #+END_SRC
 
@@ -1980,7 +1973,8 @@ query it with the marked region or symbol at point.
   :if *is-mac*
   :commands (reveal-in-osx-finder)
   :init
-  (define-key 'macos-prefix-map (kbd "f") '(" Reveal in Finder" . reveal-in-osx-finder)))
+  (define-key 'macos-prefix-map "f"
+    '(" Finder" . reveal-in-osx-finder)))
 #+END_SRC
 
 *** OSX Dictionary
@@ -2002,9 +1996,8 @@ running macOS.
   :init
   (progn
     (defun osx-dictionary-open-dictionary-app-at-point ()
-      (interactive)
       "Open `word' at point in Dictionary.app."
-
+      (interactive)
       (shell-command (format "open dict://%s" (thing-at-point 'word))))
 
     (define-prefix-command 'osx-dictionary-keymap)
@@ -2012,8 +2005,9 @@ running macOS.
     (define-key 'macos-prefix-map
       "d" 'osx-dictionary-keymap)
 
-    (set-fontset-font "fontset-default" '#xE8CE "Material Icons" nil 'prepend)
-    (which-key-add-key-based-replacements "M-m m d" '("" . "macOS Dictionary"))
+    (set-fontset-font "fontset-default" '#xE8CE
+                      "Material Icons" nil 'prepend)
+    (which-key-add-key-based-replacements "M-m m d" " Dictionary")
 
     (define-key 'osx-dictionary-keymap
         "d" 'osx-dictionary-search-word-at-point)
@@ -2071,7 +2065,11 @@ running macOS.
   :demand t
   :commands counsel-osx-app
   :config
-  (define-key 'macos-prefix-map "a" `(,(propertize "  " 'display '(raise -0.24)) .  counsel-osx-app)))
+  (define-key 'macos-prefix-map "a"
+    `(,(concat
+        (propertize " " 'display '(raise -0.20))
+        "Apps")
+      .  counsel-osx-app)))
 #+END_SRC
 
 * Tex and Org Mode
@@ -2785,9 +2783,7 @@ Entered on [2018-06-13 Wed 11:42]
 
   (set-fontset-font "fontset-default" '#xE917 "file-icons" nil 'prepend)
   (which-key-add-key-based-replacements "M-m o"
-    `(,(propertize " Org Mode"
-                   'font-lock-string-face
-                   '(:family "file-icons") 'fontified nil) . "Org Mode")))
+    '(" Org" . "Org Mode")))
 #+END_SRC
 
 *** Org Babel
@@ -3751,6 +3747,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :bind (:map projectile-command-map
                 ("n" . org-projectile-project-todo-completing-read))
     :custom
+    (org-todo-keywords
+          '((sequence "TODO(t)" "|" "DONE(d)")
+            (sequence "|" "CANCELLED(c)")))
+    (org-todo-keyword-faces
+     '(("CANCELLED" . (:foreground "yellow"))))
     (org-projectile-per-project-filepath "TODOs.org")
 
     (org-projectile-capture-template
@@ -3760,7 +3761,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :init
 
-    (defvar-local org-default-agenda-file (file-truename "~/Dropbox/org/todos/TODOS.org"))
+    (defvar-local org-default-agenda-file
+      (file-truename "~/Dropbox/org/todos/TODOS.org"))
 
 
     (defun org-projectile-files-to-agenda ()
@@ -3787,7 +3789,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (dashboard-mode . org-projectile-files-to-agenda)
 
     :config
-
     (org-projectile-per-project))
 
 #+END_SRC
@@ -4173,8 +4174,9 @@ and subtrees of the ignored headlines will be retained.
   :straight org
   :demand t
   :config
-  (ox-extras-activate '(ignore-headlines
-                        org-export-filter-parse-tree-functions)))
+  (ox-extras-activate
+   '(ignore-headlines
+     org-export-filter-parse-tree-functions)))
 #+END_SRC
 
 **** Ox Publish
@@ -4408,7 +4410,7 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
                    ("\\subsection{%s}" . "\\subsection*{%s}")
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
 #+END_SRC
 
 ****** UCLA CS
@@ -4481,17 +4483,13 @@ My custom mla-style LaTeX class.
 
 #+NAME: ox/linguistics
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (use-package ox-linguistics
     :straight (ox-linguistics
                :host github
-               :repo "wyleyr/ox-linguistics"
+               :repo "jchaffin/ox-linguistics"
                :files ("lisp/*.el"))
-    :after (ox-latex)
-    :init
-    (require 'ox-linguistics)
+    :after (:all ox ox-latex)
     :demand t)
-
 #+END_SRC
 
 **** Ox Bibtex
@@ -5633,7 +5631,10 @@ different window configurations.
         ("c" helpful-command))
 
     (which-key-add-key-based-replacements
-      "M-m h" '(" Helpful" . "helpful")))
+      "M-m h" '(" Help" . "helpful")
+      "M-m h d" "Symbol"
+      "M-m h f" "Function"
+      "M-m h c" "Command"))
 #+END_SRC
 
 **** Image+
@@ -5658,13 +5659,6 @@ different window configurations.
            ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
-**** blimp :disabled:
-
-#+NAME: image/blimp
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package blimp)
-#+END_SRC
-
 **** Info+
 
 #+NAME: info=plus
@@ -5678,7 +5672,6 @@ different window configurations.
 #+NAME: font-lock-plus
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package font-lock+)
-
 #+END_SRC
 
 **** Color+
@@ -6568,7 +6561,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+NAME: icons/all-the-icons
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package all-the-icons)
+(use-package all-the-icons
+    :demand t)
 #+END_SRC
 
 *** Dired Icons
@@ -6576,8 +6570,12 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: icons/dired
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons-dired
-    :hook
-    (dired-mode . all-the-icons-dired-mode))
+  :after (:all all-the-icons font-lock+)
+  :demand t
+  :init
+  (require 'font-lock+)
+  :hook
+  (dired-mode . all-the-icons-dired-mode))
 #+END_SRC
 
 *** Ivy All the Icons
@@ -7375,7 +7373,8 @@ friends.
      (define-key map "s" '("Shuffle" . counsel-itunes-shuffle)))
 
   (define-key 'macos-prefix-map (kbd "i") 'counsel-itunes-prefix-map)
-  (which-key-add-key-based-replacements "M-m m i" '(" iTunes" . "iTunes")))
+
+  (which-key-add-key-based-replacements "M-m m i" " iTunes"))
 
 #+END_SRC
 
@@ -7816,8 +7815,12 @@ x
 #+BEGIN_SRC emacs-lisp :tangle no
 (define-prefix-command 'web-browse-prefix-map)
 (define-key 'halidom-prefix-map (kbd "w") 'web-browse-prefix-map)
-(which-key-add-key-based-replacements "M-m w"
-  '(" Web" .  "Web Browsing"))
+(when (display-graphic-p)
+  (set-fontset-font "fontset-default" '#xF0C5
+                    "github-octicons" nil 'prepend))
+
+(which-key-add-key-based-replacements
+  "M-m m w" '(" Web" . "Web Browsing"))
 
 #+END_SRC
 
@@ -8008,9 +8011,13 @@ Interactively.
    (list (completing-read "Browser: " browse-url-browser-alist)))
   (when-let ((browser-function (cdr (assoc browser browse-url-browser-alist))))
     (setq browse-url-browser-function browser-function)))
+
 (define-key 'web-browse-prefix-map "B" 'set-browser-function)
 
-  (which-key-add-key-based-replacements "M-m w B" '( "Configure" . "Set the default browser" ))
+(set-fontset-font "fontset-default" '#xF02F "github-octicons" nil 'prepend)
+
+(which-key-add-key-based-replacements "M-m w B"
+  '(" Configure" . "Set the default browser" ))
 
 (cl-defun make-browser-function (browser)
   `(defun ,(intern (concat "set-browser-function-" browser)) ()
@@ -9500,7 +9507,7 @@ As a git client though, magit is awesome.
    ("C-c v P" . magit-push)
    ("C-c v S" . magit-stash))
   :init
-  (which-key-add-prefix-title "C-c v" "")
+  (which-key-add-key-based-replacements "C-c v" " Magit")
   (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
         which-key-replacement-alist)
   :config
@@ -12458,15 +12465,6 @@ Or insert those and put point in the middle to add an equation."
 ;;; end halidom.el
 
 #+END_SRC
-
-* Known Issues
-** ~halidom-literate-config-file~ is added to ~org-agenda-files~
-** dashboard buffer not  found when setting value of initial buffer
-** Improper font locking by ~org-highlight-latex-and-related~
-
-Makes emacs really slow.
-
-See[[id:8E0531C6-0E85-4F0A-9340-2868F54F3A6D][ Highlight inline LaTeX fragments]] for temporary fix.
 
 * Footnotes
 

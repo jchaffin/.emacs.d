@@ -62,7 +62,7 @@
             straight-recipes-gnu-elpa-use-mirror t)
 
       (if (and (executable-find "watchexec")
-             (executable-find "python3"))
+               (executable-find "python3"))
           (setq straight-check-for-modifications
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
@@ -179,7 +179,34 @@
                 org-default-notes-file
                 (expand-file-name "capture.org" org-directory)
                 org-id-locations-file
-                (expand-file-name "var/org/id-locations.el" user-emacs-directory)))
+                (expand-file-name
+                 "var/org/id-locations.el" user-emacs-directory)))
+
+        (defun org-update-backends (val)
+          "Update Emacs export backends while Emacs is running.
+See `org-export-backends' variable."
+          (interactive)
+          (progn
+            (setq org-export-registered-backends
+                  (cl-remove-if-not
+                   (lambda (backend)
+                     (let ((name (org-export-backend-name backend)))
+                       (or (memq name val)
+                          (catch 'parentp
+                            (dolist (b val)
+                              (and (org-export-derived-backend-p b name)
+                                 (throw 'parentp t)))))))
+                   org-export-registered-backends))
+            (let ((new-list (mapcar #'org-export-backend-name
+                                    org-export-registered-backends)))
+              (dolist (backend val)
+                (cond
+                 ((not (load (format \"ox-%s\" backend) t t))
+                  (message
+                   "Problems while trying to load export back-end
+                   `%s'" backend))
+                 ((not (memq backend new-list)) (push backend new-list))))
+              (set-default 'org-export-backends new-list))))
 
         :hook
         (org-mode . halidom/resolve-org-ivy-conflict))
@@ -264,22 +291,9 @@
         (interactive)
         (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
 
-      ;; (if noninteractive
-      ;;     (load-literate)
-      ;;   (let ((target-file (concat (file-name-base halidom-literate-config-file) ".el")))
-      ;;     (cond ((bound-and-true-p use-literate-p)
-      ;;            (if (not (file-exists-p (expand-file-name target-file user-emacs-directory)))
-      ;;                (when (yes-or-no-p "Literate configuration enabled. Tangle? ")
-      ;;                  (load-literate))
-      ;;              (load-literate)))
-      ;;           ((boundp 'use-literate-p)
-      ;;            (literate-debug-enabled)
-      ;;            (when (fboundp 'paredit-mode)
-      ;;              (paredit-mode 1)))
-      ;;           (t
-      ;;            (when (yes-or-no-p (format "Tangle and load %s? "  halidom-literate-config-file))
-      ;;              (load-literate))))))
-      (load-literate))
+      (if (and (boundp 'use-literate-p) (not use-literate-p))
+          (literate-debug-enabled)
+        (load-literate)))
 
   (straight-finalize-transaction))
 
