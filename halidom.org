@@ -3412,7 +3412,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+NAME: org-docmgr-links
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Org Tags
- <<org-links-tags>>
+<<org-links-tags>>
 ;; Cliplink
 <<org-links-cliplink>>
 ;; Org elisp help
@@ -3447,7 +3447,6 @@ With prefix argument, also display headlines without a TODO keyword."
 (use-package org-elisp-help
   :straight t)
 #+END_SRC
-
 
 ***** Org YouTube
 
@@ -3500,7 +3499,6 @@ Embed YouTube Links in iframe.
 ;; See https://lists.gnu.org/archive/html/emacs-orgmode/2014-08/msg00982.html
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
 #+END_SRC
-
 
 ***** Org Bookmark Heading
 
@@ -6948,7 +6946,9 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 ;;; End Completion Group
 #+END_SRC
 
+
 ** Company
+
 
 #+NAME: completion-company
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
@@ -6966,6 +6966,8 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 Emacs has two popular packages for code completion --
 [[https://github.com/auto-complete/auto-complete][autocomplete]] and [[https://github.com/company-mode/company-mode][company]]. This reddit [[https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode_vs_companymode_which_is_better/][thread]] was enough for
 me to go with company.
+
+
 
 If you need more convincing, [[https://github.com/company-mode/company-mode/issues/68][company-mode/company-mode#68]]
 offers a comprehensive discussion on the two.
@@ -7025,6 +7027,7 @@ top candidates for completion.
 #+END_SRC
 
 *** Company Box
+
 
 #+NAME: company-dropdown
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -9019,6 +9022,7 @@ school's WLAN.
     (company-lsp-async t)
     (company-lsp-cache-candidates nil))
 #+END_SRC
+
 
 ** Flycheck
 
@@ -12123,6 +12127,7 @@ and slim-mode using company.
 
 *** Markdown
 
+
 #+NAME: md-spec
 #+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
 ;; Begin Markdown Configuration
@@ -12164,7 +12169,6 @@ and slim-mode using company.
       ((markdown-mode gfm-mode) . md-setup)
       ((markdown-mode gfm-mode) . org-visual-fill-column))
 #+END_SRC
-
 
 **** markdown-mode+
 
