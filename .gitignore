@@ -7,3 +7,7 @@ company-statistics-cache.el
 /etc/local
 halidom.el
 workspace/
+GTAGS
+GPATH
+GRTAGS
+TAGS
