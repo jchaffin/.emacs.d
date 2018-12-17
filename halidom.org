@@ -6568,12 +6568,11 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: icons/dired
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons-dired
-  :after (:all all-the-icons font-lock+)
+  :after (all-the-icons dired)
   :demand t
   :init
   (require 'font-lock+)
-  :hook
-  (dired-mode . all-the-icons-dired-mode))
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
 *** Ivy All the Icons
@@ -11603,15 +11602,6 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 ) ;; End Ocaml
 #+END_SRC
 
-**** Ocaml User Setup :disabled:
-
-#+NAME: ocaml/user-setup
-#+BEGIN_SRC emacs-lisp :tangle no
-(let ((opam-user-setup-dir (no-littering-expand-etc-file-name "opam-user-setup")))
-  (if (file-directory-p opam-user-setup-dir)
-      (load-file (expand-file-name "opam-user-setup.el" opam-user-setup-dir))))
-#+END_SRC
-
 **** Utop
 
 #+NAME: ocaml/utop
@@ -11647,6 +11637,11 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
 #+NAME: ocaml/caml
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package caml
+  :straight
+  (caml
+   :type git :files ("emacs/*.el")
+   :host github :repo "ocaml/ocaml"
+   :branch "trunk")
   :init
 
   (defun caml/lsp ()

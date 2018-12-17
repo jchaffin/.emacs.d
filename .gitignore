@@ -1,6 +1,6 @@
 var/**
-straight/**
-!/straight/versions
+straight/*
+!/straight/versions/
 .yas-compiled-snippets.el
 .python-version
 company-statistics-cache.el
