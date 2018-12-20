@@ -21,7 +21,6 @@
   - [[#core][Core]]
     - [[#libraries][Libraries]]
     - [[#el-patch][El Patch]]
-    - [[#constants][Constants]]
     - [[#macros][Macros]]
     - [[#functions][Functions]]
     - [[#garbage-collection][Garbage Collection]]
@@ -97,6 +96,7 @@
     - [[#neotree][Neotree]]
     - [[#treemacs][Treemacs]]
     - [[#speedbar][Speedbar]]
+    - [[#open-with][Open With]]
   - [[#search][Search]]
     - [[#codesearch][Codesearch]]
     - [[#avy][Avy]]
@@ -173,7 +173,7 @@
 - [[#completion][Completion]]
   - [[#company][Company]]
     - [[#company-quick-help][Company Quick Help]]
-    - [[#company-statistics][Company Statistics]]
+    - [[#company-prescient][Company Prescient]]
     - [[#company-box][Company Box]]
   - [[#snippets][Snippets]]
     - [[#yasnippet][YASnippet]]
@@ -183,8 +183,6 @@
     - [[#ivy][Ivy]]
     - [[#counsel][Counsel]]
     - [[#swiper][Swiper]]
-    - [[#smex][Smex]]
-    - [[#flx][Flx]]
     - [[#omnibox][Omnibox]]
 - [[#terminal][Terminal]]
   - [[#with-editor][With Editor]]
@@ -650,19 +648,6 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
           (patch (call-interactively #'el-patch-unpatch)))
       (remove-hook 'el-patch-pre-validate-hook (intern feature))
       (remhash patch el-patch--patches))))
-
-#+END_SRC
-
-*** Constants
-
-Variables used throughout this file[fn:4]:
-
-#+NAME: halidom/constants
-#+BEGIN_SRC emacs-lisp :tangle yes
-
-(defconst *is-mac* (eq system-type 'darwin))
-(defconst *is-linux* (eq system-type 'gnu/linux))
-(defconst *is-windows* (eq system-type 'windows))
 
 #+END_SRC
 
@@ -1374,7 +1359,7 @@ key exchange is against man-in-the-middle attacks.)
 ***** Set GPG program to 'gpg2'.
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-mac*
+(when (eq system-type 'darwin)
   (let* ((has-brew (not (string-empty-p
 			 (shell-command-to-string
 			  "which brew"))))
@@ -1429,7 +1414,7 @@ killall gpg-agent
 **** Load Secrets
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(when (and (executable-find "gpg") *is-mac*)
+(when (and (executable-find "gpg") (eq system-type 'darwin))
   (if-not (string-empty-p
        (shell-command-to-string
 	      (concat "gpg --list-keys | grep " user-mail-address)))
@@ -1839,7 +1824,7 @@ Also sets terminal coding system to "utf-8".
       ns-control-modifier  'control
       ns-function-modifier 'hyper)
 
-(when *is-mac*
+(when (eq system-type 'darwin)
   (global-set-key (kbd "s-=" ) 'text-scale-increase)
   (global-set-key (kbd "s--")  'text-scale-decrease)
   ;; Default is <XF86Back> .. C-x <right>
@@ -1861,7 +1846,7 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 #+NAME: macos-mouse-2
 #+BEGIN_SRC emacs-lisp :tangle no
 ;; From https://emacs.stackexchange.com/questions/20946/generate-mouse-2-event-from-macbook-trackpadTrackpage
-(when *is-mac*
+(when (eq system-type 'darwin)
   (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>")))
 #+END_SRC
 
@@ -1869,7 +1854,8 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 
 #+NAME: macos-computer-name
 #+BEGIN_SRC emacs-lisp :tangle no
-(defun halidom/computer-name-cmd ()
+(defun macos-computer-name ()
+  "Get the computer name for the current machine."
   (let* ((has-scutil
           (executable-find "scutil"))
 	       (scutil-cmd
@@ -1880,10 +1866,9 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 
 (defvar computer-name nil)
 
-(when *is-mac*
-  (setq computer-name (halidom/computer-name-cmd)))
+(when (eq system-type 'darwin)
+  (setq computer-name (macos-computer-name)))
 
-(defconst *is-hal* (string= computer-name "hal"))
 #+END_SRC
 
 *** MacOS Dev Utils
@@ -1894,7 +1879,7 @@ editors and various other applications on macOS.
 #+NAME: macos-dev-utils
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package macos-dev-utils
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :straight
   (macos-dev-utils
    :host github
@@ -1970,7 +1955,7 @@ query it with the marked region or symbol at point.
 #+NAME: macos-finder-config
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package reveal-in-osx-finder
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :commands (reveal-in-osx-finder)
   :init
   (define-key 'macos-prefix-map "f"
@@ -1989,7 +1974,7 @@ running macOS.
 #+NAME: macos-dictionary
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package osx-dictionary
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :defines (osx-dictionary-open-dictionary-app-at-point)
   :commands (osx-dictionbary-search-word-at-point
              osx-dictionary-search-input)
@@ -2023,7 +2008,7 @@ running macOS.
 #+NAME: macos-trash
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package osx-trash
-  :if (and *is-mac* (not (boundp 'mac-system-move-file-to-trash-use-finder)))
+  :if (and (eq system-type 'darwin) (not (boundp 'mac-system-move-file-to-trash-use-finder)))
   :init
   (progn
     (osx-trash-setup))
@@ -2039,7 +2024,7 @@ running macOS.
 #+NAME: macos-pbcopy
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package pbcopy
-  :if (and *is-mac* (not (display-graphic-p)))
+  :if (and (eq system-type 'darwin) (not (display-graphic-p)))
   :init (turn-on-pbcopy))
 #+END_SRC
 
@@ -2060,7 +2045,7 @@ running macOS.
 #+NAME: macos-counsel-osx-app
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package counsel-osx-app
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :after ivy
   :demand t
   :commands counsel-osx-app
@@ -2779,7 +2764,7 @@ Entered on [2018-06-13 Wed 11:42]
 (define-key 'halidom-prefix-map (kbd "o")
   'halidom/org-command-map)
 
-(when *is-mac*
+(when (eq system-type 'darwin)
 
   (set-fontset-font "fontset-default" '#xE917 "file-icons" nil 'prepend)
   (which-key-add-key-based-replacements "M-m o"
@@ -3267,7 +3252,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+NAME: org-docmgr-journal
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package org-journal
-    :if *is-mac*
+    :if (eq system-type 'darwin)
     :bind (:map halidom/org-command-map
                 ("j" . org-journal-new-entry))
     :custom
@@ -3394,7 +3379,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
   :defines (org-download-image-dir)
   :commands (org-download-enable  org-download-yank org-download-screenshot)
   :init
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (setq-default org-download-image-dir "~/Dropbox/org/img/"))
   :hook
   ((dired-mode org-mode) . org-download-enable))
@@ -3954,7 +3939,7 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 #+NAME: org-ideamgr-brain
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-brain
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :defines (org-brain-path)
   :init
   (setq org-brain-path (concat (file-name-as-directory org-directory) "brain"))
@@ -4815,7 +4800,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
   (projectile-completion-system 'ivy)
   (projectile-switch-project-action #'projectile-dired)
   (projectile-find-dir-includes-top-level t)
-  (projectile-indexing-method 'turbo-alien)
+  (projectile-indexing-method 'alien)
   (projectile-enable-caching t)
 
   :init
@@ -5054,6 +5039,23 @@ Adds extensions and functionality to dired mode.
   (add-to-list 'org-file-apps '(directory . emacs)))
 #+END_SRC
 
+**** Dired Sidebar
+:PROPERTIES:
+:ID:       2ABE4F83-BA00-441E-8F77-857B455834AC
+:END:
+
+#+NAME: dired-sidebar-config
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package dired-sidebar
+      :commands (dired-sidebar-toggle-sidebar)
+      :custom
+      (dired-sidebar-should-follow-file nil)
+      (dired-sidebar-theme 'none)
+      :init
+      :bind
+      ("C-c d" . dired-sidebar-toggle-sidebar))
+#+END_SRC
+
 *** Neotree
 
 [[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
@@ -5161,6 +5163,17 @@ Adds extensions and functionality to dired mode.
   :bind ("M-<f2>" . projectile-speedbar-open-current-buffer-in-tree))
 #+END_SRC
 
+*** Open With
+:PROPERTIES:
+:ID:       8D3D83D3-552F-40DC-91B4-AD9D60315748
+:END:
+
+#+NAME: open-with-spec
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package openwith
+  :straight t)
+#+END_SRC
+
 ** Search
 *** Codesearch
 
@@ -5202,28 +5215,6 @@ Jump to arbitrary point in Buffer
 
 #+END_SRC
 
-***** Open With
-
-#+NAME: open-with-spec
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package openwith
-  :straight t)
-#+END_SRC
-
-***** Dired Sidebar
-
-#+NAME: dired-sidebar-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package dired-sidebar
-      :commands (dired-sidebar-toggle-sidebar)
-      :custom
-      (dired-sidebar-should-follow-file nil)
-      (dired-sidebar-theme 'none)
-      :init
-      :bind
-      ("C-c d" . dired-sidebar-toggle-sidebar))
-#+END_SRC
-
 *** rg
 
 #+NAME: ripgrep
@@ -5260,7 +5251,7 @@ interactive tree .
   :init
   (global-undo-tree-mode)
   :config
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (global-set-key (kbd "s-z") 'undo-tree-undo)
     (global-set-key (kbd "s-Z") 'undo-tree-redo)))
 #+END_SRC
@@ -5425,7 +5416,7 @@ so we'll leave it there.
 
 #+NAME: frame-menubar
 #+BEGIN_SRC emacs-lisp :tangle no
-(unless *is-mac*
+(unless (eq system-type 'darwin)
   (menu-bar-mode -1))
 #+END_SRC
 
@@ -5710,7 +5701,7 @@ different window configurations.
 #+END_SRC
 
 *** Thingatpt+
-n
+
 #+NAME: thingatpt-plus
 #+BEGIN_SRC emacs-lisp :tangle yes
 (use-package thingatpt+)
@@ -6294,11 +6285,10 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
    ("C-c C->" . mc/mark-all-like-this)
    ("M-<mouse-1>" . mc/add-cursor-on-click))
   :config
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (global-set-key (kbd "s-d")  'mc/mark-next-like-this)
     (global-set-key (kbd "s-D")  'mc/mark-all-dwin)
-    (global-set-key (kbd "M-s-d" 'mc/edit-beginnings-of-lines))
-    (define-key mc/keymap (kbd "<return>" nil))))
+    (global-set-key (kbd "M-s-d" 'mc/edit-beginnings-of-lines))))
 #+END_SRC
 
 *** Centered Cursor Mode
@@ -6362,7 +6352,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+NAME: fonts/interactive
 #+BEGIN_SRC emacs-lisp :tangle no
-(when *is-mac*
+(when (eq system-type 'darwin)
   (let ((font-weight-xs '(("Andale Mono" . extralight)
                           ("Droid Sans Mono" . normal)
                           ("Fira Code" . light)
@@ -6948,7 +6938,6 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 
 ** Company
 
-
 #+NAME: completion-company
 #+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
 ;; Company
@@ -6979,6 +6968,7 @@ any reason for me reconsider my choice.
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package company
     :commands global-company-mode
+
     :bind (("TAB" . company-indent-or-complete-common)
            ("C-c /" . company-files)
            ("M-SPC" . company-complete)
@@ -7011,18 +7001,29 @@ any reason for me reconsider my choice.
   (company-quickhelp-mode 1))
 #+END_SRC
 
-*** Company Statistics
-
-[[https://github.com/company-mode/company-statistics][Company statistics]] uses a persisent store of completions to rank the
-top candidates for completion.
+*** Company Prescient
 
 #+NAME: company-stats
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-statistics
-  :after (company)
+;; Package `prescient' is a library for intelligent sorting and
+;; filtering in various contexts. It is not published to MELPA, so we
+;; must define a recipe here.
+(use-package prescient
+  :config
+  ;; Remember usage statistics across Emacs sessions.
+  (prescient-persist-mode +1))
+
+
+;; Package `company-prescient' provides intelligent sorting and
+;; filtering for candidates in Company completions.
+(use-package company-prescient
   :demand t
-  :init
-  (company-statistics-mode))
+  :after company
+  :config
+
+  ;; Use `prescient' for Company menus.
+  (company-prescient-mode +1))
+
 #+END_SRC
 
 *** Company Box
@@ -7109,10 +7110,6 @@ snippets corresponding to the major mode of the current buffer mode.
 <<mb-counsel>>
 ;; Swiper
 <<mb-swiper>>
-;; Smex
-<<mb-smex>>
-;; Flx
-<<mb-flx>>
 ;; Omnibox
 <<mb-omnibox>>
 #+END_SRC
@@ -7179,14 +7176,6 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 
 #+NAME: ivy/prescient
 #+BEGIN_SRC emacs-lisp :tangle no
-;; Package `prescient' is a library for intelligent sorting and
-;; filtering in various contexts. It is not published to MELPA, so we
-;; must define a recipe here.
-(use-package prescient
-  :config
-  ;; Remember usage statistics across Emacs sessions.
-  (prescient-persist-mode +1))
-
 ;; Package `ivy-prescient' provides intelligent sorting and filtering
 ;; for candidates in Ivy menus.
 (use-package ivy-prescient
@@ -7195,16 +7184,6 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
   :config
   ;; Use `prescient' for Ivy menus.
   (ivy-prescient-mode +1))
-
-;; Package `company-prescient' provides intelligent sorting and
-;; filtering for candidates in Company completions.
-(use-package company-prescient
-  :demand t
-  :after company
-  :config
-
-  ;; Use `prescient' for Company menus.
-  (company-prescient-mode +1))
 
 #+END_SRC
 
@@ -7253,7 +7232,6 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-posframe)
 #+END_SRC
-
 
 *** Counsel
 
@@ -7402,7 +7380,7 @@ documentation browser.
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package counsel-dash
     :after (:all counsel)
-    :if *is-mac*
+    :if (eq system-type 'darwin)
     :ensure-system-package
     ("/Applications/Dash.app" . "brew cask install dash"))
 
@@ -7440,29 +7418,8 @@ documentation browser.
     :bind
     ("\C-s" . swiper)
     :config
-    (if *is-mac*
+    (if (eq system-type 'darwin)
         (global-set-key (kbd "s-f") 'swiper)))
-#+END_SRC
-
-*** Smex
-
-A smart M-x enhancement for Emacs.
-
-#+NAME: mb-smex
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package smex
-  :after (ivy)
-  :init
-  (setq-default smex-history-length 32))
-#+END_SRC
-
-*** Flx
-
-Fuzzy matching.
-
-#+NAME: mb-flx
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package flx)
 #+END_SRC
 
 *** Omnibox
@@ -7515,7 +7472,7 @@ Fuzzy matching.
   (("C-c M-RET t" . sane-term)
    ("C-c M-RET T" . sane-term-create))
   :config
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (setq sane-term-shell-command "/usr/bin/zsh")))
 #+END_SRC
 
@@ -7558,7 +7515,7 @@ See this StackOverflow [[https://stackoverflow.com/a/3072831][ticket]]:
 - [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][Mastering Emacs - Running Shells in Emacs]]
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-windows*
+(when (eq system-type 'windows)
   (progn
     (setq explicit-shell-file-name "C:/path/to/bash.exe"
           shell-file-name "bash"
@@ -7625,7 +7582,7 @@ Zsh is whack when running the emacs =shell= function. This fixes that problem.
 
 #+NAME: shell-zsh-macfix
 #+BEGIN_SRC emacs-lisp :tangle no
-(when *is-mac*
+(when (eq system-type 'darwin)
   (setq explicit-shell-file-name "/bin/sh"
 	      shell-file-name "sh")
   (setenv "SHELL" shell-file-name))
@@ -7912,7 +7869,7 @@ See [[https://github.com/veshboo/emacs#example-customization-using-xwidget-webki
 
 (use-package browse-url
     :custom (browse-url-chromium-program
-             (if *is-mac*
+             (if (eq system-type 'darwin)
                  "/Applications/Chromium.app/Contents/MacOS/Chromium"
                "chromium"))
   :config
@@ -7930,7 +7887,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 #+NAME: browser-macos
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package osx-browse
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :defines (osx-browse-mode osx-browse-mode-map)
   :demand t
   :init
@@ -7981,7 +7938,7 @@ the user will be prompted to edit the search string first."
 (use-package browse-at-remote
   :init
   (progn
-    (if *is-mac*
+    (if (eq system-type 'darwin)
         (when (fboundp 'osx-browse-url-chrome)
           (setq browse-url-browser-function 'osx-browse-url-chrome)))))
 #+END_SRC
@@ -7998,7 +7955,7 @@ Interactively.
         ("eww" . eww-browse-url)
         ("xwidget-webkit" . xwidget-webkit-browse-url)))
 
-(if *is-mac*
+(if (eq system-type 'darwin)
     (progn
       (setf (cdr (assoc "chrome" browse-url-browser-alist))
             #'osx-browse-url-chrome)
@@ -8144,7 +8101,7 @@ Interactively.
     :keybinding "y"
     :docstring "Search Youtube")
   :config
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (set-fontset-font "fontset-default" '#xE600 "file-icons" nil 'prepend)
     (set-fontset-font "fontset-default" '#xE80C "Material Icons" nil 'prepend))
     (cl-flet* ((ks (&rest k)
@@ -8484,7 +8441,7 @@ checking for natural language.
 #+NAME: sc-langtool
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package langtool
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :after (flyspell)
   :demand t
   :custom
@@ -8590,7 +8547,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 #+NAME: notes/deft
 #+BEGIN_SRC emacs-lisp :tangle no :comments org
 (use-package deft
-  :if *is-mac*
+  :if (eq system-type 'darwin)
   :bind ("C-x C-n" . deft)
   :config
   (progn
@@ -8873,7 +8830,7 @@ Artist mode is a built-in Emacs package.
 #+NAME: uml-ditaa
 #+BEGIN_SRC emacs-lisp :tangle no
 
-(when (and *is-mac*
+(when (and (eq system-type 'darwin)
            (executable-find "brew")
            (executable-find "ditaa"))
   (let ((ditaa-path (replace-regexp-in-string
@@ -8898,7 +8855,7 @@ Artist mode is a built-in Emacs package.
          "\n" ""
          (shell-command-to-string
           "realpath $(brew --prefix plantuml)/libexec/plantuml.jar"))))
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (setq org-plantuml-jar-path (halidom/plantuml-resolve-jar-path))
     (setq plantuml-jar-path (halidom/plantuml-resolve-jar-path))))
 #+END_SRC
@@ -9880,7 +9837,7 @@ Spacemacs =dotspacemacs-configuration-layers=.
                     (cons lang halidom-proglang-enabled-list)))
             langs))
 
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (halidom/enable-langs 'asm 'c-c++ 'common-lisp 'clojure 'groovy
                           'java 'javascript 'markdown 'scala 'python
                           'ocaml 'ruby 'web))
@@ -10262,7 +10219,7 @@ Configuration for common-lisp.
       (paredit-mode +1))
   (if (fboundp 'highlight-symbol-mode)
       (highlight-symbol-mode +1))
-  (if *is-mac*
+  (if (eq system-type 'darwin)
       (setq-local dash-plugin-keywords '("lisp"))))
 
 (add-hook 'lisp-mode-hook #'common-lisp-style)
@@ -10658,7 +10615,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 ;; Enable Hooks
 (add-hook 'java-mode-hook 'java-mode-style)
 
-(if *is-mac*
+(if (eq system-type 'darwin)
   (add-hook 'java-mode-hook 'java-mode-dash-docsets-hook))
 #+END_SRC
 
@@ -11326,7 +11283,7 @@ Real jsx support.
                   "flask" "tornado" "sqlalchemy" "numpy"
                   "scipy" "salt" "pandas" "matplotlib"
                   "cvp")))
-  (when *is-mac*
+  (when (eq system-type 'darwin)
     (add-hook 'python-mode-hook #'python-dash-docsets)))
 
 #+END_SRC
@@ -11640,8 +11597,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
   :straight
   (caml
    :type git :files ("emacs/*.el")
-   :host github :repo "ocaml/ocaml"
-   :branch "trunk")
+   :host github :repo "ocaml/ocaml")
   :init
 
   (defun caml/lsp ()
@@ -11903,7 +11859,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipyton notebook]
     (defun halidom/web-dash-docsets ()
       (setq-local dash-plugin-keywords
                   '("css" "html" "javascript" "react")))
-    (when *is-mac*
+    (when (eq system-type 'darwin)
       (add-hook 'web-mode-hook #'halidom/web-dash-docsets)))
 #+END_SRC
 
@@ -12452,7 +12408,7 @@ Or insert those and put point in the middle to add an equation."
 ** Alfred Org Capture
 
 #+BEGIN_SRC emacs-lisp :tangle yes
-(when *is-mac*
+(when (eq system-type 'darwin)
   (load-file (no-littering-expand-etc-file-name
               "local/alfred-org-capture/alfred-org-capture.el")))
 #+END_SRC

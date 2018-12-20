@@ -273,11 +273,13 @@ See `org-export-backends' variable."
                 (if (string= name (org-element-property :name block))
                     (let ((code (org-element-property :value block))
                           (params (org-element-property :parameters block))
-                          (noweb-p (literate-src-block-noweb-p
-                                    (org-element-property :parameters block))))
+                          (noweb-p
+                           (literate-src-block-noweb-p
+                            (org-element-property :parameters block))))
 
                       (if noweb-p
-                          (mapcar #'literate-tangle-src-block (sanitize-no-web-block code))
+                          (mapcar #'literate-tangle-src-block
+                                  (sanitize-no-web-block code))
                         (with-temp-buffer
                           (message "%s" code)
                           (insert code)
@@ -285,8 +287,8 @@ See `org-export-backends' variable."
           (kill-buffer buf)))
 
       (defun literate-debug-enabled ()
-        "Tangle only the source blocks with a name property matching an element in
-    `halidom-literate-debug-blocks'.
+        "Tangle only the source blocks with a name property matching an
+element in `halidom-literate-debug-blocks'.
     This is useful for providing a set of defaults for debugging purposes."
         (interactive)
         (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
