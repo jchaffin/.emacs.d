@@ -6,25 +6,8 @@
 ;;
 ;; Homepage: https://github.com/.emacs.d.git
 ;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-
-;; ;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 ;; Commentary:
+;;
 ;; From the Emacs 27.1 NEWS:
 ;;
 ;;
@@ -42,56 +25,31 @@
 
 (setq package-enable-at-startup nil)
 
-(add-to-list 'command-switch-alist '("--no-straight" .
-                                     (lambda (_) (pop command-line-args-left))))
-
-(add-to-list 'command-switch-alist '("--no-literate" .
-                                     (lambda (_) (pop command-line-args-left))))
-
-
-(defun feature-disabled--cli (flag args)
+(defun feature-disabled-cli (arg args)
   (cond ((= (length args) 0) nil)
-	((equal (car args) flag) t)
-	(t (feature-disabled--cli flag (cdr args)))))
+	      ((equal (car args) arg) t)
+	      (t (feature-disabled-cli arg (cdr args)))))
 
-(defalias #'straight-disabled-cli (apply-partially #'feature-disabled--cli "--no-straight"))
-(defalias #'literate-disabled-cli (apply-partially #'feature-disabled--cli "--no-literate"))
-(defalias #'server-disabled-cli   (apply-partially #'feature-disabled--cli "--no-server"))
-
-(defun feature-disabled--env (var)
+(defun feature-disabled-env (var)
   (let ((env (getenv var)))
     (and env (= (string-to-number env) 1))))
 
-(defun straight-disabled-env () (feature-disabled--env "HALIDOM_NO_STRAIGHT"))
-(defun literate-disabled-env () (feature-disabled--env "HALIDOM_NO_LITERATE"))
-(defun server-disabled-env  ()  (feature-disabled--env "HALIDOM_NO_SERVER"))
-
 (defun feature-check (env-func cli-func)
   (let ((env-disabled (funcall env-func))
-	(cli-disabled (funcall cli-func command-line-args)))
+	      (cli-disabled (funcall cli-func command-line-args)))
     (if (or env-disabled cli-disabled) nil t)))
 
-(defun check-straight () (feature-check #'straight-disabled-env #'straight-disabled-cli))
-(defun check-literate () (feature-check #'literate-disabled-env #'literate-disabled-cli))
-(defun check-server   () (feature-check #'server-disabled-env   #'server-disabled-cli))
+(defun literate-disabled-env ()
+  (feature-disabled-env "HALIDOM_NO_LITERATE"))
 
-(defvar use-straight-p (check-straight)
-  "If non-nil, inhibit package.el and use straight.el as the default package manager.
-This variable is non-nil by default. To set to nil, either pass `--no-straight' as a
-command line argument at startup, or set the environment variable `HALIDOM_NO_STRAIGHT' to
-a positive numerical value.")
+(defalias #'literate-disabled-cli
+  (apply-partially #'feature-disabled-cli "--no-literate"))
+
+(defun check-literate ()
+  "Check whether literate mode is enabled."
+  (feature-check #'literate-disabled-env #'literate-disabled-cli))
 
 (defvar use-literate-p (check-literate)
-  "If non-nil, inhibit package.el and use straight.el as the default package manager.
-This variable is non-nil by default. To set to nil, either pass `--no-literate' as a
-command line argument at startup, or set the environment variable `HALIDOM_NO_LITERATE' to
-a positive numerical value.")
-
-(defvar use-server-p (check-server)
-  "If non-nil, don't start the server at initializiation. The default behavior is
-to start a server process at '~/.emacs.d/etc/server/server'. This allows Org Protocol Handler.app 
-to work properly. To disable this feature, either pass `--no-server' as a command line
-argument in the terminal, or set the environment variable `HALIDOM_NO_SERVER' to a positive
-number.")
+"If non-nil, disable tangling of `halidom-literate-config-file.'")
 
 ;;; early-init.el ends here
