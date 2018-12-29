@@ -201,7 +201,7 @@ See `org-export-backends' variable."
                                     org-export-registered-backends)))
               (dolist (backend val)
                 (cond
-                 ((not (load (format \"ox-%s\" backend) t t))
+                 ((not (load (format "ox-%s" backend) t t))
                   (message
                    "Problems while trying to load export back-end
                    `%s'" backend))
@@ -210,6 +210,8 @@ See `org-export-backends' variable."
 
         :hook
         (org-mode . halidom/resolve-org-ivy-conflict))
+
+
 
       ;; Literate
       (defcustom halidom-literate-config-file "halidom.org"
@@ -238,8 +240,12 @@ See `org-export-backends' variable."
 
 
       ;; Debug
-      (defvar halidom-literate-debug-blocks nil)
-
+      (defvar literate-debug-blocks
+	      '(paredit-spec
+	        ivy-spec
+	        counsel-spec
+	        mb-swiper
+	        elisp/core))
 
       (defun literate-src-parameter-string->alist (parameters)
         "Convert src block parameter string into a plist."
@@ -279,11 +285,19 @@ See `org-export-backends' variable."
 
                       (if noweb-p
                           (mapcar #'literate-tangle-src-block
-                                  (sanitize-no-web-block code))
-                        (with-temp-buffer
-                          (message "%s" code)
-                          (insert code)
-                          (eval-buffer))))))))
+                                  (sanitize-no-web-block code)))
+			(let (pkg)
+			  (with-temp-buffer
+                            (insert code)
+			    (save-excursion
+			      (goto-char (point-min))
+			      (when (re-search-forward "use-package " nil t)
+				(setq pkg (buffer-substring-no-properties
+					   (point) (point-at-eol))))
+			      (if pkg
+				  (message "%s evaluated" pkg)
+				(message "tangled %s" name)))
+                            (eval-buffer))))))))
           (kill-buffer buf)))
 
       (defun literate-debug-enabled ()
@@ -291,7 +305,7 @@ See `org-export-backends' variable."
 element in `halidom-literate-debug-blocks'.
     This is useful for providing a set of defaults for debugging purposes."
         (interactive)
-        (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
+        (mapcar #'literate-tangle-src-block literate-debug-blocks))
 
       (if (and (boundp 'use-literate-p) (not use-literate-p))
           (literate-debug-enabled)

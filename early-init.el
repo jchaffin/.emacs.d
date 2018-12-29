@@ -25,6 +25,7 @@
 
 (setq package-enable-at-startup nil)
 
+
 (defun feature-disabled-cli (arg args)
   (cond ((= (length args) 0) nil)
 	      ((equal (car args) arg) t)
@@ -38,6 +39,10 @@
   (let ((env-disabled (funcall env-func))
 	      (cli-disabled (funcall cli-func command-line-args)))
     (if (or env-disabled cli-disabled) nil t)))
+
+(add-to-list 'command-switch-alist
+	     '("--no-literate" .
+               (lambda (_) (pop command-line-args-left))))
 
 (defun literate-disabled-env ()
   (feature-disabled-env "HALIDOM_NO_LITERATE"))
