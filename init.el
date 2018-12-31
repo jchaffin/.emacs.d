@@ -62,7 +62,7 @@
             straight-recipes-gnu-elpa-use-mirror t)
 
       (if (and (executable-find "watchexec")
-               (executable-find "python3"))
+             (executable-find "python3"))
           (setq straight-check-for-modifications
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
@@ -212,7 +212,6 @@ See `org-export-backends' variable."
         (org-mode . halidom/resolve-org-ivy-conflict))
 
 
-
       ;; Literate
       (defcustom halidom-literate-config-file "halidom.org"
         "The *.org file containing the source code responsible for
@@ -230,9 +229,10 @@ See `org-export-backends' variable."
       (defun load-literate (&optional user-config-file)
         "If USER-CONFIG-FILE is passed as an argument, then tangle.
     Else use the value of `halidom-literate-config-file'."
-        (let ((target-file (or user-config-file halidom-literate-config-file))
-              (target-dir (or user-emacs-directory default-directory)))
-
+        (let ((target-file
+               (or user-config-file halidom-literate-config-file))
+              (target-dir
+               (or user-emacs-directory default-directory)))
           (if target-file
               (org-babel-load-file
                (expand-file-name target-file target-dir))
@@ -242,8 +242,8 @@ See `org-export-backends' variable."
       ;; Debug
       (defvar literate-debug-blocks
 	      '(paredit-spec
-	        ivy-spec
-	        counsel-spec
+	        ivy/mode
+	        counsel/mode
 	        mb-swiper
 	        elisp/core))
 
@@ -261,13 +261,15 @@ See `org-export-backends' variable."
 
 
       (defun literate-src-block-noweb-p (parameters)
-        (let ((params-alist (literate-src-parameter-string->alist parameters)))
+        (let ((params-alist
+               (literate-src-parameter-string->alist parameters)))
           (string= "yes" (cdr (assoc :noweb params-alist)))))
 
       (defun sanitize-no-web-block (code)
         (let ((sx (split-string code "\n" t)))
           (cl-flet ((func (s)
-                          (replace-regexp-in-string "<<\\(.*?\\)>>" "\\1" s)))
+                          (replace-regexp-in-string
+                           "<<\\(.*?\\)>>" "\\1" s)))
             (mapcar #'func sx))))
 
 
@@ -277,8 +279,10 @@ See `org-export-backends' variable."
             (org-element-map (org-element-parse-buffer) 'src-block
               (lambda (block)
                 (if (string= name (org-element-property :name block))
-                    (let ((code (org-element-property :value block))
-                          (params (org-element-property :parameters block))
+                    (let ((code
+                           (org-element-property :value block))
+                          (params
+                           (org-element-property :parameters block))
                           (noweb-p
                            (literate-src-block-noweb-p
                             (org-element-property :parameters block))))
@@ -286,26 +290,38 @@ See `org-export-backends' variable."
                       (if noweb-p
                           (mapcar #'literate-tangle-src-block
                                   (sanitize-no-web-block code)))
-			(let (pkg)
-			  (with-temp-buffer
-                            (insert code)
-			    (save-excursion
-			      (goto-char (point-min))
-			      (when (re-search-forward "use-package " nil t)
-				(setq pkg (buffer-substring-no-properties
-					   (point) (point-at-eol))))
-			      (if pkg
-				  (message "%s evaluated" pkg)
-				(message "tangled %s" name)))
-                            (eval-buffer))))))))
+			                (let (pkg)
+			                  (with-temp-buffer
+                          (insert code)
+			                    (save-excursion
+			                      (goto-char (point-min))
+			                      (when (re-search-forward "use-package " nil t)
+				                      (setq pkg (buffer-substring-no-properties
+					                               (point) (point-at-eol))))
+			                      (if pkg
+				                        (message "%s evaluated" pkg)
+				                      (message "tangled %s" name)))
+                          (eval-buffer))))))))
           (kill-buffer buf)))
 
       (defun literate-debug-enabled ()
         "Tangle only the source blocks with a name property matching an
-element in `halidom-literate-debug-blocks'.
-    This is useful for providing a set of defaults for debugging purposes."
+element in `halidom-literate-debug-blocks'."
         (interactive)
         (mapcar #'literate-tangle-src-block literate-debug-blocks))
+
+      (add-hook 'prog-mode-hook 'goto-address-prog-mode)
+
+      (use-package no-littering
+        :custom
+        (no-littering-etc-directory
+         (expand-file-name "etc" user-emacs-directory)
+         (no-littering-var-directory
+          (expand-file-name "var" user-emacs-directory)))
+        :init
+        (require 'no-littering)
+        (setq auto-save-file-name-transforms
+              `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
       (if (and (boundp 'use-literate-p) (not use-literate-p))
           (literate-debug-enabled)
