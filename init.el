@@ -24,27 +24,11 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;; Commentary:
 ;;
-;; This Emacs configuration uses straight.el as a drop-in replacement for
-;; package.el. A thorough comparative analysis of the two libraries as
-;; well as other popular tools for package management can be found in the
-;; README of the straight.el repository [1].
 ;;
-;; This initialization process uses the tangle functionality of org-babel to
-;; extract the source code configuring package blocks
-;; For Donald Knuths seminal text on Literate Programimng, see [2]
-;; For my synopis on the subject, see [3]
-;; For writing code in org mode using babel, see [4]
-;;
-;; [1] https://github.com/raxod502/straight.el/blob/master/README.md
-;; [2] http://www.literateprogramming.com/knuthweb.pdf
-;; [3] https://github.com/jchaffin/.emacs.d/blob/master/halidom.org#literate-programming
-;; [4] http://orgmode.org/worg/org-contrib/babel/
-
 ;;; Code:
-;; Straight
+
+
 (unwind-protect
     (let ((straight-treat-as-init t))
       (when (locate-library "gnutls")
@@ -67,7 +51,6 @@
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
               '(check-on-save find-when-checking)))
-
 
 
       ;; Bootstrap straight.el

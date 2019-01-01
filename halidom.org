@@ -1,6 +1,7 @@
 #+title: Jacob Chaffin's Literate Emacs Configuration
 #+language: en
 #+AUTHOR: Jacob Chaffin
+#+PROPERTY: :header-args :tangle yes
 #+STARTUP: hideblock
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 #+SETUPFILE: ./etc/org/html-themes/theme-readtheorg.setup
@@ -58,6 +59,11 @@
     - [[#osx-trash][OSX Trash]]
     - [[#osx-clipboard][OSX Clipboard]]
     - [[#counsel-osx-app][Counsel OSX App]]
+  - [[#startup][Startup]]
+    - [[#buffer][Buffer]]
+    - [[#inhibit-stuff][Inhibit stuff]]
+    - [[#frame][Frame]]
+    - [[#window-manager][Window Manager]]
 - [[#tex-and-org-mode][Tex and Org Mode]]
   - [[#latex][Latex]]
     - [[#auctex][Auctex]]
@@ -66,7 +72,6 @@
     - [[#bibtex][BibTex]]
     - [[#extra][Extra]]
     - [[#preview][Preview]]
-    - [[#latex-preview-pane][LaTeX Preview Pane]]
     - [[#company-auctex][Company Auctex]]
     - [[#company-reftex][Company Reftex]]
     - [[#cdlatex][cdlatex]]
@@ -83,7 +88,6 @@
     - [[#org-hacks][Org Hacks]]
     - [[#org-export][Org Export]]
   - [[#org-latex][Org Latex]]
-    - [[#latex-in-org-buffers][LaTeX in Org Buffers]]
     - [[#edit-latex][Edit Latex]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
     - [[#org-ref][Org Ref]]
@@ -111,15 +115,8 @@
     - [[#rg][rg]]
     - [[#visual-replace][Visual Replace]]
     - [[#undo-tree][Undo Tree]]
-  - [[#startup][Startup]]
-    - [[#buffer][Buffer]]
-    - [[#inhibit-stuff][Inhibit stuff]]
-    - [[#frame][Frame]]
-    - [[#window-manager][Window Manager]]
-  - [[#emacs][Emacs+]]
-    - [[#help][Help+]]
-    - [[#helpful][Helpful]]
-    - [[#info][Info+]]
+  - [[#emacs-plus][Emacs Plus]]
+    - [[#documentation][Documentation]]
     - [[#frame-1][Frame+]]
     - [[#frame-fns][Frame-fns]]
     - [[#posframe][posframe]]
@@ -347,7 +344,7 @@ compiler.
 Insert conventional elisp header.[fn:1]
 
 #+NAME: comment-block
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 ;;; halidom.el -- Emacs Configuration File
 ;;
 ;; Copyright (c) 2018 Jacob Chaffin
@@ -390,7 +387,7 @@ Emacs uses these variables to fill the mail header when sending
 emails in emacs, and various third-party packages rely on them
 for correct behavior.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq user-full-name "Jacob Chaffin"
       user-mail-address "jchaffin@ucla.edu")
 #+END_SRC
@@ -398,7 +395,7 @@ for correct behavior.
 ** Customization Group
 
 #+NAME: halidom/customization
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 ;; Customization Group
 (defgroup halidom nil
   "Customization group for the `halidom' Emacs configuration."
@@ -415,19 +412,10 @@ for correct behavior.
 
 Functional bindings i.e thread =->= macro.
 
-#+NAME: libs/dash
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; dash.el
-<<dash/el>>
-;; dash functional
-<<dash/functional>>
-#+END_SRC
-
-
 ***** ~dash.el~
 
 #+NAME: dash/el
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (use-package dash
   :config
@@ -438,32 +426,23 @@ Functional bindings i.e thread =->= macro.
 ***** dash-functional
 
 #+NAME: dash/functional
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package dash-functional)
 
 #+END_SRC
 
 **** common lisp extensions
-
-#+NAME: libs/cl
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; cl-lib
-<<cl/lib>>
-;; cl-highlight
-<<cl/highlight>>
-#+END_SRC
-
 ***** ~cl-lib~
 
 #+NAME: cl/lib
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cl-lib)
 #+END_SRC
 
 ***** cl-highlight
 
 #+NAME: cl/highlight
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cl-lib-highlight
   :after (cl-lib))
 
@@ -472,7 +451,7 @@ Functional bindings i.e thread =->= macro.
 **** ov
 
 #+NAME: libs/ov
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ov)
 #+END_SRC
 
@@ -481,7 +460,7 @@ Functional bindings i.e thread =->= macro.
 Declarative file and directory utilities.
 
 #+NAME: libs/f
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package f)
 #+END_SRC
 
@@ -490,14 +469,14 @@ Declarative file and directory utilities.
 The string manipulation library.
 
 #+NAME: libs/s
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package s)
 #+END_SRC
 
 **** =a=
 
 #+NAME: libs/a
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package a)
 #+END_SRC
 
@@ -506,7 +485,7 @@ The string manipulation library.
 Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to advice system and package lazy-loading.
 
 #+NAME: libs/el-patch
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package el-patch
     :init
   (defun el-patch-remove-feature ()
@@ -519,25 +498,12 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 #+END_SRC
 
 *** Macros
-
-#+NAME: core/macros
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Begin Macros
-;; If not
-<<macros/if-not>>
-;; with major mode
-<<macros/with-major-mode>>
-;; if major mode
-<<macros/if-major-mode>>
-;; End Macros
-#+END_SRC
-
 **** ~if-not~
 
 Clojure-like =if-not= macro in elisp.
 
 #+NAME: macros/if-not
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defmacro if-not (condition then-form &rest rest-forms)
   (declare (indent 2))
   `(progn
@@ -549,7 +515,7 @@ Clojure-like =if-not= macro in elisp.
 **** ~with-major-mode~
 
 #+NAME: macros/with-major-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defmacro with-major-mode (mode &rest body)
   "If the current major-mode is MODE, then execute BODY."
   (declare (indent defun))
@@ -560,7 +526,7 @@ Clojure-like =if-not= macro in elisp.
 ***** ~if-major-mode~
 
 #+NAME: macros/if-major-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defmacro if-major-mode (mode then-form &rest rest-forms)
   "If MODE, then execute THEN-FORM, else execute REST-FORMS."
   (declare (indent defun))
@@ -571,39 +537,13 @@ Clojure-like =if-not= macro in elisp.
 #+END_SRC
 
 *** Functions
-
-#+NAME: core/functions
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<utility-functions>>
-<<buffer-functions>>
-<<window-functions>>
-<<fd-functions>>
-#+END_SRC
-
 **** Lisp Utilities
-
-#+NAME: utility-functions
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Add to Hooks
-<<utility-hooks>>
-;; Join Strings
-<<utility-join>>
-;; SSL check
-<<utility-ssl>>
-;; Minor Modes
-<<utility-minor-modes>>
-;; Unadvise
-<<utility-unadvise>>
-;; shell command to string trim final newline
-<<utility-shell-trim>>
-#+END_SRC
-
 ***** Add multiple hooks
 
 See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#7398216]]
 
 #+NAME: utility-hooks
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun add-to-hooks (fun hooks)
   "Add function FUN to HOOKS."
   (dolist (hook hooks)
@@ -614,7 +554,7 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 ***** Join Strings with Separator
 
 #+NAME: utility-join
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun join (seq sep)
   "Concatenate SEQ with SEP as combinator."
@@ -627,7 +567,7 @@ See Stack Overflow ticket [[https://stackoverflow.com/a/7400476/6233622][#739821
 From the melpa installation:
 
 #+NAME: utility-ssl
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 
 (defun ssl-p ()
   "Determine whether https protocol is supported."
@@ -639,7 +579,7 @@ From the melpa installation:
 ***** Get Active Minor Modes
 
 #+NAME: utility-minor-modes
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defun list-enabled-minor-modes (&optional buf)
   "The minor modes enabled in the current buffer."
   (let ((auto-save-mode nil)
@@ -662,7 +602,7 @@ From the melpa installation:
 [[https://emacs.stackexchange.com/questions/24657/unadvise-a-function-remove-all-advice-from-it][Remove advice]].
 
 #+NAME: utility-unadvise
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun unadvise (sym)
   "Remove all advices from symbol SYM."
@@ -674,7 +614,7 @@ From the melpa installation:
 ***** Shell command to string trim final newline
 
 #+NAME: utility-shell-trim
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun string-trim-final-newline (string)
   (let ((len (length string)))
     (cond
@@ -694,17 +634,10 @@ From the melpa installation:
 #+END_SRC
 
 **** Buffers
-
-#+NAME: buffer-functions
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<buf-list-names>>
-<<buf-scratch>>
-#+END_SRC
-
 ***** Buffer List Names
 
 #+NAME: buffer-list-names
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun buffer-list-names ()
   "Get list of buffer names."
@@ -717,7 +650,7 @@ From the melpa installation:
 ***** Regenerate scratch buffer
 
 #+NAME: buf-scratch
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun scratch (&optional new)
   "Switch to scratch buffer. If optional prefix NEW,
@@ -733,23 +666,10 @@ generating a new one if the initial scratch buffer has been killed."
 #+END_SRC
 
 **** Windows
-
-#+NAME: window-functions
-#+BEGIN_SRC emacs-lisp :tangle no  :noweb yes :exports none
-;; Window Count
-<<win-count>>
-;; Window Count Unique
-<<win-count-unique>>
-;; Window Buffer List
-<<win-buf-list>>
-;; WIndow Buffer List Modes
-<<win-buf-list-modes>>
-#+END_SRC
-
 ***** Window Count
 
 #+NAME: win-count
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun window-count ()
   "Count number of windows in the current frame."
   (interactive)
@@ -758,7 +678,7 @@ generating a new one if the initial scratch buffer has been killed."
 
 ***** Count Unique Windows
 #+NAME: win-count-unique
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun window-count-unique ()
   "Count number of unique windows in the current frame"
   (interactive)
@@ -768,7 +688,7 @@ generating a new one if the initial scratch buffer has been killed."
 ***** Window Buffer List
 
 #+NAME: win-buf-list
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun window-buffer-list ()
   "Get list of buffers in an open window."
   (let ((windows))
@@ -779,7 +699,7 @@ generating a new one if the initial scratch buffer has been killed."
 #+END_SRC
 
 #+NAME: win-buf-list-modes
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun buffer-list-modes ()
   "Restart org-mode in all org buffers in open windows."
   (let ((modes))
@@ -790,27 +710,6 @@ generating a new one if the initial scratch buffer has been killed."
 #+END_SRC
 
 **** Files and Directories
-
-#+NAME: fd-functions
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Unix Basename
-<<fd-basename>>
-;; Copy File Path
-<<fd-copy>>
-;; Directory Files no wildcards
-<<fd-no-wildcards>>
-;; Read File
-<<fd-read-file>>
-;; Resolve Path
-<<fd-resolve-path>>
-;; User Directories
-<<fd-user>>
-;; Emacs Directories
-<<fd-emacs>>
-;; Readonly directories
-<<fd-read-only>>
-#+END_SRC
-
 ***** Unix-style =basename=
 
 The Elisp =file-name-base= function has somewhat misleading nomenclature. The name seems to suggest that it would have the same behavior of the UNIX =basename= command, but the Emacs function actually behaves quites differently:
@@ -821,7 +720,7 @@ The Elisp =file-name-base= function has somewhat misleading nomenclature. The na
 As discussed in this 2011[[https://lists.gnu.org/archive/html/emacs-devel/2011-01/msg01217.html][ thread]] from the =emacs-devel= mailing list, it would be nice if Emacs also had a function that behaved similarly to the Unix command.
 
 #+NAME: fd-basename
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun basename (pathname)
   "Return the filename or directory portion of PATHNAME"
   (if (or (file-directory-p pathname)
@@ -834,7 +733,7 @@ As discussed in this 2011[[https://lists.gnu.org/archive/html/emacs-devel/2011-0
 ***** Copy File Path
 
 #+NAME: fd-copy
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun copy-file-path (func)
 
   "Copies the file path and applies the result as an argument to
@@ -865,7 +764,7 @@ function FUNC. To copy the file path to the kill-ring, use the
 ***** Remove wildcards from directory files list
 
 #+NAME: fd-no-wildcards
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defun directory-files-no-wildcards (directory &optional full nosort)
    "List directory contents without wildcards"
    (cddr (directory-files directory full nil nosort)))
@@ -874,19 +773,10 @@ function FUNC. To copy the file path to the kill-ring, use the
 ***** Read File Contents
 
 From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
-
-#+NAME: fd-read-file
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; As String
-<<read-file-as-string>>
-;; As list
-<<read-file-lines>>
-#+END_SRC
-
 ****** As String
 
 #+NAME: read-file-as-string
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun read-file-contents (file)
   "Return contents of FILE."
   (with-temp-buffer
@@ -897,7 +787,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 ****** As List of Lines
 
 #+NAME: read-file-lines
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun read-lines (file)
   "Return a list of lines in FILE."
   (with-temp-buffer
@@ -908,7 +798,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 ***** Resolve Path
 
 #+NAME: fd-resolve-path
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun resolve-path (&rest paths)
   "Concatenate path segments."
@@ -918,18 +808,10 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 #+END_SRC
 
 ***** User Directories
-
-#+NAME: fd-user
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<fd-user-home>>
-<<fd-dropbox>>
-<<fd-projects>>
-#+END_SRC
-
 ****** User Home
 
 #+NAME: fd-user-home
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun user-home (&rest path-segments)
   "Resolves the absolute path formed PATH-SEGMENTS to the
    user home directory."
@@ -947,14 +829,14 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 ****** Dropbox Directory
 
 #+NAME: fd-dropbox
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 (defalias #'dropbox-dir (apply-partially #'user-home "Dropbox"))
 #+END_SRC
 
 ****** Project Directory
 
 #+NAME: fd-projects
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defalias #'projects-dir
  (apply-partially #'user-home "Developer" "Projects"))
 #+END_SRC
@@ -962,7 +844,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 ***** Emacs Directories
 
 #+NAME: fd-emacs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defalias #'emacs-dir (apply-partially #'user-home ".emacs.d")
   "Resolve PATH-SEGMENTS to `user-emacs-directory'.")
 ;; no littering directories
@@ -994,7 +876,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 ***** Read only
 
 #+NAME: fd-read-only
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defvar read-only-directories '()
   "A list of directories for which all files and subdirectories
 should open in `read-only-mode'.")
@@ -1060,7 +942,7 @@ Emacs. After reading this [[http://bling.github.io/blog/2016/01/18/why-are-you-c
 interval may actually be the /cause/ of the lagtime rather than
 contributing to the solution.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defun halidom/rev-up-gc ()
    (interactive)
   (setq gc-cons-threshold most-positive-fixnum))
@@ -1084,7 +966,7 @@ that depend on resources outside of this repository, such as
 org-agenda files, will impact portability and potentially break on
 other machines.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (let ((directory (emacs-etc-dir "custom"))
       (file (pcase system-type
               (`darwin "custom-macos.el")
@@ -1111,14 +993,14 @@ other machines.
 
 This might come back to bite me one day but I never use them.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq make-backup-files nil)
 #+END_SRC
 
 **** Autosave
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq auto-save-default nil)
 (setq auto-save-no-message t)
 #+END_SRC
@@ -1127,13 +1009,13 @@ This might come back to bite me one day but I never use them.
 
 Causes a conflict with ~lsp-mode~.
 #+NAME: lockfiles-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq create-lockfiles nil)
 #+END_SRC
 
 **** Shortcuts
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 
 (defun goto-init ()
   (interactive)
@@ -1156,7 +1038,7 @@ Causes a conflict with ~lsp-mode~.
 
 **** Fill Column
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq-default fill-column 80)
 #+END_SRC
 
@@ -1165,27 +1047,27 @@ Causes a conflict with ~lsp-mode~.
 - makuto's [[https://github.com/makuto/editorPreferences/blob/master/Emacs/emacsConfig.txt][emacsConfig.txt]]
 - Xah Lee [[http://ergoemacs.org/emacs/emacs_make_modern.html][emacs make modern]]
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (global-hl-line-mode -1)
 (save-place-mode 1)
 #+END_SRC
 
 *** Global Autorevert
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (global-auto-revert-mode t)
 #+END_SRC
 
 *** Cleanup Whitespace
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 (setq require-final-newline t)
 #+END_SRC
 
 *** Prefer newer bytecode
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq load-prefer-newer t)
 #+END_SRC
 
@@ -1193,7 +1075,7 @@ Causes a conflict with ~lsp-mode~.
 
 From Bozhidar Batsov, the author or prelude.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 
 (defun smarter-move-beginning-of-line (arg)
   "Move point back to indentation of beginning of line.
@@ -1224,7 +1106,7 @@ point reaches the beginning or end of the buffer, stop there."
 *** Alias Yes Or No
 
 #+NAME: yes-or-no-p
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
@@ -1244,14 +1126,14 @@ key exchange is against man-in-the-middle attacks.)
 #+END_QUOTE
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq gnutls-min-prime-bits 4096)
 #+END_SRC
 
 **** Use GPG2
 ***** Set GPG program to 'gpg2'.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (when (eq system-type 'darwin)
   (let* ((has-brew (not (string-empty-p
 			 (shell-command-to-string
@@ -1274,7 +1156,7 @@ window being launched from the terminal session.
 By disabling the agent info, we can force Emacs to handle this
 internally[fn:7].
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setenv "GPG_AGENT_INFO" nil)
 #+END_SRC
 
@@ -1298,7 +1180,7 @@ killall gpg-agent
 
 **** Ignore Extensions
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (append completion-ignored-extensions
         '("o" "~" ".lbin" ".so" ".a"
           ".git/" ".hg/" ".svn" ".svn-base"))
@@ -1306,7 +1188,7 @@ killall gpg-agent
 
 **** Load Secrets
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (when (and (executable-find "gpg") (eq system-type 'darwin))
   (if-not (string-empty-p
        (shell-command-to-string
@@ -1321,7 +1203,7 @@ killall gpg-agent
 *** Text Editing
 **** Delete Selection Mode
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (delete-selection-mode 1)
 #+END_SRC
 
@@ -1330,7 +1212,7 @@ killall gpg-agent
 :ID:       38FC590F-CB08-44C6-BAC8-A088BDBEFD03
 :END:
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package mark-forward-sexp
   :bind (("C-c o" . mark-forward-sexp)
          ("C-c O" . mark-backward-sexp)
@@ -1340,7 +1222,7 @@ killall gpg-agent
 
 **** Expand Region
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :bind
   ("s-'" .  er/expand-region)
@@ -1351,7 +1233,7 @@ killall gpg-agent
 **** esup
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package esup)
 #+END_SRC
 
@@ -1360,7 +1242,7 @@ killall gpg-agent
 The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
 from within Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package restart-emacs)
 #+END_SRC
 
@@ -1381,7 +1263,7 @@ conceptualize the way it loads packages  - primarily because documentation is al
 Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 
 (cl-defun straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
@@ -1446,7 +1328,7 @@ interactive minibuffer completion menu using ivy.
 
 *** Browse straight repository at GitHub
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defun straight-browse-remote (&optional package)
   "View a recipe PACKAGE on GitHub."
   (interactive "P")
@@ -1469,7 +1351,7 @@ interactive minibuffer completion menu using ivy.
 
 *** Reload Init
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 
 (defun straight-reload-init (&optional debug)
   "Reload init file using straight transaction system."
@@ -1489,7 +1371,7 @@ interactive minibuffer completion menu using ivy.
 
 *** Eval Buffer
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defun straight-eval-buffer ()
   "Evaluate current buffer using the straight transaction system."
   (interactive)
@@ -1506,25 +1388,10 @@ interactive minibuffer completion menu using ivy.
 #+END_SRC
 
 ** Keybindings
-
-#+NAME: keybindings-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; hydra
-<<kb-hydra>>
-;; which-key
-<<kb-which-key>>
-;; reload-eval
-<<kb-reload-eval>>
-;; smartrep
-<<kb-smartrep>>
-;; speed type
-<<kb-speed-type>> ;;; end keybindings
-#+END_SRC
-
 *** Hydra
 
 #+NAME: kb-hydra
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package hydra
   :init
   (eval-and-compile
@@ -1583,21 +1450,21 @@ interactive minibuffer completion menu using ivy.
 *** Evil
 
 #+NAME: kb-evil
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package evil)
 #+END_SRC
 
 *** Smartrep
 
 #+NAME: kb-smart-rep
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package smartrep)
 #+END_SRC
 
 *** Which Key
 
 #+NAME: kb-which-key
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package which-key
   :custom
   (which-key-enable-extended-define-key t)
@@ -1614,7 +1481,7 @@ interactive minibuffer completion menu using ivy.
 I just got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboards,hhkbpro2&pid=pdkb400bn][HHKB2]] keyboard. I need all the help I can get.
 
 #+NAME: kb-speed-type
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package speed-type)
 #+END_SRC
 
@@ -1627,7 +1494,7 @@ rather than the system terminfo.
 I'm setting it to non-nil because setting this variable to nil causes
 issues with build commands in [[#gradle-mode][gradle-mode]]
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq system-uses-terminfo t)
 #+END_SRC
 
@@ -1635,7 +1502,7 @@ issues with build commands in [[#gradle-mode][gradle-mode]]
 
 UTF-8 is the recommanded coding system on macOS.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (when (eq system-type 'darwin)
     (prefer-coding-system 'utf-8)
     (set-default-coding-systems 'utf-8)
@@ -1671,7 +1538,7 @@ all that often anyways, so that's fine with me.
 The ~:if~ key of ~use-package~ offers us a really concise way for
 conditionally loading dependencies.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package exec-path-from-shell
   ;; only load `exec-path-from-shell' package on macos and linux.
   :if (memq window-system '(mac ns))
@@ -1687,7 +1554,7 @@ Utilities for managing system packages in Emacs using an external
 package manager.
 
 #+NAME: os-sys-packages
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package system-packages
   :init
   (defun system-packages/update-brew-commands (commands)
@@ -1709,14 +1576,14 @@ package manager.
 
 *** Ensure system package
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package use-package-ensure-system-package
   :demand t)
 #+END_SRC
 
 *** Anything
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package anything
   :init
   (defun anything/goto-manual ()
@@ -1734,7 +1601,7 @@ package manager.
 
 Interface for controlling external processes in Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package prodigy)
 #+END_SRC
 
@@ -1744,48 +1611,14 @@ I work on a macbook, so this section is where I'm loading all of my
 settings that rely on local file paths, macOS applications, and
 external programs.
 
-#+NAME: macos-spec
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-;; Begin MacOS
-(progn
-  ;; MacOS keybindings
-  <<macos-keybindings>>
-
-  ;; macOS computer name
-  <<macos-computer-name>>
-
-  ;; macOS finder
-  <<macos-finder-config>>
-
-  ;; macOS Dash
-  <<macos-dash-config>>
-
-  ;; macOS Dev Utils
-  <<macos-dev-utils>>
-
-  ;; macOS Dictionary.app
-  <<macos-dictionary>>
-
-  ;; macOS Trash
-  <<macos-trash>>
-
-  ;; macOS pbcopy
-  <<macos-pbcopy>>
-
-  <<macos-simpleclip>>
-  ;; macOS app
-  <<macos-counsel-osx-app>>)
-;; End MacOS
-#+END_SRC
-
 *** MacOS Keys
 
 #+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Modifer Keys
-<<macos-modifier-keys>>
+
 ;; Mouse-2
-<<macos-mouse-2>>
+
 #+END_SRC
 
 
@@ -1797,7 +1630,7 @@ Maps the modifier keys based on personal preferences.
 Also sets terminal coding system to "utf-8".
 
 #+NAME: macos-modifier-keys
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq mac-command-modifier 'super
       mac-option-modifier  'meta
       ns-control-modifier  'control
@@ -1823,7 +1656,7 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 "super", modifier key
 
 #+NAME: macos-mouse-2
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 ;; From https://emacs.stackexchange.com/questions/20946/generate-mouse-2-event-from-macbook-trackpadTrackpage
 (when (eq system-type 'darwin)
   (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>")))
@@ -1832,7 +1665,7 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 *** MacOS Computer Name
 
 #+NAME: macos-computer-name
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun macos-computer-name ()
   "Get the computer name for the current machine."
   (let* ((has-scutil
@@ -1856,7 +1689,7 @@ Small library for opening files and buffers in external text
 editors and various other applications on macOS.
 
 #+NAME: macos-dev-utils
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package macos-dev-utils
   :if (eq system-type 'darwin)
   :straight
@@ -1891,7 +1724,7 @@ bypass that problem and define a function that uses the
 query it with the marked region or symbol at point.
 
 #+NAME: macos-dash-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defvar dash-plugin-keywords nil
   "An `alist' of keywords representing the docsets which should
   searched in the query to Dash.app")
@@ -1921,7 +1754,7 @@ query it with the marked region or symbol at point.
 *** Reveal in macOS Finder
 
 #+NAME: macos-finder-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package reveal-in-osx-finder
   :if (eq system-type 'darwin)
   :commands (reveal-in-osx-finder))
@@ -1937,7 +1770,7 @@ provide comparable functionality to [[https://github.com/xuchunyang/osx-dictiona
 running macOS.
 
 #+NAME: macos-dictionary
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package osx-dictionary
   :if (eq system-type 'darwin)
   :defines (osx-dictionary-open-dictionary-app-at-point)
@@ -1955,7 +1788,7 @@ running macOS.
 *** OSX Trash
 
 #+NAME: macos-trash
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package osx-trash
   :if (and (eq system-type 'darwin) (not (boundp 'mac-system-move-file-to-trash-use-finder)))
   :init
@@ -1971,7 +1804,7 @@ running macOS.
 **** In Terminal
 
 #+NAME: macos-pbcopy
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pbcopy
   :if (and (eq system-type 'darwin) (not (display-graphic-p)))
   :init (turn-on-pbcopy))
@@ -1980,17 +1813,16 @@ running macOS.
 **** Separate Emacs clipboard from system
 
 #+NAME: macos-simpleclip
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package simpleclip
   :init
   (simpleclip-mode 1))
 #+END_SRC
 
-
 *** Counsel OSX App
 
 #+NAME: macos-counsel-osx-app
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-osx-app
   :demand t
   :preface
@@ -2004,56 +1836,300 @@ running macOS.
 
 #+END_SRC
 
-* Tex and Org Mode
+** Startup
+*** Buffer
 
-#+NAME: core/orgtex
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;;; Org and LateX Group
-;; LaTeX Mode
-<<orgtex/tex>>
-;; Org mode
-<<orgtex/org>>
-;; End Org Mode
-;; org-latex
-<<orgtex/org-latex>>
-;;; End Org and LaTeX Group
+The default splash screen is great when you're starting out,
+but it's more so an annoyance than anything else once you
+know you're around.
+
+**** Page Break Lines
+
+Global minor-mode that turns ~^L~ form feed characters into
+horizontal line rules.
+
+#+NAME: buffer/page-break-lines
+#+BEGIN_SRC emacs-lisp
+(use-package page-break-lines
+  :init
+  (global-page-break-lines-mode))
 #+END_SRC
 
+**** Emacs Dashboard
+
+[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
+replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
+It's a nice way of consolidating any combination of tasks,
+agenda items, bookmarks, and pretty much any other enumerable
+list that one may use in the wacky world of Emacs.
+
+#+NAME: buffer/dashboard
+#+BEGIN_SRC emacs-lisp
+(use-package dashboard
+  :init
+  (defun halidom/dashboard-banner ()
+      "Set a dashboard banner including information on
+  package initialization time and garbage collections."
+      (setq dashboard-banner-logo-title
+            (format
+             (concat "Emacs ready in %.2f seconds "
+                       "with %d garbage collections.")
+             (float-time (time-subtract
+                          after-init-time
+                          before-init-time))
+             gcs-done)))
+
+
+    (unless global-page-break-lines-mode
+      (global-page-break-lines-mode))
+
+    (dashboard-setup-startup-hook)
+
+    :config
+    (add-to-list 'dashboard-items '(agenda) t)
+    ;; Get the week agenda.
+    ;; See `dashboard-get-agenda' for how this
+    ;; variable is being used.
+    (setq show-week-agenda-p t)
+
+    (setq dashboard-items '(( agenda . 10)
+                            ( projects . 5)
+                            ( recents . 3)
+                            ( bookmarks . 5)))
+
+    :hook
+    (after-init     . dashboard-refresh-buffer)
+    (dashboard-mode . halidom/dashboard-banner))
+
+
+#+END_SRC
+
+**** Auto Revert Mode
+
+#+NAME: buffer/revert
+#+BEGIN_SRC emacs-lisp
+(use-package autorevert
+  :straight nil
+  :config
+  (global-auto-revert-mode 1))
+
+#+END_SRC
+
+**** Fireplace
+
+Just for the hell of it.
+#+NAME: fireplace-spec
+#+BEGIN_SRC emacs-lisp
+(use-package fireplace
+  :straight t)
+#+END_SRC
+
+*** Inhibit stuff
+
+#+NAME: startup-scratch
+#+BEGIN_SRC emacs-lisp
+(setq echo-keystrokes 0.1
+      initial-scratch-message nil
+      initial-major-mode 'org-mode
+      inhibit-startup-echo-area-message t
+      sentence-end-double-space nil
+      help-window-select t)
+  #+END_SRC
+
+*** Frame
+
+**** Disable Frame peripherals
+
+Disable scroll bars and tool bar on all system types.
+
+***** Frame and Scrollbar
+
+#+NAME: frame-tool-and-scroll
+#+BEGIN_SRC emacs-lisp
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+#+END_SRC
+
+***** Menubar
+
+On macOS, the menu bar is integrated into the UI.
+
+Disabling it will just empty the menu tab options for Emacs.app,
+so we'll leave it there.
+
+#+NAME: frame-menubar
+#+BEGIN_SRC emacs-lisp
+(unless (eq system-type 'darwin)
+  (menu-bar-mode -1))
+#+END_SRC
+
+**** Display Time
+
+#+NAME: frame-time
+#+BEGIN_SRC emacs-lisp
+(display-time-mode 1)
+#+END_SRC
+
+**** Default Frame Appearance
+
+Starting in Emacs 26, the =default-frame-alist= variable can be used
+create a natural title bar in the GUI. Setting the default frame
+properties to the following values has the same effect as the
+'--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
+recommended for Spacemacs users on macOS[fn:14].
+
+#+BEGIN_SRC emacs-lisp
+(setq default-frame-alist
+      '((ns-transparent-titlebar . t)
+        (ns-appearance . dark)))
+#+END_SRC
+
+**** Frame Title Format
+
+Show full path in the title bar.
+
+#+NAME: frame/title
+#+BEGIN_SRC emacs-lisp
+(setq-default frame-title-format "%b (%f)")
+#+END_SRC
+
+**** Transpose Frame
+
+#+NAME: frame-transpose
+#+BEGIN_SRC emacs-lisp
+  (use-package transpose-frame)
+#+END_SRC
+
+*** Window Manager
+
+**** Window Resize
+
+Default keybindings for window resize:
+
+- =C-x ^= :: makes current window taller [[help:enlarge-window][`enlarge-window']]
+- =C-x }= :: make it larger [[help:enlarge-window-horizontally][`enlarge-window-horizontally']]
+- =C-x {= :: make it narrower [[help:shrink-window-horizontally][`shrin-window-horizontally']]
+
+This following block modifies the keybindings for these commands to
+use the arrow keys instead. I use the "C-s" modifier because it just
+so happens this prefix can be extended by every key in the arrow pad
+without causing a conflict with external keymaps on my system.
+
+The suggested keybindings from the footnoted EmacsWiki page may be more
+accessible for you [fn:15].
+
+#+NAME: window-resize-keybindings
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-s-<left>") 'shrink-window-horizontally)
+(global-set-key (kbd "C-s-<right>") 'enlarge-window-horizontally)
+(global-set-key (kbd "C-s-<down>") 'shrink-window)
+(global-set-key (kbd "C-s-<up>") 'enlarge-window)
+#+END_SRC
+
+**** Winner Mode
+
+[[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
+different window configurations.
+
+#+NAME: winner-mode-config
+#+BEGIN_SRC emacs-lisp
+(use-package winner-mode
+  :straight nil
+  :init
+  (when (fboundp 'winner-mode)
+    (winner-mode 1)))
+#+END_SRC
+
+**** Ace Window
+
+#+NAME: window/ace
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+      :bind
+      ("M-o" . ace-window)
+      :custom
+      (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+      (aw-background nil))
+
+#+END_SRC
+
+**** Perspective
+
+
+#+NAME: persp/perspective
+#+BEGIN_SRC emacs-lisp
+(use-package perspective)
+#+END_SRC
+
+***** Persp Projectile
+
+#+NAME: persp/projectile
+#+BEGIN_SRC emacs-lisp
+(use-package persp-projectile
+  :after (:all projectile counsel-projectile perspective)
+  :bind ((:map projectile-mode-map
+               ("s-S" . projectile-persp-switch-project))))
+#+END_SRC
+
+**** Popwin
+
+#+NAME: popwin-config
+#+BEGIN_SRC emacs-lisp
+  (use-package popwin
+    :defines popwin:keymap
+    :after (perspective)
+    :bind-keymap ("C-z" . popwin:keymap)
+    :bind (:map popwin:keymap
+                ("m" . popwin:messages))
+    :init
+    (require 'popwin)
+    :config
+    (popwin-mode 1))
+#+END_SRC
+
+**** Poporg
+
+#+BEGIN_SRC emacs-lisp
+(use-package poporg
+  :bind ("C-c \"" . 'poporg-dwim))
+#+END_SRC
+
+**** Golden Ratio
+
+#+BEGIN_SRC emacs-lisp
+(use-package golden-ratio
+  :init
+  (setq golden-ratio-auto-scale t))
+#+END_SRC
+
+**** Purpose
+
+#+NAME: purpose
+#+BEGIN_SRC emacs-lisp
+  (use-package window-purpose)
+
+  (use-package ivy-purpose
+      :custom (pop-up-frames nil)
+      :after (window-purpose)
+      :init
+      (ivy-purpose-setup)
+      :config
+      ;; give help buffers the 'popup-frame purpose
+      (add-to-list 'purpose-user-mode-purposes
+                  '(help-mode . popup-frame))
+      (add-to-list 'purpose-special-action-sequences
+                   '(popup-frame
+                     purpose-display-reuse-window-buffer
+                     purpose-display-reuse-window-purpose
+                     purpose-display-pop-up-frame)))
+#+END_SRC
+
+* Tex and Org Mode
 ** Latex
 :PROPERTIES:
 :ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
 :CUSTOM_ID: sec:latex
 :END:
-
-#+NAME: orgtex/tex
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; AucTeX
-<<tex/auctex>>
-;; Tex
-<<latex-tex>>
-;; Reftex
-<<latex-reftex>>
-;; Bibtex
-<<latex-bibtex>>
-;; Company backend for latex completion
-<<latex-company-auctex>>
-;; Company reftex
-<<latex-company-reftex>>
-;; Prettify latex buffers
-<<latex-magic-latex-buffer>>
-;; Extra latex utilities
-<<tex/extra>>
-;; Cdlatex
-<<latex-cdlatex>>
-;; Auctex Latexmk
-<<latex-auctex-latexmk>>
-;; LaTeX Math
-<<latex-math>>
-;; Latex Preview
-<<latex-org-preview>>
-;; Texinfo mode
-<<latex-texinfo>>
-#+END_SRC
 
 *** Auctex
 
@@ -2061,7 +2137,7 @@ Recent versions of AuCTeX are problematic with straight.
 On a clean install, I had to manually run the following command to get
 it to work properly:
 
-#+BEGIN_SRC shell :tangle no :results none
+#+BEGIN_SRC shell
 ( cd $HOME/.emacs.d/straight/repos/auctex && \
       ./autogen.sh && \
       ./configure --with-texmf-dir=`kpsewhich --var-value=TEXMFHOME` && \
@@ -2069,7 +2145,7 @@ it to work properly:
 #+END_SRC
 
 #+NAME: tex/auctex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package auctex
   :bind (:map LaTeX-mode-map
               ("M-s l" . TeX-engine-set)))
@@ -2078,7 +2154,7 @@ it to work properly:
 *** Tex
 
 #+NAME: latex-tex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package tex
     :straight auctex
     :custom
@@ -2142,7 +2218,7 @@ AucTeX team.
 Since Emacs 24.3, its built in with the Emacs distribution.
 
 #+NAME: latex-reftex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package reftex
     :straight nil
     :init
@@ -2169,7 +2245,7 @@ That was from 2009...
 These are the recommended settings in the [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#bibtex-key-format][org-ref]] documentation.
 
 #+NAME: latex-bibtex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq bibtex-autokey-year-length 4
       bibtex-autokey-name-year-separator "-"
       bibtex-autokey-year-title-separator "-"
@@ -2186,7 +2262,7 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 :END:
 
 #+NAME: tex/extra
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package latex-extra
   :custom
   (latex/no-fill-environments
@@ -2222,36 +2298,13 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 #+END_SRC
 
 *** Preview
-
-#+NAME: latex-org-preview
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Preview Pane
-<<latex-latex-preview-pane>>
-;; Use single directory to store previews
-<<org-preview-directory>>
-;; Clear Cache
-<<org-preview-clear-cache>>
-;; Preview Parsing
-<<org-preview-parsing>>
-;; Org Preview default
-<<org-preview-default>>
-;; Org Preview format options
-<<org-preview-format>>
-;; XeLaTeX Fragments
-<<org-preview-xelatex>>
-;; LuaLaTeX Fragments
-<<org-preview-lualatex>>
-;; Preview process hook
-<<org-preview-dynamic>>
-#+END_SRC
-
-*** LaTeX Preview Pane
+**** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
 save.
 
 #+NAME: latex-latex-preview-pane
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package latex-preview-pane
     :after (:all pdf-tools tex)
     :init (latex-preview-pane-enable))
@@ -2260,7 +2313,7 @@ save.
 **** Use single directory for storing latex fragments
 
 #+NAME: org-preview-directory
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (let ((ltximg (file-truename '"~/.tmp/ltximg/")))
   (when (file-directory-p ltximg)
     (setq org-preview-latex-image-directory ltximg)))
@@ -2269,7 +2322,7 @@ save.
 **** Clear Cache
 
 #+NAME: org-preview-clear-cache
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-preview-clear-cache ()
   (interactive)
   (let ((preview-cache
@@ -2282,7 +2335,7 @@ save.
 **** Set the default preview process
 
 #+NAME: org-preview-default
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (if (image-type-available-p 'imagemagick)
     (setq org-preview-latex-default-process 'imagemagick)
   (setq org-preview-latex-default-process 'dvisvgm))
@@ -2291,7 +2344,7 @@ save.
 **** Format Options
 
 #+NAME: org-preview-format
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (when (boundp 'org-format-latex-options)
   (plist-put org-format-latex-options :scale 1.2))
 #+END_SRC
@@ -2299,7 +2352,7 @@ save.
 **** Parsing keywords
 
 #+NAME: org-preview-parsing
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-preview/process-keyword  (p)
   (interactive)
   (org-element-map (org-element-parse-buffer) 'keyword
@@ -2333,7 +2386,7 @@ save.
 **** XeLaTeX fragments
 
 #+NAME: org-preview-xelatex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defcustom xelatex-preview-header org-format-latex-header
   "The preamble to use for previewing LaTeX fragments with XeLaTeX."
   :type 'string)
@@ -2402,7 +2455,7 @@ save.
 **** LuaLaTeX Fragments
 
 #+NAME: org-preview-lualatex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defcustom lualatex-preview-header nil
   "The preamble to use for previewing LaTeX fragments with LuLaTeX."
   :type 'string)
@@ -2473,7 +2526,7 @@ save.
 Generate latex fragments based on the latex compiler and class in the current buffer.
 
 #+NAME: org-preview-dynamic
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-preview-with-compiler ()
   (interactive)
   (let ((latex-compiler (org-preview/process-compiler)))
@@ -2494,7 +2547,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** Company Auctex
 
 #+NAME: latex-company-auctex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-auctex
   :demand t
   :after (:all company tex)
@@ -2505,7 +2558,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** Company Reftex
 
 #+NAME: latex-company-reftex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-reftex
   :demand t
   :after (:all company reftex))
@@ -2514,7 +2567,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** cdlatex
 
 #+NAME: latex-cdlatex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cdlatex
   :custom
   ;; Disable auto label insertion in expanded template.
@@ -2533,7 +2586,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 Prettify dedicated org-mode latex buffers.
 
 #+NAME: latex-magic-latex-buffer
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package magic-latex-buffer
       :custom
       (magic-latex-enable-block-highlight t)
@@ -2548,7 +2601,7 @@ Prettify dedicated org-mode latex buffers.
 *** Auctex Latexmk
 
 #+NAME: latex-auctex-latexmk
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package auctex-latexmk
     :custom
     (auctex-latexmk-inherit-TeX-PDF-mode t)
@@ -2559,7 +2612,7 @@ Prettify dedicated org-mode latex buffers.
 *** Texinfo
 
 #+NAME: latex-texinfo
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package texinfo
   :defines texinfo-section-list
   :commands texinfo-mode
@@ -2569,18 +2622,11 @@ Prettify dedicated org-mode latex buffers.
 
 *** LaTeX Math
 
-#+NAME: latex-math
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Math Symbols
-<<latex-math-symbols>>
-;; Company Math
-<<latex-math-completion>>
-#+END_SRC
 
 **** Company Math
 
 #+NAME: latex-math-completion
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-math
   :after (company)
   :demand t
@@ -2593,7 +2639,7 @@ Prettify dedicated org-mode latex buffers.
 Entered on [2018-06-13 Wed 11:42]
 
 #+NAME: latex-math-symbols
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package math-symbols
     :init
 
@@ -2683,43 +2729,11 @@ Entered on [2018-06-13 Wed 11:42]
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
 :END:
-
-#+NAME: orgtex/org
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Org Babel
-<<org/ob>>
-;; Org UI
-<<org/appearance>>
-;; Org docmgr
-<<org/structure>>
-;; Concept Mapping
-<<org/concept>>
-;; Org taskmgr
-<<org/tasks>>
-;; Org ideamgr
-<<org-ideamgr>>
-;; Org export
-<<org/ox>>
-#+END_SRC
-
 *** Org Babel
-
-#+NAME: org/ob
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Begin Org Babel
-; ob-http
-<<org-ob-http>>
-;; ob-cljs
-<<org-ob-cljs>>
-;; Load languages
-<<org-ob-load-langs>>
-;; End Org Babel
-#+END_SRC
-
 **** Ob Http
 
 #+NAME: org-ob-http
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ob-http
   :after (ob)
   :demand t)
@@ -2731,7 +2745,7 @@ Entered on [2018-06-13 Wed 11:42]
 =org-mode= buffers.
 
 #+NAME: org-ob-cljs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ob-clojurescript
   :if (executable-find "lumo")
   :after (ob)
@@ -2741,7 +2755,7 @@ Entered on [2018-06-13 Wed 11:42]
 **** Load Languages
 
 #+NAME: org-ob-load-langs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((C . t)
@@ -2768,34 +2782,11 @@ Entered on [2018-06-13 Wed 11:42]
 These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
 
-#+NAME: org/appearance
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Enable visual fill column
-<<org-ui-fill>>
-;; UI Fixed Width Block
-<<org-ui-fixedwidth-image>>
-;; UI Org Bullets
-<<org-ui-org-bullets>>
-;; Org Pretty Table
-<<org-ui-table>>
-;; Insert literal entities
-<<org-ui-literal>>
-;; UI Toc Org
-<<org-ui-toc-org>>
-;; UI Column View
-<<org-ui-column-view>>
-;; UI Equation Renumbering
-<<org-ui-equation-renumbering>>
-;; Outline Numbering
-<<org-ui-outline-numbering>>
-;; Radio Button
-<<org-ui-radiobutton>>
-#+END_SRC
 
 **** Org visual fill
 
 #+NAME: org-ui-fill
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun org-visual-fill-column ()
   (visual-fill-column-mode 1)
@@ -2812,7 +2803,7 @@ org-mode buffers.
 Specify image width in org buffer on per-image basis.
 
 #+NAME: org-ui-fixedwidth-image
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq org-image-actual-width nil)
 #+END_SRC
 
@@ -2832,7 +2823,7 @@ The default set of bullet points can be modified via the
 
 
 #+NAME: org-ui-org-bullets
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-bullets
     :demand t
     :custom
@@ -2855,7 +2846,7 @@ The default set of bullet points can be modified via the
 **** Org Pretty Table
 
 #+NAME: org-ui-table
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-pretty-table
   :straight (org-pretty-table
              :host github
@@ -2868,7 +2859,7 @@ The default set of bullet points can be modified via the
 From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 
 #+NAME: org-ui-literal
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun modi/org-entity-get-name (char)
   "Return the entity name for CHAR. For example, return \"ast\" for *."
   (let ((ll (append org-entities-user
@@ -2934,7 +2925,7 @@ value of =org-link-translation-function= to the library internal
 time of install.
 
 #+NAME: org-ui-toc-org
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package toc-org
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
@@ -2943,7 +2934,7 @@ time of install.
 **** Column View
 
 #+NAME: org-ui-column-view
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
 #+END_SRC
 
@@ -2952,7 +2943,7 @@ time of install.
 Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbering-in-LaTeX-fragments-in-org-mode/][one]] from the kitchin group!
 
 #+NAME: org-ui-equation-renumbering
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-renumber-environment (orig-func &rest args)
   (let ((results '())
         (counter -1)
@@ -3011,7 +3002,7 @@ requirements for radiobutton lists.
 See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-option-from-a-list.html][blogpost]] for more information.
 
 #+NAME: org-ui-radiobutton
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-radiobutton
   :init
   (when (fboundp 'global-org-radiobutton-mode)
@@ -3021,7 +3012,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 **** Org Outline Numbering
 
 #+NAME: org-ui-outline-numbering
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package org-outline-numbering
     :custom-face
     (org-outline-numbering-face
@@ -3035,48 +3026,10 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 ****
 *** Structure and Editing
 
-#+NAME: org/structure
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Begin Org Doc Manager Section
-;; Org Capture
-<<org-docmgr-capture>>
-;; Org Journal
-<<org-docmgr-journal>>
-;; Org ID
-<<org-docmgr-id>>
-;; Org Download
-<<org-docmgr-download>>
-;; Org Links
-<<org-docmgr-links>>
-;; Org Web Tools
-<<org-docmgr-web>>
-;; org index
-<<org-docmgr-index>>
-;; Interleave
-<<org-docmgr-interleave>>
-;; Attach
-<<org-docmgr-attach>>
-;; End Org Doc Manager
-#+END_SRC
-
 **** Org Capture :tasks:
 
-#+NAME: org-docmgr-capture
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; org capture templates
-<<org-capture-templates>>
-;; Org Protocol App
-<<org-protocol-app>>
-;; Org Protocol Mac
-<<org-protocol-mac>>
-;; org capture html
-<<org-capture-html>>
-;; org capture contacts
-<<org-capture-contacts>>
-#+END_SRC
-
 #+NAME: org-capture-templates
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (require 'org-capture)
 
 (add-to-list 'org-capture-templates
@@ -3091,7 +3044,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 ***** Org Protocol Handler
 
 #+NAME: org-protocol-app
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq org-protocol-default-template-key "l")
 (add-to-list 'org-capture-templates
              '("l" "Link" entry
@@ -3108,7 +3061,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 ***** Org Mac Protocol
 
 #+NAME: org-protocol-mac
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-mac-protocol
   :straight (org-mac-protocol
              :type git
@@ -3145,7 +3098,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 ***** Org Protocol Capture HTML
 
 #+NAME: org-capture-html
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-protocol-capture-html
   :straight (org-protocol-capture-html
              :host github
@@ -3184,7 +3137,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 ***** Org Contacts
 
 #+NAME: org-capture-contacts
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-contacts
   :straight org
   :init
@@ -3200,7 +3153,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 **** Org Attach
 
 #+NAME: org-docmgr-attach
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package org-attach
     :straight org
     :custom
@@ -3211,7 +3164,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 **** Org Journal :notetaking:
 
 #+NAME: org-docmgr-journal
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package org-journal
     :custom
     (org-journal-enable-agenda-integration t)
@@ -3230,39 +3183,19 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 **** Org ID :structure:
 
-#+NAME: org-docmgr-id
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<org-id-create-custom>>
-<<org-id-custom-id>>
-#+END_SRC
-
-#+NAME: org-id-create-custom
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (require 'org-id)
 (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
 
 #+END_SRC
 
-***** Custom ID
-
-Functions shamelessly taken from Lee Hinman's [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][blogpost]] on generating
-custom org heading ids.
-
-
-#+NAME:  org-id-custom-id
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no :exports none
-<<org-id-get-custom>>
-<<org-id-headline-ids>>
-#+END_SRC
-
-
-****** Get Custom ID
+***** Get Custom ID
 
 From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Org Mode Generate Ids]] blogpost:
 
 #+NAME: org-id-get-custom
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-custom-id-get (&optional pom create prefix)
   "Get the CUSTOM_ID property of the entry at point-or-marker POM.
    If POM is nil, refer to the entry at point. If the entry does
@@ -3284,8 +3217,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 
 ***** Add IDs to Headlines in file
 
-#+NAME: org-id-headline-ids
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-add-ids-to-headlines-in-file ()
   "Add CUSTOM_ID properties to all headlines in the current
   file which do not already have one. Only adds ids if the `auto-id' option is set a non-nil value in the file.
@@ -3313,14 +3245,14 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 **** Org Index :notetaking:
 
 #+NAME: org-docmgr-index
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-index)
 #+END_SRC
 
 **** Org Interleave :notetaking:
 
 #+NAME: org-docmgr-interleave
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-noter)
 #+END_SRC
 
@@ -3329,7 +3261,7 @@ From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Or
 Drag and Drop images directly from a web browser to an org-mode buffer.
 
 #+NAME: org-docmgr-download
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-download
   :defines (org-download-image-dir)
   :commands (org-download-enable  org-download-yank org-download-screenshot)
@@ -3342,35 +3274,17 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 
 **** Org Web Tools :web:
 
-#+NAME: org-docmgr-web
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-web-tools)
 #+END_SRC
 
 **** Org Links :structure:
 
-#+NAME: org-docmgr-links
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Org Tags
-<<org-links-tags>>
-;; Cliplink
-<<org-links-cliplink>>
-;; Org elisp help
-<<org-links-elisp-help>>
-;; Org YouTube
-<<org-links-youtube>>
-;; Org links minor mode
-<<org-links-minor>>
-;; LaTeX markup
-<<org-links-latex>>
-;; Org Bookmark Heading
-<<org-links-bookmark>>
-#+END_SRC
 
 ***** Add Tags Link
 
 #+NAME: org-links-tags
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun halidom/tag-link (tag)
   "Display a list of TODO headlines with tag TAG.
 With prefix argument, also display headlines without a TODO keyword."
@@ -3383,7 +3297,7 @@ With prefix argument, also display headlines without a TODO keyword."
 ***** Org Elisp Help Links
 
 #+NAME: org-links-elisp-help
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-elisp-help
   :straight t)
 #+END_SRC
@@ -3395,7 +3309,7 @@ From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-link
 Embed YouTube Links in iframe.
 
 #+NAME: org-links-youtube
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (org-link-set-parameters
  "youtube"
  :follow (lambda (path)
@@ -3417,7 +3331,7 @@ Embed YouTube Links in iframe.
 ***** Org Link Minor Mode
 
 #+NAME: org-links-minor
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-link-minor-mode
   :hook (prog-mode . org-link-minor-mode))
 #+END_SRC
@@ -3425,7 +3339,7 @@ Embed YouTube Links in iframe.
 ***** Org Latex Links
 
 #+NAME: org-links-latex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 ;; From https://orgmode.org/worg/org-tutorials/org-latex-export.html
 (org-add-link-type
  "latex" nil
@@ -3447,7 +3361,7 @@ Embed YouTube Links in iframe.
 :END:
 
 #+NAME: org-links-bookmark
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-bookmark-heading
   :init
   (require 'org-bookmark-heading))
@@ -3455,32 +3369,10 @@ Embed YouTube Links in iframe.
 
 *** Task Management
 
-#+NAME: org/tasks
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Begin Org Task Manager
-;; Org Habit
-<<org-taskmgr-habit>>
-;; Org Agenda
-<<org-taskmgr-agenda>>
-;; Org Pomodoro
-<<org-taskmgr-pomodoro>>
-;; Google Maps
-<<org-taskmgr-maps>>
-;; Calfw
-<<org-taskmgr-calfw>>
-;; Org Counsel Clock
-<<org-taskmgr-coclock>>
-;; Org Projectile
-<<org-taskmgr-projectile>>
-;; Org Mru
-<<org-taskmgr-mru-clock>>
-;; End Org Task Manager
-#+END_SRC
-
 **** Org Habit
 
 #+NAME: org-taskmgr-habit
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package org-habit
     :straight org
     :init
@@ -3489,25 +3381,13 @@ Embed YouTube Links in iframe.
 
 **** Org Agenda
 
-#+NAME: org-taskmgr-agenda
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Org Agenda
-<<agenda/org-agenda>>
-;; org ng
-<<agenda/ng>>
-;; org ql
-<<agenda/ql>>
-;; Side bar
-<<agenda/sidebar>>
-;; End Org Agenda
-#+END_SRC
 
 I use per-project agenda files for the most part (now being managed
 using [[#org-projectile][org-projectile]]), but I like having a designated global one for miscellaneous or arbitrary tasks.
 
 
 #+NAME: agenda/org-agenda
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package org-agenda
     :straight org
     :custom
@@ -3576,7 +3456,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 ***** Agenda ng
 
 #+NAME: agenda/ng
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-agenda-ng
   :straight (org-agenda-ng :host github
                            :repo "alphapapa/org-agenda-ng"
@@ -3587,7 +3467,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 ***** Org ql
 
 #+NAME: agenda/ql
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-ql
     :straight
     (org-ql
@@ -3609,7 +3489,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 ***** Org Sidebar
 
 #+NAME: agenda/sidebar
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-sidebar
   :straight
   (org-sidebar
@@ -3667,7 +3547,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 :END:
 
 #+NAME: org-taskmgr-projectile
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package org-projectile
     :commands (org-projectile-files-to-agenda)
     :after (projectile)
@@ -3727,7 +3607,7 @@ The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode
 Calendar.
 
 #+NAME: org-taskmgr-gcal
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-gcal
     :init
   (require 'secrets)
@@ -3744,14 +3624,14 @@ Calendar.
 **** Google maps
 
 #+NAME: org-taskmgr-maps
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package google-maps)
 #+END_SRC
 
 **** calfw
 
 #+NAME: org-taskmgr-calfw
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package calfw
   :custom
   (cfw:org-capture-template
@@ -3803,7 +3683,7 @@ Calendar.
 :END:
 
 #+NAME: org-taskmgr-pomodoro
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-pomodoro
   :bind (:map org-mode-map
               ("C-c M-RET p" . org-pomodoro))
@@ -3838,7 +3718,7 @@ Calendar.
 **** Counsel Org Clock
 
 #+NAME: org-taskmgr-coclock
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-org-clock
   :straight (:host github
                    :repo "akirak/counsel-org-clock")
@@ -3851,7 +3731,7 @@ The [[https://github.com/unhammer/org-mru-clock][org-mru-clock]] package prefill
 org agenda files.
 
 #+NAME: org-taskmgr-mru-clock
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-mru-clock
   :after (:all org-agenda ivy)
   :demand t
@@ -3872,15 +3752,15 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 :END:
 
 #+NAME: org/concept
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<org-ideamgr-brain>>
-<<org-ideamgr-drill>>
+#+BEGIN_SRC emacs-lisp
+
+
 #+END_SRC
 
 **** Org Brain
 
 #+NAME: org-ideamgr-brain
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-brain
   :if (eq system-type 'darwin)
   :defines (org-brain-path)
@@ -3902,14 +3782,14 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 :END:
 
 #+NAME: org-hacks-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Begin Org Hacks
 ;; Hidden cursor in folded subtree fix
-<<org-hacks-saveplace-fix>>
+
 ;; Extract hyperlinks
-<<org-hacks-extract-hyperlink>>
+
 ;; Dynamically adjust tag position
-;; <<org-hacks-tag-pos>>
+
 ;; End Org Hacks
 #+END_SRC
 
@@ -3923,7 +3803,7 @@ From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks
 Fix problem with  which puts point back in a folded position.
 
 #+NAME: org-hacks-saveplace-fix
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (add-hook 'org-mode-hook
           (lambda ()
             (when (outline-invisible-p)
@@ -3935,7 +3815,7 @@ Fix problem with  which puts point back in a folded position.
 **** Hyperlink extraction
 
 #+NAME: org-hacks-extract-hyperlink
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
   (defun org-extract-link ()
     "Extract the link location at point and put it on the killring."
@@ -3958,7 +3838,7 @@ Fix problem with  which puts point back in a folded position.
 **** Export to datetree :disabled:
 
 #+NAME: org-hacks-datetree-export
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (require 'org-datetree)
 
 (setq org-archive-location "%s_archive::date-tree")
@@ -3998,7 +3878,7 @@ Fix problem with  which puts point back in a folded position.
 **** Dynamically set tag position :disabled:
 
 #+NAME: org-hacks-tag-pos
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (setq ba/org-adjust-tags-column nil)
 
   (defun ba/org-adjust-tags-column-reset-tags ()
@@ -4064,38 +3944,13 @@ Fix problem with  which puts point back in a folded position.
 :CUSTOM_ID: sec:ox
 :END:
 
-#+NAME: org/ox
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; extras
-<<ox/extra>>
-;; Publish
-<<ox/publish>>
-;; Org
-<<ox/org>>
-;; Latex
-<<ox/latex>>
-;; Linguistics
-<<ox/linguistics>>
-;; Bibtex
-<<ox/bibtex>>
-;; GFM
-<<ox/gfm>>
-;; Pandoc
-<<ox/pandoc>>
-;; Huge
-<<ox/hugo>>
-;; HTML
-<<ox/html>>
-
-#+END_SRC
-
 **** Ox Extra
 
 Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents
 and subtrees of the ignored headlines will be retained.
 
 #+NAME: ox/extra
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ox-extra
   :straight org
   :demand t
@@ -4108,7 +3963,7 @@ and subtrees of the ignored headlines will be retained.
 **** Ox Publish
 
 #+NAME: ox/publish
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ox-publish
   :straight org
   :after (ox)
@@ -4118,7 +3973,7 @@ and subtrees of the ignored headlines will be retained.
 **** Ox Org
 
 #+NAME: ox/org
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-to-org-handle-includes ()
   "Copy the contents of the current buffer to OUTFILE,
 recursively processing #+INCLUDEs."
@@ -4142,31 +3997,31 @@ recursively processing #+INCLUDEs."
 :END:
 
 #+NAME: ox/latex
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 (require 'ox-latex)
 ;; Prefer user labels
-<<oxl/labels>>
+
 ;; Subfigure
-<<oxl/subfigure>>
+
 ;; PDF Process Interface
-<<oxl/pdf>>
+
 ;; Hyperref Template
-<<oxl/hyperref>>
+
 ;; Custom classes
-<<oxl/classes>>
+
 #+END_SRC
 
 ***** Prefer user provided labeling
 
 #+NAME: oxl/labels
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq org-latex-prefer-user-labels t)
 #+END_SRC
 
 ***** Subfigure Export
 
 #+NAME: oxl/subfigure
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ox-latex-subfigure
   :straight
   (ox-latex-subfigure
@@ -4184,7 +4039,7 @@ recursively processing #+INCLUDEs."
 Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
 
 #+NAME: oxl/minted
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (eval-and-compile
   (defvar enable-default-minted nil))
 
@@ -4226,7 +4081,7 @@ Allow toggling of minted inclusion in exported header. This might be necessary w
 It can be done through the =org-mode= latex export dispatcher in a single command:
 
 #+NAME: oxl/pdf
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq latex-process-latex
   '("%latex -interaction nonstopmode -output-directory %o %f"
     "%latex -interaction nonstopmode -output-directory %o %f"
@@ -4278,7 +4133,7 @@ The default cross-referencing and hyperlink styles provided by
 =hyperref= are awful. This makes them less awful.
 
 #+NAME: oxl/hyperref
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 ;; TODO: Dynamically set to a sensible default if using 'article class
 ;; or a class in `org-latex-classes' that includes hyperref.
 (setq org-latex-hyperref-template nil)
@@ -4287,17 +4142,17 @@ The default cross-referencing and hyperlink styles provided by
 ***** Export classes
 
 #+NAME: oxl/classes
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Org Ling
-<<ox-class/orgling>>
+
 ;; UCLA CS
-<<ox-class/uclacs>>
+
 ;; Humanities
-<<ox-class/humanities>>
+
 ;; Article No Default Packages
-<<ox-class/article-standalone>>
+
 ;; Unicode math
-<<ox-class/unicode-math>>
+
 #+END_SRC
 
 ****** Article Standalone
@@ -4305,7 +4160,7 @@ The default cross-referencing and hyperlink styles provided by
 From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
 
 #+NAME: ox-class/article-standalone
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'org-latex-classes
 	     '("article-standalone"
 	       "\\documentclass{article}
@@ -4322,7 +4177,7 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 ****** Orgling
 
 #+NAME: ox-class/orgling
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (if (and (executable-find "kpsewhich")
          (shell-command-to-string "kpsewhich orgling.cls"))
 
@@ -4341,7 +4196,7 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 ****** UCLA CS
 
 #+NAME: ox-class/uclacs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'org-latex-classes
              '("uclacs"
                "\\documentclass{uclacs}
@@ -4359,7 +4214,7 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 My custom mla-style LaTeX class.
 
 #+NAME: ox-class/humanities
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'org-latex-classes
              '("humanities"
                "\\documentclass{humanities}
@@ -4375,7 +4230,7 @@ My custom mla-style LaTeX class.
 ****** Unicode Math
 
 #+NAME: ox-class/unicode-math
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (add-to-list 'org-latex-classes
     '("unicode-math"
       "\\documentclass{article}
@@ -4407,7 +4262,7 @@ My custom mla-style LaTeX class.
 **** Ox Linguistics
 
 #+NAME: ox/linguistics
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ox-linguistics
     :straight (ox-linguistics
                :host github
@@ -4420,7 +4275,7 @@ My custom mla-style LaTeX class.
 **** Ox Bibtex
 
 #+NAME: ox/bibtex
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 (use-package ox-bibtex
   :straight org
   :mode
@@ -4440,7 +4295,7 @@ anything. The [[https://github.com/kawabata/ox-pandoc][ox-pandoc]] package allow
 for exporting org-mode documents to various formats.
 
 #+NAME: ox/pandoc
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ox-pandoc
   :if (executable-find "pandoc")
   :after (:all ox org-ref)
@@ -4487,7 +4342,7 @@ for exporting org-mode documents to various formats.
 **** Ox GFM
 
 #+NAME: ox/gfm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ox-gfm
   :after (ox)
   :demand t)
@@ -4498,7 +4353,7 @@ for exporting org-mode documents to various formats.
 [[https://ox-hugo.scripter.co/][ox-hugo]] is an org exporter for Hugo-compatible markdown.
 
 #+NAME: ox/hugo
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ox-hugo
   :after (ox))
 #+END_SRC
@@ -4506,7 +4361,7 @@ for exporting org-mode documents to various formats.
 **** Ox HTML
 
 #+NAME: ox/html
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-html-themes
     :straight
     (org-html-themes
@@ -4516,35 +4371,11 @@ for exporting org-mode documents to various formats.
       :files ("setup/*" "styles/*")))
 #+END_SRC
 
-
 ** Org Latex
-
-#+NAME: orgtex/org-latex
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; LateX editing
-<<org-latex-editing>>
-;; Org Ref
-<<org-latex-org-ref>>
-;; Org Latex PDF
-<<org-latex-pdf>>
-;; Org highlight latex and related
-<<org-latex-highlight-tex>>
-#+END_SRC
-
-*** LaTeX in Org Buffers
-
-#+NAME: org-latex-editing
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Org Edit Latex
-<<org-latex-edit-latex>>
-;; Org Highlight LaTeX
-<<org-latex-highlight-tex>>
-#+END_SRC
-
 *** Edit Latex
 
 #+NAME: org-latex-edit-latex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-edit-latex)
 #+END_SRC
 
@@ -4554,7 +4385,7 @@ for exporting org-mode documents to various formats.
 :END:
 
 #+NAME: org-latex-highlight-tex
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq org-highlight-latex-and-related '(latex))
 #+END_SRC
 
@@ -4564,74 +4395,101 @@ for exporting org-mode documents to various formats.
 :CUSTOM_ID: org-ref
 :END:
 
-#+NAME: org-latex-org-ref
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Org Ref
-<<org-ref-config>>
-(with-eval-after-load 'org-ref
-  ;; Org ref vref
-  <<org-ref-vref>>
-  ;; Org ref pdf
-  <<org-ref-pdf>>
-)
-#+END_SRC
+#+BEGIN_SRC emacs-lisp
 
-#+NAME: org-ref-config
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-ref
-    :after ivy
-    :demand t
-    :custom
+(use-package org-ref
+  :after ivy
+  :demand t
+  :bind*
+  (:map org-mode-map
+        :prefix-map org-ref-prefix-map
+        :prefix-docstring "Org ref citation manager."
+        :prefix "C-c r"
+        ("c" . org-ref-insert-cite-link)
+        ("l" . org-ref-insert-label-link)
+        ("s" .  org-ref-insert-bibliographystyle-link)
+        ("f" . org-ref-list-of-figures)
+        ("b" . org-ref-insert-bibliography-link)
+        ("r" . org-ref-insert-ref-link))
+  :custom
 
-    (org-ref-completion-library 'org-ref-ivy-cite)
-    (org-ref-default-bibliography
-     '("~/Dropbox/org/ref/references.bib"))
-    (org-ref-bibliography-notes
-     "~/Dropbox/org/ref/refnotes.org")
-    (org-ref-notes-directory
-     "~/Dropbox/org/notebooks")
-    (org-ref-pdf-directory
-     "~/Dropbox/Documents/pdfs/")
-    (org-ref-show-citation-on-enter t)
-    (org-ref-show-broken-links t)
-    (org-ref-bibtex-hydra-key-binding "\C-cj")
+  (org-ref-completion-library 'org-ref-ivy-cite)
+  (org-ref-default-bibliography
+   '("~/Dropbox/org/ref/references.bib"))
+  (org-ref-bibliography-notes
+   "~/Dropbox/org/ref/refnotes.org")
+  (org-ref-notes-directory
+   "~/Dropbox/org/notebooks")
+  (org-ref-pdf-directory
+   "~/Dropbox/Documents/pdfs/")
+  (org-ref-show-citation-on-enter t)
+  (org-ref-show-broken-links t)
+  (org-ref-bibtex-hydra-key-binding "\C-cj")
 
-    :init
-    ;; https://github.com/jkitchin/org-ref/issues/428
-    (progn
-      (require 'doi-utils)
-      (require 'org-ref-url-utils)
-      (require 'org-id)
-      (require 'org-ref-latex)
-      (require 'org-ref-bibtex)
-      (require 'org-ref-pdf)
-      (require 'org-ref-scopus)
-      (require 'org-ref-isbn)
-      (require 'org-ref-pubmed)
-      (require 'org-ref-arxiv)
-      (require 'org-ref-sci-id)
-      (require 'org-ref-wos)
-      (require 'org-ref-worldcat)
-      (require 'x2bib))
+  :init
+  ;; https://github.com/jkitchin/org-ref/issues/428
+  (progn
+    (require 'doi-utils)
+    (require 'org-ref-url-utils)
+    (require 'org-id)
+    (require 'org-ref-latex)
+    (require 'org-ref-bibtex)
+    (require 'org-ref-pdf)
+    (require 'org-ref-scopus)
+    (require 'org-ref-isbn)
+    (require 'org-ref-pubmed)
+    (require 'org-ref-arxiv)
+    (require 'org-ref-sci-id)
+    (require 'org-ref-wos)
+    (require 'org-ref-worldcat)
+    (require 'x2bib))
 
-    :config
+  :config
 
-    (defun goto-org-ref-manual (&optional path)
-      (interactive)
-      (unless path
-        (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
-      (find-file path))
+  (defun org-ref-vref-export (keyword desc format)
+    "An export function for vref links."
+    (cond
+     ((eq format 'html)
+      (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
+     ((eq format 'latex) (format "\\vref{%s}" keyword))))
 
-    ;; Hydra
-    ;; See [[file:straight/repos/org-ref/org-ref.org::#citations][Citations]] section of the manual
-    (key-chord-define-global "kk" 'org-ref-cite-hydra/body))
 
+  (org-ref-link-set-parameters "vref"
+    :follow #'org-ref-ref-follow
+    :export #'org-ref-vref-export
+    :complete #'org-ref-complete-link
+    :face 'org-ref-ref-face-fn
+    :help-echo #'org-ref-ref-help-echo)
+
+  (setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+                            "autoref" "cref" "Cref" "vref"))
+
+
+
+  (defun org-ref-open-pdf-at-point ()
+    "Open the pdf for bibtex key under point if it exists."
+    (interactive)
+    (let* ((results (org-ref-get-bibtex-key-and-file))
+           (key (car results))
+           (pdf-file (funcall org-ref-get-pdf-filename-function key)))
+      (if (file-exists-p pdf-file)
+          (find-file pdf-file)
+        (message "No PDF found for %s" key))))
+
+  (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
+
+
+
+  (defun goto-org-ref-manual (&optional path)
+    (interactive)
+    (unless path
+      (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
+    (find-file path)))
 #+END_SRC
 
 **** Support =vref= links
 
-#+NAME: org-ref-vref
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-ref-vref-export (keyword desc format)
   "An export function for vref links."
   (cond
@@ -4657,7 +4515,7 @@ for exporting org-mode documents to various formats.
 See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view-or-pdf-tools][Using Doc View or PDF Tools]] section of =org-ref= documentation.
 
 #+NAME: org-ref-pdf
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun org-ref-open-pdf-at-point ()
   "Open the pdf for bibtex key under point if it exists."
   (interactive)
@@ -4672,16 +4530,6 @@ See [[https://github.com/jkitchin/org-ref/blob/master/org-ref.org#using-doc-view
 #+END_SRC
 
 *** PDF Reader
-
-#+NAME: org-latex-pdf
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-(when (display-graphic-p)
-  ;; PDF Tools
-  <<pdf/tools>>
-  <<pdf/org>>
-)
-#+END_SRC
-
 **** PDF Tools
 
 [[https://github.com/politza/pdf-tools][PDF Tools]] adds several features and enhancements for interacting with
@@ -4691,7 +4539,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 [[http://pragmaticemacs.com/category/emacs/][blogpost]] demonstrating how to get the most out of this package.
 
 #+NAME: pdf/tools
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :bind (:map pdf-view-mode-map
@@ -4712,7 +4560,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: pdf/org
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-pdfview
   :after (:all pdf-tools)
   :demand t
@@ -4731,7 +4579,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 *** Projectile
 
 #+NAME: project-projectile
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package projectile
   :bind-keymap
   ("C-c p" . projectile-command-map)
@@ -4779,7 +4627,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 *** Projectile Codesearch
 
 #+NAME: project-codesearch
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (use-package projectile-codesearch
       :after (projectile)
       :bind (:map projectile-command-map
@@ -4789,7 +4637,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 *** Projectile Ripgrep
 
 #+NAME: project-ripgrep
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package projectile-ripgrep
       :after (projectile)
       ;; takes a cons in the form of `(binary . package-name)`
@@ -4800,7 +4648,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 *** Projectile Treemacs
 
 #+NAME: projectile/treemacs
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package treemacs-projectile
   :after (treemacs)
   :demand t)
@@ -4809,7 +4657,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 *** Skeletor
 
 #+NAME: skeletor-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (use-package skeletor
     :custom
     (skeletor-user-directory (emacs-etc-dir "skeletor/project-skeletons"))
@@ -4890,14 +4738,14 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 **** Projectile Code Search
 
 #+NAME: project-code-search
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package projectile-codesearch)
 #+END_SRC
 
 *** Find File in Project
 
 #+NAME: project-ffip
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package find-file-in-project
   :bind ("s-p" . ffip))
 #+END_SRC
@@ -4906,7 +4754,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 *** Dired
 **** Asynchronous Processing
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package async
   :after dired
   :commands (dired-async-mode async-smtpmail-send-it)
@@ -4928,7 +4776,7 @@ buffer.
 #+END_QUOTE
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defun halidom/dired-reuse-buffer-hook ()
 	(define-key dired-mode-map (kbd "^")
 	  (lambda () (interactive) (find-alternate-file ".."))))
@@ -4941,7 +4789,7 @@ as the current directory.
 
 See docstring for =dired-dwim-target=.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq dired-dwim-target t)
 #+END_SRC
 
@@ -4950,7 +4798,7 @@ See docstring for =dired-dwim-target=.
 Adds extensions and functionality to dired mode.
 
 #+NAME: dired-plus-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package dired+
   :init
   (add-hook #'dired-mode-hook #'dired-hide-details-mode))
@@ -4959,7 +4807,7 @@ Adds extensions and functionality to dired mode.
 **** Open org directory links with dired
 
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (when (symbolp 'org-file-apps)
   (add-to-list 'org-file-apps '(directory . emacs)))
 #+END_SRC
@@ -4970,7 +4818,7 @@ Adds extensions and functionality to dired mode.
 :END:
 
 #+NAME: dired-sidebar-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (use-package dired-sidebar
       :commands (dired-sidebar-toggle-sidebar)
       :custom
@@ -4985,7 +4833,7 @@ Adds extensions and functionality to dired mode.
 
 [[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package neotree
   :after (projectile)
   :demand t
@@ -5014,7 +4862,7 @@ Adds extensions and functionality to dired mode.
 
 *** Treemacs
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package treemacs
   :demand t
   :init
@@ -5077,12 +4925,12 @@ Adds extensions and functionality to dired mode.
 *** Speedbar
 
 #+NAME: speed-sr
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package sr-speedbar)
 #+END_SRC
 
 #+NAME: projectile-speedbar
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package projectile-speedbar
   :after (:all speedbar projectile)
   :bind ("M-<f2>" . projectile-speedbar-open-current-buffer-in-tree))
@@ -5094,7 +4942,7 @@ Adds extensions and functionality to dired mode.
 :END:
 
 #+NAME: open-with-spec
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package openwith
   :straight t)
 #+END_SRC
@@ -5103,7 +4951,7 @@ Adds extensions and functionality to dired mode.
 *** Codesearch
 
 #+NAME: search/codesearch
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package codesearch)
 #+END_SRC
 
@@ -5111,7 +4959,7 @@ Adds extensions and functionality to dired mode.
 Jump to arbitrary point in Buffer
 
 #+NAME: search/avy
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (use-package avy
     :bind
     ("C-:" . avy-goto-char))
@@ -5120,7 +4968,7 @@ Jump to arbitrary point in Buffer
 *** ack
 
 #+NAME: search/ack
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package ack
   :if (executable-find "ack")
   :straight t)
@@ -5129,13 +4977,13 @@ Jump to arbitrary point in Buffer
 *** ag
 
 #+NAME: ag-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package ag)
 #+END_SRC
 
 *** grep+
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package grep+)
 
 #+END_SRC
@@ -5143,7 +4991,7 @@ Jump to arbitrary point in Buffer
 *** rg
 
 #+NAME: ripgrep
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package rg
   :ensure-system-package
   (rg . ripgrep))
@@ -5152,7 +5000,7 @@ Jump to arbitrary point in Buffer
 
 *** Visual Replace
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package visual-regexp)
 #+END_SRC
 
@@ -5162,7 +5010,7 @@ Visualize buffer modifications during an Emacs session as an
 interactive tree .
 
 #+NAME: search/undo-tree
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package undo-tree
   :custom
   (undo-tree-auto-save-history t)
@@ -5176,363 +5024,53 @@ interactive tree .
     (global-set-key (kbd "s-Z") 'undo-tree-redo)))
 #+END_SRC
 
-** Startup
 
-#+NAME: startup-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;;; Begin Startup Group
-;; startup buffer
-<<startup-buffer>>
-;; startup scratch and message
-<<startup-scratch>>
-;; startup frame
-<<startup-frame>>
-;;; End Startup Group
-#+END_SRC
+** Emacs Plus
+*** Documentation
+**** Help
+***** Help+
 
-*** Buffer
-
-#+NAME: startup-buffer
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Page break lines
-<<buffer/page-break-lines>>
-;; Emacs dashboard
-<<buffer/dashboard>>
-;; Autorevert
-<<buffer/revert>>
-;; Fireplace
-<<buffer/fireplace>>
-#+END_SRC
-
-The default splash screen is great when you're starting out,
-but it's more so an annoyance than anything else once you
-know you're around.
-
-**** Page Break Lines
-
-Global minor-mode that turns ~^L~ form feed characters into
-horizontal line rules.
-
-#+NAME: buffer/page-break-lines
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package page-break-lines
-  :init
-  (global-page-break-lines-mode))
-#+END_SRC
-
-**** Emacs Dashboard
-
-[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
-replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
-It's a nice way of consolidating any combination of tasks,
-agenda items, bookmarks, and pretty much any other enumerable
-list that one may use in the wacky world of Emacs.
-
-#+NAME: buffer/dashboard
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package dashboard
-  :init
-  (defun halidom/dashboard-banner ()
-      "Set a dashboard banner including information on
-  package initialization time and garbage collections."
-      (setq dashboard-banner-logo-title
-            (format
-             (concat "Emacs ready in %.2f seconds "
-                       "with %d garbage collections.")
-             (float-time (time-subtract
-                          after-init-time
-                          before-init-time))
-             gcs-done)))
-
-
-    (unless global-page-break-lines-mode
-      (global-page-break-lines-mode))
-
-    (dashboard-setup-startup-hook)
-
-    :config
-    (add-to-list 'dashboard-items '(agenda) t)
-    ;; Get the week agenda.
-    ;; See `dashboard-get-agenda' for how this
-    ;; variable is being used.
-    (setq show-week-agenda-p t)
-
-    (setq dashboard-items '(( agenda . 10)
-                            ( projects . 5)
-                            ( recents . 3)
-                            ( bookmarks . 5)))
-
-    :hook
-    (after-init     . dashboard-refresh-buffer)
-    (dashboard-mode . halidom/dashboard-banner))
-
-
-#+END_SRC
-
-**** Auto Revert Mode
-
-#+NAME: buffer/revert
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package autorevert
-  :straight nil
-  :config
-  (global-auto-revert-mode 1))
-
-#+END_SRC
-
-**** Fireplace
-
-Just for the hell of it.
-#+NAME: fireplace-spec
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package fireplace
-  :straight t)
-#+END_SRC
-
-*** Inhibit stuff
-
-#+NAME: startup-scratch
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq echo-keystrokes 0.1
-      initial-scratch-message nil
-      initial-major-mode 'org-mode
-      inhibit-startup-echo-area-message t
-      sentence-end-double-space nil
-      help-window-select t)
-  #+END_SRC
-
-*** Frame
-
-#+NAME: startup-frame
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Disable toolbar and scrollbar
-<<frame-tool-and-scroll>>
-;; Disable menubar unless system is macOS.
-<<frame-menubar>>
-;; Display Time
-<<frame-time>>
-;; Transpose frame
-<<frame-transpose>>
-#+END_SRC
-
-**** Disable Frame peripherals
-
-Disable scroll bars and tool bar on all system types.
-
-***** Frame and Scrollbar
-
-#+NAME: frame-tool-and-scroll
-#+BEGIN_SRC emacs-lisp :tangle no
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-#+END_SRC
-
-***** Menubar
-
-On macOS, the menu bar is integrated into the UI.
-
-Disabling it will just empty the menu tab options for Emacs.app,
-so we'll leave it there.
-
-#+NAME: frame-menubar
-#+BEGIN_SRC emacs-lisp :tangle no
-(unless (eq system-type 'darwin)
-  (menu-bar-mode -1))
-#+END_SRC
-
-**** Display Time
-
-#+NAME: frame-time
-#+BEGIN_SRC emacs-lisp :tangle no
-(display-time-mode 1)
-#+END_SRC
-
-**** Default Frame Appearance
-
-Starting in Emacs 26, the =default-frame-alist= variable can be used
-create a natural title bar in the GUI. Setting the default frame
-properties to the following values has the same effect as the
-'--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
-recommended for Spacemacs users on macOS[fn:14].
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(setq default-frame-alist
-      '((ns-transparent-titlebar . t)
-        (ns-appearance . dark)))
-#+END_SRC
-
-**** Frame Title Format
-
-Show full path in the title bar.
-
-#+NAME: frame/title
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq-default frame-title-format "%b (%f)")
-#+END_SRC
-
-**** Transpose Frame
-
-#+NAME: frame-transpose
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package transpose-frame)
-#+END_SRC
-
-*** Window Manager
-
-**** Window Resize
-
-Default keybindings for window resize:
-
-- =C-x ^= :: makes current window taller [[help:enlarge-window][`enlarge-window']]
-- =C-x }= :: make it larger [[help:enlarge-window-horizontally][`enlarge-window-horizontally']]
-- =C-x {= :: make it narrower [[help:shrink-window-horizontally][`shrin-window-horizontally']]
-
-This following block modifies the keybindings for these commands to
-use the arrow keys instead. I use the "C-s" modifier because it just
-so happens this prefix can be extended by every key in the arrow pad
-without causing a conflict with external keymaps on my system.
-
-The suggested keybindings from the footnoted EmacsWiki page may be more
-accessible for you [fn:15].
-
-#+NAME: window-resize-keybindings
-#+BEGIN_SRC emacs-lisp :tangle yes
-(global-set-key (kbd "C-s-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "C-s-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "C-s-<down>") 'shrink-window)
-(global-set-key (kbd "C-s-<up>") 'enlarge-window)
-#+END_SRC
-
-**** Winner Mode
-
-[[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
-different window configurations.
-
-#+NAME: winner-mode-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package winner-mode
-  :straight nil
-  :init
-  (when (fboundp 'winner-mode)
-    (winner-mode 1)))
-#+END_SRC
-
-**** Ace Window
-
-#+NAME: window/ace
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package ace-window
-      :bind
-      ("M-o" . ace-window)
-      :custom
-      (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-      (aw-background nil))
-
-#+END_SRC
-
-**** Perspective
-
-#+NAME: persp-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Perspective
-<<persp/perspective>>
-;: Persp Projectile
-<<persp/projectile>>
-#+END_SRC
-
-
-#+NAME: persp/perspective
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package perspective)
-#+END_SRC
-
-***** Persp Projectile
-
-#+NAME: persp/projectile
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package persp-projectile
-  :after (:all projectile counsel-projectile perspective)
-  :bind ((:map projectile-mode-map
-               ("s-S" . projectile-persp-switch-project))))
-#+END_SRC
-
-**** Popwin
-
-#+NAME: popwin-config
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package popwin
-    :defines popwin:keymap
-    :after (perspective)
-    :bind-keymap ("C-z" . popwin:keymap)
-    :bind (:map popwin:keymap
-                ("m" . popwin:messages))
-    :init
-    (require 'popwin)
-    :config
-    (popwin-mode 1))
-#+END_SRC
-
-**** Poporg
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package poporg
-  :bind ("C-c \"" . 'poporg-dwim))
-#+END_SRC
-
-**** Golden Ratio
-
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package golden-ratio
-  :init
-  (setq golden-ratio-auto-scale t))
-#+END_SRC
-
-**** Purpose
-
-#+NAME: purpose
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package window-purpose)
-
-  (use-package ivy-purpose
-      :custom (pop-up-frames nil)
-      :after (window-purpose)
-      :init
-      (ivy-purpose-setup)
-      :config
-      ;; give help buffers the 'popup-frame purpose
-      (add-to-list 'purpose-user-mode-purposes
-                  '(help-mode . popup-frame))
-      (add-to-list 'purpose-special-action-sequences
-                   '(popup-frame
-                     purpose-display-reuse-window-buffer
-                     purpose-display-reuse-window-purpose
-                     purpose-display-pop-up-frame)))
-#+END_SRC
-
-
-** Emacs+
-*** Help+
-
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package help+
     :demand t)
+#+END_SRC
 
-(use-package help-macro+
-    :demand t)
+***** help-mode+
 
-(use-package help-fns+
-    :demand t)
-
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package help-mode+
     :demand t)
 #+END_SRC
 
-*** Helpful
+
+***** help-macro+
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package help-macro+
+    :demand t)
+#+END_SRC
+
+***** help-fns+
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package help-fns+
+    :demand t)
+#+END_SRC
+
+
+
+**** Helpful
 
 #+NAME: help-helpful
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package helpful
-    :commands (helpful-at-point helpful-function helpful-command))
+  :bind
+  ("C-h f" . helpful-callable)
+  ("C-h v" . helpful-variable)
+  ("C-h k" . helpful-key)
+  ("C-h C" . helpful-command)
+  ("C-c C-d" . helpful-at-point)
+  ("C-h F" . helpful-function))
 
 #+END_SRC
 
@@ -5540,7 +5078,7 @@ different window configurations.
 
 [[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (use-package image+
     :if (display-graphic-p)
     :after (image)
@@ -5561,7 +5099,7 @@ different window configurations.
 **** Info+
 
 #+NAME: info=plus
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package info+
   :straight t)
 #+END_SRC
@@ -5569,7 +5107,7 @@ different window configurations.
 **** FontLock+
 
 #+NAME: font-lock-plus
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package font-lock+)
 #+END_SRC
 
@@ -5577,7 +5115,7 @@ different window configurations.
 
 ****** Rainbow Mode
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package rainbow-mode
   :init
   (rainbow-mode 1))
@@ -5585,56 +5123,50 @@ different window configurations.
 
 ****** Col Highlight
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package col-highlight)
 #+END_SRC
 
-*** Info+
+**** Info+
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package info+)
 #+END_SRC
 
 *** Frame+
 
 #+NAME: frame-plus
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package frame+)
 #+END_SRC
 
 *** Frame-fns
 
 #+NAME: frame-fns-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package frame-fns)
 #+END_SRC
 
 *** posframe
 
 #+NAME: posframe-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package posframe)
 #+END_SRC
 
 *** Thingatpt+
 
 #+NAME: thingatpt-plus
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package thingatpt+)
 
 (use-package misc-fns)
 #+END_SRC
 
 *** Bookmark
-
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<bookmark-bm>>
-<<bookmark-zsh>>
-#+END_SRC
-
 **** Bookmark File
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq bookmark-default-file
  (no-littering-expand-var-file-name "bookmarks"))
 #+END_SRC
@@ -5642,7 +5174,7 @@ different window configurations.
 **** Bookmark+
 
 #+NAME: bookmark-plus
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package linkd)
 
 (use-package bookmark+)
@@ -5651,7 +5183,7 @@ different window configurations.
 **** Bm
 
 #+NAME: bookmark-bm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package bm)
 #+END_SRC
 
@@ -5666,7 +5198,7 @@ setopt cd_able_vars
 
 
 #+NAME: bookmark-zsh
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (defadvice bookmark-write-file
         (after local-directory-bookmarks-to-zsh-advice activate)
      (local-directory-bookmarks-to-zsh))
@@ -5708,7 +5240,7 @@ setopt cd_able_vars
 
 *** Bug Tracking
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package debbugs
   :straight (debbugs
              :type git
@@ -5720,20 +5252,10 @@ setopt cd_able_vars
 #+END_SRC
 
 ** Multimedia
-
-#+NAME: media-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; EMMS
-<<media-emms>>
-;; SoundCloud
-<<media-soundcloud>>
-
-#+END_SRC
-
 *** emms
 
 #+NAME: media-emms
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package emms
     :custom
     (emms-source-file-default-directory
@@ -5759,54 +5281,21 @@ setopt cd_able_vars
 *** Sound Cloud
 
 #+NAME: media-soundcloud
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package soundcloud)
 #+END_SRC
 
 * Display
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
-
-#+NAME: core/ui
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Begin UI
-<<ui/theme>>
-;; Cursor
-<<ui/cursor>>
-;; Fonts
-<<ui/fonts>>
-; Modeline
-<<ui/modeline>>
-;; Scrolling
-<<ui/scroll>>
-;; Buttons
-<<ui/buttons>>
-;; Pretty
-<<ui/pretty>>
-;; End UI
-#+END_SRC
-
 ** Fonts
 :PROPERTIES:
 :ID:       98543582-0772-4025-917B-38DF6542DD6F
 :END:
-
-#+NAME: ui/fonts
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; font variables
-<<fonts/variables>>
-;; set font interactively
-<<fonts/interactive>>
-;; Default font
-<<fonts/default>>
-;; unicode fonts
-<<fonts/unicode>>
-#+END_SRC
-
 *** Font variables
 
 #+NAME: fonts/variables
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (defvar font-list nil
   "An alist of fonts which can be interactively chosen
    using the `set-font' function.
@@ -5825,7 +5314,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 *** Set font interactively
 
 #+NAME: fonts/interactive
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (when (eq system-type 'darwin)
   (let ((font-weight-xs '(("Andale Mono" . extralight)
                           ("Droid Sans Mono" . normal)
@@ -5858,7 +5347,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 *** Default font
 
 #+NAME: fonts/default
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (defcustom halidom-fonts
     '(("Fira Code" . light)
       ("Operator Mono" . extralight)
@@ -5906,22 +5395,10 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 #+END_SRC
 
 *** Unicode
-
-#+NAME:
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; unicode fonts
-<<unicode/fonts>>
-;; emojis
-<<unicode/emojis>>
-;; Icons
-<<unicode/icons>>
-#+END_SRC
-
-
 **** Unicode Fonts
 
 #+NAME: unicode/fonts
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package unicode-fonts
     :init
     (unicode-fonts-setup))
@@ -5930,19 +5407,19 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 **** Emojis
 
 #+NAME: unicode/emojis
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Unicode Emoticons
-<<emoji/unicode-emoticons>>
+
 ;; Symbol Font
-<<emoji/symbol-font>>
+
 ;; Company Emoji
-<<emoji/company>>
+
 #+END_SRC
 
 ***** Symbol Font
 
 #+NAME: emoji/symbol-font
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (cond
    ((eq system-type 'gnu/linux)
     (set-fontset-font "fontset-default" nil "Symbola" nil 'append))
@@ -5959,14 +5436,14 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 ***** Unicode Emoticons
 
 #+NAME: emoji/unicode-emoticons
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package unicode-emoticons)
 #+END_SRC
 
 ***** Company Emoji
 
 #+NAME: emoji/company
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-emoji
   :after (:all company emojify-mode)
   :demand t
@@ -5996,10 +5473,10 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 **** Icons
 
 #+NAME: unicode/icons
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<icons/all-the-icons>>
+#+BEGIN_SRC emacs-lisp
+
 ;; vscode
-<<icons/vscode>>
+
 #+END_SRC
 
 *****  All the  Icons
@@ -6008,15 +5485,15 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 :END:
 
 #+NAME: icons/all-the-icons
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; all-the-icons.el
-<<all-the-icons/el>>
+
 ;; dired
-<<all-the-icons/dired>>
+
 ;; ivy
-<<all-the-icons/ivy>>
+
 ;; modify glyphs
-<<all-the-icons/glyphs>>
+
 #+END_SRC
 
 
@@ -6025,7 +5502,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
 #+NAME: all-the-icons/el
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package all-the-icons
     :demand t)
 #+END_SRC
@@ -6033,7 +5510,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 ****** all the icons dired
 
 #+NAME: all-the-icons/dired
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package all-the-icons-dired
   :after (all-the-icons dired)
   :demand t
@@ -6045,7 +5522,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 ****** all the icons ivy
 
 #+NAME: all-the-icons/ivy
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package all-the-icons-ivy
     :after (:all ivy all-the-icons)
     :init
@@ -6059,7 +5536,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 :END:
 
 #+NAME: all-the-icons/glyphs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun fonts/setup-glyphs ()
   "Modify the default fontset to choose the right icons."
   (let ((font-glyphs-alist '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
@@ -6082,11 +5559,11 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 
 
 #+NAME: fonts/unicode
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Unicode Fonts
-<<unicode/fonts>>
+
 ;; Emojis
-<<unicode/emojis>>
+
 #+END_SRC
 
 ***** VS Code Icons
@@ -6095,7 +5572,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 :END:
 
 #+NAME: icons/vscode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package vscode-icon
   :init
   (require 'vscode-icon)
@@ -6104,35 +5581,10 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 #+END_SRC
 
 ** Theme
-
-#+NAME: ui/theme
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;;; Begin Theme Group
-;; Theme interface
-<<theme-interface>>
-;; Custom themes
-<<theme-custom-theme>>
-;; Zenburn theme
-<<theme-zenburn>>
-;; Poet Theme
-<<theme-poet>>
-;; Base16 Themes
-<<theme-base16>>
-;; Load Theme
-<<theme-load-theme>>
-;; Org Mode faces
-<<theme-org-mode>>
-;; Italicize keywords for modes
-<<theme-italicize-for-modes>>
-;; Per Buffer theme
-<<theme/per-buffer>>
-;;; End Theme Group
-#+END_SRC
-
 *** Theme Defaults
 
 #+NAME: theme-interface
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defcustom halidom--theme-style 'dark
   "The default theme mode. Only symbols 'dark and 'light are considered."
   :type '(choice
@@ -6170,7 +5622,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 This disables Emacs asking questions about loading a new theme.
 
 #+NAME: theme-custom-theme
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq custom-safe-themes t)
 (setq custom-theme-directory (emacs-etc-dir "themes"))
 #+END_SRC
@@ -6178,7 +5630,7 @@ This disables Emacs asking questions about loading a new theme.
 *** Zenburn Theme
 
 #+NAME: theme-zenburn
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package zenburn-theme
   :straight t)
 #+END_SRC
@@ -6186,7 +5638,7 @@ This disables Emacs asking questions about loading a new theme.
 *** Poet Theme
 
 #+NAME: theme-poet
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package poet-theme
   :init
   (setq halidom-light-theme 'poet))
@@ -6195,7 +5647,7 @@ This disables Emacs asking questions about loading a new theme.
 *** Base16 Themes
 
 #+NAME: theme-base16
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package base16-theme
     :init
     (setq halidom-dark-theme 'base16-snazzy
@@ -6211,13 +5663,12 @@ This disables Emacs asking questions about loading a new theme.
                                    user-emacs-directory))
     :config
     (setq base16-distinct-fringe-background nil))
-
 #+END_SRC
 
 *** Load Theme
 
 #+NAME: theme-load-theme
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq-default custom-enabled-themes (list halidom-theme))
 
 (defun remove-themes ()
@@ -6296,7 +5747,7 @@ theme in \"quick mode\" by eliding hooks specified in
 *** Org Mode Faces
 
 #+NAME: theme-org-mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 ;; Org Mode faces
 (defun halidom/org-faces ()
@@ -6404,7 +5855,7 @@ theme in \"quick mode\" by eliding hooks specified in
 *** Italicize font lock keyword face
 
 #+NAME: theme-italicize-for-modes
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
   "Major modes for which an italicized font lock keyword
 face shall be used."
@@ -6432,29 +5883,11 @@ face shall be used."
 **** Per buffer Themes
 
 #+NAME: theme/per-buffer
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package per-buffer-theme)
 #+END_SRC
 
 ** Cursor
-
-#+NAME: ui/cursor
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Disable blink
-<<cursor/blink>>
-;; disable cursor in non selected window
-<<cursor/window>>
-;; Smart color
-<<cursor/smart-color>>
-;; multiple cursors mode
-<<cursor/mc>>
-;; centered cursor mode
-<<cursor/centered>>
-;; bar cursor
-<<cursor/bar>>
-;; Change Cursor
-<<cursor/chg>>
-#+END_SRC
 
 *** Disable Blink
 
@@ -6462,14 +5895,14 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 ~caret_style~ setting in Sublime Text.
 
 #+NAME: cursor/blink
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (blink-cursor-mode -1)
 #+END_SRC
 
 *** Only show cursor in selected window
 
 #+NAME: cursor/window
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq-default cursor-in-non-selected-windows nil
               x-stretch-cursor nil)
 #+END_SRC
@@ -6477,7 +5910,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 *** Smart Cursor Color
 
 #+NAME: cursor/smart-color
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (use-package smart-cursor-color
   :config
@@ -6488,7 +5921,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 *** Multiple Cursors
 
 #+NAME: cursor/mc
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
   :custom
   (mc/always-run-for-all t)
@@ -6510,7 +5943,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 *** Centered Cursor Mode
 
 #+NAME: cursor/centered
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package centered-cursor-mode
     :init
   (centered-cursor-mode 1))
@@ -6519,7 +5952,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 *** Bar Cursor
 
 #+NAME: cursor/bar
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package bar-cursor
   :init (bar-cursor-mode 1))
 #+END_SRC
@@ -6527,34 +5960,15 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 *** Change Cursor
 
 #+NAME: cursor/chg
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cursor-chg)
 #+END_SRC
 
 ** Modeline
-
-#+NAME: ui/modeline
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;;; Begin Modeline Group
-;; Customization interface
-<<ml/interface>>
-;; Smart Mode Line
-<<ml/sml>>
-;; Spaceline
-<<ml/spaceline>>
-;; Powerline
-<<ml/powerline>>
-;; Eyeliner
-<<ml/eyeliner>>
-;; Setup the modeline
-<<ml/setup>>
-;; End Modeline Group
-#+END_SRC
-
 *** Modeline Customization
 
 #+NAME: ml/interface
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defcustom halidom-modeline 'spaceline
   "When non-nil, the modeline framework to use at startup.
 Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
@@ -6569,26 +5983,17 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 *** Spaceline
 
-#+NAME: ml/spaceline
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<sl/spaceline>>
-;; Spaceline icons
-<<sl/icons>>
-;; setup spaceline
-<<sl/setup>>
-#+END_SRC
-
 **** Spaceline Mode
 
 #+NAME: sl/spaceline
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package spaceline)
 #+END_SRC
 
 **** Spaceline All the Icons
 
 #+NAME: sl/icons
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package spaceline-all-the-icons
   :after (:all all-the-icons spaceline))
 #+END_SRC
@@ -6596,7 +6001,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 **** Spaceline setup
 
 #+NAME: sl/setup
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (defun ml-spaceline-setup ()
     "Setup the modeline for spaceline."
     (setq spaceline-all-the-icons-separator-type 'arrow)
@@ -6611,21 +6016,13 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 #+END_SRC
 
 *** Smart Mode Line
-
-#+NAME: ml/sml
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<sml/smart-mode-line>>
-;; Smart Mode Line setup
-<<sml/setup>>
-#+END_SRC
-
 #+NAME: sml/smart-mode-line
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package smart-mode-line)
 #+END_SRC
 
 #+NAME: sml/setup
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun ml-smline-setup ()
   "Setup the modeline for smart-mode-line."
@@ -6638,23 +6035,16 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 *** Powerline
 
-#+NAME: ml/powerline
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<pl/powerline>>
-;; Powerline setup
-<<pl/setup>>
-#+END_SRC
-
 #+NAME: pl/powerline
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package powerline
-    :straight t)
+#+BEGIN_SRC emacs-lisp
+(use-package powerline)
+
 #+END_SRC
 
 **** Setup Powerline
 
 #+NAME: pl/setup
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defun ml-powerline-setup ()
   "Setup the modeline for powerline."
   (require 'powerline)
@@ -6664,7 +6054,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 *** Eyeliner
 
 #+NAME: ml/eyeliner
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package eyeliner
     :straight (eyeliner
                :type git
@@ -6680,7 +6070,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 *** Set the modeline format
 
 #+NAME: ml/setup
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (defun halidom/modeline-setup ()
   "Setup the modeline."
@@ -6703,30 +6093,17 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 #+END_SRC
 
 ** Scrolling
-
-#+NAME: ui/scroll
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Begin Scroll
-;; Scroll to first error on compilation
-<<scroll/compile-error>>
-;; Smooth scrolling
-<<scroll/smooth>>
-;; Subliminity
-<<scroll/subliminity>>
-;; End Scroll
-#+END_SRC
-
 *** Scroll to first error on compilation
 
 #+NAME: scroll/compile-error
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (setq compilation-scroll-output 'first-error)
 #+END_SRC
 
 *** Smooth Scrolling
 
 #+NAME: scroll/smooth
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package smooth-scrolling
   :init
   (smooth-scrolling-mode 1)
@@ -6743,7 +6120,7 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 *** Sublimity Scroll
 
 #+NAME: scroll/subliminity
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package sublimity
       :init
     (require 'sublimity-scroll))
@@ -6751,31 +6128,14 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 ** Buttons
 
-#+NAME: ui/buttons
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<button/lock>>
-#+END_SRC
-
 *** Button Lock
 
 #+NAME: button/lock
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package button-lock)
 #+END_SRC
 
 ** Pretty
-
-#+NAME: ui/pretty
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Prettify Symbols Mode
-<<pretty/symbols>>
-;; Pretty Mode
-<<pretty/mode>>
-;; pretty utils
-<<pretty/utils>>
-;; Ekaschalk Display Layer
-<<pretty/eshell>>
-#+END_SRC
 
 *** Prettify Symbols
 
@@ -6784,7 +6144,7 @@ because the necessary fonts are not installed or if it's because of
 the absence of a window system. I'll check for the latter for now.
 
 #+NAME: pretty/symbols
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (when (display-graphic-p)
     (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
@@ -6792,17 +6152,16 @@ the absence of a window system. I'll check for the latter for now.
 *** Pretty Mode
 
 #+NAME: pretty/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pretty-mode
-    :hook
-  (emacs-lisp-mode . turn-on-pretty-mode)
-  (LaTeX-mode . turn-on-pretty-mode))
+  :hook
+  ((emacs-lisp-mode LaTeX-mode) . turn-on-pretty-mode))
 #+END_SRC
 
 *** Prettify Utilities
 
 #+NAME: pretty/utils
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package prettify-utils
   :straight (prettify-utils
              :host github
@@ -6813,38 +6172,8 @@ the absence of a window system. I'll check for the latter for now.
 #+END_SRC
 
 * Completion
-
-#+NAME: completion-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; candidates
-<<completion-candidates>> ;; end candidates
-;; snippets
-<<completion-snippets>> ;; end snippets
-;; minibuffer
-<<completion-minibuffer>> ;; end minibuffer
-#+END_SRC
-
 ** Candidates
-
-#+NAME: completion-candidates
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; company
-<<candidates/company>>
-;; prescient
-<<candidates/prescient>>
-#+END_SRC
-
 *** Company
-
-#+NAME: candidates/company
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; company mode
-<<company/mode>>
-;; Company quickhelp
-<<company/quickhelp>>
-;; Company box
-<<company/box>>
-#+END_SRC
 
 Emacs has two popular packages for code completion --
 [[https://github.com/auto-complete/auto-complete][autocomplete]] and [[https://github.com/company-mode/company-mode][company]]. This reddit [[https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode_vs_companymode_which_is_better/][thread]] was enough for
@@ -6861,7 +6190,7 @@ any reason for me reconsider my choice.
 **** company mode
 
 #+NAME: company/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company
   :commands global-company-mode
   :custom
@@ -6881,7 +6210,7 @@ any reason for me reconsider my choice.
 **** Company Tabnine :disabled:
 
 #+NAME: company/tabnine
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-tabnine
   :after (company)
   :demand t
@@ -6919,7 +6248,7 @@ any reason for me reconsider my choice.
 [[https://github.com/expez/company-quickhelp][Company Quick Help]] emulates =autocomplete= documentation-on-idle behavior, but using the less-buggy =pos-tip= package rather than =popup-el=.
 
 #+NAME: company/quickhelp
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-quickhelp
   :after (company)
   :commands (company-quickhelp-manual-begin)
@@ -6933,43 +6262,32 @@ any reason for me reconsider my choice.
 **** Company Box
 
 #+NAME: company/box
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-box
     :custom (company-box-enable-icon nil))
 #+END_SRC
 
 *** Prescient
-
-#+NAME: candidates/prescient
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; prescient.el
-<<prescient/mode>>
-;; company prescient
-<<prescient/company>>
-;; ivy prescient
-<<prescient/ivy>>
-#+END_SRC
-
 **** prescient.el
 
 Package ~prescient~ is a library for intelligent sorting and
 filtering in various contexts.
 
 #+NAME: prescient/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package prescient
   :config
   ;; Remember usage statistics across Emacs sessions.
   (prescient-persist-mode +1))
 #+END_SRC
 
-**** Company prescient
+**** company prescient
 
 Package ~company-prescient~ provides intelligent sorting and
 filtering for candidates in Company completions.
 
 #+NAME: prescient/company
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-prescient
   :after (:all prescient company)
   :demand t
@@ -6978,16 +6296,14 @@ filtering for candidates in Company completions.
   (company-prescient-mode +1))
 #+END_SRC
 
-**** Ivy prescient
+**** ivy prescient
 
 Package ~ivy-prescient~ provides intelligent sorting and filtering
 for candidates in Ivy menus.
 
 #+NAME: prescient/ivy
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ivy-prescient
-  :after (:all ivy prescient)
-  :demand t
   :init
   ;; Use `prescient' for Ivy menus.
   (ivy-prescient-mode +1))
@@ -6995,20 +6311,6 @@ for candidates in Ivy menus.
 #+END_SRC
 
 ** Snippets
-
-#+NAME: completion-snippets
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Yasnippet
-<<snippets-yasnippet>>
-;; autoinsert mode
-<<snippets-autoinsert>>
-;; auto yasnippet
-<<snippets-autoyas>>
-;; Code Library
-<<snippets-code-library>>
-
-#+END_SRC
-
 *** YASnippet
 
 [[https://github.com/joaotavora/yasnippet][YASnippet]] is a template system based off the TextMate snippet syntax.
@@ -7019,7 +6321,7 @@ After installation and enabling the package, add the personal snippets
 directory to the list of directories where YASnippet should look for snippets.
 
 #+NAME: snippets-yasnippet
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package yasnippet
     :bind
     (:map goto-map
@@ -7043,22 +6345,10 @@ directory to the list of directories where YASnippet should look for snippets.
         "C-c &" " YASnippet")))
 #+END_SRC
 
-YASnippet can also be used as a non-global minor mode on a per-buffer
-basis.
-
-Invoking ~yas-reload-all~ will load the snippet tables, and then
-calling ~yas-minor-mode~ from the major mode hooks will load the
-snippets corresponding to the major mode of the current buffer mode.
-
-#+BEGIN_EXAMPLE emacs-lisp
-(yas-reload-all)
-(add-hook 'prog-mode-hook #'yas-minor-mode)
-#+END_EXAMPLE
-
 *** Autoinsert
 
 #+NAME: snippets-autoinsert
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package autoinsert
   :init
   (defun autoinsert-yas-expand()
@@ -7076,14 +6366,14 @@ snippets corresponding to the major mode of the current buffer mode.
 *** Auto yasnippet
 
 #+NAME: snippets-autoyas
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package auto-yasnippet)
 #+END_SRC
 
 *** Code Library
 
 #+NAME: snippets-code-library
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package code-library
     :custom
     (code-library-directory (emacs-etc-dir "codelibrary"))
@@ -7093,17 +6383,17 @@ snippets corresponding to the major mode of the current buffer mode.
 ** Minibuffer
 
 #+NAME: completion-minibuffer
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Minibuffer Prompt Properties
-<<mb-prompt>>
+
 ;; Ivy Group
-<<mb-ivy>>
+
 ;; Counsel
-<<mb-counsel>>
+
 ;; Swiper
-<<mb-swiper>>
+
 ;; Omnibox
-<<mb-omnibox>>
+
 #+END_SRC
 
 *** Prompt Properties
@@ -7113,34 +6403,12 @@ Don't let the cursor go into the minibuffer prompt.
 From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html][emacs-stop-cursor-enter-prompt]], found in the [[https://github.com/syl20bnr/spacemacs/blob/bd7ef98e4c35fd87538dd2a81356cc83f5fd02f3/layers/%2Bdistributions/spacemacs-base/config.el#L128-L131][config.el]] file of the spacemacs base layer.
 
 #+NAME: mb-prompt
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq minibuffer-prompt-properties
       '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
 #+END_SRC
 
 *** Ivy
-
-#+NAME: mb-ivy
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Ivy
-<<ivy/mode>>
-;; ivy hydra
-<<ivy/hydra>>
-;; ivy rtags
-<<ivy/rtags>>
-;; Ivy Xref
-<<ivy/xref>>
-;; Ivy Todo
-<<ivy/todo>>
-;; Ivy rich
-<<ivy/rich>>
-;; Ivy pages
-<<ivy/pages>>
-;; Ivy Prescient
-<<ivy/prescient>>
-;; Ivy posframe
-<<ivy/posframe>>
-#+END_SRC
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
 as helm.
@@ -7153,7 +6421,7 @@ if not better.
 I prefer the default regex matcher, but if you want fuzzy matching as a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
 
 #+NAME: ivy/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ivy
   :bind (("C-c C-r" . ivy-resume))
   :init
@@ -7164,7 +6432,8 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
   (ivy-sort-max-size 50000)
   (ivy-re-builders-alist
    '((swiper . ivy--regex-plus)
-     (t      . ivy--regex-fuzzy)))
+     (read-file-name-internal . ivy--regex-fuzzy)
+     (t . ivy--regex-ignore-order)))
   (ivy-use-selectable-prompt nil))
 #+END_SRC
 
@@ -7174,7 +6443,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 :END:
 
 #+NAME: ivy/hydra
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ivy-hydra
   :after (hydra)
   :demand t)
@@ -7186,7 +6455,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 :END:
 
 #+NAME: ivy/rtags
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ivy-rtags
   :after (rtags)
   :init
@@ -7197,7 +6466,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 **** Ivy xref
 
 #+NAME: ivy/xref
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ivy-xref
     :init
   (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
@@ -7206,7 +6475,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 **** Ivy todos
 
 #+NAME: ivy/todo
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
   (use-package ivy-todo
     :custom
@@ -7218,17 +6487,62 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 **** Ivy rich
 
 #+NAME: ivy/rich
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package ivy-rich
-    :config
-    (ivy-rich-mode 1)
-    (setq ivy-rich-path-style 'abbrev))
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-rich
+  :after (counsel)
+  :demand t
+  :preface
+  (defun ivy-rich-switch-buffer-icon (candidate)
+    "Use `all-the-icons' icons in buffer list."
+    (with-current-buffer
+        (get-buffer candidate)
+      (let ((icon (all-the-icons-icon-for-mode major-mode)))
+        (if (symbolp icon)
+            (all-the-icons-icon-for-mode 'fundamental-mode)
+          icon))))
+
+  :init
+  (ivy-rich-mode 1)
+  :custom
+  (ivy-rich--display-transformers-list
+   '(ivy-switch-buffer
+     (:columns
+      ((ivy-rich-switch-buffer-icon :width 2)
+       (ivy-rich-candidate (:width 30))
+       (ivy-rich-switch-buffer-size (:width 7))
+       (ivy-rich-switch-buffer-indicators
+        (:width 4 :face error :align right))
+       (ivy-rich-switch-buffer-major-mode
+        (:width 12 :face warning))
+       (ivy-rich-switch-buffer-project (:width 15 :face success))
+       (ivy-rich-switch-buffer-path
+        (:width (lambda (x)
+                  (ivy-rich-switch-buffer-shorten-path
+                   x (ivy-rich-minibuffer-width 0.3))))))
+      :predicate
+      (lambda (cand) (get-buffer cand)))
+     counsel-M-x
+     (:columns
+      ((counsel-M-x-transformer (:width 40))
+       (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))
+     counsel-describe-function
+     (:columns
+      ((counsel-describe-function-transformer (:width 40))
+       (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))
+     counsel-describe-variable
+     (:columns
+      ((counsel-describe-variable-transformer (:width 40))
+       (ivy-rich-counsel-variable-docstring (:face font-lock-doc-face))))
+     counsel-recentf
+     (:columns
+      ((ivy-rich-candidate (:width 0.8))
+       (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))))))
 #+END_SRC
 
 **** Ivy pages
 
 #+NAME: ivy/pages
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package ivy-pages
     :after (ivy))
 #+END_SRC
@@ -7236,36 +6550,45 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 **** Ivy Posframe
 
 #+NAME: ivy/posframe
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ivy-posframe)
+#+END_SRC
+
+**** Ivy yasnippet
+:PROPERTIES:
+:ID:       FC448B14-3574-43EB-B7A7-1777E6507C58
+END:
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-yasnippet)
 #+END_SRC
 
 *** Counsel
 
 #+NAME: mb-counsel
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; counsel mode
-<<counsel/mode>>
+
 ;; Counsel Projectile
-<<counsel/projectile>>
+
 ;; Counsel Gtags
-<<counsel/ggtags>>
+
 ;; Counsel iTunes
-<<counsel/itunes>>
+
 ;; Counsel spotify
-<<counsel/spotify>>
+
 ;; Counsel Dash
-<<counsel/dash>>
+
 ;; Counsel Tramp
-<<counsel/tramp>>
+
 ;; Counsel Code Search
-<<counsel/codesearch>>
+
 #+END_SRC
 
 **** counsel mode
 
 #+NAME: counsel/mode
-#+BEGIN_SRC emacs-lisp :noweb no :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package counsel
     :bind (("<f2> u" . counsel-unicode-char)
            ("<f1> l" . counsel-find-library)
@@ -7286,7 +6609,9 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
     :config
     (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
     (setq counsel-mode-override-describe-bindings t)
-
+    (when (featurep 'helpful)
+      (setq counsel-describe-variable-function #'helpful-variable)
+      (setq counsel-describe-function-function #'helpful-callable))
     :blackout t)
 
 #+END_SRC
@@ -7297,7 +6622,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 friends.
 
 #+NAME: counsel/projectile
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-projectile
     :after (:all projectile counsel)
     :demand t
@@ -7310,7 +6635,7 @@ friends.
 **** counsel Gtags
 
 #+NAME: counsel/ggtags
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-gtags
   :custom
 	(counsel-gtags-ignore-case t)
@@ -7322,7 +6647,7 @@ friends.
 **** counsel iTunes
 
 #+NAME: counsel/itunes
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-itunes
   :if (executable-find "osascript")
   :straight
@@ -7341,7 +6666,7 @@ friends.
 **** counsel Spotify
 
 #+NAME: counsel/spotify
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-spotify
   :straight t)
 #+END_SRC
@@ -7357,7 +6682,7 @@ your system, and would like to open docsets natively in the Dash
 documentation browser.
 
 #+NAME: counsel/dash
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package counsel-dash
     :after (:all counsel)
     :if (eq system-type 'darwin)
@@ -7369,7 +6694,7 @@ documentation browser.
 **** counsel Codesearch
 
 #+NAME: counsel/codesearch
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-codesearch
     :requires codesearch)
 #+END_SRC
@@ -7377,7 +6702,7 @@ documentation browser.
 **** counsel Tramp
 
 #+NAME: counsel/tramp
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-tramp
   :after (counsel)
   :init
@@ -7392,7 +6717,7 @@ documentation browser.
 *** Swiper
 
 #+NAME: mb-swiper
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package swiper
     :custom
     (enable-recursive-minibuffers t)
@@ -7406,7 +6731,7 @@ documentation browser.
 *** Omnibox
 
 #+NAME: mb-omnibox
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 ;; Omnibox
 (use-package omnibox
   :commands omnibox-M-x
@@ -7415,33 +6740,10 @@ documentation browser.
 #+END_SRC
 
 * Shell
-
-#+NAME: core/sh
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; ansi-color
-<<sh/ansi>>
-;; eshell
-<<sh/eshell>>
-;; shell
-<<sh/shell>>
-;; term
-<<sh/term>>;
-;; multi-term
-<<sh/multiterm>>
-;; xterm color
-<<sh/xtcolor>>
-;; shell pop
-<<sh/pop>>
-;;with editor
-<<sh/witheditor>>
-;; remote connections
-<<sh/remote>>
-#+END_SRC
-
 ** Ansi Color
 
 #+NAME: sh/ansi
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ansi-color
   :init
   (defun colorize-compilation-buffer ()
@@ -7462,23 +6764,10 @@ documentation browser.
 #+END_SRC
 
 ** Eshell
-
-#+NAME: sh/eshell
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; M-x eshell
-<<esh/eshell>>
-;; pretty eshell
-<<esh/pretty>>
-;; eshell-bookmark
-<<esh/bmk>>
-;; eshell-z
-<<esh/z>>
-#+END_SRC
-
 *** M-x eshell
 
 #+NAME: esh/eshell
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package eshell
   :custom
   (pcomplete-cycle-completions nil)
@@ -7540,7 +6829,7 @@ windows. Additionally, modify company backends in the local buffer."
 From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs display layer]].
 
 #+NAME: esh/pretty
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pretty-eshell
   :if (and (featurep 'no-littering)
          (file-exists-p
@@ -7599,7 +6888,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 *** eshell bookmark
 
 #+NAME: esh/bmk
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package eshell-bookmark
   :hook
   (eshell-mode . eshell-bookmark-setup))
@@ -7608,14 +6897,14 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 *** eshell-z
 
 #+NAME: esh/z
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package eshell-z)
 #+END_SRC
 
 ** M-x shell
 
 #+NAME: sh/shell
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package shell
   :init
 
@@ -7659,7 +6948,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 ** Term
 
 #+NAME: sh/term
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package term
   :init
   (defun term-send-tab ()
@@ -7687,7 +6976,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 ** Multi Term
 
 #+NAME: sh/multiterm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package multi-term
   :after (term)
   :init
@@ -7703,7 +6992,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 ** xterm color
 
 #+NAME: sh/xtcolor
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
  (use-package xterm-color
      :init
      ;; Comint and Shell
@@ -7729,7 +7018,7 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 ** Shell Pop
 
 #+NAME: sh/pop
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package shell-pop
   :custom
   (shell-pop-window-position 'bottom)
@@ -7778,29 +7067,17 @@ SHELL is the SHELL function to use (i.e. when FUNC represents a terminal)."
 ** With Editor
 
 #+NAME: sh/witheditor
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package with-editor
   :hook
   ((shell-mode term-exec eshell-mode) . with-editor-export-editor))
 #+END_SRC
 
 ** Remote
-
-#+NAME: sh/remote
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; ssh
-<<remote/ssh>>
-;; scp
-<<remote/scp>>
-;; tramp
-<<remote/tramp>>
-;; anything tramp
-#+END_SRC
-
 *** SSH
 
 #+NAME: remote/ssh
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ssh
   :init
   (defun ssh/enable-path-completion ()
@@ -7817,7 +7094,7 @@ over ssh."
 *** SCP
 
 #+NAME: remote/scp
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package scp
   :preface
   (setq enable-local-variables :all enable-local-eval t)
@@ -7848,7 +7125,7 @@ directory local variables."
 *** Tramp
 
 #+NAME: remote/tramp
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package tramp
   :custom
   ;; use ssh by default
@@ -7857,40 +7134,11 @@ directory local variables."
 #+END_SRC
 
 * Web
-
-#+NAME: web-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Web Libraries
-<<web/lib>>
-;; Browser
-<<web-browser>>
-;; Email
-<<web-email>>
-#+END_SRC
-
 ** Web Libraries
-
-#+NAME: web/lib
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Simple httpd
-<<lib/httpd>>
-;; Web Socket
-<<lib/websocket>>
-;; UUID
-<<lib/uuid>>
-;; Web Server
-<<lib/webserver>>
-;; Request
-<<lib/request>>
-;; Oauth2
-<<lib/oauth2>>
-#+END_SRC
-
-
 *** Simple httpd
 
 #+NAME: lib/httpd
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package simple-httpd
     :straight (simple-httpd
                :type git
@@ -7902,62 +7150,45 @@ directory local variables."
 *** WebSocket
 
 #+NAME: lib/websocket
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package websocket)
 #+END_SRC
 
 *** UUID
 
 #+NAME: lib/uuid
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package uuid)
 #+END_SRC
 
 *** Web Server
 
 #+NAME: lib/webserver
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package web-server)
 #+END_SRC
 
 *** Request
 
 #+NAME: lib/request
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package request)
 #+END_SRC
 
 *** OAuth
 
 #+NAME: lib/oauth2
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package oauth2)
 #+END_SRC
 
 ** Browsing
-
-#+NAME: web/browser
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; browse url
-<<browser/url>>
-;; osx-browse
-<<browser/macos>>
-;; google
-<<browser/google>>
-<<browser/search>>
-<<browser/org-advise>>
-<<browser/gitremote>>
-;;
-<<browser/default>>
-<<browser/engine>>
-#+END_SRC
-
 *** Browse url
 
 - [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
 
 #+NAME: browser/url
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package browse-url
     :custom (browse-url-chromium-program
              (if (eq system-type 'darwin)
@@ -7976,7 +7207,7 @@ The =osx-browse= library provides several useful commands for using the
 Google Chrome, Safari, and Firefox web browsers on macOS.
 
 #+NAME: browser/macos
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package osx-browse
   :if (eq system-type 'darwin)
   :defines (osx-browse-mode osx-browse-mode-map)
@@ -7989,7 +7220,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 *** Google search
 
 #+NAME: browser/google
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package google-this
   :init
   (google-this-mode 1))
@@ -7998,7 +7229,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 *** Search Web
 
 #+NAME: browser/search
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package search-web)
 #+END_SRC
 
@@ -8007,7 +7238,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 Interactively.
 
 #+NAME: browser/default
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defvar browse-url-browser-alist
       '(("chrome" . browse-url-chrome)
         ("firefox" . browse-url-firefox)
@@ -8046,7 +7277,7 @@ Interactively.
 *** Engine Mode
 
 #+NAME: browser/engine
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package engine-mode
   :init
   (engine-mode t)
@@ -8141,21 +7372,10 @@ Interactively.
 #+END_SRC
 
 ** Email
-
-#+NAME: web-email
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Offline imap
-<<mail/imap>>
-;; Mu
-<<mail/mu>>
-;; Org Mime
-<<mail/mime>>
-#+END_SRC
-
 *** Org Mime
 
 #+NAME: mail/mime
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-mime
   :config
   (setq org-mime-export-options
@@ -8187,26 +7407,15 @@ Interactively.
 *** Offlineimap
 
 #+NAME: mail/imap
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package offlineimap)
 #+END_SRC
 
 *** Mu
-
-#+NAME: mail/mu
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Mu4e
-<<mu-mu4e>>
-;; Mu4e Alert
-<<mu-alert>>
-;; Mu4e Maildirs extension
-<<mu-maildirs>>
-#+END_SRC
-
 **** Mu4e
 
 #+NAME: mu-mu4e
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package mu4e
       :straight nil
       :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
@@ -8343,7 +7552,7 @@ Interactively.
 **** Mu Notifications
 
 #+NAME: mu-alert
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package mu4e-alert
     :config
     (mu4e-alert-enable-notifications)
@@ -8353,7 +7562,7 @@ Interactively.
 **** mu4e maildirs extension
 
 #+NAME: mu-maildirs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package mu4e-maildirs-extension
     :after (mu4e)
     :init
@@ -8361,46 +7570,16 @@ Interactively.
 #+END_SRC
 
 * Prose
-
-#+NAME: prose-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Spellcheck
-<<prose/spellcheck>>
-;; Completion
-<<prose/completion>>
-;; Notes
-<<prose/notes>>
-;; Readview
-<<prose/readview>>
-#+END_SRC
-
 ** Spelling and Grammar
 
-#+NAME: prose/spellcheck
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Flyspell
-<<sc-flyspell>>
-;; Langtool
-<<sc-langtool>>
-;; Academic
-<<sc-academic>>
-;; Proselint
-<<sc-proselint>>
-#+END_SRC
 
 Tools for checking lexical and grammatical errors in text
 buffers[fn:17].
 
 *** Flyspell
 
-#+NAME: sc-flyspell
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-<<flyspell-base>>
-<<flyspell-correct-config>>
-#+END_SRC
-
 #+NAME: flyspell-base
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package flyspell
     :init
     (with-eval-after-load 'org
@@ -8416,7 +7595,7 @@ buffers[fn:17].
 **** Flyspell Correct
 
 #+NAME: flyspell-correct-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package flyspell-correct-ivy
     :after (:all flyspell ivy)
     :demand t
@@ -8430,7 +7609,7 @@ LanguageTool is a Java plugin which provides style and grammar
 checking for natural language.
 
 #+NAME: sc-langtool
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package langtool
   :if (eq system-type 'darwin)
   :after (flyspell)
@@ -8456,14 +7635,14 @@ checking for natural language.
 *** Academic Phrases
 
 #+NAME: sc-academic
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package academic-phrases)
 #+END_SRC
 
 *** Proselint
 
 #+NAME: sc-proselint
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (with-eval-after-load 'flycheck
     (flycheck-define-checker proselint
                              "A linter for prose."
@@ -8479,18 +7658,10 @@ checking for natural language.
 
 ** Text Completion
 
-#+NAME: prose/completion
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Company Dictionary
-<<completion/company-dict>>
-;; Dictionary.el
-<<completion/dictionary-el>>
-#+END_SRC
-
 *** Company Dict
 
 #+NAME: completion/company-dict
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-dict
   :after (company)
   :demand t
@@ -8512,7 +7683,7 @@ dictionary server to lookup words. What it lacks in bells and
 whistles, it makes up for in compatibility and hackability [fn:18].
 
 #+NAME: completion/dictionary-el
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package dictionary
   :commands (dictionary-lookup-definition)
   :init
@@ -8520,23 +7691,12 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 #+END_SRC
 
 ** Taking Notes
-
-#+NAME: prose/notes
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Deft
-<<notes/deft>>
-;; Lorem Ipsum
-<<notes/lorem-ipsum>>
-;; Org Velocity
-<<notes/veocity>>
-#+END_SRC
-
 *** Deft
 
 [[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
 
 #+NAME: notes/deft
-#+BEGIN_SRC emacs-lisp :tangle no :comments org
+#+BEGIN_SRC emacs-lisp
 (use-package deft
   :if (eq system-type 'darwin)
   :bind ("C-x C-n" . deft)
@@ -8548,13 +7708,12 @@ whistles, it makes up for in compatibility and hackability [fn:18].
   (deft-default-extension "org"))
 #+END_SRC
 
-
 *** Org OneNote
 
 Work account is for office portal, not a Microsoft account. I need integration or authorization via office.
 
 #+NAME: cloud-onenote
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-onenote
   :init
   (require 'secrets)
@@ -8566,7 +7725,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Lorem Ipsum
 
 #+NAME: notes/lorem-ipsum
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package lorem-ipsum
   :straight t)
 #+END_SRC
@@ -8574,7 +7733,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Org Velocity
 
 #+NAME: notes/velocity
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package org-velocity
     :straight org
     :bind
@@ -8587,37 +7746,22 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+END_SRC
 
 ** Writing mode
-
-#+NAME: prose-writing
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Olivetti Mode
-<<writing-olivetti>>
-;; Writeroom Mode
-<<writing-writeroom>>
-;: Org Variable Pitch Face Font
-<<writing-variable-pitch>>
-;; Typo Mode
-<<writing-typo>>
-;; Write good mode
-<<writing-writegood>>
-#+END_SRC
-
 *** Typo Mode
 #+NAME: writing-typo
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
  (use-package typo)
 #+END_SRC
 
 *** Writegood
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
  (use-package writegood-mode)
 #+END_SRC
 
 *** Variable Pitch
 
 #+NAME: writing-variable-pitch
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defcustom halidom-org-fixed-pitch-faces
   '(org-table
     org-code
@@ -8670,7 +7814,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Olivetti
 
 #+NAME:  writing-olivetti
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (use-package olivetti
   :init
@@ -8686,7 +7830,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Writeroom
 
 #+NAME: writing-writeroom
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package writeroom-mode
     :config
     (defun halidom/writeroom-mode-hook ()
@@ -8696,25 +7840,10 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+END_SRC
 
 ** Reading and viewing
-
-#+NAME: prose/readview
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Justify Kp
-<<readview-justify>>
-;; Nov
-<<readview-epub>>
-;; Visual Fill Column
-<<readview-fc>>
-;; Fill Column Indicator
-<<readview-fc-indicator>>
-;; Adaptive Wrap
-<<readview-adaptive-wrap>>
-#+END_SRC
-
 *** Justify Kp
 
 #+NAME: readview-justify
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package justify-kp
   :straight (:host github
                    :repo "Fuco1/justify-kp"))
@@ -8725,7 +7854,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 [[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
 
 #+NAME: readview-epub
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package nov
   :mode (("\\.epub\\'" . nov-mode))
   :config
@@ -8773,7 +7902,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Visual Fill Column
 
 #+NAME: readview-fc
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package visual-fill-column
     :commands (visual-fill-column-mode)
     :init
@@ -8797,7 +7926,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Fill Column Indicator
 
 #+NAME: readview-fc-indicator
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package fill-column-indicator
   :init
   (setq fci-rule-use-dashes nil))
@@ -8806,7 +7935,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Adaptive Wrap
 
 #+NAME: readview-adaptive-wrap
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package adaptive-wrap
   :straight t)
 #+END_SRC
@@ -8816,7 +7945,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 Artist mode is a built-in Emacs package.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package artist-mode
   :straight nil
   :bind ((:map artist-mode-map
@@ -8826,15 +7955,15 @@ Artist mode is a built-in Emacs package.
 *** UML Diagrams
 
 #+NAME: uml-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-<<uml-ditaa>>
-<<uml-plantuml>>
+#+BEGIN_SRC emacs-lisp
+
+
 #+END_SRC
 
 **** Ditaa
 
 #+NAME: uml-ditaa
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (when (and (eq system-type 'darwin)
            (executable-find "brew")
@@ -8850,7 +7979,7 @@ Artist mode is a built-in Emacs package.
 **** PlantUML
 
 #+NAME: uml-plantuml
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package plantuml-mode
   :if (executable-find "plantuml")
   :defines (org-plantuml-jar-path plantuml-jar-path)
@@ -8868,7 +7997,7 @@ Artist mode is a built-in Emacs package.
 
 *** Graphviz
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package graphviz-dot-mode
   :if (executable-find "dot")
   :mode "\\.dot\\'"
@@ -8902,7 +8031,7 @@ This library needs to allow setting transfer protocol on the user
 end. It's hardcoded to use port 80. HTTP doesn't really work on my
 school's WLAN.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 
 (use-package thesaurus
   :config
@@ -8915,23 +8044,10 @@ school's WLAN.
 
 * Code
 ** LSP
-
-#+NAME: lsp-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; LSP Mode
-<<lsp/mode>>
-;; LSP imenu
-<<lsp/imenu>>
-;; LSP UI Mode
-<<lsp/ui>>
-;; Company LSP
-<<lsp/company>>
-#+END_SRC
-
 *** LSP Mode
 
 #+NAME: lsp/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :custom
   (lsp-prefer-flymake nil)
@@ -8945,7 +8061,7 @@ school's WLAN.
 *** LSP UI Mode
 
 #+NAME: lsp/ui
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package lsp-ui)
 
 (use-package lsp-ui-peek
@@ -8959,7 +8075,7 @@ school's WLAN.
 *** Company LSP
 
 #+NAME: lsp/company
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package company-lsp
     :after company
     :demand t
@@ -8977,7 +8093,7 @@ school's WLAN.
 :END:
 
 #+NAME: dap/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package dap-mode
   :after lsp-mode
   :demand t
@@ -8989,7 +8105,7 @@ school's WLAN.
 ** Flycheck
 
 #+NAME: flycheck-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (use-package flycheck
       :custom
       (flycheck-global-modes nil)
@@ -9026,19 +8142,10 @@ school's WLAN.
 
 ** Code Style
 *** Default
-
-#+NAME: code/default
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Disable Tabs
-<<default/notabs>>
-;; Display line numbers
-<<default/linenos>>
-#+END_SRC
-
 **** Disable tabs
 
 #+NAME: default/notabs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (setq-default tab-width 2
               indent-tabs-mode nil)
 #+END_SRC
@@ -9046,7 +8153,7 @@ school's WLAN.
 **** Display Line Numbers
 
 #+NAME: default/linenos
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   ; Line Numbering
   (when (>= emacs-major-version 26)
     (add-hook 'prog-mode-hook #'display-line-numbers-mode))
@@ -9056,33 +8163,33 @@ school's WLAN.
 *** Hy mode
 
 #+NAME: code/hy
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package hy-mode)
 #+END_SRC
 
 *** Highlight Indentation
 
 #+NAME: code/indent
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Highlight indent guides
-<<hli/guides>>
+
 ;; Highlight Indentation
-<<hli/indentation>>
+
 ;; Visual Indentation
-<<hli/visual>>
+
 #+END_SRC
 
 **** Highlight indent guide mode
 
 #+NAME: hli/guides
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package highlight-indent-guides)
 #+END_SRC
 
 **** Highlight indentation
 
 #+NAME: hli/indentation
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package highlight-indentation)
 
 #+END_SRC
@@ -9090,35 +8197,22 @@ school's WLAN.
 **** Visual indentation
 
 #+NAME: hli/visual
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package visual-indentation-mode)
 #+END_SRC
 
 *** Symbol Highlighting
-
-#+NAME: symbol-hl
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Overlay Highlight
-<<hl-ov>>
-;; Highlight Sexp
-<<hl-hl-sexp>>
-;; Highlight Todos
-<<hl-hl-todo>>
-;; Highlight Symbol
-<<hl-highlight-symbol>>
-#+END_SRC
-
-**** Highlight :disabled:
+**** Highlight
 
 #+NAME: hl-highlight
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package highlight)
 #+END_SRC
 
 **** Overlay Highlight
 
 #+NAME: hl-ov
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ov-highlight
   :straight (ov-highlight
              :host github
@@ -9136,7 +8230,7 @@ school's WLAN.
 Minor mode to highlight sexp.
 
 #+NAME: hl-hl-sexp
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package highlight-sexp
   :straight t)
 #+END_SRC
@@ -9146,7 +8240,7 @@ Minor mode to highlight sexp.
 Highlight =TODO= keywords:
 
 #+NAME: hl-hl-todo
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package hl-todo
   :commands (hl-todo-mode)
   :config
@@ -9156,26 +8250,26 @@ Highlight =TODO= keywords:
 **** Highlight Symbol
 
 #+NAME: hl-highlight-symbol
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package highlight-symbol)
 #+END_SRC
 
 *** Code Folding
 
 #+NAME: code/fold
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Origami
-<<fold/origami>>
+
 ;; Hideshow
-<<fold/hs>>
+
 ;; Hideshowvis
-<<fold/hsvis>>
+
 #+END_SRC
 
 **** Origami
 
 #+NAME: fold/origami
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package origami
   :requires (dash s)
   :init
@@ -9185,7 +8279,7 @@ Highlight =TODO= keywords:
 **** Hideshow
 
 #+NAME: fold/hs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package hideshow
   :straight nil)
 #+END_SRC
@@ -9193,7 +8287,7 @@ Highlight =TODO= keywords:
 **** Hideshowvis
 
 #+NAME: fold/hsvis
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package vimish-fold
     :init
   (vimish-fold-global-mode 1))
@@ -9227,7 +8321,7 @@ Highlight =TODO= keywords:
 
 *** Editorconfig
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 ;; Editorconfig
 (use-package editorconfig
   :if (executable-find "editorconfig")
@@ -9237,7 +8331,7 @@ Highlight =TODO= keywords:
 *** Google C Style
 
 #+NAME: google-c-styleguide
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package google-c-style
   :straight
   (google-c-style
@@ -9256,13 +8350,13 @@ Highlight =TODO= keywords:
 *** Code Formatting
 
 #+NAME: tools-code-format
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package format-all)
 #+END_SRC
 
 ** Eldoc
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package eldoc
   :config
   (when (fboundp 'paredit)
@@ -9281,7 +8375,7 @@ block of the programming language is easier to follow and
 offers more meaningful semantics.
 
 #+NAME: pairs/paredit
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package paredit
   :config
   (progn
@@ -9300,75 +8394,102 @@ unmatched pairs is less comparable to searching for a needle in a
 haystack, =smartparens= are a great productivity tool.
 
 #+NAME: smartparens-config
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package smartparens
+  :custom-face
+  (sp-show-pair-match-face
+   ((t (:underline
+        (:color foreground-color :style line)
+        :inherit (show-paren-match)))))
+  :commands (sp-split-sexp sp-newline sp-up-sexp)
+  :custom
+  (sp-show-pair-delay
+   (or (bound-and-true-p sp-show-pair-delay) 0.2))
+  (sp-show-pair-from-inside t)
+  (sp-highlight-pair-overlay nil)
+  (sp-highlight-wrap-overlay nil)
+  (sp-highlight-wrap-tag-overlay nil)
   :init
-  (progn
-    (require 'smartparens-config)
-    (smartparens-global-mode)
+  (defun smartparens-pair-newline (id action context)
+    (save-excursion
+      (newline)
+      (indent-according-to-mode)))
 
-    (defun sp-wrap-inline-math ()
-      "Wrap marked region as ordinary LaTeX inline math mode."
-      (interactive)
-      (sp-wrap-with-pair "$"))
+  (defun smartparens-pair-newline-and-indent (id action context)
+    (smartparens-pair-newline id action context)
+    (indent-according-to-mode))
 
-    (defun disable-smartparens ()
+  (defun conditionally-enable-smartparens-mode ()
+    "enable `smartparens-mode' in the minibuffer, during `eval-expression'."
+    (if (eq this-command 'eval-expression)
+        (smartparens-mode)))
+
+
+  (defun smartparens-adaptive-overlay-face ()
+    (set-face-attribute 'sp-pair-overlay-face nil
+                      :inherit 'lazy-highlight
+                      :background nil
+                      :foreground nil))
+
+
+  (defun sp-wrap-inline-math ()
+    "Wrap marked region as ordinary LaTeX inline math mode."
+    (interactive)
+    (sp-wrap-with-pair "$"))
+
+  (defun disable-smartparens ()
       "Disable smartparens when `paredit-mode' is enabled."
-      (smartparens-mode -1))
+    (smartparens-mode -1))
 
-    (when (fboundp 'paredit-mode)
-      (add-hook 'paredit-mode-hook #'disable-smartparens))))
+  :config
+  (require 'smartparens-config)
+
+  ;; enable globally
+  (show-smartparens-global-mode +1)
+
+  (smartparens-adaptive-overlay-face)
+
+  (when (featurep 'paredit)
+    (add-hook 'paredit-mode-hook #'disable-smartparens))
+
+  (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
+
+  (sp-pair "{" nil :post-handlers
+           '(:add (smartparens-pair-newline-and-indent "RET")))
+  (sp-pair "[" nil :post-handlers
+           '(:add (smartparens-pair-newline-and-indent "RET"))))
 #+END_SRC
 
 *** Rainbow Delimiters
 
 #+NAME: pair/rainbow
-#+BEGIN_SRC emacs-lisp :tangle yes
-(use-package rainbow-delimiters
-  :init
-  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-delimiters)
 #+END_SRC
 
 *** Parinfer
 
 Disabling for now.
 
-#+NAME: parinfer-config
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-; Lispy
-<<lispy-config>>
-;; parinfer
-<<parinfer-base>>
-#+END_SRC
-
-#+NAME: parinfer-base
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package parinfer
   :bind
   (("C-," . parinfer-toggle-mode))
-  :init
-  (progn
-    (setq parinfer-extensions
-          '(defaults       ; should be included.
-             pretty-parens  ; different paren styles for different modes.
-             ;; evil           ; If you use Evil.
-             lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
-             paredit        ; Introduce some paredit commands.
-             smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
-             smart-yank))   ; Yank behavior depend on mode.
-    (add-hook 'clojure-mode-hook #'parinfer-mode)
-    (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'common-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'scheme-mode-hook #'parinfer-mode)
-    (add-hook 'lisp-mode-hook #'parinfer-mode)))
+  :custom
+  (parinfer-extensions
+   '(defaults smart-yank pretty-parens paredit)))
+
 #+END_SRC
 
 ***** Lispy
 
 #+NAME: lispy-config
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package lispy
-  :defer t)
+  :config
+  (when (functionp 'lispy-set-key-theme)
+    (lispy-set-key-theme '(special paredit c-digits))))
+
 #+END_SRC
 
 *** Gtags
@@ -9377,58 +8498,27 @@ Disabling for now.
 :END:
 
 #+NAME: ggtags-spec
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package ggtags
   :if (and (getenv "GTAGSLABEL") (executable-find "global"))
   :custom (ggtags-highlight-tag nil))
 #+END_SRC
 
 ** Version Control
-
-#+NAME: code/vcs
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; ediff
-<<vcs/ediff>>
-;; Git
-<<vcs/git>>
-;; Mercurial
-<<vcs/hg>>
-;; browse-at-remote
-<<vcs/remote>>
-#+END_SRC
-
-
 *** Ediff
 
 #+NAME: vcs/ediff
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ediff
   :custom
   (ediff-diff-options "-w"))
 #+END_SRC
 
 *** Git
-
-#+NAME: vcs/git
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Git Modes
-<<git/modes>>
-;; Magit
-<<git/magit>>
-;; Gist
-<<git/gist>>
-;; Git Timemachine
-<<git/timemachine>>
-;; Git Messenger
-<<git/messenger>>
-;; Git Gutter
-<<git/gutter>>
-#+END_SRC
-
 **** git modes
 
 #+NAME: git/modes
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package git-modes
   :straight t
   :mode (".projectile\\'" . gitignore-mode))
@@ -9440,19 +8530,6 @@ Disabling for now.
 :CUSTOM_ID: magit
 :END:
 
-#+NAME: git/magit
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Magit mode
-<<magit/mode>>
-;; Magithub
-<<magit/hub>>
-;; Orgit
-<<magit/orgit>>
-;; Topgit
-<<magit/topgit>>
-;; Stgit
-<<magit/stgit>>
-#+END_SRC
 
 [[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
 git itself.
@@ -9468,7 +8545,7 @@ As a git client though, magit is awesome.
 ***** magit mode
 
 #+NAME: magit/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package magit
   :defines (magit-mode-hook)
   :bind
@@ -9493,18 +8570,17 @@ As a git client though, magit is awesome.
 
 #+END_SRC
 
-
 ***** Magit topgit
 
 To configure:
 
-#+BEGIN_EXAMPLE shell :tangle no
+#+BEGIN_EXAMPLE shell
 git config --global --add magit.extension topgit
 #+END_EXAMPLE
 
 
 #+NAME: magit/topgit
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package magit-topgit
   :ensure-system-package tg
   :demand t
@@ -9518,12 +8594,12 @@ git config --global --add magit.extension topgit
 
 To configure:
 
-#+BEGIN_SRC shell :tangle no
+#+BEGIN_SRC shell
 git config --global --add magit.extension stgit
 #+END_SRC
 
 #+NAME: magit/stgit
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package magit-stgit
   :ensure-system-package stg
   :after (magit)
@@ -9537,7 +8613,7 @@ git config --global --add magit.extension stgit
 [[https://github.com/vermiculus/github][Magithub]] offers an interface to github to complement magit.
 
 #+NAME: magit/hub
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package magithub
   :after (magit)
   :commands magithub-dispatch-popup
@@ -9553,7 +8629,7 @@ git config --global --add magit.extension stgit
 Insert Org links to magit buffers.
 
 #+NAME: magit/orgit
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package orgit)
 #+END_SRC
 
@@ -9565,7 +8641,7 @@ Emacs integration for gist.github.com.
 optionally ~user~ and ~repo~ scopes.
 
 #+NAME: git/gist
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package gist
   :bind
   (("C-c C-g l" . gist-list)
@@ -9587,7 +8663,7 @@ optionally ~user~ and ~repo~ scopes.
 Travel back in time (to your last commit).
 
 #+NAME: git/timemachine
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package git-timemachine
   :bind
   ("C-c v t" . git-timemachine-toggle)
@@ -9602,26 +8678,17 @@ Travel back in time (to your last commit).
 Pop-up feature for viewing the last git commit.
 
 #+NAME: git/messenger
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package git-messenger
   :bind
   ("C-c C-v m" . git-messenger:popup-message))
 #+END_SRC
 
 **** Git Gutter
-
-#+NAME: git/gutter
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; git-gutter+
-<<gutter/+>>
-;; git-gutter-fringe+
-<<gutter/fringe+>>
-#+END_SRC
-
 ***** git gutter+
 
 #+NAME: gutter/+
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package git-gutter+
   :custom
   (git-gutter+-disabled-modes '(image-mode org-mode))
@@ -9632,29 +8699,20 @@ Pop-up feature for viewing the last git commit.
 ***** git gutter fringe+
 
 #+NAME:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package git-gutter-fringe+
   :hook
   (org-mode . git-gutter-fr+-minimal))
 #+END_SRC
 
 *** Mercurial
-
-#+NAME: vcs/hg
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; hg-monky
-<<hg/monky>>
-;; hg-ahg
-<<hg/ahg>>
-#+END_SRC
-
 **** Monky
 
 Monky provides an interactive interface for mercurial. It's
 essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 #+NAME: hg/monky
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package monky
   :custom
   (monky-process-type 'cmdserver))
@@ -9663,7 +8721,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 **** ahg
 
 #+NAME: hg/ahg
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ahg)
 #+END_SRC
 
@@ -9673,7 +8731,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 :END:
 
 #+NAME: vcs/remote
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package browse-at-remote
   :init
   (if (eq system-type 'darwin)
@@ -9682,40 +8740,31 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 #+END_SRC
 
 ** DevOps
-
-#+NAME: code/devops
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Docker
-<<devops/docker>>
-;; AWS
-<<devops/aws>>
-#+END_SRC
-
 *** Docker
 
 #+NAME: devops/docker
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Docker
-<<docker/commands>>
+
 ;; Dockerfile Mode
-<<docker/dockerfile>>
+
 ;; Docker Compose Mode
-<<docker/compose>>
+
 ;; Docker Tramp
-<<docker/tramp>>
+
 #+END_SRC
 
 **** Docker commands
 
 #+NAME: docker/commands
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package docker)
 #+END_SRC
 
 **** Dockerfile mode
 
 #+NAME: docker/dockerfile
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package dockerfile-mode
   :mode "Dockerfile\\'")
 #+END_SRC
@@ -9723,7 +8772,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 **** Docker Compose
 
 #+NAME: docker/compose
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package docker-compose-mode
     :mode ("docker-compose.yml\\'" . docker-compose-mode))
 
@@ -9732,14 +8781,14 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 **** Docker Tramp
 
 #+NAME: docker/tramp
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package docker-tramp)
 #+END_SRC
 
 *** AWS
 
 #+NAME: devops/aws
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package aws
   :config
   (progn
@@ -9755,7 +8804,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatime]].
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
   (use-package wakatime-mode
     :if (executable-find "wakatime")
     :hook
@@ -9772,7 +8821,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 
 A front-end for interacting with external debuggers in Emacs.
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package realgud)
 
 #+END_SRC
@@ -9781,20 +8830,20 @@ A front-end for interacting with external debuggers in Emacs.
 **** Log view
 
 #+NAME: logview
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package logview)
 #+END_SRC
 
 **** Log nav
 
 #+NAME: lognav
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package lognav-mode)
 #+END_SRC
 
 *** Pair Programming
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package floobits
   :if (file-exists-p (user-home ".floorc.json")))
 
@@ -9804,22 +8853,10 @@ A front-end for interacting with external debuggers in Emacs.
 *** Assembly
 
 - See Spacemacs [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/asm/][ASM layer]].
-
-#+NAME: lang/asm
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; ASM Mode
-<<asm/mode>>
-;; NASM Mode
-<<asm/nasm>>
-;; ASM x86 Lookup
-<<asm/x86-lookup>>
-
-#+END_SRC
-
 **** ASM Mode
 
 #+NAME: asm/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package asm-mode
   :mode (("\\.64sa\\'" . asm-mode)
          ("\\.64da\\'" . asm-mode)
@@ -9830,7 +8867,7 @@ A front-end for interacting with external debuggers in Emacs.
 **** NASM mode
 
 #+NAME: asm/nasm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package nasm-mode
   :mode
   (("\\.[n]*\\(asm\\|s\\)\\'" . nasm-mode)))
@@ -9840,7 +8877,7 @@ A front-end for interacting with external debuggers in Emacs.
 **** ASM Init x86 Lookup
 
 #+NAME: asm/x86-lookup
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package x86-lookup
   :init
   (when (featurep 'pdf-tools)
@@ -9868,28 +8905,10 @@ A front-end for interacting with external debuggers in Emacs.
 #+END_SRC
 
 ***  C/C++
-
-#+NAME: lang/c-c++
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; begin c-c++
-;; cmake
-<<cc/cmake>>
-;;cquery
-<<cc/cquery>>
-;; rtags
-<<cc/rtags>>
-;; llvm mode
-<<cc/llvm>>
-;; clang tidy
-<<cc/clang-tidy>>
-;; clang format
-<<cc/clang-format>> ;; end c-c++
-#+END_SRC
-
 **** cmake
 
 #+NAME: cc/cmake
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cmake-mode
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
          ("\\.cmake\\'" . cmake-mode))
@@ -9927,7 +8946,7 @@ A front-end for interacting with external debuggers in Emacs.
 **** Cquery
 
 #+NAME: cc/cquery
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 
 (use-package cquery
     :commands lsp-cquery-enable
@@ -9972,7 +8991,7 @@ A front-end for interacting with external debuggers in Emacs.
 **** rtags
 
 #+NAME: cc/rtags
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package rtags
     :ensure-system-package (rdm . rtags)
     :hook
@@ -9983,7 +9002,7 @@ A front-end for interacting with external debuggers in Emacs.
 **** llvm mode
 
 #+NAME: cc/llvm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package llvm-mode
     :straight nil
     :load-path "~/.emacs.d/etc/local/llvm-mode"
@@ -9995,7 +9014,7 @@ A front-end for interacting with external debuggers in Emacs.
 **** Clang Tidy
 
 #+NAME: cc/clang-tidy
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package flycheck-clang-tidy
     :after flycheck
     :if (executable-find "clang-tidy")
@@ -10012,7 +9031,7 @@ A front-end for interacting with external debuggers in Emacs.
 **** Clang Format
 
 #+NAME: cc/clang-format
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package clang-format
     :if (executable-find "clang-format")
     :bind (:map c-mode-base-map
@@ -10025,20 +9044,12 @@ A front-end for interacting with external debuggers in Emacs.
 
 *** Common Lisp
 
-#+NAME: lang/clisp
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; cl mode
-<<cl/mode>>
-;; Slime
-<<cl/slime>>
-#+END_SRC
-
 Configuration for common-lisp.
 
 **** common lisp mode
 
 #+NAME: cl/mode
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package lisp-mode
   :straight nil
   :init
@@ -10059,7 +9070,7 @@ Configuration for common-lisp.
 [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
 
 #+NAME: cl/slime
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package slime
   :ensure-system-package sbcl
   :commands slime
@@ -10084,20 +9095,6 @@ Configuration for common-lisp.
 
 *** Clojure
 
-#+NAME: lang/clj
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; clojure mode
- <<clj/mode>>
- ;; Clojure Mode Extra Font Locking
- <<clj/extra-font-locking>>
- ;; CIDER
- <<clj/cider>>
- ;; Clj Refactor
- <<clj/refactor>>
- ;; ClojureScript
- <<clj/cljs>>
-#+END_SRC
-
 **** Clojure Mode
 :PROPERTIES:
 :ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
@@ -10109,7 +9106,7 @@ before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
 Provides key bindings and font-locking for Clojure.
 
 #+NAME: clj/mode
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes
+#+BEGIN_SRC emacs-lisp
 (use-package clojure-mode
   :custom (clojure-indent-style :always-indent)
 
@@ -10166,7 +9163,7 @@ Provides key bindings and font-locking for Clojure.
 Additional syntax highlighting for ~clojure-mode~.
 
 #+NAME: clj/extra-font-locking
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package clojure-mode-extra-font-locking
   :config
   (defun clj/enable-extra-font-locking ()
@@ -10184,7 +9181,7 @@ Additional syntax highlighting for ~clojure-mode~.
 [[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
 
 #+NAME: clj/cider
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cider
   :custom
   (cider-repl-use-clojure-font-lock t)
@@ -10203,7 +9200,7 @@ Additional syntax highlighting for ~clojure-mode~.
 **** Clojure Refactor
 
 #+NAME: clj/refactor
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package clj-refactor
   :init
   (defun clj/refactor-enable ()
@@ -10221,11 +9218,11 @@ Additional syntax highlighting for ~clojure-mode~.
 **** ClojureScript
 
 #+NAME: clj/cljs
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; elein
-<<cljs/elein>>
+
 ;; Cljsbuild
-<<cljs/build>>
+
 #+END_SRC
 
 ***** elein
@@ -10233,7 +9230,7 @@ Additional syntax highlighting for ~clojure-mode~.
 [[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
 
 #+NAME: cljs/elein
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package elein
   :if (executable-find "lein")
   :straight t)
@@ -10244,47 +9241,46 @@ Additional syntax highlighting for ~clojure-mode~.
 Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
 
 #+NAME: cljs/build
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cljsbuild-mode
   :if (executable-find "lein")
   :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
 #+END_SRC
 
 *** Emacs Lisp
-
-#+NAME: lang/elisp
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; emacs-lisp mode
-<<elisp/mode>>
-;;elisp-format
-<<elisp/format>>
-;;  cask
-<<elisp/cask>>
-#+END_SRC
-
 **** Emacs lisp mode
 
 #+NAME: elisp/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package emacs-lisp-mode
   :straight nil
   :init
-  (defun elisp/setup ()
+  (defun emacs-lisp/setup ()
     "Setup elisp."
-    (if (fboundp 'paredit-mode)
-	      (paredit-mode 1))
-    (if (fboundp 'highlight-symbol-mode)
+    (when (require 'paredit nil t)
+	    (paredit-mode +1))
+    (when (require 'highlight-symbol nil t)
 	      (highlight-symbol-mode +1))
+    (when (require 'rainbow-delimiters nil t)
+      (rainbow-delimiters-mode +1))
     (setq-local dash-plugin-keywords '("elisp")))
 
   :hook
-  (emacs-lisp-mode . elisp/setup))
+  (emacs-lisp-mode . emacs-lisp/setup))
+#+END_SRC
+
+**** lisp extra fontlocking
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package lisp-extra-font-lock
+  :init
+  (lisp-extra-font-lock-global-mode +1))
 #+END_SRC
 
 **** Emacs Lisp  Format
 
 #+NAME: elisp/format
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package elisp-format
     :custom
     (elisp-format-column 80))
@@ -10293,26 +9289,26 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 **** Cask
 
 #+NAME: elisp/cask
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Cask Mode
-<<cask/mode>>
+
 ;; Flycheck cask
-<<cask/flycheck>>
+
 ;; Cask Package Toolset
-<<cask/toolset>>
+
 #+END_SRC
 
 ***** Cask Mode
 
 #+NAME: cask/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cask-mode)
 #+END_SRC
 
 ***** Flycheck Cask
 
 #+NAME: cask/flycheck
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package flycheck-cask
     :init
     (defun flycheck-cask/enable ()
@@ -10332,13 +9328,13 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 ***** Cask Toolset
 
 #+NAME: cask/toolset
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package cask-package-toolset)
 #+END_SRC
 
 *** Groovy
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package groovy-mode
   :mode  "\\.gradle\\'"
   :init
@@ -10353,27 +9349,9 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+END_SRC
 
 *** Java
-
-#+NAME: lang/java
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; java mode
-<<java/mode>>
-;; Autodisass Java Bytecode
-<<java/disass>>
-;; Gradle Mode
-<<java/gradle>>
-;; LSP Java
-<<java/lsp>>
-;; Dap
-<<java/dap>>
-;; Javadoc lookup
-<<java/doc>>
-
-#+END_SRC
-
 **** java mode
 #+NAME: java/mode
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 (use-package java-mode
   :straight nil
   :init
@@ -10398,7 +9376,7 @@ The [[https://github.com/gbalats/autodisass-java-bytecode][autodisass-java-bytec
 Java bytecode inside Emacs buffers.
 
 #+NAME: java/disass
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package autodisass-java-bytecode)
 #+END_SRC
 
@@ -10411,7 +9389,7 @@ Java bytecode inside Emacs buffers.
 Gradle is a build tool for Java. It's awesome.
 
 #+NAME: java/gradle
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package gradle-mode
   :if (executable-find "gradle")
   :hook
@@ -10419,19 +9397,10 @@ Gradle is a build tool for Java. It's awesome.
 #+END_SRC
 
 **** Lsp Java
-
-#+NAME: java/lsp
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;;; lsp-java-mode
-<<lsp/java>>
-;; lsp-java-treemacs
-<<lsp/treemacs>>
-#+END_SRC
-
 ***** Lsp Java Mode
 
 #+NAME: lsp/java
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package lsp-java
   :defines (lsp-java-enable)
   :custom
@@ -10448,7 +9417,7 @@ Gradle is a build tool for Java. It's awesome.
 ***** Lsp Java Treemacs
 
 #+NAME: lsp/treemacs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package lsp-java-treemacs
   :straight lsp-java
   :after (treemacs))
@@ -10457,17 +9426,17 @@ Gradle is a build tool for Java. It's awesome.
 **** Dap
 
 #+NAME: java/dap
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp
 ;; Dap Mode
-<<dap/mode>>
+
 ;; Dap Java
-<<dap/java>>
+
 #+END_SRC
 
 ***** Dap Java
 
 #+NAME: dap/java
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package dap-java
   :straight dap-mode
   :after (lsp-java))
@@ -10476,7 +9445,7 @@ Gradle is a build tool for Java. It's awesome.
 **** Javadoc lookup
 
 #+NAME: java/doc
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package javadoc-lookup
   :bind
   ("C-h j" . javadoc-lookup)
@@ -10485,33 +9454,10 @@ Gradle is a build tool for Java. It's awesome.
 #+END_SRC
 
 *** JavaScript
-
-#+NAME: lang/js
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; js2 mode
-<<js/2>>
-;; JSON Mode
-<<js/json>>
-;; RJSX Mode
-<<js/rjsx>>
-;; Flycheck jest
-<<js/jest>>
-;; typescript
-<<js/typescript>>
-;; tide mode
-<<js/tide>>
-;; Coffeescript
-<<js/coffee>>
-;; Node.js
-<<js/node>>
-;; Indium
-<<js/indium>>
-#+END_SRC
-
 **** js2 mode
 
 #+NAME: js/2
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package js2-mode
   :custom
   (js-indent-level 2)
@@ -10524,7 +9470,7 @@ Gradle is a build tool for Java. It's awesome.
 **** JSON
 
 #+NAME: js/json
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package json-mode
   :mode "\\.json\\'"
   :init
@@ -10547,24 +9493,10 @@ Gradle is a build tool for Java. It's awesome.
 #+END_SRC
 
 **** Node JS
-
-#+NAME: js/node
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; Node Modules
-<<node/modules>>
-;; Npm
-<<node/npm>>
-;; Yarn
-<<node/yarn>>
-;; Node Version Manager (nvm)
-<<node/nvm>>
-
-#+END_SRC
-
 ***** Add Node Modules Path
 
 #+NAME: node/modules
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package add-node-modules-path
   :if (executable-find "node")
   :init
@@ -10575,7 +9507,7 @@ Gradle is a build tool for Java. It's awesome.
 ***** NPM Mode
 
 #+NAME: node/npm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package npm-mode
     :if (executable-find "npm")
     :init
@@ -10599,7 +9531,7 @@ Gradle is a build tool for Java. It's awesome.
 ***** Yarn mode
 
 #+NAME: node/yarn
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package yarn-mode
     :if (executable-find "yarn"))
 #+END_SRC
@@ -10607,7 +9539,7 @@ Gradle is a build tool for Java. It's awesome.
 ***** NVM
 
 #+NAME: node/nvm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package nvm
   :if (executable-find "nvm"))
 #+END_SRC
@@ -10615,7 +9547,7 @@ Gradle is a build tool for Java. It's awesome.
 **** TypeScript
 
 #+NAME: js/typescript
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package typescript-mode
     :custom
     (typescript-indent-level 2)
@@ -10627,7 +9559,7 @@ Gradle is a build tool for Java. It's awesome.
 **** Tide mode
 
 #+NAME: js/tide
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package tide
     :functions (tide/setup)
     :after (:all typescript-mode)
@@ -10658,7 +9590,7 @@ Gradle is a build tool for Java. It's awesome.
 Real jsx support.
 
 #+NAME: js/rjsx
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package rjsx-mode
   :mode "\\.jsx\\'")
 #+END_SRC
@@ -10666,7 +9598,7 @@ Real jsx support.
 **** Flycheck Jest
 
 #+NAME: js/jest
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package flycheck-jest
     :after flycheck
     :init
@@ -10677,7 +9609,7 @@ Real jsx support.
 **** CoffeeScript
 
 #+NAME: js/coffee
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package coffee-mode
   :mode ("\\.coffee\\'" . coffee-mode))
 #+END_SRC
@@ -10685,7 +9617,7 @@ Real jsx support.
 **** Indium
 
 #+NAME: js/indium
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package indium
     :bind (:map indium-interaction-mode-map
                 ("C-M-b" . indium-eval-buffer))
@@ -10745,29 +9677,10 @@ Real jsx support.
 #+END_SRC
 
 *** Python
-
-#+NAME: lang/py
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Python Mode
-<<py/python>>
-;; Pyenv Mode
-<<py/pyenv>>
-;; Virtualenvwrapper
-<<py/virtualenvwrapper>>
-;; Pyvenv
-<<py/venv>>
-;; Pip Requirements
-<<py/pip>>
-;; Pydoc
-<<py/doc>>
-;; EIN
-<<py/notebook>>
-#+END_SRC
-
 **** Python Mode
 
 #+NAME: py/python
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package python-mode
   :init
   (when (executable-find "ipython3")
@@ -10788,19 +9701,10 @@ Real jsx support.
 #+END_SRC
 
 **** Pyenv
-
-#+NAME: py/pyenv
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; pyenv mode
-<<pyenv/mode>>
-;; pyenv autoset
-<<pyenv/auto>>
-#+END_SRC
-
 ***** Pyenv mode
 
 #+NAME: pyenv/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package pyenv-mode
     :if (executable-find "pyenv")
     :init
@@ -10854,14 +9758,14 @@ Real jsx support.
 **** Pyenv Auto Set
 
 #+NAME: pyenv/auto
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pyenv-mode-auto)
 #+END_SRC
 
 **** Virtualenv Wrapper
 
 #+NAME: py/virtualenvwrapper
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package virtualenvwrapper
     :init
     (setq venv-dirlookup-names '(".pyenv" ".venv"))
@@ -10878,7 +9782,7 @@ Real jsx support.
 **** Pyvenv
 
 #+NAME: py/venv
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pyvenv
     :requires virtualenvwrapper
     :init
@@ -10888,7 +9792,7 @@ Real jsx support.
 **** Pip Requirements
 
 #+NAME: py/pip
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pip-requirements
     :straight t)
 #+END_SRC
@@ -10896,7 +9800,7 @@ Real jsx support.
 **** Pydoc
 
 #+NAME: py/doc
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pydoc
     :straight t)
 #+END_SRC
@@ -10906,7 +9810,7 @@ Real jsx support.
 The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook]] client.
 
 #+NAME: py/notebook
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ein
     :config
     (setq ein:use-smartrep t))
@@ -10915,34 +9819,17 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 *** Prolog
 
 #+NAME: lang/prolog
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package prolog-mode
   :straight nil
   :mode "\\.pl\\'")
 #+END_SRC
 
 *** Ruby
-
-#+NAME: ruby-spec
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Ruby Mode
-<<ruby/mode>>
-;; Enhanced Ruby Mode
-<<ruby/enhanced>>
-;; inf-ruby
-<<ruby/inf>>
-;; RVM
-<<ruby/rvm>>
-;; Robe Mode
-<<ruby/robe>>
-;; Yard Mode
-<<ruby/yard>>
-#+END_SRC
-
 **** Ruby Mode
 
 #+NAME: ruby/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ruby-mode
   :mode "\\.rb\\'"
   :interpreter "ruby"
@@ -10959,7 +9846,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Enhanced Ruby Mode
 
 #+NAME: ruby/enhanced
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package enh-ruby-mode
     :after ruby-mode
     :demand t
@@ -10971,7 +9858,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Inf ruby
 
 #+NAME: ruby/inf
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package inf-ruby
     :hook
     ((ruby-mode enh-ruby-mode) . inf-ruby-minor-mode)
@@ -10981,7 +9868,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** RVM
 
 #+NAME: ruby/rvm
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package rvm
   :init
   (rvm-use-default))
@@ -10990,7 +9877,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Robe
 
 #+NAME: ruby/robe
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package robe
     :init
     ;; ensure `rvm' activates the proper project Ruby
@@ -11014,7 +9901,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Yard Mode
 
 #+NAME: ruby-yard
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package yard-mode
   :hook
   ((ruby-mode enh-ruby-mode) . yard-mode)
@@ -11023,33 +9910,17 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 #+END_SRC
 
 *** Ocaml
-
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; utop
-<<ocaml/utop>>
-;; merlin
-<<ocaml/merlin>>
-;; tuareg-mode
-<<ocaml/tuareg>>
-;; Dune
-<<ocaml/dune>>
-;; Reason Mode
-<<ocaml/reason>>
-;; Caml mode
-<<ocaml/caml>>
-#+END_SRC
-
 **** Utop
 
 #+NAME: ocaml/utop
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package utop)
 #+END_SRC
 
 **** Merlin
 
 #+NAME: ocaml/merlin
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package merlin
   :custom
   (merlin-command 'opam)
@@ -11059,7 +9930,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** caml mode
 
 #+NAME: ocaml/caml
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package caml
   :hook
   (caml . ocaml/merlin))
@@ -11068,7 +9939,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Tuareg
 
 #+NAME: ocaml/tuareg
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package tuareg
     :mode
     ("\\.ml\\'" . tuareg-mode)
@@ -11087,7 +9958,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Dune
 
 #+NAME: ocaml/dune
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package dune
   :straight
   (dune
@@ -11119,26 +9990,17 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Reason Mode
 
 #+NAME: ocaml/reason
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package reason-mode
   :hook
   (reason . merlin-mode))
 #+END_SRC
 
 *** Scala
-
-#+NAME: lang/scala
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; scala mode
-<<scala/mode>>
-;; sbt mode
-<<scala/sbt>>
-#+END_SRC
-
 **** Scala Mode
 
 #+NAME: scala/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package scala-mode
   :interpreter
   ("scala" . scala-mode))
@@ -11147,30 +10009,14 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Sbt
 
 #+NAME: scala/sbt
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package sbt-mode)
 #+END_SRC
 
 *** Web
-
-#+NAME: lang/web
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle yes :exports none
-;; web mode
-<<web/mode>>
-;; html
-<<web/html>>
-;; CSS
-<<web/css>>
-;; Emmet Mode
-<<web/emmet>>
-;; nginx
-<<web/nginx>>
-#+END_SRC
-
 **** web mode
 
-#+NAME: web/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package web-mode
     :bind
     (:map web-mode-map
@@ -11234,20 +10080,10 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 
 **** HTML
 
-#+NAME: web/html
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; html-mode
-<<html/mode>>
-;; tagedit
-<<html/tagedit>>
-;; htmlize
-<<html/lize>>
-#+END_SRC
-
 ***** HTML mode
 
 #+NAME: html/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package html-mode
   :straight nil
   :hook
@@ -11258,7 +10094,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 ***** Tag Edit
 
 #+NAME: html/tagedit
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package tagedit
     :init
     (defun tagedit/enable ()
@@ -11273,28 +10109,15 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 ***** Htmlize
 
 #+NAME: html/lize
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package htmlize)
 #+END_SRC
 
 **** CSS
-
-#+NAME: web/css
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
-;; css mode
-<<css/mode>>
-;; less mode
-<<css/less>>
-;; sass mode
-<<css/sass>>
-;; scss mode
-<<css/scss>>
-#+END_SRC
-
 ***** css mode
 
 #+NAME: css/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package css-mode
   :custom (css-indent-offset 2)
   :hook
@@ -11304,7 +10127,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 ***** Less
 
 #+NAME: css/less
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package less-mode
   :mode "\\.less\\'"
   :hook
@@ -11314,7 +10137,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 ***** sass mode
 
 #+NAME: css/sass
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package sass-mode
   :mode "\\.sass\\'"
   :hook
@@ -11324,7 +10147,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 ***** scss mode
 
 #+NAME: css/scss
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package scss-mode
   :mode "\\.scss\\'"
   :hook
@@ -11334,7 +10157,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Nginx
 
 #+NAME: web/nginx
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package nginx-mode
     :mode ("/nginx/sites-\\(?:available|enabled\\)/" . nginx-mode))
 #+END_SRC
@@ -11342,34 +10165,19 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Emmet
 
 #+NAME: web/emmet
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package emmet-mode
   :hook
   ((css-mode html-mode web-mode) . emmet-mode))
 #+END_SRC
 
 *** Markdown
-
-#+NAME: lang/md
-#+BEGIN_SRC emacs-lisp :tangle yes :noweb yes :exports none
-;; Markdown Mode
-<<md/mode>>
-;; Markdown-Mode+
-<<md/plus>>
-;; Markdown Toc
-<<md/toc>>
-;; Markdownfmt
-<<md/fmt>>
-;; Livedown
-<<md/livedown>>
-#+END_SRC
-
 **** markdown mode
 
 - See https://jblevins.org/projects/markdown-mode/
 
 #+NAME: md/mode
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
       :custom
       (markdown-command "markdown")
@@ -11384,21 +10192,21 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** markdown-mode+
 
 #+NAME: md/plus
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package markdown-mode+)
 #+END_SRC
 
 **** markdown toc
 
 #+NAME: md/toc
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package markdown-toc)
 #+END_SRC
 
 **** markdownfmt
 
 #+NAME: md/fmt
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package markdownfmt
   :bind (:map markdown-mode-map
 	      ("C-c C-f" . markdown-format-buffer))
@@ -11409,7 +10217,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 **** Livedown
 
 #+NAME: md/livedown
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package livedown
       :straight (livedown
                  :type git
@@ -11428,8 +10236,8 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 
 *** Applescript
 
-#+NAME: lang/applescript
-#+BEGIN_SRC emacs-lisp :tangle yes
+
+#+BEGIN_SRC emacs-lisp
 (use-package apples-mode
   :mode "\\.applescript\\'")
 #+END_SRC
@@ -11437,7 +10245,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 *** Racket
 
 #+NAME: lang/racket
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package racket-mode
   :hook
   (racket . paredit-mode))
@@ -11446,7 +10254,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 *** Yaml
 
 #+NAME: lang/yaml
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 
 (use-package yaml-mode
     :mode (("\\.yml\\'" . yaml-mode)
@@ -11458,7 +10266,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 ** Scimax
 
 #+NAME: research/scimax
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package scimax
   :straight nil
   :if (file-directory-p (emacs-etc-dir "local" "scimax"))
@@ -11671,13 +10479,13 @@ Or insert those and put point in the middle to add an equation."
 
 ** Evil
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (use-package evil)
 #+END_SRC
 
 ** Alfred Org Capture
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp
 (when (eq system-type 'darwin)
   (load-file (no-littering-expand-etc-file-name
               "local/alfred-org-capture/alfred-org-capture.el")))
@@ -11685,7 +10493,7 @@ Or insert those and put point in the middle to add an equation."
 
 * Prologue
 
-#+BEGIN_SRC emacs-lisp :tangle yes :exports none
+#+BEGIN_SRC emacs-lisp
 
 ;;; end halidom.el
 
