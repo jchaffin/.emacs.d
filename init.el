@@ -24,27 +24,11 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;; Commentary:
 ;;
-;; This Emacs configuration uses straight.el as a drop-in replacement for
-;; package.el. A thorough comparative analysis of the two libraries as
-;; well as other popular tools for package management can be found in the
-;; README of the straight.el repository [1].
 ;;
-;; This initialization process uses the tangle functionality of org-babel to
-;; extract the source code configuring package blocks
-;; For Donald Knuths seminal text on Literate Programimng, see [2]
-;; For my synopis on the subject, see [3]
-;; For writing code in org mode using babel, see [4]
-;;
-;; [1] https://github.com/raxod502/straight.el/blob/master/README.md
-;; [2] http://www.literateprogramming.com/knuthweb.pdf
-;; [3] https://github.com/jchaffin/.emacs.d/blob/master/halidom.org#literate-programming
-;; [4] http://orgmode.org/worg/org-contrib/babel/
-
 ;;; Code:
-;; Straight
+
+
 (unwind-protect
     (let ((straight-treat-as-init t))
       (when (locate-library "gnutls")
@@ -62,12 +46,11 @@
             straight-recipes-gnu-elpa-use-mirror t)
 
       (if (and (executable-find "watchexec")
-               (executable-find "python3"))
+             (executable-find "python3"))
           (setq straight-check-for-modifications
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
               '(check-on-save find-when-checking)))
-
 
 
       ;; Bootstrap straight.el
@@ -146,10 +129,7 @@
 
       (use-package org
         :init
-        (defun halidom/resolve-org-ivy-conflict ()
-          ;; Conflicts with `ivy-resume'
-          (define-key org-mode-map (kbd "C-c C-r") nil))
-
+        (setq outline-minor-mode-prefix "\M-#")
         :custom
         (org-startup-indented t)
         (org-src-fontify-natively t)
@@ -162,11 +142,12 @@
         (org-babel-uppercase-example-markers t)
 
         :bind
+        ("C-c L" . org-instert-link-global)
+        ("C-c M-O" . org-open-at-point-global)
         ("C-c a" . org-agenda)
         ("C-c c" . org-capture)
         ("C-c C-s" . org-schedule)
         ("C-c M-o" . org-store-link)
-        ("C-c C-l" . org-insert-link)
         ("C-c b" . org-switchb)
 
         (:map org-mode-map
@@ -177,7 +158,7 @@
         (when (eq system-type 'darwin)
           (setq org-directory (file-truename "~/Dropbox/org/")
                 org-default-notes-file
-                (expand-file-name "capture.org" org-directory)
+                (expand-file-name "notes.org" org-directory)
                 org-id-locations-file
                 (expand-file-name
                  "var/org/id-locations.el" user-emacs-directory)))
@@ -201,15 +182,13 @@ See `org-export-backends' variable."
                                     org-export-registered-backends)))
               (dolist (backend val)
                 (cond
-                 ((not (load (format \"ox-%s\" backend) t t))
+                 ((not (load (format "ox-%s" backend) t t))
                   (message
                    "Problems while trying to load export back-end
                    `%s'" backend))
                  ((not (memq backend new-list)) (push backend new-list))))
-              (set-default 'org-export-backends new-list))))
+              (set-default 'org-export-backends new-list)))))
 
-        :hook
-        (org-mode . halidom/resolve-org-ivy-conflict))
 
       ;; Literate
       (defcustom halidom-literate-config-file "halidom.org"
@@ -228,9 +207,10 @@ See `org-export-backends' variable."
       (defun load-literate (&optional user-config-file)
         "If USER-CONFIG-FILE is passed as an argument, then tangle.
     Else use the value of `halidom-literate-config-file'."
-        (let ((target-file (or user-config-file halidom-literate-config-file))
-              (target-dir (or user-emacs-directory default-directory)))
-
+        (let ((target-file
+               (or user-config-file halidom-literate-config-file))
+              (target-dir
+               (or user-emacs-directory default-directory)))
           (if target-file
               (org-babel-load-file
                (expand-file-name target-file target-dir))
@@ -238,8 +218,12 @@ See `org-export-backends' variable."
 
 
       ;; Debug
-      (defvar halidom-literate-debug-blocks nil)
-
+      (defvar literate-debug-blocks
+	      '(paredit-spec
+	        ivy/mode
+	        counsel/mode
+	        mb-swiper
+	        elisp/core))
 
       (defun literate-src-parameter-string->alist (parameters)
         "Convert src block parameter string into a plist."
@@ -255,13 +239,15 @@ See `org-export-backends' variable."
 
 
       (defun literate-src-block-noweb-p (parameters)
-        (let ((params-alist (literate-src-parameter-string->alist parameters)))
+        (let ((params-alist
+               (literate-src-parameter-string->alist parameters)))
           (string= "yes" (cdr (assoc :noweb params-alist)))))
 
       (defun sanitize-no-web-block (code)
         (let ((sx (split-string code "\n" t)))
           (cl-flet ((func (s)
-                          (replace-regexp-in-string "<<\\(.*?\\)>>" "\\1" s)))
+                          (replace-regexp-in-string
+                           "<<\\(.*?\\)>>" "\\1" s)))
             (mapcar #'func sx))))
 
 
@@ -271,27 +257,49 @@ See `org-export-backends' variable."
             (org-element-map (org-element-parse-buffer) 'src-block
               (lambda (block)
                 (if (string= name (org-element-property :name block))
-                    (let ((code (org-element-property :value block))
-                          (params (org-element-property :parameters block))
+                    (let ((code
+                           (org-element-property :value block))
+                          (params
+                           (org-element-property :parameters block))
                           (noweb-p
                            (literate-src-block-noweb-p
                             (org-element-property :parameters block))))
 
                       (if noweb-p
                           (mapcar #'literate-tangle-src-block
-                                  (sanitize-no-web-block code))
-                        (with-temp-buffer
-                          (message "%s" code)
+                                  (sanitize-no-web-block code)))
+			                (let (pkg)
+			                  (with-temp-buffer
                           (insert code)
+			                    (save-excursion
+			                      (goto-char (point-min))
+			                      (when (re-search-forward "use-package " nil t)
+				                      (setq pkg (buffer-substring-no-properties
+					                               (point) (point-at-eol))))
+			                      (if pkg
+				                        (message "%s evaluated" pkg)
+				                      (message "tangled %s" name)))
                           (eval-buffer))))))))
           (kill-buffer buf)))
 
       (defun literate-debug-enabled ()
         "Tangle only the source blocks with a name property matching an
-element in `halidom-literate-debug-blocks'.
-    This is useful for providing a set of defaults for debugging purposes."
+element in `halidom-literate-debug-blocks'."
         (interactive)
-        (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
+        (mapcar #'literate-tangle-src-block literate-debug-blocks))
+
+      (add-hook 'prog-mode-hook 'goto-address-prog-mode)
+
+      (use-package no-littering
+        :custom
+        (no-littering-etc-directory
+         (expand-file-name "etc" user-emacs-directory)
+         (no-littering-var-directory
+          (expand-file-name "var" user-emacs-directory)))
+        :init
+        (require 'no-littering)
+        (setq auto-save-file-name-transforms
+              `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
       (if (and (boundp 'use-literate-p) (not use-literate-p))
           (literate-debug-enabled)
