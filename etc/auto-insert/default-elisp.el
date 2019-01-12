@@ -1,4 +1,4 @@
-;;; `(upcase (file-name-nondirectory (file-name-sans-extension (buffer-file-name))))` --- $1
+;;; `(file-name-nondirectory (buffer-file-name))` -- $0
 ;;
 ;; Author: `user-full-name` <`user-mail-address`>
 ;; Copyright © `(format-time-string "%Y")`, `user-full-name`, all rights reserved.
@@ -10,6 +10,5 @@
 ;;
 ;;; Code:
 
-$0
-
+$1
 ;;; `(file-name-nondirectory (buffer-file-name))` ends here

@@ -129,10 +129,7 @@
 
       (use-package org
         :init
-        (defun halidom/resolve-org-ivy-conflict ()
-          ;; Conflicts with `ivy-resume'
-          (define-key org-mode-map (kbd "C-c C-r") nil))
-
+        (setq outline-minor-mode-prefix "\M-#")
         :custom
         (org-startup-indented t)
         (org-src-fontify-natively t)
@@ -145,11 +142,12 @@
         (org-babel-uppercase-example-markers t)
 
         :bind
+        ("C-c L" . org-instert-link-global)
+        ("C-c M-O" . org-open-at-point-global)
         ("C-c a" . org-agenda)
         ("C-c c" . org-capture)
         ("C-c C-s" . org-schedule)
         ("C-c M-o" . org-store-link)
-        ("C-c C-l" . org-insert-link)
         ("C-c b" . org-switchb)
 
         (:map org-mode-map
@@ -160,7 +158,7 @@
         (when (eq system-type 'darwin)
           (setq org-directory (file-truename "~/Dropbox/org/")
                 org-default-notes-file
-                (expand-file-name "capture.org" org-directory)
+                (expand-file-name "notes.org" org-directory)
                 org-id-locations-file
                 (expand-file-name
                  "var/org/id-locations.el" user-emacs-directory)))
@@ -189,10 +187,7 @@ See `org-export-backends' variable."
                    "Problems while trying to load export back-end
                    `%s'" backend))
                  ((not (memq backend new-list)) (push backend new-list))))
-              (set-default 'org-export-backends new-list))))
-
-        :hook
-        (org-mode . halidom/resolve-org-ivy-conflict))
+              (set-default 'org-export-backends new-list)))))
 
 
       ;; Literate

@@ -1,8 +1,8 @@
-#+title: Jacob Chaffin's Literate Emacs Configuration
+#+title: dotemacs
 #+language: en
+#+STARTUP: hideblock
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes
-#+STARTUP: hideblock
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 #+SETUPFILE: ./etc/org/html-themes/theme-readtheorg.setup
 
@@ -12,7 +12,6 @@
   - [[#literate-programming][Literate Programming]]
   - [[#influences][Influences]]
 - [[#base-configuration][Base Configuration]]
-  - [[#tangle-file][Tangle File]]
   - [[#user-information][User Information]]
   - [[#customization-group][Customization Group]]
   - [[#emacs-lisp][Emacs Lisp]]
@@ -28,42 +27,21 @@
     - [[#better-beginning-of-line][Better Beginning of Line]]
     - [[#alias-yes-or-no][Alias Yes Or No]]
     - [[#encryption][Encryption]]
-    - [[#text-editing][Text Editing]]
     - [[#profiling-and-rebooting][Profiling and Rebooting]]
-  - [[#straightel][straight.el]]
-    - [[#goto-local-package-repository][Goto local package repository]]
-    - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
-    - [[#reload-init][Reload Init]]
-    - [[#eval-buffer][Eval Buffer]]
-  - [[#keybindings][Keybindings]]
-    - [[#hydra][Hydra]]
-    - [[#evil][Evil]]
-    - [[#smartrep][Smartrep]]
-    - [[#which-key][Which Key]]
-    - [[#speed-type][Speed Type]]
-  - [[#system][System]]
-    - [[#use-emacs-terminfo][Use Emacs terminfo]]
-    - [[#utf-8-encoding][UTF-8 Encoding]]
-    - [[#pickup-environment-variables][Pickup environment variables]]
-    - [[#system-packages][System Packages]]
-    - [[#ensure-system-package][Ensure system package]]
-    - [[#anything][Anything]]
-    - [[#prodigy][Prodigy]]
-  - [[#macos][macOS]]
-    - [[#macos-keys][MacOS Keys]]
-    - [[#macos-computer-name][MacOS Computer Name]]
-    - [[#macos-dev-utils][MacOS Dev Utils]]
-    - [[#macos-dash][MacOS Dash]]
-    - [[#reveal-in-macos-finder][Reveal in macOS Finder]]
-    - [[#osx-dictionary][OSX Dictionary]]
-    - [[#osx-trash][OSX Trash]]
-    - [[#osx-clipboard][OSX Clipboard]]
-    - [[#counsel-osx-app][Counsel OSX App]]
-  - [[#startup][Startup]]
-    - [[#buffer][Buffer]]
-    - [[#inhibit-stuff][Inhibit stuff]]
-    - [[#frame][Frame]]
-    - [[#window-manager][Window Manager]]
+    - [[#straightel][Straight.el]]
+    - [[#reloadeval][Reload/Eval]]
+    - [[#page-break-lines][Page Break Lines]]
+    - [[#keybindings][Keybindings]]
+    - [[#mode-line][Mode line]]
+  - [[#navigation][Navigation]]
+    - [[#bookmark][Bookmark]]
+  - [[#editing][Editing]]
+    - [[#mark-forward-sexp][Mark Forward Sexp]]
+    - [[#delete-selection-mode][Delete Selection Mode]]
+    - [[#whole-line-or-region][Whole line or region]]
+    - [[#expand-region][Expand Region]]
+    - [[#bln-mode][bln mode]]
+    - [[#spellchecking][Spellchecking]]
 - [[#tex-and-org-mode][Tex and Org Mode]]
   - [[#latex][Latex]]
     - [[#auctex][Auctex]]
@@ -72,36 +50,36 @@
     - [[#bibtex][BibTex]]
     - [[#extra][Extra]]
     - [[#preview][Preview]]
-    - [[#company-auctex][Company Auctex]]
+    - [[#company-auctex][Company auctex]]
     - [[#company-reftex][Company Reftex]]
     - [[#cdlatex][cdlatex]]
     - [[#magic-latex-buffer][Magic Latex Buffer]]
-    - [[#auctex-latexmk][Auctex Latexmk]]
+    - [[#aucex-latexmk][aucex latexmk]]
     - [[#texinfo][Texinfo]]
     - [[#latex-math][LaTeX Math]]
-  - [[#org-mode][Org Mode]]
+  - [[#org][Org]]
     - [[#org-babel][Org Babel]]
     - [[#org-appearance][Org Appearance]]
+    - [[#org-code][Org Code]]
     - [[#structure-and-editing][Structure and Editing]]
     - [[#task-management][Task Management]]
     - [[#concept-mapping][Concept Mapping]]
-    - [[#org-hacks][Org Hacks]]
     - [[#org-export][Org Export]]
+    - [[#org-hacks][Org Hacks]]
   - [[#org-latex][Org Latex]]
     - [[#edit-latex][Edit Latex]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
     - [[#org-ref][Org Ref]]
     - [[#pdf-reader][PDF Reader]]
-- [[#customizing-emacs][Customizing Emacs]]
-  - [[#project-management][Project Management]]
-    - [[#projectile][Projectile]]
+- [[#projects][Projects]]
+  - [[#projectile][Projectile]]
     - [[#projectile-codesearch][Projectile Codesearch]]
     - [[#projectile-ripgrep][Projectile Ripgrep]]
     - [[#projectile-treemacs][Projectile Treemacs]]
-    - [[#skeletor][Skeletor]]
-    - [[#find-file-in-project][Find File in Project]]
+  - [[#find-file-in-project][Find File in Project]]
   - [[#file-system][File System]]
     - [[#dired][Dired]]
+    - [[#pack][Pack]]
     - [[#neotree][Neotree]]
     - [[#treemacs][Treemacs]]
     - [[#speedbar][Speedbar]]
@@ -115,57 +93,54 @@
     - [[#rg][rg]]
     - [[#visual-replace][Visual Replace]]
     - [[#undo-tree][Undo Tree]]
-  - [[#emacs-plus][Emacs Plus]]
-    - [[#documentation][Documentation]]
-    - [[#frame-1][Frame+]]
-    - [[#frame-fns][Frame-fns]]
-    - [[#posframe][posframe]]
-    - [[#thingatpt][Thingatpt+]]
-    - [[#bookmark][Bookmark]]
-    - [[#bug-tracking][Bug Tracking]]
-  - [[#multimedia][Multimedia]]
-    - [[#emms][emms]]
-    - [[#sound-cloud][Sound Cloud]]
 - [[#display][Display]]
-  - [[#fonts][Fonts]]
-    - [[#font-variables][Font variables]]
-    - [[#set-font-interactively][Set font interactively]]
-    - [[#default-font][Default font]]
-    - [[#unicode][Unicode]]
+  - [[#frame][Frame]]
+    - [[#system][System]]
   - [[#theme][Theme]]
     - [[#theme-defaults][Theme Defaults]]
     - [[#custom-theme-settings][Custom Theme Settings]]
-    - [[#zenburn-theme][Zenburn Theme]]
-    - [[#poet-theme][Poet Theme]]
-    - [[#base16-themes][Base16 Themes]]
+    - [[#themes][Themes]]
     - [[#load-theme][Load Theme]]
-    - [[#org-mode-faces][Org Mode Faces]]
-    - [[#italicize-font-lock-keyword-face][Italicize font lock keyword face]]
-  - [[#cursor][Cursor]]
-    - [[#disable-blink][Disable Blink]]
-    - [[#only-show-cursor-in-selected-window][Only show cursor in selected window]]
-    - [[#smart-cursor-color][Smart Cursor Color]]
-    - [[#multiple-cursors][Multiple Cursors]]
-    - [[#centered-cursor-mode][Centered Cursor Mode]]
-    - [[#bar-cursor][Bar Cursor]]
-    - [[#change-cursor][Change Cursor]]
-  - [[#modeline][Modeline]]
-    - [[#modeline-customization][Modeline Customization]]
-    - [[#spaceline][Spaceline]]
-    - [[#smart-mode-line][Smart Mode Line]]
-    - [[#powerline][Powerline]]
-    - [[#eyeliner][Eyeliner]]
-    - [[#set-the-modeline-format][Set the modeline format]]
-  - [[#scrolling][Scrolling]]
-    - [[#scroll-to-first-error-on-compilation][Scroll to first error on compilation]]
-    - [[#smooth-scrolling][Smooth Scrolling]]
-    - [[#sublimity-scroll][Sublimity Scroll]]
-  - [[#buttons][Buttons]]
+    - [[#base16-themes][Base16 Themes]]
+  - [[#faces][Faces]]
+    - [[#faces-1][Faces+]]
+    - [[#face-functions][Face functions]]
+    - [[#face-remap][Face remap+]]
+    - [[#face-explorer][Face Explorer]]
+    - [[#font-lock][Font lock]]
     - [[#button-lock][Button Lock]]
-  - [[#pretty][Pretty]]
-    - [[#prettify-symbols][Prettify Symbols]]
-    - [[#pretty-mode][Pretty Mode]]
-    - [[#prettify-utilities][Prettify Utilities]]
+    - [[#org-mode-faces][Org Mode Faces]]
+  - [[#buffer][Buffer]]
+    - [[#initial-buffer][Initial Buffer]]
+    - [[#bui][bui]]
+  - [[#window][Window]]
+    - [[#window-resize][Window Resize]]
+    - [[#winner-mode][Winner Mode]]
+    - [[#ace-window][Ace Window]]
+    - [[#perspective][Perspective]]
+    - [[#popwin][Popwin]]
+    - [[#poporg][Poporg]]
+    - [[#golden-ratio][Golden Ratio]]
+    - [[#purpose][Purpose]]
+  - [[#frame-1][Frame]]
+    - [[#frame-startup][Frame Startup]]
+    - [[#frame-utilities][Frame utilities]]
+    - [[#frame-libraries][Frame libraries]]
+  - [[#text][Text]]
+    - [[#overlays][Overlays]]
+    - [[#fonts][Fonts]]
+    - [[#cursor][Cursor]]
+    - [[#formatting][Formatting]]
+- [[#utilities][Utilities]]
+  - [[#thingatpt][Thingatpt+]]
+  - [[#bug-tracking][Bug Tracking]]
+  - [[#documentation][Documentation]]
+    - [[#help][Help]]
+    - [[#elisp-refs][Elisp refs]]
+    - [[#info][Info+]]
+- [[#multimedia][Multimedia]]
+  - [[#sound-cloud][Sound Cloud]]
+  - [[#emms][emms]]
 - [[#completion][Completion]]
   - [[#candidates][Candidates]]
     - [[#company][Company]]
@@ -174,13 +149,18 @@
     - [[#yasnippet][YASnippet]]
     - [[#autoinsert][Autoinsert]]
     - [[#auto-yasnippet][Auto yasnippet]]
+    - [[#header2][header2]]
     - [[#code-library][Code Library]]
+    - [[#skeletor][Skeletor]]
   - [[#minibuffer][Minibuffer]]
     - [[#prompt-properties][Prompt Properties]]
     - [[#ivy][Ivy]]
     - [[#counsel][Counsel]]
     - [[#swiper][Swiper]]
     - [[#omnibox][Omnibox]]
+  - [[#text-completion][Text Completion]]
+    - [[#company-dict][Company Dict]]
+    - [[#dictionaryel][Dictionary.el]]
 - [[#shell][Shell]]
   - [[#ansi-color][Ansi Color]]
   - [[#eshell][Eshell]]
@@ -199,7 +179,7 @@
     - [[#scp][SCP]]
     - [[#tramp][Tramp]]
 - [[#web][Web]]
-  - [[#web-libraries][Web Libraries]]
+  - [[#libraries-1][Libraries]]
     - [[#simple-httpd][Simple httpd]]
     - [[#websocket][WebSocket]]
     - [[#uuid][UUID]]
@@ -211,6 +191,7 @@
     - [[#browser-utilities-on-macos][Browser utilities on macOS]]
     - [[#google-search][Google search]]
     - [[#search-web][Search Web]]
+    - [[#xwidget-webkit][xwidget webkit]]
     - [[#set-default-browser][Set default browser]]
     - [[#engine-mode][Engine Mode]]
   - [[#email][Email]]
@@ -218,14 +199,6 @@
     - [[#offlineimap][Offlineimap]]
     - [[#mu][Mu]]
 - [[#prose][Prose]]
-  - [[#spelling-and-grammar][Spelling and Grammar]]
-    - [[#flyspell][Flyspell]]
-    - [[#langtool][Langtool]]
-    - [[#academic-phrases][Academic Phrases]]
-    - [[#proselint][Proselint]]
-  - [[#text-completion][Text Completion]]
-    - [[#company-dict][Company Dict]]
-    - [[#dictionaryel][Dictionary.el]]
   - [[#taking-notes][Taking Notes]]
     - [[#deft][Deft]]
     - [[#org-onenote][Org OneNote]]
@@ -238,16 +211,13 @@
     - [[#olivetti][Olivetti]]
     - [[#writeroom][Writeroom]]
   - [[#reading-and-viewing][Reading and viewing]]
-    - [[#justify-kp][Justify Kp]]
     - [[#nov][Nov]]
-    - [[#visual-fill-column][Visual Fill Column]]
-    - [[#fill-column-indicator][Fill Column Indicator]]
-    - [[#adaptive-wrap][Adaptive Wrap]]
   - [[#graphics][Graphics]]
     - [[#artist-mode][Artist Mode]]
     - [[#uml-diagrams][UML Diagrams]]
     - [[#graphviz][Graphviz]]
     - [[#thesaurus][Thesaurus]]
+    - [[#image][Image+]]
 - [[#code][Code]]
   - [[#lsp][LSP]]
     - [[#lsp-mode][LSP Mode]]
@@ -258,8 +228,6 @@
   - [[#code-style][Code Style]]
     - [[#default][Default]]
     - [[#hy-mode][Hy mode]]
-    - [[#highlight-indentation][Highlight Indentation]]
-    - [[#symbol-highlighting][Symbol Highlighting]]
     - [[#code-folding][Code Folding]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
@@ -276,14 +244,15 @@
     - [[#git][Git]]
     - [[#mercurial][Mercurial]]
     - [[#browse-at-remote][Browse at remote]]
-  - [[#devops][DevOps]]
+  - [[#cloud][Cloud]]
+    - [[#ecloud][ecloud]]
     - [[#docker][Docker]]
     - [[#aws][AWS]]
   - [[#prog-tools][Prog Tools]]
     - [[#time-tracking][Time Tracking]]
-    - [[#realgud][RealGUD]]
     - [[#logging][Logging]]
     - [[#pair-programming][Pair Programming]]
+    - [[#compiler-output][Compiler output]]
   - [[#programming-languages][Programming Languages]]
     - [[#assembly][Assembly]]
     -  [[#cc][C/C++]]
@@ -298,6 +267,7 @@
     - [[#ruby][Ruby]]
     - [[#ocaml][Ocaml]]
     - [[#scala][Scala]]
+    - [[#shell-script-mode][Shell script mode]]
     - [[#web-1][Web]]
     - [[#markdown][Markdown]]
     - [[#applescript][Applescript]]
@@ -305,7 +275,7 @@
     - [[#yaml][Yaml]]
 - [[#misc][Misc]]
   - [[#scimax][Scimax]]
-  - [[#evil-1][Evil]]
+  - [[#evil][Evil]]
   - [[#alfred-org-capture][Alfred Org Capture]]
 - [[#prologue][Prologue]]
 - [[#footnotes][Footnotes]]
@@ -335,49 +305,6 @@ compiler.
 - [[http://fgiasson.com/blog/index.php/2016/06/21/optimal-emacs-settings-for-org-mode-for-literate-programming/][Optimal Emacs Settings For Org Mode For Literal Programming]]
 
 * Base Configuration
-** Tangle File
-:PROPERTIES:
-:ID:       E291C00A-151B-4B37-B771-2E71B7CF937A
-:CUSTOM_ID: tangle-file
-:END:
-
-Insert conventional elisp header.[fn:1]
-
-#+NAME: comment-block
-#+BEGIN_SRC emacs-lisp
-;;; halidom.el -- Emacs Configuration File
-;;
-;; Copyright (c) 2018 Jacob Chaffin
-;;
-;; Author: Jacob Chaffin <jchaffin@ucla.edu>
-;; Keywords: emacs, .emacs.d, dotemacs, org-mode, literate
-;; Homepage: https://github.com/jchaffin/.emacs.d
-;; Package-Requires: ((emacs "27"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-;;
-;; Commentary:
-;; This file was tangled using `org-babel'. See [[file:chaffin.org::#tangle-file][chaffin.org]] for the source.
-
-;;; Code:
-#+END_SRC
-
 ** User Information
 
 These values are initialized with the ’name’ and ’email’
@@ -448,14 +375,14 @@ Functional bindings i.e thread =->= macro.
 
 #+END_SRC
 
-**** ov
+***** ov
 
 #+NAME: libs/ov
 #+BEGIN_SRC emacs-lisp
 (use-package ov)
 #+END_SRC
 
-**** =f=
+***** =f=
 
 Declarative file and directory utilities.
 
@@ -464,7 +391,7 @@ Declarative file and directory utilities.
 (use-package f)
 #+END_SRC
 
-**** =s=
+***** =s=
 
 The string manipulation library.
 
@@ -473,7 +400,7 @@ The string manipulation library.
 (use-package s)
 #+END_SRC
 
-**** =a=
+***** =a=
 
 #+NAME: libs/a
 #+BEGIN_SRC emacs-lisp
@@ -633,6 +560,49 @@ From the melpa installation:
 
 #+END_SRC
 
+***** ~mplist~
+
+
+#+BEGIN_SRC emacs-lisp
+(defun mplist-get-values (plist prop)
+  "Get the values asssociated to PROP in PLIST, a modifeid plist.
+
+A modified plist is one where keys are keywords and values
+are non-keywords elements that follow it.
+
+If there are multiple properties with the same keyword,
+only the first property and its values is returned."
+  (let ((tail plist)
+        result)
+    (while (and (consp tail) (not (eq prop (car tail))))
+      (pop tail))
+    ;; pop the found keyword
+    (pop tail )
+    (while (and (consp tail) (not (keywordp (car tail))))
+      (push (popo tail) result))
+    (nreverse result)))
+
+(defun mplist-get-value (plist prop)
+  "Get a single value associated to PROP in PLIST, a modified plist."
+  (car (mplist-get-values plist prop)))
+
+(defun mplist-remove (plist prop)
+  "Return a copy of a modified PLIST without PROP and its values.
+
+If there are multiple properties with the same keyuword, only the first property
+and its values are removed. "
+
+  (let ((tail plist)
+        results)
+    (while (and (consp tail) (not (eq prop (car tail))))
+      (push (pop tail) result))
+    (when (eq prop (car tail))
+      (pop tail)
+      (while (and (consp tail) (not (keywordp (car tail))))
+        (push (pop tail) result))
+      (nreverse result))))
+#+END_SRC
+
 **** Buffers
 ***** Buffer List Names
 
@@ -734,12 +704,7 @@ As discussed in this 2011[[https://lists.gnu.org/archive/html/emacs-devel/2011-0
 
 #+NAME: fd-copy
 #+BEGIN_SRC emacs-lisp
-(defun copy-file-path (func)
-
-  "Copies the file path and applies the result as an argument to
-function FUNC. To copy the file path to the kill-ring, use the
- interactive function `copy-file-path-as-kill'."
-
+(defun file-path ()
   (destructuring-bind (file dir)
       (cond ((eq major-mode 'dired-mode)
              (list (substring-no-properties (thing-at-point 'symbol))
@@ -748,16 +713,16 @@ function FUNC. To copy the file path to the kill-ring, use the
              (mapcar (lambda (f) (funcall f buffer-file-name))
                      '(file-name-nondirectory file-name-directory)))
             (t  (list (buffer-name (current-buffer)) default-directory)))
-    (funcall func (expand-file-name file dir))))
+    (expand-file-name file dir)))
 
 (defun copy-file-path-as-kill ()
-  "Copies the file path of the current dired directory or file buffer to the kill-ring."
+  "Copies the file path and applies the result as an argument to
+function FUNC. To copy the file path to the kill-ring, use the
+ interactive function `copy-file-path-as-kill'."
   (interactive)
-  (let ((func (lambda (s)
-		(progn
-		  (kill-new s)
-		  (message "%s" s)))))
-    (copy-file-path func)))
+  (let ((path (file-path)))
+    (kill-new path)
+    (message "Copied %s" path)))
 
 #+END_SRC
 
@@ -812,18 +777,18 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 
 #+NAME: fd-user-home
 #+BEGIN_SRC emacs-lisp
-(defun user-home (&rest path-segments)
+(cl-defun user-home (&rest path-segments &key (slash nil) &allow-other-keys)
   "Resolves the absolute path formed PATH-SEGMENTS to the
-   user home directory."
-  (let ((root-separator "/"))
+   user home directory. If the optional argument SLASH is supplied,
+the the returned file path will be formatted as a directory. "
+  (let ((segments (seq-filter #'stringp path-segments)))
     (--> (getenv "HOME")
          (f-split it)
-         (append it path-segments)
+         (append it segments)
          (cdr it)
-         (cons (concat root-separator (car it) )(cdr it))
+         (cons (concat "/" (car it)) (cdr it))
          (apply #'resolve-path it)
-         (f-slash it))))
-
+         (if slash (file-name-as-directory it) it))))
 #+END_SRC
 
 ****** Dropbox Directory
@@ -998,8 +963,6 @@ This might come back to bite me one day but I never use them.
 #+END_SRC
 
 **** Autosave
-
-
 #+BEGIN_SRC emacs-lisp
 (setq auto-save-default nil)
 (setq auto-save-no-message t)
@@ -1111,6 +1074,9 @@ point reaches the beginning or end of the buffer, stop there."
 #+END_SRC
 
 *** Encryption
+:PROPERTIES:
+:ID:       F871883A-D25D-4045-9A13-34FA7707768B
+:END:
 **** GnuTLS
 
 As GitHub user [[https://github.com/wasamasa][wasamasa]] points out in /h?(er|is)|^\S+/ dotfiles,
@@ -1200,36 +1166,10 @@ killall gpg-agent
                    (or user-full-name user-mail-address)))))
 #+END_SRC
 
-*** Text Editing
-**** Delete Selection Mode
-
-#+BEGIN_SRC emacs-lisp
-(delete-selection-mode 1)
-#+END_SRC
-
-**** Mark Forward Sexp
-:PROPERTIES:
-:ID:       38FC590F-CB08-44C6-BAC8-A088BDBEFD03
-:END:
-
-#+BEGIN_SRC emacs-lisp
-(use-package mark-forward-sexp
-  :bind (("C-c o" . mark-forward-sexp)
-         ("C-c O" . mark-backward-sexp)
-         ("C-c i" . mark-inside-forward-sexp)
-         ("C-c I" . mark-inside-backwad-sexp)))
-#+END_SRC
-
-**** Expand Region
-
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :bind
-  ("s-'" .  er/expand-region)
-  ("s-S-'" . er/contract-region))
-#+END_SRC
-
 *** Profiling and Rebooting
+:PROPERTIES:
+:ID:       51BDC796-E9D9-4B1D-A081-487C626CC192
+:END:
 **** esup
 
 
@@ -1246,24 +1186,30 @@ from within Emacs.
 (use-package restart-emacs)
 #+END_SRC
 
-** straight.el
+*** Straight.el
 :PROPERTIES:
-:ID:       66FE9466-8249-4F2A-9E45-1F1ABC67E643
-:CUSTOM_ID: straight
+:ID:       00484055-B339-4BAA-93EA-2693695336C3
 :END:
-
-[[https://github.com/raxod502/straight.el][Straight.el]] is a drop-in replacement for =package.el=.
-
-It took me a while to figure out how straight works and to
-conceptualize the way it loads packages  - primarily because documentation is also for people who understand things - but now that I've gotten through the substantial learning curve (made substantially harder due to my misconception regrading the value of reading documentation), I've come to find it reduces a lot of the weirdness of the Emacs loading process and increases the rapidity (shall I say agility? no..) with which I comprehend the way third-party packages are implemented and modify them as I deem necessary.
-
-
-*** Goto local package repository
+**** Goto local package repository
 
 Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp
+(defun straight-installed-packages ()
+  (--> straight--recipe-cache
+       (hash-table-keys it)
+       (seq-difference
+        it
+        (mapcar
+         #'symbol-name
+         straight-built-in-pseudo-packages))
+       (sort it #'string-lessp)))
+
+(defun straight-package-installed-p (pkg)
+  (member (symbol-name pkg) (straight-installed-packages)))
+
+(defalias #'package-installed-p #'straight-package-installed-p)
 
 (cl-defun straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
@@ -1272,16 +1218,10 @@ interactive minibuffer completion menu using ivy.
   (lexical-let* ((dir (-> user-emacs-directory
                          (f-join "straight"
                                  (if build-dir "build" "repos"))))
-                 (pkg-keys (--> straight--recipe-cache
-                                (hash-table-keys it)
-                                (seq-difference
-                                 it
-                                 (mapcar
-                                  #'symbol-name
-                                  straight-built-in-pseudo-packages))
-                                (sort it #'string-lessp)))
+
                  (msg (format "(%s) Goto recipe: "
-                              (upcase-initials (f-base dir)))))
+                              (upcase-initials (f-base dir))))
+                 (pkg-keys (straight-installed-packages)))
     (ivy-read
      msg
      pkg-keys
@@ -1326,7 +1266,7 @@ interactive minibuffer completion menu using ivy.
 (define-key goto-map "r" #'straight-browse-local)
 #+END_SRC
 
-*** Browse straight repository at GitHub
+**** Browse straight repository at GitHub
 
 #+BEGIN_SRC emacs-lisp
 (defun straight-browse-remote (&optional package)
@@ -1349,7 +1289,11 @@ interactive minibuffer completion menu using ivy.
       (browse-url url))))
 #+END_SRC
 
-*** Reload Init
+*** Reload/Eval
+:PROPERTIES:
+:ID:       B88518E2-0B32-4706-B210-645D7889646E
+:END:
+**** Reload Init
 
 #+BEGIN_SRC emacs-lisp
 
@@ -1369,7 +1313,7 @@ interactive minibuffer completion menu using ivy.
 
 #+END_SRC
 
-*** Eval Buffer
+**** Eval Buffer
 
 #+BEGIN_SRC emacs-lisp
 (defun straight-eval-buffer ()
@@ -1385,10 +1329,37 @@ interactive minibuffer completion menu using ivy.
           (straight-mark-transaction-as-init))
         (load-file buffer-file-name))))
   (message "Evaluating %s...done." (buffer-name)))
+
 #+END_SRC
 
-** Keybindings
-*** Hydra
+**** eval in repl
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package eval-in-repl)
+
+#+END_SRC
+
+*** Page Break Lines
+:PROPERTIES:
+:ID:       E0156F78-3E5A-4855-AF01-8DA86779DE0A
+:END:
+
+Global minor-mode that turns ~^L~ form feed characters into
+horizontal line rules.
+
+#+NAME: buffer/page-break-lines
+#+BEGIN_SRC emacs-lisp
+(use-package page-break-lines
+  :init
+  (global-page-break-lines-mode))
+#+END_SRC
+
+*** Keybindings
+:PROPERTIES:
+:ID:       EB6C7429-18A6-4131-8317-19918FDA2E88
+:END:
+**** Hydra
 
 #+NAME: kb-hydra
 #+BEGIN_SRC emacs-lisp
@@ -1444,24 +1415,36 @@ interactive minibuffer completion menu using ivy.
       ("W" straight-watcher-quit)
       ("g" straight-get-recipe)
       ("n" straight-prune-build)
-      ("q" nil))))
+      ("q" nil)))
+  :bind
+  (:prefix-map emacs-utility-prefix-map
+               :prefix-docstring "Emacs utility map"
+               :prefix "C-c e"
+               ("r" . hydra-reload-eval/body)
+               ("p"  . hydra-straight/body))
+  :config
+  (when (featurep 'which-key)
+    (which-key-add-key-based-replacements
+        "C-c e" " Utility"
+        "C-c e r" " Reload/Eval"
+        "C-c e p" " Straight")))
 #+END_SRC
 
-*** Evil
+**** Evil
 
 #+NAME: kb-evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil)
 #+END_SRC
 
-*** Smartrep
+**** Smartrep
 
 #+NAME: kb-smart-rep
 #+BEGIN_SRC emacs-lisp
 (use-package smartrep)
 #+END_SRC
 
-*** Which Key
+**** Which Key
 
 #+NAME: kb-which-key
 #+BEGIN_SRC emacs-lisp
@@ -1476,652 +1459,362 @@ interactive minibuffer completion menu using ivy.
 
 #+END_SRC
 
-*** Speed Type
+**** Speed Type
 
-I just got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboards,hhkbpro2&pid=pdkb400bn][HHKB2]] keyboard. I need all the help I can get.
+I got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboards,hhkbpro2&pid=pdkb400bn][HHKB2]] keyboard. I need all the help I can get.
 
 #+NAME: kb-speed-type
 #+BEGIN_SRC emacs-lisp
 (use-package speed-type)
 #+END_SRC
 
-** System
-*** Use Emacs terminfo
-
-Setting this variable to nil forces Emacs to use internal terminfo,
-rather than the system terminfo.
-
-I'm setting it to non-nil because setting this variable to nil causes
-issues with build commands in [[#gradle-mode][gradle-mode]]
-
-#+BEGIN_SRC emacs-lisp
-(setq system-uses-terminfo t)
-#+END_SRC
-
-*** UTF-8 Encoding
-
-UTF-8 is the recommanded coding system on macOS.
-
-#+BEGIN_SRC emacs-lisp
-  (when (eq system-type 'darwin)
-    (prefer-coding-system 'utf-8)
-    (set-default-coding-systems 'utf-8)
-    (set-terminal-coding-system 'utf-8)
-    (set-keyboard-coding-system 'utf-8)
-    ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
-    (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
-
-
-(global-set-key (kbd "C-x C-m i") 'set-input-method)
-
-#+END_SRC
-
-*** Pickup environment variables
-
-Emacs relies heavily on shell environment variables.
-
-These variables may not be picked up when launching emacs
-from a gui on a unix-like operating system.
-
-**** Exec Path From Shell
-
-The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] package fixes this problem by copying
-user environment variables from the shell.
-
-The ~exec-path-from-shell~ package only works with posix-compliant
-operating systems. This may or may not include Microsoft Windows[fn:8].
-
-However, the ~exec-path-from-shell~ instructions recommends loading
-the package on linux and macOS operating system. I don't use Windows
-all that often anyways, so that's fine with me.
-
-The ~:if~ key of ~use-package~ offers us a really concise way for
-conditionally loading dependencies.
-
-#+BEGIN_SRC emacs-lisp
-(use-package exec-path-from-shell
-  ;; only load `exec-path-from-shell' package on macos and linux.
-  :if (memq window-system '(mac ns))
-  :config
-  (progn
-    (exec-path-from-shell-initialize)
-    (setq exec-path-from-shell-check-startup-files nil)))
-#+END_SRC
-
-*** System Packages
-
-Utilities for managing system packages in Emacs using an external
-package manager.
-
-#+NAME: os-sys-packages
-#+BEGIN_SRC emacs-lisp
-(use-package system-packages
-  :init
-  (defun system-packages/update-brew-commands (commands)
-    "Update the brew commands supported in system-packages."
-    (let ((brew-commands-alist
-           (->> system-packages-supported-package-managers
-                (assoc 'brew)
-                cdr)))
-      (dolist (command commands)
-        (destructuring-bind (cmd . cmd-string) command
-          (setf (cdr (assoc cmd brew-commands-alist)) cmd-string)))))
-  :config
-  (with-eval-after-load 'system-packages
-    (let ((commands-alist '((get-info . "brew info")
-                            (verify-all-packages . "brew doctor")
-                            (log . "brew log"))))
-      (system-packages/update-brew-commands commands-alist))))
-#+END_SRC
-
-*** Ensure system package
-
-#+BEGIN_SRC emacs-lisp
-(use-package use-package-ensure-system-package
-  :demand t)
-#+END_SRC
-
-*** Anything
-
-#+BEGIN_SRC emacs-lisp
-(use-package anything
-  :init
-  (defun anything/goto-manual ()
-    "Open up the anything PDF manual."
-    (interactive)
-    (find-file (straight-repos-dir "anything/doc/anything.pdf")))
-
-  :config
-  (require 'anything-config))
-
-#+END_SRC
-
-*** Prodigy
-
-
-Interface for controlling external processes in Emacs.
-
-#+BEGIN_SRC emacs-lisp
-(use-package prodigy)
-#+END_SRC
-
-** macOS
-
-I work on a macbook, so this section is where I'm loading all of my
-settings that rely on local file paths, macOS applications, and
-external programs.
-
-*** MacOS Keys
-
-#+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp
-;; Modifer Keys
-
-;; Mouse-2
-
-#+END_SRC
-
-
-**** Modifier Keys
-
-macOS specific settings[fn:9].
-
-Maps the modifier keys based on personal preferences.
-Also sets terminal coding system to "utf-8".
-
-#+NAME: macos-modifier-keys
-#+BEGIN_SRC emacs-lisp
-(setq mac-command-modifier 'super
-      mac-option-modifier  'meta
-      ns-control-modifier  'control
-      ns-function-modifier 'hyper)
-
-(when (eq system-type 'darwin)
-  (global-set-key (kbd "s-=" ) 'text-scale-increase)
-  (global-set-key (kbd "s--")  'text-scale-decrease)
-  ;; Default is <XF86Back> .. C-x <right>
-  (global-set-key (kbd "s-[")  'previous-buffer)
-  (global-set-key (kbd "s-]")  'next-buffer)
-  (global-set-key (kbd "s-}")  'ns-next-frame)
-  (global-set-key (kbd "s-{")  'ns-prev-frame)
-  (global-set-key (kbd "s-L")  'mark-sexp))
-
-#+END_SRC
-
-**** Generate =<mouse-2>= on trackpad
-
-As far as I know, there is no trackpad gesture to trigger the
-=<mouse-2>= event in Emacs. The following snippet uses [[help:key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
-the trackpad (=<mouse-1>=) like normal while holding down Command, or
-"super", modifier key
-
-#+NAME: macos-mouse-2
-#+BEGIN_SRC emacs-lisp
-;; From https://emacs.stackexchange.com/questions/20946/generate-mouse-2-event-from-macbook-trackpadTrackpage
-(when (eq system-type 'darwin)
-  (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>")))
-#+END_SRC
-
-*** MacOS Computer Name
-
-#+NAME: macos-computer-name
-#+BEGIN_SRC emacs-lisp
-(defun macos-computer-name ()
-  "Get the computer name for the current machine."
-  (let* ((has-scutil
-          (executable-find "scutil"))
-	       (scutil-cmd
-          (lambda ()
-            (shell-command-to-string "scutil --get ComputerName"))))
-    (if has-scutil
-	      (replace-regexp-in-string "\n" "" (funcall scutil-cmd)) nil)))
-
-(defvar computer-name nil)
-
-(when (eq system-type 'darwin)
-  (setq computer-name (macos-computer-name)))
-
-#+END_SRC
-
-*** MacOS Dev Utils
-
-Small library for opening files and buffers in external text
-editors and various other applications on macOS.
-
-#+NAME: macos-dev-utils
-#+BEGIN_SRC emacs-lisp
-(use-package macos-dev-utils
-  :if (eq system-type 'darwin)
-  :straight
-  (macos-dev-utils
-   :host github
-   :repo "jchaffin/macos-dev-utils"))
-
-#+END_SRC
-
-*** MacOS Dash
+*** Mode line
 :PROPERTIES:
-:ID:       64240356-D983-4422-A359-4F773DD2E946
-:CUSTOM_ID: macos-dash
+:ID:       3C550304-3F1D-4682-B4C6-527EBDFA0760
+:END:
+**** Modeline Customization
+
+#+NAME: ml/interface
+#+BEGIN_SRC emacs-lisp
+(defcustom halidom-modeline 'spaceline
+  "When non-nil, the modeline framework to use at startup.
+Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
+  :type '(choice
+          (const :tag "Use the default modeline." nil)
+          (const :tag "Use spaceline" spaceline)
+          (const :tag "Use smart-mode-line" sml)
+          (const :tag "Use powerline" powerline)
+          (const :tag "Use eyeline"  eyeliner))
+  :initialize 'custom-initialize-default)
+#+END_SRC
+
+**** Spaceline
+
+***** Spaceline Mode
+
+#+NAME: sl/spaceline
+#+BEGIN_SRC emacs-lisp
+(use-package spaceline)
+#+END_SRC
+
+***** Spaceline All the Icons
+
+#+NAME: sl/icons
+#+BEGIN_SRC emacs-lisp
+(use-package spaceline-all-the-icons
+  :after (:all all-the-icons spaceline))
+#+END_SRC
+
+***** Spaceline setup
+
+#+NAME: sl/setup
+#+BEGIN_SRC emacs-lisp
+  (defun ml-spaceline-setup ()
+    "Setup the modeline for spaceline."
+    (setq spaceline-all-the-icons-separator-type 'arrow)
+    (require 'spaceline)
+    (require 'spaceline-segments)
+    (require 'spaceline-config)
+    (require 'all-the-icons)
+    (require 'spaceline-all-the-icons)
+    (spaceline-all-the-icons--setup-neotree)
+    (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
+    (spaceline-toggle-all-the-icons-flycheck-status-off))
+#+END_SRC
+
+**** Smart Mode Line
+#+NAME: sml/smart-mode-line
+#+BEGIN_SRC emacs-lisp
+(use-package smart-mode-line)
+#+END_SRC
+
+#+NAME: sml/setup
+#+BEGIN_SRC emacs-lisp
+
+(defun ml-smline-setup ()
+  "Setup the modeline for smart-mode-line."
+  (require 'smart-mode-line)
+  (setq sml/no-confirm-load-theme t)
+  (setq sml/theme 'respectful)
+  (sml/setup)
+  (run-hooks 'sml-setup-hook))
+#+END_SRC
+
+**** Powerline
+
+#+NAME: pl/powerline
+#+BEGIN_SRC emacs-lisp
+(use-package powerline)
+
+#+END_SRC
+
+***** Setup Powerline
+
+#+NAME: pl/setup
+#+BEGIN_SRC emacs-lisp
+(defun ml-powerline-setup ()
+  "Setup the modeline for powerline."
+  (require 'powerline)
+  (powerline-default-theme))
+#+END_SRC
+
+**** Eyeliner
+
+#+NAME: ml/eyeliner
+#+BEGIN_SRC emacs-lisp
+(use-package eyeliner
+    :straight (eyeliner
+               :type git
+               :host github
+               :repo "dustinlacewell/eyeliner")
+    :init
+    (defun ml-eyeliner-setup ()
+      (require 'eyeliner)
+      (eyeliner/install)))
+
+#+END_SRC
+
+**** Set the modeline format
+
+#+NAME: ml/setup
+#+BEGIN_SRC emacs-lisp
+
+(defun halidom/modeline-setup ()
+  "Setup the modeline."
+  (interactive)
+  (pcase halidom-modeline
+    (`spaceline (ml-spaceline-setup))
+    (`powerline (ml-powerline-setup))
+    (`sml (ml-smline-setup))
+    (`eyeliner (ml-eyeliner-setup))))
+
+(defun halidom/modeline-setup-frame (frame)
+  (with-selected-frame frame
+    (when (daemonp)
+      (if (display-graphic-p)
+          (halidom/modeline-setup)
+        (ml-smline-setup)))))
+
+(add-hook 'after-init-hook 'halidom/modeline-setup)
+(add-hook 'after-make-frame-functions 'halidom/modeline-setup-frame)
+#+END_SRC
+
+
+** Navigation
+*** Bookmark
+:PROPERTIES:
+:ID:       41010DDA-09D3-4A6F-9C49-8DE32F61DAFB
+:END:
+**** Bookmark File
+
+#+BEGIN_SRC emacs-lisp
+(setq bookmark-default-file
+ (no-littering-expand-var-file-name "bookmarks"))
+#+END_SRC
+
+**** Bookmark+
+
+#+NAME: bookmark-plus
+#+BEGIN_SRC emacs-lisp
+(use-package linkd)
+
+(use-package bookmark+)
+#+END_SRC
+
+**** Bm
+
+#+NAME: bookmark-bm
+#+BEGIN_SRC emacs-lisp
+(use-package bm)
+#+END_SRC
+
+**** zsh sync
+
+Converts Emacs into bookmarks for zsh[fn:16].
+
+#+BEGIN_EXAMPLE shell :shebang /bin/zsh
+setopt cd_able_vars
+[[ -r ~/.zsh.bmk ]] && source ~/.zsh.bmk
+#+END_EXAMPLE
+
+
+#+NAME: bookmark-zsh
+#+BEGIN_SRC emacs-lisp
+  (defadvice bookmark-write-file
+        (after local-directory-bookmarks-to-zsh-advice activate)
+     (local-directory-bookmarks-to-zsh))
+
+  (defun local-directory-bookmarks-to-zsh ()
+        (interactive)
+        (when (and (require 'tramp nil t)
+                   (require 'bookmark nil t))
+          (set-buffer (find-file-noselect "~/.zsh.bmk" t t))
+          (delete-region (point-min) (point-max))
+          (insert "# -*- mode:sh -*-\n")
+          (let (collect-names)
+            (mapc
+             (lambda (item)
+               (let ((name
+                      (replace-regexp-in-string
+                       "-" "_" (car item)))
+                    (file (cdr
+                            (assoc 'filename
+                                   (if (cddr item)
+                                       item
+                                     (cadr item))))))
+                 (when (and (not (tramp-tramp-file-p file))
+                          (file-directory-p file))
+                   (setq collect-names
+                         (cons (concat "~" name) collect-names))
+                   (insert
+                    (format
+                     "%s=\"%s\"\n"
+                     name
+                     (expand-file-name file)
+                     name)))))
+             bookmark-alist)
+            (insert ": "
+                    (mapconcat 'identity collect-names " ") "\n"))
+          (let ((backup-inhibited t)) (save-buffer))
+          (kill-buffer (current-buffer))))
+#+END_SRC
+
+** Editing
+*** Mark Forward Sexp
+:PROPERTIES:
+:ID:       38FC590F-CB08-44C6-BAC8-A088BDBEFD03
 :END:
 
-Dash.app is an application for quickly searching and navigating API
-docsets for programming tools and languages.
-There are already two Emacs plugins that utilize Dash docsets,
-helm-dash and counsel-dash, which is a simple wrapper around helm
-dash.
-
-For whatever reason, I can't figure out how to open the docset in an
-=eww= frame or in an external browser using =browse-url=.
-
-Because of the OS/licensing restrictions of Dash.app, both these
-packages try to solve the problem of creating an interface for users
-to navigate, query, and switch between docsets.
-
-Because I've purchased a license and run macOS locally, I'm going to
-bypass that problem and define a function that uses the
-=dash-plugin://= protocol to launch/switch to the application and
-query it with the marked region or symbol at point.
-
-#+NAME: macos-dash-config
 #+BEGIN_SRC emacs-lisp
-(defvar dash-plugin-keywords nil
-  "An `alist' of keywords representing the docsets which should
-  searched in the query to Dash.app")
-
-(defun macos-dash-at-point ()
-  (interactive)
-  (let* ((protocol "dash-plugin://")
-         (keywords (if dash-plugin-keywords
-                       (mapconcat 'identity dash-plugin-keywords ",")
-                     ""))
-         (search-string
-          (if (use-region-p)
-              (buffer-substring-no-properties
-               (region-beginning)
-               (region-end))
-            (substring-no-properties (or (thing-at-point 'symbol) "")))))
-
-    (start-process "Dash" nil "open"
-                   (concat
-                    protocol
-                    (unless (string-empty-p keywords)
-                      (concat "keys=" keywords "&"))
-                    "query="
-                    (url-hexify-string search-string)))))
+(use-package mark-forward-sexp)
 #+END_SRC
 
-*** Reveal in macOS Finder
+***** Adaptive Wrap
+:PROPERTIES:
+:ID:       FF2121FE-1369-4B53-B9AE-B150E612E556
+:END:
 
-#+NAME: macos-finder-config
+#+NAME: readview-adaptive-wrap
 #+BEGIN_SRC emacs-lisp
-(use-package reveal-in-osx-finder
-  :if (eq system-type 'darwin)
-  :commands (reveal-in-osx-finder))
-#+END_SRC
-
-*** OSX Dictionary
-
-Provides an interface to /Dictionary.app/ in Emacs. I am using this
-package in conjunction with [[#dictionary-el][dictionary.el]] right now. The latter
-package uses an open-source dictionary server to access
-dictionaries. I haven't tested it on a different OS yet, but it should
-provide comparable functionality to [[https://github.com/xuchunyang/osx-dictionary.el][osx-dictionary.el]] on machines not
-running macOS.
-
-#+NAME: macos-dictionary
-#+BEGIN_SRC emacs-lisp
-(use-package osx-dictionary
-  :if (eq system-type 'darwin)
-  :defines (osx-dictionary-open-dictionary-app-at-point)
-  :commands (osx-dictionbary-search-word-at-point
-             osx-dictionary-search-input)
-  :init
-  (progn
-    (defun osx-dictionary-open-dictionary-app-at-point ()
-      "Open `word' at point in Dictionary.app."
-      (interactive)
-      (shell-command (format "open dict://%s" (thing-at-point 'word))))))
-
-#+END_SRC
-
-*** OSX Trash
-
-#+NAME: macos-trash
-#+BEGIN_SRC emacs-lisp
-(use-package osx-trash
-  :if (and (eq system-type 'darwin) (not (boundp 'mac-system-move-file-to-trash-use-finder)))
-  :init
-  (progn
-    (osx-trash-setup))
-  :config
-  (progn
-    (setq delete-by-moving-to-trash t)))
-#+END_SRC
-
-*** OSX Clipboard
-
-**** In Terminal
-
-#+NAME: macos-pbcopy
-#+BEGIN_SRC emacs-lisp
-(use-package pbcopy
-  :if (and (eq system-type 'darwin) (not (display-graphic-p)))
-  :init (turn-on-pbcopy))
-#+END_SRC
-
-**** Separate Emacs clipboard from system
-
-#+NAME: macos-simpleclip
-#+BEGIN_SRC emacs-lisp
-(use-package simpleclip
-  :init
-  (simpleclip-mode 1))
-#+END_SRC
-
-*** Counsel OSX App
-
-#+NAME: macos-counsel-osx-app
-#+BEGIN_SRC emacs-lisp
-(use-package counsel-osx-app
-  :demand t
-  :preface
-  (defun wk-osx-app-icon ()
-    `(,(concat
-        (propertize " " 'display '(raise -0.20))
-        "Apps")))
-  :if (eq system-type 'darwin)
-  :after (ivy)
-  :commands (counsel-osx-app))
-
-#+END_SRC
-
-** Startup
-*** Buffer
-
-The default splash screen is great when you're starting out,
-but it's more so an annoyance than anything else once you
-know you're around.
-
-**** Page Break Lines
-
-Global minor-mode that turns ~^L~ form feed characters into
-horizontal line rules.
-
-#+NAME: buffer/page-break-lines
-#+BEGIN_SRC emacs-lisp
-(use-package page-break-lines
-  :init
-  (global-page-break-lines-mode))
-#+END_SRC
-
-**** Emacs Dashboard
-
-[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
-replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
-It's a nice way of consolidating any combination of tasks,
-agenda items, bookmarks, and pretty much any other enumerable
-list that one may use in the wacky world of Emacs.
-
-#+NAME: buffer/dashboard
-#+BEGIN_SRC emacs-lisp
-(use-package dashboard
-  :init
-  (defun halidom/dashboard-banner ()
-      "Set a dashboard banner including information on
-  package initialization time and garbage collections."
-      (setq dashboard-banner-logo-title
-            (format
-             (concat "Emacs ready in %.2f seconds "
-                       "with %d garbage collections.")
-             (float-time (time-subtract
-                          after-init-time
-                          before-init-time))
-             gcs-done)))
-
-
-    (unless global-page-break-lines-mode
-      (global-page-break-lines-mode))
-
-    (dashboard-setup-startup-hook)
-
-    :config
-    (add-to-list 'dashboard-items '(agenda) t)
-    ;; Get the week agenda.
-    ;; See `dashboard-get-agenda' for how this
-    ;; variable is being used.
-    (setq show-week-agenda-p t)
-
-    (setq dashboard-items '(( agenda . 10)
-                            ( projects . 5)
-                            ( recents . 3)
-                            ( bookmarks . 5)))
-
-    :hook
-    (after-init     . dashboard-refresh-buffer)
-    (dashboard-mode . halidom/dashboard-banner))
-
-
-#+END_SRC
-
-**** Auto Revert Mode
-
-#+NAME: buffer/revert
-#+BEGIN_SRC emacs-lisp
-(use-package autorevert
-  :straight nil
-  :config
-  (global-auto-revert-mode 1))
-
-#+END_SRC
-
-**** Fireplace
-
-Just for the hell of it.
-#+NAME: fireplace-spec
-#+BEGIN_SRC emacs-lisp
-(use-package fireplace
+(use-package adaptive-wrap
   :straight t)
 #+END_SRC
 
-*** Inhibit stuff
+*** Delete Selection Mode
 
-#+NAME: startup-scratch
 #+BEGIN_SRC emacs-lisp
-(setq echo-keystrokes 0.1
-      initial-scratch-message nil
-      initial-major-mode 'org-mode
-      inhibit-startup-echo-area-message t
-      sentence-end-double-space nil
-      help-window-select t)
-  #+END_SRC
-
-*** Frame
-
-**** Disable Frame peripherals
-
-Disable scroll bars and tool bar on all system types.
-
-***** Frame and Scrollbar
-
-#+NAME: frame-tool-and-scroll
-#+BEGIN_SRC emacs-lisp
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
+(delete-selection-mode 1)
 #+END_SRC
 
-***** Menubar
-
-On macOS, the menu bar is integrated into the UI.
-
-Disabling it will just empty the menu tab options for Emacs.app,
-so we'll leave it there.
-
-#+NAME: frame-menubar
-#+BEGIN_SRC emacs-lisp
-(unless (eq system-type 'darwin)
-  (menu-bar-mode -1))
-#+END_SRC
-
-**** Display Time
-
-#+NAME: frame-time
-#+BEGIN_SRC emacs-lisp
-(display-time-mode 1)
-#+END_SRC
-
-**** Default Frame Appearance
-
-Starting in Emacs 26, the =default-frame-alist= variable can be used
-create a natural title bar in the GUI. Setting the default frame
-properties to the following values has the same effect as the
-'--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
-recommended for Spacemacs users on macOS[fn:14].
+*** Whole line or region
 
 #+BEGIN_SRC emacs-lisp
-(setq default-frame-alist
-      '((ns-transparent-titlebar . t)
-        (ns-appearance . dark)))
-#+END_SRC
-
-**** Frame Title Format
-
-Show full path in the title bar.
-
-#+NAME: frame/title
-#+BEGIN_SRC emacs-lisp
-(setq-default frame-title-format "%b (%f)")
-#+END_SRC
-
-**** Transpose Frame
-
-#+NAME: frame-transpose
-#+BEGIN_SRC emacs-lisp
-  (use-package transpose-frame)
-#+END_SRC
-
-*** Window Manager
-
-**** Window Resize
-
-Default keybindings for window resize:
-
-- =C-x ^= :: makes current window taller [[help:enlarge-window][`enlarge-window']]
-- =C-x }= :: make it larger [[help:enlarge-window-horizontally][`enlarge-window-horizontally']]
-- =C-x {= :: make it narrower [[help:shrink-window-horizontally][`shrin-window-horizontally']]
-
-This following block modifies the keybindings for these commands to
-use the arrow keys instead. I use the "C-s" modifier because it just
-so happens this prefix can be extended by every key in the arrow pad
-without causing a conflict with external keymaps on my system.
-
-The suggested keybindings from the footnoted EmacsWiki page may be more
-accessible for you [fn:15].
-
-#+NAME: window-resize-keybindings
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-s-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "C-s-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "C-s-<down>") 'shrink-window)
-(global-set-key (kbd "C-s-<up>") 'enlarge-window)
-#+END_SRC
-
-**** Winner Mode
-
-[[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
-different window configurations.
-
-#+NAME: winner-mode-config
-#+BEGIN_SRC emacs-lisp
-(use-package winner-mode
-  :straight nil
-  :init
-  (when (fboundp 'winner-mode)
-    (winner-mode 1)))
-#+END_SRC
-
-**** Ace Window
-
-#+NAME: window/ace
-#+BEGIN_SRC emacs-lisp
-  (use-package ace-window
-      :bind
-      ("M-o" . ace-window)
-      :custom
-      (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-      (aw-background nil))
+(use-package whole-line-or-region)
 
 #+END_SRC
 
-**** Perspective
+*** Expand Region
 
-
-#+NAME: persp/perspective
 #+BEGIN_SRC emacs-lisp
-(use-package perspective)
+(use-package expand-region
+  :bind
+  ("s-'" .  er/expand-region)
+  ("s-S-'" . er/contract-region))
 #+END_SRC
 
-***** Persp Projectile
+*** bln mode
 
-#+NAME: persp/projectile
 #+BEGIN_SRC emacs-lisp
-(use-package persp-projectile
-  :after (:all projectile counsel-projectile perspective)
-  :bind ((:map projectile-mode-map
-               ("s-S" . projectile-persp-switch-project))))
+(use-package bln-mode)
 #+END_SRC
 
-**** Popwin
+*** Spellchecking
+:PROPERTIES:
+:ID:       9BC08A6F-9589-4A2E-B2AD-9E1E1BA8DC9B
+:END:
 
-#+NAME: popwin-config
+
+Tools for checking lexical and grammatical errors in text
+buffers[fn:17].
+
+**** Flyspell
+
+#+NAME: flyspell-base
 #+BEGIN_SRC emacs-lisp
-  (use-package popwin
-    :defines popwin:keymap
-    :after (perspective)
-    :bind-keymap ("C-z" . popwin:keymap)
-    :bind (:map popwin:keymap
-                ("m" . popwin:messages))
+  (use-package flyspell
     :init
-    (require 'popwin)
+    (with-eval-after-load 'org
+      (add-hook 'org-mode-hook 'flyspell-mode))
     :config
-    (popwin-mode 1))
+    (progn
+      (when (executable-find "hunspell")
+        (setq-default ispell-program-name "hunspell")
+        (setq-default ispell-dictionary "en_US")
+        (setq ispell-really-hunspell t))))
 #+END_SRC
 
-**** Poporg
+***** Flyspell Correct
 
+#+NAME: flyspell-correct-config
 #+BEGIN_SRC emacs-lisp
-(use-package poporg
-  :bind ("C-c \"" . 'poporg-dwim))
+  (use-package flyspell-correct-ivy
+    :after (:all flyspell ivy)
+    :demand t
+    :config
+    (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic))
 #+END_SRC
 
-**** Golden Ratio
+**** Langtool
 
+LanguageTool is a Java plugin which provides style and grammar
+checking for natural language.
+
+#+NAME: sc-langtool
 #+BEGIN_SRC emacs-lisp
-(use-package golden-ratio
+(use-package langtool
+  :if (eq system-type 'darwin)
+  :after (flyspell)
+  :demand t
+  :custom
+  (langtool-language-tool-jar
+   "/usr/local/opt/languagetool/libexec/languagetool-commandline.jar")
+  (langtool-mother-tongue "en")
+  (langtool-disabled-rules '("DASH_RULE"))
   :init
-  (setq golden-ratio-auto-scale t))
+  (defun langtool-autoshow-detail-popup (overlays)
+    (when (require 'popup nil t)
+      ;; Do not interrupt current popup
+      (unless (or popup-instances
+                 ;; suppress popup after type `C-g` .
+                 (memq last-command '(keyboard-quit)))
+        (let ((msg (langtool-details-error-message overlays)))
+          (popup-tip msg)))))
+  :config
+  (setq langtool-autoshow-message-function 'langtool-autoshow-detail-popup))
 #+END_SRC
 
-**** Purpose
+**** Academic Phrases
 
-#+NAME: purpose
+#+NAME: sc-academic
 #+BEGIN_SRC emacs-lisp
-  (use-package window-purpose)
+(use-package academic-phrases)
+#+END_SRC
 
-  (use-package ivy-purpose
-      :custom (pop-up-frames nil)
-      :after (window-purpose)
-      :init
-      (ivy-purpose-setup)
-      :config
-      ;; give help buffers the 'popup-frame purpose
-      (add-to-list 'purpose-user-mode-purposes
-                  '(help-mode . popup-frame))
-      (add-to-list 'purpose-special-action-sequences
-                   '(popup-frame
-                     purpose-display-reuse-window-buffer
-                     purpose-display-reuse-window-purpose
-                     purpose-display-pop-up-frame)))
+**** Proselint
+
+#+NAME: sc-proselint
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'flycheck
+    (flycheck-define-checker proselint
+                             "A linter for prose."
+                             :command ("proselint" source-inplace)
+                             :error-patterns
+                             ((warning line-start (file-name) ":" line ":" column ": "
+                                       (id (one-or-more (not (any " "))))
+                                       (message) line-end))
+                             :modes (text-mode org-mode markdown-mode gfm-mode))
+    (add-to-list 'flycheck-checkers 'proselint))
+
 #+END_SRC
 
 * Tex and Org Mode
@@ -2130,21 +1823,9 @@ different window configurations.
 :ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
 :CUSTOM_ID: sec:latex
 :END:
-
 *** Auctex
 
-Recent versions of AuCTeX are problematic with straight.
-On a clean install, I had to manually run the following command to get
-it to work properly:
 
-#+BEGIN_SRC shell
-( cd $HOME/.emacs.d/straight/repos/auctex && \
-      ./autogen.sh && \
-      ./configure --with-texmf-dir=`kpsewhich --var-value=TEXMFHOME` && \
-      make && make install )
-#+END_SRC
-
-#+NAME: tex/auctex
 #+BEGIN_SRC emacs-lisp
 (use-package auctex
   :bind (:map LaTeX-mode-map
@@ -2155,58 +1836,57 @@ it to work properly:
 
 #+NAME: latex-tex
 #+BEGIN_SRC emacs-lisp
-  (use-package tex
-    :straight auctex
-    :custom
-    ;; (TeX-command-default
-    ;;  (if (executable-find "latexmk") "LatexMk" "LaTeX"))
-    (TeX-error-overview-open-after-TeX-run t)
-    (TeX-auto-save t)
-    (TeX-parse-self t)
-    (TeX-syntactic-comment t)
-    ;; nonstopmode
-    (TeX-interactive-mode nil)
-    ;; Don't insert line-break at inline math
-    (LaTeX-fill-break-at-separators nil)
-    (LaTeX-item-indent nil)
-
-    :init
-
-    ;; https://emacs.stackexchange.com/a/19475
-    (defun latex/view-hook ()
-      "Use pdf-tools to open PDF files."
+(use-package tex
+  :straight auctex
+  :custom
+  ;; (TeX-command-default
+  ;;  (if (executable-find "latexmk") "LatexMk" "LaTeX"))
+  (TeX-error-overview-open-after-TeX-run t)
+  (TeX-auto-save t)
+  (TeX-parse-self t)
+  (TeX-syntactic-comment t)
+  ;; nonstopmode
+  (TeX-interactive-mode nil)
+  ;; Don't insert line-break at inline math
+  (LaTeX-fill-break-at-separators nil)
+  (LaTeX-item-indent nil)
+  :init
+  ;; https://emacs.stackexchange.com/a/19475
+  (defun latex/pdfview ()
+    "Use `pdf-view-mode' to open PDF files.
+This requires the pdf-tools package to be installed."
+    (when (file-exists-p (or pdf-info-epdfinfo-program ""))
       (add-to-list 'TeX-view-program-list '("PDF Tools" TeX-pdf-tools-sync-view))
       (setf (alist-get 'output-pdf TeX-view-program-selection) '("PDF Tools"))
       (setq TeX-source-correlate-start-server t)
-      (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+      (add-hook 'TeX-after-compilation-finished-functions
+                #'TeX-revert-document-buffer)))
 
-    (defun latex/shell-escape ()
-      "Use the shell escape flag with `TeX-command'."
-      (setq TeX-command-extra-options "-shell-escape"))
+  (defun latex/setup ()
+    ;; Use the shell escape flag with `TeX-command'.
+    (setq TeX-command-extra-options "-shell-escape")
+    (when (fboundp 'flyspell-mode)
+      (flyspell-mode +1))
+    (when (fboundp 'doc-view-mode)
+      (add-hook 'doc-view-mode 'auto-revert-mode))
+    (when (fboundp 'display-line-numbers-mode)
+      (display-line-numbers-mode +1))
+    (when (fboundp 'ggtags-mode)
+      (ggtags-mode +1))
+    (when (fboundp 'typo-mode)
+      (typo-mode -1))
+    (when (fboundp 'smartparens-mode)
+      (smartparens-mode +1)))
 
-    (defun latex/enable-flyspell ()
-      (when (fboundp 'flyspell-mode)
-        (flyspell-mode 1)))
+  :hook
+  (LaTeX-mode . latex/setup)
+  (LaTeX-mode . LaTeX-math-mode)
+  (LaTeX-mode . TeX-fold-mode)
+  (LaTeX-mode . TeX-source-correlate-mode)
+  (LaTeX-mode . TeX-PDF-mode)
 
-    (defun latex/revert-doc-view ()
-      (when (fboundp 'doc-view-mode)
-        (add-hook 'doc-view-mode 'auto-revert-mode)))
+)
 
-    (defun latex/enable-ggtags ()
-      (when (fboundp 'ggtags-mode)
-        (ggtags-mode 1)))
-
-    :hook
-    (LaTeX-mode . latex/shell-escape)
-    (LaTeX-mode . latex/view-hook)
-    (LaTeX-mode . latex/enable-flyspell)
-    (LaTeX-mode . latex/revert-doc-view)
-    (LaTeX-mode . latex/enable-ggtags)
-    (LaTeX-mode . LaTeX-math-mode)
-    (LaTeX-mode . TeX-fold-mode)
-    (LaTeX-mode . TeX-source-correlate-mode)
-    (LaTeX-mode . TeX-PDF-mode)
-    (LaTeX-mode . display-line-numbers-mode))
 #+END_SRC
 
 *** Reftex
@@ -2222,13 +1902,15 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 (use-package reftex
     :straight nil
     :init
-    (defun halidom/latex-reftex-hook ()
+    (defun reftex/setup ()
       (turn-on-reftex)
-      (setq reftex-plug-into-AUCTeX '(nil nil t t t)
+      (setq reftex-plug-into-AUCTeX
+            '(nil nil t t t)
             reftex-use-fonts t
-            reftex-default-bibliography (list (file-truename "~/Dropbox/org/ref/references.bib"))))
+            reftex-default-bibliography
+            `(,(org-dir "ref/references.bib"))))
     :hook
-    (LaTeX-mode . halidom/latex-reftex-hook))
+    (LaTeX-mode . reftex/setup))
 #+END_SRC
 
 *** BibTex
@@ -2256,25 +1938,14 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
 #+END_SRC
 
 *** Extra
-:PROPERTIES:
-:ID:       3D058D68-FED6-43C9-B48B-E9280E6F2016
-:CUSTOM_ID: sec:extra
-:END:
 
-#+NAME: tex/extra
 #+BEGIN_SRC emacs-lisp
 (use-package latex-extra
   :custom
   (latex/no-fill-environments
-   '("equation"
-     "equation*"
-     "exe"
-     "align"
-     "align*"
-     "forest"
-     "forest*"
-     "tabular"
-     "tikzpicture"))
+   '("align" "align*" "forest" "forest*"
+     "equation" "equation*" "exe"
+     "tabular" "tikzpicture"))
 
     :bind (:map LaTeX-mode-map
                 ("C-c C-a" . latex/compile-commands-until-done)
@@ -2289,11 +1960,11 @@ These are the recommended settings in the [[https://github.com/jkitchin/org-ref/
                 ("C-c C-q" . latex/clean-fill-indent-environment))
 
     :init
-    (defun tex/latex-extra ()
-      (latex-extra-mode 1))
+    (defun latex/extra ()
+      (latex-extra-mode +1))
 
     :hook
-    (LaTeX-mode . tex/latex-extra))
+    (LaTeX-mode . latex/extra))
 
 #+END_SRC
 
@@ -2521,6 +2192,43 @@ save.
            lualatex-preview-header))))
 #+END_SRC
 
+***** Scrolling
+:PROPERTIES:
+:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
+:END:
+****** Scroll to first error on compilation
+
+#+NAME: scroll/compile-error
+#+BEGIN_SRC emacs-lisp
+(setq compilation-scroll-output 'first-error)
+#+END_SRC
+
+****** Smooth Scrolling
+
+#+NAME: scroll/smooth
+#+BEGIN_SRC emacs-lisp
+(use-package smooth-scrolling
+  :init
+  (smooth-scrolling-mode 1)
+  :config
+  (setq scroll-step 1
+        scroll-margin 10
+        next-line-add-newlines nil
+        scroll-preserve-screen-position 1)
+
+  (setq mouse-wheel-follow-mouse 't)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
+#+END_SRC
+
+****** Sublimity Scroll
+
+#+NAME: scroll/subliminity
+#+BEGIN_SRC emacs-lisp
+  (use-package sublimity
+      :init
+    (require 'sublimity-scroll))
+#+END_SRC
+
 **** Per-buffer latex fragment previews
 
 Generate latex fragments based on the latex compiler and class in the current buffer.
@@ -2544,7 +2252,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 (add-hook 'org-mode-hook 'org-preview-with-compiler)
 #+END_SRC
 
-*** Company Auctex
+*** Company auctex
 
 #+NAME: latex-company-auctex
 #+BEGIN_SRC emacs-lisp
@@ -2598,15 +2306,16 @@ Prettify dedicated org-mode latex buffers.
       (LaTeX-mode . magic-latex-buffer))
 #+END_SRC
 
-*** Auctex Latexmk
+*** aucex latexmk
 
 #+NAME: latex-auctex-latexmk
 #+BEGIN_SRC emacs-lisp
 (use-package auctex-latexmk
-    :custom
-    (auctex-latexmk-inherit-TeX-PDF-mode t)
-    :init
-    (auctex-latexmk-setup))
+  :after (tex)
+  :custom
+  (auctex-latexmk-inherit-TeX-PDF-mode t)
+  :init
+  (auctex-latexmk-setup))
 #+END_SRC
 
 *** Texinfo
@@ -2725,7 +2434,7 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+END_SRC
 
-** Org Mode
+** Org
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
 :END:
@@ -2750,6 +2459,39 @@ Entered on [2018-06-13 Wed 11:42]
   :if (executable-find "lumo")
   :after (ob)
   :demand t)
+#+END_SRC
+
+**** Ob async
+
+#+BEGIN_SRC emacs-lisp
+(use-package ob-async)
+#+END_SRC
+
+**** Ob Babel
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-babel-eval-in-repl
+  :after (eval-in-repl)
+  :bind
+  (:map org-mode-map
+        ("C-<return>" . ober-eval-in-repl)
+        ("C-c C-c" 'ober-eval-block-in-repl)
+        :custom
+        (eir-jump-after-evail nil)))
+
+#+END_SRC
+
+**** ob browser
+
+#+BEGIN_SRC emacs-lisp
+(use-package ob-browser
+  :ensure-system-package (ob-browser . "yarn add phantomjs"))
+#+END_SRC
+
+**** Ob Diagrams
+
+#+BEGIN_SRC emacs-lisp
+(use-package ob-diagrams)
 #+END_SRC
 
 **** Load Languages
@@ -2841,6 +2583,16 @@ The default set of bullet points can be modified via the
     :hook
     (org-mode . org-bullets/enable)
     (org-bullets . org-bullets/pretty))
+#+END_SRC
+
+**** Org Fancy Priorities
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-fancy-priorities
+  :hook
+  (org-mode . org-fancy-priorities-mode)
+  :config
+  (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕")))
 #+END_SRC
 
 **** Org Pretty Table
@@ -3024,38 +2776,135 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+END_SRC
 
 ****
+*** Org Code
+**** Polymode
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package polymode)
+#+END_SRC
+
+***** Poly noweb
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package poly-noweb)
+#+END_SRC
+
+***** Poly org
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package poly-org)
+#+END_SRC
+
+***** Poly markdown
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package poly-markdown)
+#+END_SRC
+
+**** Lentic
+
+#+BEGIN_SRC emacs-lisp
+(use-package lentic)
+#+END_SRC
+
+**** Org2elcomment
+
+#+BEGIN_SRC emacs-lisp
+(use-package org2elcomment)
+#+END_SRC
+
 *** Structure and Editing
+**** Outlines
+
+***** Navi
+
+#+BEGIN_SRC emacs-lisp
+(use-package navi)
+#+END_SRC
+
+***** Outshine
+
+#+BEGIN_SRC emacs-lisp
+(use-package outshine
+  :preface (setq outshine-minor-mode-prefix "\M-#")
+  :hook ((prog-mode          . outline-minor-mode)
+         (outline-minor-mode . outshine-mode)))
+#+END_SRC
+
+***** Outorg
+
+#+BEGIN_SRC emacs-lisp
+(use-package outorg
+    :after (outshine))
+#+END_SRC
 
 **** Org Capture :tasks:
 
-#+NAME: org-capture-templates
 #+BEGIN_SRC emacs-lisp
-(require 'org-capture)
 
-(add-to-list 'org-capture-templates
-  '("t" "Todo" entry (file+headline "~/Dropbox/todos/TODOs.org" "Tasks")))
+(use-package org-capture
+    :straight nil
+    :init
+    (defun org-get-target-headline (&optional targets prompt)
+      "Prompt for a location in an org file and jump to it.
 
-(defvar org-capture/created-property-string "
-  :PROPERTIES:
-  :CREATED: %U
-  :END:")
+This is for promping for refile targets when doing captures.
+Targets are selected from `org-refile-targets'. If TARGETS is
+given it temporarily overrides `org-refile-targets'. PROMPT will
+replace the default prompt message.
+
+If CAPTURE-LOC is is given, capture to that location instead of
+prompting."
+      (let ((org-refile-targets (or targets org-refile-targets))
+            (prompt (or prompt "Capture Location")))
+        (if org-capture-overriding-marker
+            (org-goto-marker-or-bmk org-capture-overriding-marker)
+          (org-refile t nil nil prompt))))
+    (setq org-capture-templates
+          '(,("C" "Config"
+                  (file+function
+                   ,halidom-user-literate-init-file
+                   org-get-target-headline)))))
+
+
 #+END_SRC
 
-***** Org Protocol Handler
 
-#+NAME: org-protocol-app
+***** Org Capture popup frame
+
 #+BEGIN_SRC emacs-lisp
-(setq org-protocol-default-template-key "l")
-(add-to-list 'org-capture-templates
-             '("l" "Link" entry
-               (file+olp "~/Dropbox/org/capture.org" "Web Links")
-               "* %:description\n%u\n\n%c\n\n%i"))
+(use-package org-capture-pop-frame)
+#+END_SRC
 
-(require 'server)
-(unless (server-running-p)
-  (server-start))
+***** Org Category Capture
 
-(require 'org-protocol)
+#+BEGIN_SRC emacs-lisp
+(use-package org-category-capture)
+#+END_SRC
+
+**** Org Protocol
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-protocol
+    :straight org
+    :custom
+    (org-protocol-default-template-key "l")
+    :init
+    (require 'server)
+    (unless (server-running-p)
+      (setq server-socket-dir (format "/tmp/emacs%d" (user-uid)))
+      (server-start))
+    :config
+    (with-eval-after-load 'org-capture
+      (setq org-capture-templates
+            (append org-capture-templates
+                    (list `("l" "Web content and clippings" entry
+                                (file+headline ,org-default-notes-file "Clippings")
+                                "** %:annotation\nCaptured on %u\n%i"
+                                :empty-lines 1 :jump-to-captured 1))))))
+
+
+
 #+END_SRC
 
 ***** Org Mac Protocol
@@ -3063,36 +2912,47 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+NAME: org-protocol-mac
 #+BEGIN_SRC emacs-lisp
 (use-package org-mac-protocol
-  :straight (org-mac-protocol
-             :type git
-             :host github
-             :repo "jchaffin/org-mac-protocol")
+    :straight (org-mac-protocol
+               :type git
+               :host github
+               :repo "jchaffin/org-mac-protocol")
 
-  :preface
-  (defun org-mac-protocol-install (&optional force)
-    "Install system dependencies provided by org-mac-protocol."
-    (interactive "P")
-    (let* ((target-directory "~/Library/Scripts/")
-           (source-directory (straight-repos-dir "org-mac-protocol"))
-           (scripts (directory-files source-directory t "\\.scpt$\\|orgQSLib"))
-           (force-p (if force t nil)))
-      (cl-loop for script in scripts
-               for target = (expand-file-name (basename script)
-                                              target-directory)
-               do (condition-case nil
-                      (make-symbolic-link script target force-p)
-                    (error nil)))))
-  :init
-  (add-to-list 'org-modules 'org-mac-protocol)
-  :config
-  (when (require 'org-capture nil t)
-    (append org-capture-templates
-            '(("y" "AppleScript remember" entry
-               (concat org-directory "inbox.org") "Remember"
-               "* %:shortdesc\n  %:initial\n   Source: %u, %c\n\n  %?")
-              ("z" "AppleScript note" entry
-               (concat org-directory "inbox.org") "Notes"
-               "Notes""* %?\n\n  Date: %u\n" )))))
+    :init
+    (defun org-mac-protocol-install (&optional force)
+      "Install system dependencies provided by org-mac-protocol."
+      (interactive "P")
+      (cl-flet
+          ((add-capture-templates ()
+             (when (require 'org-capture nil t)
+               (setq org-capture-templates
+                     (append org-capture-templates
+                             (list `("y" "AppleScript capture" entry
+                                         (file+headline ,org-default-notes-file "Capture")
+                                         "** %:shortdesc\n  %:initial\n   Source: %u, %c\n\n  %?")
+                                   `("z" "AppleScript note" entry
+                                         (file+headline ,org-default-notes-file "Notes")
+                                         "** %?\n\n  Date: %u\n")))))))
+        (lexical-let* ((target-directory "~/Library/Scripts/org-mac-protocol")
+                       (source-directory (straight-repos-dir "org-mac-protocol"))
+                       (scripts (directory-files source-directory t "\\.scpt$\\|orgQSLib"))
+                       (force-p (if force t nil)))
+          (unless (file-directory-p target-directory)
+            (mkdir target-directory))
+
+          (cl-loop for script in scripts
+             for target = (expand-file-name (basename script)
+                                            target-directory)
+             do (condition-case nil
+                    (progn
+                      (make-symbolic-link script target force-p))
+                  (error nil)))
+
+          (if (f-empty-p target-directory)
+              (warn "Org mac protocol scripts failed to install.")
+            (add-capture-templates)
+            (message "Scripts installed to %s" target-directory)))))
+    :init
+    (add-to-list 'org-modules 'org-mac-protocol))
 #+END_SRC
 
 ***** Org Protocol Capture HTML
@@ -3184,62 +3044,93 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 **** Org ID :structure:
 
 #+BEGIN_SRC emacs-lisp
+(use-package org-id
+  :straight org
+  :custom
+  (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+  :init
+  ;; Custom id utilities
+  ;; See [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Org Mode Generate Ids]]
+  (with-eval-after-load 'org-id
+    (el-patch-feature org-id)
+    (el-patch-defun org-id-new (&optional prefix)
+      "Create a new globally unique ID.
 
-(require 'org-id)
-(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+An ID consists of two parts separated by a colon:
+- a prefix
+- a unique part that will be created according to `org-id-method'.
 
-#+END_SRC
+PREFIX can specify the prefix, the default is given by the variable
+`org-id-prefix'.  However, if PREFIX is the symbol `none', don't use any
+prefix even if `org-id-prefix' specifies one.
 
-***** Get Custom ID
+So a typical ID could look like \"Org:4nd91V40HI\"."
+      (let* ((prefix (if (eq prefix 'none)
+		                     ""
+		                   (concat (or prefix org-id-prefix) (el-patch-swap ":" "-"))))
+	           unique)
+        (if (equal prefix (el-patch-swap ":" "-")) (setq prefix ""))
+        (cond
+          ((memq org-id-method '(uuidgen uuid))
+           (setq unique (org-trim (shell-command-to-string org-id-uuid-program)))
+           (unless (org-uuidgen-p unique)
+	           (setq unique (org-id-uuid))))
+          ((eq org-id-method 'org)
+           (let* ((etime (org-reverse-string (org-id-time-to-b36)))
+	                (postfix (if org-id-include-domain
+			                         (progn
+			                           (require 'message)
+			                           (concat "@" (message-make-fqdn))))))
+	           (setq unique (concat etime postfix))))
+          (t (error "Invalid `org-id-method'")))
+        (concat prefix unique))))
 
-From [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Org Mode Generate Ids]] blogpost:
+  (defun org-custom-id-get (&optional pom create prefix)
+    "Get the CUSTOM_ID property of the entry at point-or-marker POM.
+    If POM is nil, refer to the entry at point. If the entry does
+    not have an CUSTOM_ID, the function returns nil. However, when
+    CREATE is non nil, create a CUSTOM_ID if none is present
+    already. PREFIX will be passed through to `org-id-new'. In any
+    case, the CUSTOM_ID of the entry is returned."
+    (interactive)
+    (org-with-point-at pom
+      (let ((id (org-entry-get nil "CUSTOM_ID")))
+        (cond
+          ((and id (stringp id) (string-match "\\S-" id))
+           id)
+          (create
+           (setq id (org-id-new (concat prefix "h")))
+           (org-entry-put pom "CUSTOM_ID" id)
+           (org-id-add-location id (buffer-file-name (buffer-base id))))))))
 
-#+NAME: org-id-get-custom
-#+BEGIN_SRC emacs-lisp
-(defun org-custom-id-get (&optional pom create prefix)
-  "Get the CUSTOM_ID property of the entry at point-or-marker POM.
-   If POM is nil, refer to the entry at point. If the entry does
-   not have an CUSTOM_ID, the function returns nil. However, when
-   CREATE is non nil, create a CUSTOM_ID if none is present
-   already. PREFIX will be passed through to `org-id-new'. In any
-   case, the CUSTOM_ID of the entry is returned."
-  (interactive)
-  (org-with-point-at pom
-    (let ((id (org-entry-get nil "CUSTOM_ID")))
-      (cond
-       ((and id (stringp id) (string-match "\\S-" id))
-        id)
-       (create
-        (setq id (org-id-new (concat prefix "h")))
-        (org-entry-put pom "CUSTOM_ID" id)
-        (org-id-add-location id (buffer-file-name (buffer-base id))))))))
-#+END_SRC
+  (defun org-add-ids-to-headlines-in-file ()
+    "Add CUSTOM_ID properties to all headlines in the current
+    file which do not already have one. Only adds ids if the
+    `auto-id' option is set to `t' in the file somewhere. ie,
+    ,#+OPTIONS: auto-id:t"
+    (interactive)
+    (save-excursion
+      (widen)
+      (goto-char (point-min))
+      (when (re-search-forward "^#\\+OPTIONS:.*auto-id:t" (point-max) t)
+        (org-map-entries (lambda () (org-custom-id-get (point) 'create))))))
 
-***** Add IDs to Headlines in file
+  (defun org-add-custom-ids-before-save ()
+    "Automatically adds custom ids to headlines in file before save."
+    (add-hook 'before-save-hook
+              (lambda ()
+                (when (and (eq major-mode 'org-mode)
+                         (eq buffer-read-only nil))
+                  (org-add-ids-to-headlines-in-file)))))
 
-#+BEGIN_SRC emacs-lisp
-(defun org-add-ids-to-headlines-in-file ()
-  "Add CUSTOM_ID properties to all headlines in the current
-  file which do not already have one. Only adds ids if the `auto-id' option is set a non-nil value in the file.
+  (defun org-capture-add-custom-id ()
+    "Add a CUSTOM_ID property to headlines created by `org-capture'."
+    (org-custom-id-get (point) 'create))
 
-  i.e `#+OPTIONS: auto-id:t`"
+  :hook
+  (org-capture-prepare-finalize . org-capture-add-custom-id)
+  (org-mode . org-add-ids-to-headlines-in-file))
 
-  (interactive)
-  (save-excursion
-    (widen)
-    (goto-char (point-min))
-    (when (re-search-forward "^\\#+OPTIONS:.*auto-id:t"  (point-max)  t)
-      (org-map-entries
-       (lambda ()
-         (org-custom-id-get (point) 'create))))))
-
-(add-hook 'org-mode-hook
-	  (lambda ()
-	    (add-hook 'before-save-hook
-                (lambda ()
-                  (when (and (eq major-mode 'org-mode)
-                             (eq buffer-read-only nil))
-                    (org-add-ids-to-headlines-in-file))))))
 #+END_SRC
 
 **** Org Index :notetaking:
@@ -3278,9 +3169,13 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 (use-package org-web-tools)
 #+END_SRC
 
+**** Org preview html
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-preview-html)
+#+END_SRC
+
 **** Org Links :structure:
-
-
 ***** Add Tags Link
 
 #+NAME: org-links-tags
@@ -3354,6 +3249,16 @@ Embed YouTube Links in iframe.
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
 #+END_SRC
 
+***** Devonthink links
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package org-devonthink
+  :straight nil
+  :load-path "etc/local/org-devonthink")
+
+#+END_SRC
+
+
 ***** Org Bookmark Heading
 
 :PROPERTIES:
@@ -3368,7 +3273,6 @@ Embed YouTube Links in iframe.
 #+END_SRC
 
 *** Task Management
-
 **** Org Habit
 
 #+NAME: org-taskmgr-habit
@@ -3453,6 +3357,13 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (org-mode . halidom/org-agenda-file-face))
 #+END_SRC
 
+***** Super agenda
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-super-agenda)
+
+#+END_SRC
+
 ***** Agenda ng
 
 #+NAME: agenda/ng
@@ -3466,7 +3377,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 ***** Org ql
 
-#+NAME: agenda/ql
 #+BEGIN_SRC emacs-lisp
 (use-package org-ql
     :straight
@@ -3475,7 +3385,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       :host github
       :repo "alphapapa/org-agenda-ng"
       :files ("org-ql.el")))
+#+END_SRC
 
+****** QL Agenda
+
+#+BEGIN_SRC emacs-lisp
 (use-package org-ql-agenda
     :straight
     (org-ql-agenda
@@ -3483,7 +3397,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       :host github
       :repo "alphapapa/org-agenda-ng"
       :files ("org-ql-agenda.el")))
-
 #+END_SRC
 
 ***** Org Sidebar
@@ -3561,16 +3474,9 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
      '(("CANCELLED" . (:foreground "yellow"))))
     (org-projectile-per-project-filepath "TODOs.org")
 
-    (org-projectile-capture-template
-     (format
-      "%s%s" "** TODO %?"
-      org-capture/created-property-string))
-
     :init
-
     (defvar-local org-default-agenda-file
       (file-truename "~/Dropbox/org/todos/TODOS.org"))
-
 
     (defun org-projectile-files-to-agenda ()
       "Add projectile project files to agenda."
@@ -3592,8 +3498,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
              build-agenda)))
 
     :hook
-    (org-agenda-mode . org-projectile-files-to-agenda)
-    (dashboard-mode . org-projectile-files-to-agenda)
+    ((org-agenda-mode dashboard-mode) . org-projectile-files-to-agenda)
 
     :config
     (org-projectile-per-project))
@@ -3608,16 +3513,16 @@ Calendar.
 
 #+NAME: org-taskmgr-gcal
 #+BEGIN_SRC emacs-lisp
-(use-package org-gcal
-    :init
-  (require 'secrets)
-  (require 'org-gcal)
-  :custom
-  (org-gcal-file-alist
-   '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/agenda/schedule.org")))
-  :hook
-  (org-agenda-mode . org-gcal-sync)
-  (org-capture-after-finalize . org-gcal-sync))
+;; (use-package org-gcal
+;;     :init
+;;   (require 'secrets)
+;;   (require 'org-gcal)
+;;   :custom
+;;   (org-gcal-file-alist
+;;    '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/agenda/schedule.org")))
+;;   :hook
+;;   (org-agenda-mode . org-gcal-sync)
+;;   (org-capture-after-finalize . org-gcalcc-sync))
 
 #+END_SRC
 
@@ -3745,6 +3650,12 @@ org agenda files.
 
 Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
 
+**** Org clock convenience
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-clock-convenience)
+#+END_SRC
+
 *** Concept Mapping
 :PROPERTIES:
 :ID:       0D754B3F-C800-409F-B8A2-140CB8EDD1E3
@@ -3774,168 +3685,6 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
     (push '("b" "Brain" plain (function org-brain-goto-end)
             "* %i%?" :empty-lines 1)
           org-capture-templates)))
-#+END_SRC
-
-*** Org Hacks
-:PROPERTIES:
-:ID:       872F7F61-7971-42E4-BC24-FEA9D67634D2
-:END:
-
-#+NAME: org-hacks-spec
-#+BEGIN_SRC emacs-lisp
-;; Begin Org Hacks
-;; Hidden cursor in folded subtree fix
-
-;; Extract hyperlinks
-
-;; Dynamically adjust tag position
-
-;; End Org Hacks
-#+END_SRC
-
-From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks.html#sec-1-8-5][org hacks]]:
-
-**** Reveal cursor in folded subtree.
-:PROPERTIES:
-:ID:       088BEAF5-B9FE-43F4-995D-5E26FB6DCB16
-:END:
-
-Fix problem with  which puts point back in a folded position.
-
-#+NAME: org-hacks-saveplace-fix
-#+BEGIN_SRC emacs-lisp
-(add-hook 'org-mode-hook
-          (lambda ()
-            (when (outline-invisible-p)
-              (save-excursion
-                (outline-previous-visible-heading 1)
-                (org-show-subtree)))))
-#+END_SRC
-
-**** Hyperlink extraction
-
-#+NAME: org-hacks-extract-hyperlink
-#+BEGIN_SRC emacs-lisp
-
-  (defun org-extract-link ()
-    "Extract the link location at point and put it on the killring."
-    (interactive)
-    (when (org-in-regexp org-bracket-link-regexp 1)
-      (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
-
-
-  (defun browse-url-extract-org-link (orig-fun &rest args)
-    "If `thing-at-point' is a org-link, then call `org-extract-link'
-  and apply ORIG-FUN with the extracted url in the car of original ARGS."
-    (when (and (eq major-mode 'org-mode)
-               (string= (car (org-thing-at-point)) "link"))
-      (setcar args (org-extract-link)))
-    (apply orig-fun args))
-
-    (advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
-#+END_SRC
-
-**** Export to datetree :disabled:
-
-#+NAME: org-hacks-datetree-export
-#+BEGIN_SRC emacs-lisp
-(require 'org-datetree)
-
-(setq org-archive-location "%s_archive::date-tree")
-(defadvice org-archive-subtree
-  (around org-archive-subtree-to-data-tree activate)
-  "org-archive-subtree to date-tree"
-  (if
-      (string= "date-tree"
-               (org-extract-archive-heading
-                (org-get-local-archive-location)))
-      (let* ((dct (decode-time (org-current-time)))
-             (y (nth 5 dct))
-             (m (nth 4 dct))
-             (d (nth 3 dct))
-             (this-buffer (current-buffer))
-             (location (org-get-local-archive-location))
-             (afile (org-extract-archive-file location))
-             (org-archive-location
-              (format "%s::*** %04d-%02d-%02d %s" afile y m d
-                      (format-time-string "%A" (encode-time 0 0 0 d m y)))))
-        (message "afile=%s" afile)
-        (unless afile
-          (error "Invalid `org-archive-location'"))
-        (save-excursion
-          (switch-to-buffer (find-file-noselect afile))
-          (org-datetree-find-year-create y)
-          (org-datetree-find-month-create y m)
-          (org-datetree-find-day-create y m d)
-          (widen)
-          (switch-to-buffer this-buffer))
-        ad-do-it)
-    ad-do-it))
-
-
-#+END_SRC
-
-**** Dynamically set tag position :disabled:
-
-#+NAME: org-hacks-tag-pos
-#+BEGIN_SRC emacs-lisp
-  (setq ba/org-adjust-tags-column nil)
-
-  (defun ba/org-adjust-tags-column-reset-tags ()
-    "In org-mode buffers it will reset tag position according to
-  `org-tags-column'."
-    (when (and
-           (not (string= (buffer-name) "*Remember*"))
-           (eql major-mode 'org-mode))
-      (let ((b-m-p (buffer-modified-p)))
-        (condition-case nil
-            (save-excursion
-              (goto-char (point-min))
-              (command-execute 'outline-next-visible-heading)
-              ;; disable (message) that org-set-tags generates
-              (cl-flet ((message (&rest ignored) nil))
-              (org-set-tags 1 t))
-              (set-buffer-modified-p b-m-p))
-              (error nil)))))
-
-  (defun ba/org-adjust-tags-column-now ()
-    "Right-adjust `org-tags-column' value, then reset tag position."
-    (set (make-local-variable 'org-tags-column)
-         (- (- (window-width) (length org-ellipsis))))
-    (ba/org-adjust-tags-column-reset-tags))
-
-  (defun ba/org-adjust-tags-column-maybe ()
-    "If `ba/org-adjust-tags-column' is set to non-nil, adjust tags."
-    (when ba/org-adjust-tags-column
-      (ba/org-adjust-tags-column-now)))
-
-  (defun ba/org-adjust-tags-column-before-save ()
-    "Tags need to be left-adjusted when saving."
-    (when ba/org-adjust-tags-column
-       (setq org-tags-column 1)
-       (ba/org-adjust-tags-column-reset-tags)))
-
-  (defun ba/org-adjust-tags-column-after-save ()
-    "Revert left-adjusted tag position done by before-save hook."
-    (ba/org-adjust-tags-column-maybe)
-    (set-buffer-modified-p nil))
-
-  ; automatically align tags on right-hand side
-  (add-hook 'window-configuration-change-hook
-            'ba/org-adjust-tags-column-maybe)
-  (add-hook 'before-save-hook 'ba/org-adjust-tags-column-before-save)
-  (add-hook 'after-save-hook 'ba/org-adjust-tags-column-after-save)
-  (add-hook 'org-agenda-mode-hook '(lambda ()
-                                    (setq org-agenda-tags-column (- (window-width)))))
-
-  ; between invoking org-refile and displaying the prompt (which
-  ; triggers window-configuration-change-hook) tags might adjust,
-  ; which invalidates the org-refile cache
-  (defadvice org-refile (around org-refile-disable-adjust-tags)
-    "Disable dynamically adjusting tags"
-    (let ((ba/org-adjust-tags-column nil))
-      ad-do-it))
-  (ad-activate 'org-refile)
 #+END_SRC
 
 *** Org Export
@@ -4272,6 +4021,12 @@ My custom mla-style LaTeX class.
     :demand t)
 #+END_SRC
 
+***** gb4e
+
+#+BEGIN_SRC emacs-lisp
+(use-package gb4e)
+#+END_SRC
+
 **** Ox Bibtex
 
 #+NAME: ox/bibtex
@@ -4371,6 +4126,420 @@ for exporting org-mode documents to various formats.
       :files ("setup/*" "styles/*")))
 #+END_SRC
 
+*** Org Hacks
+:PROPERTIES:
+:ID:       872F7F61-7971-42E4-BC24-FEA9D67634D2
+:END:
+
+From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks.html#sec-1-8-5][org hacks]]:
+
+**** Check for possibly problematic old link escapes
+
+#+BEGIN_SRC emacs-lisp
+  (defun org-check-percent-escapes ()
+    "*Check buffer for possibly problematic old link escapes."
+    (interactive)
+    (when (eq major-mode 'org-mode)
+      (let ((old-escapes '("%20" "%5B" "%5D" "%E0" "%E2" "%E7" "%E8" "%E9"
+                           "%EA" "%EE" "%F4" "%F9" "%FB" "%3B" "%3D" "%2B")))
+        (unless (boundp 'warning-suppress-types)
+          (setq warning-suppress-types nil))
+        (widen)
+        (show-all)
+        (goto-char (point-min))
+        (while (re-search-forward org-any-link-re nil t)
+          (let ((end (match-end 0)))
+            (goto-char (match-beginning 0))
+            (while (re-search-forward "%[0-9a-zA-Z]\\{2\\}" end t)
+              (let ((escape (match-string-no-properties 0)))
+                (unless (member (upcase escape) old-escapes)
+                  (warn "Found unknown percent escape sequence %s at buffer %s, position %d"
+                        escape
+                        (buffer-name)
+                        (- (point) 3)))))
+            (goto-char end))))))
+#+END_SRC
+
+**** Manipulate hours/minutes/seconds in table formulas
+:PROPERTIES:
+:ID:       6C19B664-DF90-4312-A985-20885879D722
+:END:
+
+#+BEGIN_SRC emacs-lisp
+(defun org-time-string-to-seconds (s)
+  "Convert a string HH:MM:SS to a number of seconds."
+  (cond
+   ((and (stringp s)
+         (string-match "\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)" s))
+    (let ((hour (string-to-number (match-string 1 s)))
+          (min (string-to-number (match-string 2 s)))
+          (sec (string-to-number (match-string 3 s))))
+      (+ (* hour 3600) (* min 60) sec)))
+   ((and (stringp s)
+         (string-match "\\([0-9]+\\):\\([0-9]+\\)" s))
+    (let ((min (string-to-number (match-string 1 s)))
+          (sec (string-to-number (match-string 2 s))))
+      (+ (* min 60) sec)))
+   ((stringp s) (string-to-number s))
+   (t s)))
+(defun org-time-seconds-to-string (secs)
+  "Convert a number of seconds to a time string."
+  (cond ((>= secs 3600) (format-seconds "%h:%.2m:%.2s" secs))
+        ((>= secs 60) (format-seconds "%m:%.2s" secs))
+        (t (format-seconds "%s" secs))))
+
+(defmacro with-time (time-output-p &rest exprs)
+  "Evaluate an org-table formula, converting all fields that look
+like time data to integer seconds.  If TIME-OUTPUT-P then return
+the result as a time value."
+  (list
+   (if time-output-p 'org-time-seconds-to-string 'identity)
+   (cons 'progn
+         (mapcar
+          (lambda (expr)
+            `,(cons (car expr)
+                    (mapcar
+                     (lambda (el)
+                       (if (listp el)
+                           (list 'with-time nil el)
+                         (org-time-string-to-seconds el)))
+                     (cdr expr))))
+          `,@exprs))))
+
+#+END_SRC
+
+**** Org occur open
+
+#+BEGIN_SRC emacs-lisp
+  (defun org-occur-open (uri)
+    "Visit the file specified by URI, and run `occur' on the fragment
+    (anything after the first '#') in the uri."
+    (let ((list (split-string uri "#")))
+      (org-open-file (car list) t)
+      (occur (mapconcat 'identity (cdr list) "#"))))
+  (org-add-link-type "occur" 'org-occur-open)
+#+END_SRC
+
+**** Reveal cursor in folded subtree.
+:PROPERTIES:
+:ID:       088BEAF5-B9FE-43F4-995D-5E26FB6DCB16
+:END:
+
+Fix problem with  which puts point back in a folded position.
+
+#+NAME: org-hacks-saveplace-fix
+#+BEGIN_SRC emacs-lisp
+(defun org-mode-save-place-fix ()
+  (when (outline-invisible-p)
+    (save-excursion
+      (outline-previous-visible-heading 1)
+      (org-show-subtree))))
+
+(add-hook 'org-mode-hook 'org-mode-save-place-fix)
+#+END_SRC
+
+**** ibuffer and org files
+
+Neil Smithline posted this snippet to let you browse org files with
+=ibuffer=:
+
+#+BEGIN_SRC emacs-lisp
+  (require 'ibuffer)
+
+  (defun org-ibuffer ()
+    "Open an `ibuffer' window showing only `org-mode' buffers."
+    (interactive)
+    (ibuffer nil "*Org Buffers*" '((used-mode . org-mode))))
+#+END_SRC
+
+**** foldout.el
+
+~foldout.el~, which is part of Emacs, is a nice little companion for
+~outline-mode~.  With ~foldout.el~ one can narrow to a subtree and
+later unnarrow.  ~foldout.el~ is useful for Org mode out of the box.
+
+There is one annoyance though (at least for me):
+~foldout-zoom-subtree~ opens the drawers.
+
+This can be fixed e.g. by using the following slightly modified
+version of ~foldout-zoom-subtree~ which uses function ~org-show-entry~
+instead of ~outline-show-entry~.
+
+#+BEGIN_SRC emacs-lisp
+  (defun foldout-zoom-org-subtree (&optional exposure)
+    "Same as `foldout-zoom-subtree' with often nicer zoom in Org mode."
+    (interactive "P")
+    (cl-letf
+        (((symbol-function #'outline-show-entry) (lambda () (org-show-entry))))
+      (foldout-zoom-subtree exposure)))
+#+END_SRC
+
+**** File conversion
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  ;; - fileconversion version 0.10
+  ;; - DISCLAIMER: Make a backup of your Org files before trying
+  ;;   `f-org-fileconv-*'. It is recommended to use a version control
+  ;;   system like git and to review and commit the changes in the Org
+  ;;   files regularly.
+  ;; - Supported "#+STARTUP:" formats: "hidestarsfile",
+  ;;   "nbspstarsfile", "markdownstarsfile".
+
+  ;; Design summary: fileconversion is a round robin of two states linked by
+  ;; two actions:
+  ;; - State `v-org-fileconv-level-org-p' is nil: The level is "file"
+  ;;   (encoded).
+  ;; - Action `f-org-fileconv-decode': Replace file char with "*".
+  ;; - State `v-org-fileconv-level-org-p' is non-nil: The level is "Org"
+  ;;   (decoded).
+  ;; - Action `f-org-fileconv-encode': Replace "*" with file char.
+  ;;
+  ;; Naming convention of prefix:
+  ;; - f-[...]: "my function", instead of the unspecific prefix `my-*'.
+  ;; - v-[...]: "my variable", instead of the unspecific prefix `my-*'.
+
+  (defvar v-org-fileconv-level-org-p nil
+    "Whether level of buffer is Org or only file.
+  nil: level is file (encoded), non-nil: level is Org (decoded).")
+  (make-variable-buffer-local 'v-org-fileconv-level-org-p)
+  ;; Survive a change of major mode that does `kill-all-local-variables', e.
+  ;; g. when reentering Org mode through "C-c C-c" on a #+STARTUP: line.
+  (put 'v-org-fileconv-level-org-p 'permanent-local t)
+
+  ;; * Callback `f-org-fileconv-org-mode-beg' before `org-mode'
+  (defadvice org-mode (before org-mode-advice-before-fileconv)
+    (f-org-fileconv-org-mode-beg))
+  (ad-activate 'org-mode)
+  (defun f-org-fileconv-org-mode-beg ()
+    ;; - Reason to test `buffer-file-name': Only when converting really
+    ;;   from/to an Org _file_, not e. g. for a temp Org buffer unrelated to a
+    ;;   file.
+    ;; - No `message' to not wipe a possible "File mode specification error:".
+    ;; - `f-org-fileconv-decode' in org-mode-hook would be too late for
+    ;;   performance reasons, see
+    ;;   http://lists.gnu.org/archive/html/emacs-orgmode/2013-11/msg00920.html
+    (when (buffer-file-name) (f-org-fileconv-decode)))
+
+  ;; * Callback `f-org-fileconv-org-mode-end' after `org-mode'
+  (add-hook 'org-mode-hook 'f-org-fileconv-org-mode-end
+            nil   ; _Prepend_ to hook to have it first.
+            nil)  ; Hook addition global.
+  (defun f-org-fileconv-org-mode-end ()
+    ;; - Reason to test `buffer-file-name': only when converting really
+    ;;   from/to an Org _file_, not e. g. for a temp Org buffer unrelated to a
+    ;;   file.
+    ;; - No `message' to not wipe a possible "File mode specification error:".
+    (when (buffer-file-name)
+      ;; - Adding this to `change-major-mode-hook' or "defadvice before" of
+      ;;   org-mode would be too early and already trigger during find-file.
+      ;; - Argument 4: t to limit hook addition to buffer locally, this way
+      ;;   and as required the hook addition will disappear when the major
+      ;;   mode of the buffer changes.
+      (add-hook 'change-major-mode-hook 'f-org-fileconv-encode nil t)
+      (add-hook 'before-save-hook       'f-org-fileconv-encode nil t)
+      (add-hook 'after-save-hook        'f-org-fileconv-decode nil t)))
+
+  (defun f-org-fileconv-re ()
+    "Check whether there is a #+STARTUP: line for fileconversion.
+  If found then return the expressions required for the conversion."
+    (save-excursion
+      (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
+      (let (re-list (count 0))
+        (while (re-search-forward "^[ \t]*#\\+STARTUP:" nil t)
+          ;; #+STARTUP: hidestarsfile
+          (when (string-match-p "\\bhidestarsfile\\b" (thing-at-point 'line))
+            ;; Exclude e. g.:
+            ;; - Line starting with star for bold emphasis.
+            ;; - Line of stars to underline section title in loosely quoted
+            ;;   ASCII style (star at end of line).
+            (setq re-list '("\\(\\* \\)"  ; common-re
+                            ?\ ))         ; file-char
+            (setq count (1+ count)))
+          ;; #+STARTUP: nbspstarsfile
+          (when (string-match-p "\\bnbspstarsfile\\b" (thing-at-point 'line))
+            (setq re-list '("\\(\\* \\)"  ; common-re
+                            ?\xa0))       ; file-char non-breaking space
+            (setq count (1+ count)))
+          ;; #+STARTUP: markdownstarsfile
+          (when (string-match-p "\\bmarkdownstarsfile\\b"
+                                (thing-at-point 'line))
+            ;; Exclude e. g. "#STARTUP:".
+            (setq re-list '("\\( \\)"  ; common-re
+                            ?#))       ; file-char
+            (setq count (1+ count))))
+        (when (> count 1) (error "More than one fileconversion found."))
+        re-list)))
+
+  (defun f-org-fileconv-decode ()
+    "In headings replace file char with '*'."
+    (let ((re-list (f-org-fileconv-re)))
+      (when (and re-list (not v-org-fileconv-level-org-p))
+        ;; No `save-excursion' to be able to keep point in case of error.
+        (let* ((common-re (nth 0 re-list))
+               (file-char (nth 1 re-list))
+               (file-re   (concat "^" (string file-char) "+" common-re))
+               (org-re    (concat "^\\*+" common-re))
+               len
+               (p         (point)))
+          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
+          ;; Syntax check.
+          (when (re-search-forward org-re nil t)
+            (goto-char (match-beginning 0))
+            (org-reveal)
+            (error "Org fileconversion decode: Syntax conflict at point."))
+          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
+          ;; Substitution.
+          (with-silent-modifications
+            (while (re-search-forward file-re nil t)
+              (goto-char (match-beginning 0))
+              ;; Faster than a lisp call of insert and delete on each single
+              ;; char.
+              (setq len (- (match-beginning 1) (match-beginning 0)))
+              (insert-char ?* len)
+              (delete-char len)))
+          (goto-char p))))
+
+          ;; Notes for ediff when only one file has fileconversion:
+          ;; - The changes to the buffer with fileconversion until here are
+          ;;   not regarded by `ediff-files' because the first call to diff is
+          ;;   made with the bare files directly. Only `ediff-update-diffs'
+          ;;   and `ediff-buffers' write the decoded buffers to temp files and
+          ;;   then call diff with them.
+          ;; - Workarounds (choose one):
+          ;;   - After ediff-files first do a "!" (ediff-update-diffs) in the
+          ;;     "*Ediff Control Panel*".
+          ;;   - Instead of using `ediff-files' first open the files and then
+          ;;     run `ediff-buffers' (better for e. g. a script that takes two
+          ;;     files as arguments and uses "emacs --eval").
+
+    ;; The level is Org most of all when no fileconversion is in effect.
+    (setq v-org-fileconv-level-org-p t))
+
+  (defun f-org-fileconv-encode ()
+    "In headings replace '*' with file char."
+    (let ((re-list (f-org-fileconv-re)))
+      (when (and re-list v-org-fileconv-level-org-p)
+        ;; No `save-excursion' to be able to keep point in case of error.
+        (let* ((common-re (nth 0 re-list))
+               (file-char (nth 1 re-list))
+               (file-re   (concat "^" (string file-char) "+" common-re))
+               (org-re    (concat "^\\*+" common-re))
+               len
+               (p         (point)))
+          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
+          ;; Syntax check.
+          (when (re-search-forward file-re nil t)
+            (goto-char (match-beginning 0))
+            (org-reveal)
+            (error "Org fileconversion encode: Syntax conflict at point."))
+          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
+          ;; Substitution.
+          (with-silent-modifications
+            (while (re-search-forward org-re nil t)
+              (goto-char (match-beginning 0))
+              ;; Faster than a lisp call of insert and delete on each single
+              ;; char.
+              (setq len (- (match-beginning 1) (match-beginning 0)))
+              (insert-char file-char len)
+              (delete-char len)))
+          (goto-char p)
+          (setq v-org-fileconv-level-org-p nil))))
+    nil)  ; For the hook.
+
+#+END_SRC
+
+**** Hyperlink extraction
+
+#+NAME: org-hacks-extract-hyperlink
+#+BEGIN_SRC emacs-lisp
+
+  (defun org-extract-link ()
+    "Extract the link location at point and put it on the killring."
+    (interactive)
+    (when (org-in-regexp org-bracket-link-regexp 1)
+      (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
+
+
+(defun browse-url-extract-org-link (orig-fun &rest args)
+  "If `thing-at-point' is a org-link, then call `org-extract-link'
+  and apply ORIG-FUN with the extracted url in the car of original ARGS."
+  (when (and (eq major-mode 'org-mode)
+               (string= (car (org-thing-at-point)) "link"))
+    (setcar args (org-extract-link)))
+  (apply orig-fun args))
+
+(advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
+#+END_SRC
+
+**** Add sunrise/sunset times to the agenda.
+
+-- Nick Dokos
+
+The diary package provides the function =diary-sunrise-sunset= which can be used
+in a diary s-expression in some agenda file like this:
+
+#+BEGIN_SRC org
+  %%(diary-sunrise-sunset)
+#+END_SRC
+
+Seb Vauban asked if it is possible to put sunrise and sunset in
+separate lines. Here is a hack to do that. It adds two functions (they
+have to be available before the agenda is shown, so I add them early
+in my org-config file which is sourced from .emacs, but you'll have to
+suit yourself here) that just parse the output of
+diary-sunrise-sunset, instead of doing the right thing which would be
+to take advantage of the data structures that diary/solar.el provides.
+In short, a hack - so perfectly suited for inclusion here :-)
+
+The functions (and latitude/longitude settings which you have to modify for
+your location) are as follows:
+
+#+BEGIN_SRC emacs-lisp
+  (setq calendar-latitude 48.2)
+  (setq calendar-longitude 16.4)
+  (setq calendar-location-name "Vienna, Austria")
+
+  (autoload 'solar-sunrise-sunset "solar.el")
+  (autoload 'solar-time-string "solar.el")
+  (defun diary-sunrise ()
+    "Local time of sunrise as a diary entry.
+  The diary entry can contain `%s' which will be replaced with
+  `calendar-location-name'."
+    (let ((l (solar-sunrise-sunset date)))
+      (when (car l)
+        (concat
+         (if (string= entry "")
+             "Sunrise"
+           (format entry (eval calendar-location-name))) " "
+           (solar-time-string (caar l) nil)))))
+
+  (defun diary-sunset ()
+    "Local time of sunset as a diary entry.
+  The diary entry can contain `%s' which will be replaced with
+  `calendar-location-name'."
+    (let ((l (solar-sunrise-sunset date)))
+      (when (cadr l)
+        (concat
+         (if (string= entry "")
+             "Sunset"
+           (format entry (eval calendar-location-name))) " "
+           (solar-time-string (caadr l) nil)))))
+#+END_SRC
+
+You also need to add a couple of diary s-expressions in one of your agenda
+files:
+
+#+BEGIN_SRC org
+  %%(diary-sunrise)Sunrise in %s
+  %%(diary-sunset)
+#+END_SRC
+
+This will show sunrise with the location and sunset without it.
+
+The thread on the mailing list that started this can be found [[http://thread.gmane.org/gmane.emacs.orgmode/38723Here%20is%20a%20pointer%20to%20the%20thread%20on%20the%20mailing%20list][here]].
+In comparison to the version posted on the mailing list, this one
+gets rid of the timezone information and can show the location.
+
 ** Org Latex
 *** Edit Latex
 
@@ -4405,23 +4574,19 @@ for exporting org-mode documents to various formats.
         :prefix-map org-ref-prefix-map
         :prefix-docstring "Org ref citation manager."
         :prefix "C-c r"
-        ("c" . org-ref-insert-cite-link)
-        ("l" . org-ref-insert-label-link)
-        ("s" .  org-ref-insert-bibliographystyle-link)
-        ("f" . org-ref-list-of-figures)
         ("b" . org-ref-insert-bibliography-link)
-        ("r" . org-ref-insert-ref-link))
+        ("c" . org-ref-insert-cite-link)
+        ("f" . org-ref-list-of-figures)
+        ("g" . org-ref-insert-glossary-link)
+        ("l" . org-ref-insert-label-link)
+        ("r" . org-ref-insert-ref-link)
+        ("s" .  org-ref-insert-bibliographystyle-link))
   :custom
-
   (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-default-bibliography
-   '("~/Dropbox/org/ref/references.bib"))
-  (org-ref-bibliography-notes
-   "~/Dropbox/org/ref/refnotes.org")
-  (org-ref-notes-directory
-   "~/Dropbox/org/notebooks")
-  (org-ref-pdf-directory
-   "~/Dropbox/Documents/pdfs/")
+  (org-ref-default-bibliography (org-dir "ref/references.org"))
+  (org-ref-bibliography-notes (org-dir "ref/notes.org"))
+  (org-ref-notes-directory (org-dir "ref/notes/"))
+  (org-ref-pdf-directory (dropbox-dir "pdfs/" :slash t))
   (org-ref-show-citation-on-enter t)
   (org-ref-show-broken-links t)
   (org-ref-bibtex-hydra-key-binding "\C-cj")
@@ -4445,6 +4610,16 @@ for exporting org-mode documents to various formats.
     (require 'x2bib))
 
   :config
+
+  (which-key-add-major-mode-key-based-replacements 'org-mode
+     "C-c r" "Org Ref"
+     "C-c r c" "Cite"
+     "C-c r b" "Bibliography"
+     "C-c r g" "Glossary"
+     "C-c r f" "List of figures"
+     "C-c r l"  "Labels"
+     "C-c r r" "References"
+     "C-c r s" "Bibliography style")
 
   (defun org-ref-vref-export (keyword desc format)
     "An export function for vref links."
@@ -4574,9 +4749,8 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
                                  (org-pdfview-open link))))))))
 #+END_SRC
 
-* Customizing Emacs
-** Project Management
-*** Projectile
+* Projects
+** Projectile
 
 #+NAME: project-projectile
 #+BEGIN_SRC emacs-lisp
@@ -4587,17 +4761,15 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
   (projectile-completion-system 'ivy)
   (projectile-switch-project-action #'projectile-dired)
   (projectile-find-dir-includes-top-level t)
-  (projectile-indexing-method 'native)
   (projectile-enable-caching t)
   :init
-  (el-patch-feature projectile)
+    (el-patch-feature projectile)
 
   (el-patch-defun projectile-run-compilation (cmd)
     "Run external or Elisp compilation command CMD."
     (if (functionp cmd)
         (funcall cmd)
       (compile cmd (el-patch-add t))))
-
 
   (defvar halidom/ignored-project-directories
     '("~/.emacs.d/straight"))
@@ -4615,7 +4787,14 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
   (setq projectile-ignored-project-function
         #'projectile-ignore-projects-in-directory)
+
   :config
+  (when (featurep 'which-key)
+    (which-key-add-key-based-replacements "C-c p" " Projectile")
+
+    (push '((nil . "projectile-\\(.+\\)") . (nil . "\\1"))
+          which-key-replacement-alist))
+
   (setq projectile-globally-ignored-directories
        (append projectile-globally-ignored-directories
                 '("gradle" "target" ".meghanada"
@@ -4638,6 +4817,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+NAME: project-ripgrep
 #+BEGIN_SRC emacs-lisp
+
   (use-package projectile-ripgrep
       :after (projectile)
       ;; takes a cons in the form of `(binary . package-name)`
@@ -4654,95 +4834,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
   :demand t)
 #+END_SRC
 
-*** Skeletor
-
-#+NAME: skeletor-spec
-#+BEGIN_SRC emacs-lisp
-  (use-package skeletor
-    :custom
-    (skeletor-user-directory (emacs-etc-dir "skeletor/project-skeletons"))
-    (skeletor-completing-read-function 'ivy-completing-read)
-    (skeletor-python-bin-search-path
-     '("/usr/local/bin" "/usr/bin"))
-    (skeletor-project-directory (projects-dir))
-
-    :init
-    (defun skeletor-add-pyenv-pythons ()
-      "Add python binaries managed by pyenv to
-   `skeletor-python-bin-search-path'."
-      (let* ((pyenv-dir (or (getenv "PYENV_ROOT")
-                           (user-home ".pyenv")))
-             (pyenv-version-dir
-              (and pyenv-dir (resolve-path pyenv-dir "versions")))
-             (pyenv-versions
-              (directory-files-no-wildcards pyenv-version-dir t))
-             (python-bins
-              (mapcar
-               (lambda (d)
-                 (resolve-path d "bin"))
-               pyenv-versions)))
-        (dolist (python-bin python-bins)
-          (add-to-list 'skeletor-python-bin-search-path
-                       python-bin))))
-
-    (skeletor-add-pyenv-pythons)
-
-
-    :config
-    (add-to-list 'skeletor-global-substitutions
-                 (cons "__TIME__"
-                       (lambda () (format-time-string "%c"))))
-
-    (skeletor-define-template "cmake-unix-makefiles"
-      :requires-executables
-      '(("cmake". "https://cmake.org")
-        ("make" . "https://www.gnu.org/software/make"))
-
-      :substitutions
-      (list
-       (cons "__DESCRIPTION__"
-             (lambda ()
-               (read-string "Description: ")))
-       (cons "__TARGET_NAME__"
-             (lambda ()
-               (read-string "Target: ")))
-       (cons "__PROJECT-VARS__" ".dir-locals"))
-
-      :after-creation
-      (lambda (dir)
-        (skeletor-async-shell-command "mkdir build")
-        (skeletor-async-shell-command
-         (concat "("
-                 " cd build &&"
-                 " cmake -G 'Unix Makefiles'"
-                 " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. "
-                 ")"))
-        (skeletor-async-shell-command
-         "ln -s `pwd`/build/compile_commands.json .")
-        (dired dir)
-        (revert-buffer)))
-
-
-
-    (defun skeletor/projectile-ignore ()
-      (with-eval-after-load 'projectile
-        (add-to-list
-         'projectile-project-ignored-directories
-         skeletor--directory)))
-
-    :hook
-    (project-mode .skeletor/projectile-ignore))
-
-#+END_SRC
-
-**** Projectile Code Search
-
-#+NAME: project-code-search
-#+BEGIN_SRC emacs-lisp
-(use-package projectile-codesearch)
-#+END_SRC
-
-*** Find File in Project
+** Find File in Project
 
 #+NAME: project-ffip
 #+BEGIN_SRC emacs-lisp
@@ -4795,6 +4887,7 @@ See docstring for =dired-dwim-target=.
 
 **** Dired+
 
+
 Adds extensions and functionality to dired mode.
 
 #+NAME: dired-plus-config
@@ -4812,6 +4905,19 @@ Adds extensions and functionality to dired mode.
   (add-to-list 'org-file-apps '(directory . emacs)))
 #+END_SRC
 
+**** Dired default app
+
+From [[https://jblevins.org/log/dired-open][Integrating OS X and Emacs Dired]]:
+
+#+BEGIN_SRC emacs-lisp
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "z")
+    (lambda ()
+      (interactive)
+      (let ((fn (dired-get-file-for-visit)))
+        (start-process "default-app" nil "open" fn)))))
+#+END_SRC
+
 **** Dired Sidebar
 :PROPERTIES:
 :ID:       2ABE4F83-BA00-441E-8F77-857B455834AC
@@ -4824,9 +4930,19 @@ Adds extensions and functionality to dired mode.
       :custom
       (dired-sidebar-should-follow-file nil)
       (dired-sidebar-theme 'none)
-      :init
       :bind
-      ("C-c d" . dired-sidebar-toggle-sidebar))
+      ("C-c d" . dired-sidebar-toggle-sidebar)
+      :hook
+      (dired-sidebar-mode . dired-sidebar-refresh-buffer))
+#+END_SRC
+
+*** Pack
+
+#+BEGIN_SRC emacs-lisp
+(use-package pack
+    :bind
+  (:map dired-mode-map
+        ("P" .  pack-dired-dwim)))
 #+END_SRC
 
 *** Neotree
@@ -4861,7 +4977,6 @@ Adds extensions and functionality to dired mode.
 #+END_SRC
 
 *** Treemacs
-
 #+BEGIN_SRC emacs-lisp
 (use-package treemacs
   :demand t
@@ -4869,8 +4984,9 @@ Adds extensions and functionality to dired mode.
   (with-eval-after-load 'winum
     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
   :custom
+  (treemacs-python-executable (or (executable-find "python3") (executable-find "python")))
   (treemacs-collapse-dirs
-    (if (executable-find "python") 3 0))
+   (if (executable-find "python3") 3 0))
   (treemacs-deferred-git-apply-delay   0.5)
   (treemacs-display-in-side-window     t)
   (treemacs-file-event-delay           5000)
@@ -4897,6 +5013,7 @@ Adds extensions and functionality to dired mode.
   (treemacs-tag-follow-cleanup         t)
   (treemacs-tag-follow-delay           1.5)
   (treemacs-width                      35)
+  :config
 
   :config
   ;; The default width and height of the icons is 22 pixels. If you are
@@ -4924,11 +5041,13 @@ Adds extensions and functionality to dired mode.
 
 *** Speedbar
 
+**** same frame
 #+NAME: speed-sr
 #+BEGIN_SRC emacs-lisp
 (use-package sr-speedbar)
 #+END_SRC
 
+**** Projectile Speedbar
 #+NAME: projectile-speedbar
 #+BEGIN_SRC emacs-lisp
 (use-package projectile-speedbar
@@ -4950,7 +5069,6 @@ Adds extensions and functionality to dired mode.
 ** Search
 *** Codesearch
 
-#+NAME: search/codesearch
 #+BEGIN_SRC emacs-lisp
 (use-package codesearch)
 #+END_SRC
@@ -5024,559 +5142,358 @@ interactive tree .
     (global-set-key (kbd "s-Z") 'undo-tree-redo)))
 #+END_SRC
 
-
-** Emacs Plus
-*** Documentation
-**** Help
-***** Help+
-
-#+BEGIN_SRC emacs-lisp
-(use-package help+
-    :demand t)
-#+END_SRC
-
-***** help-mode+
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package help-mode+
-    :demand t)
-#+END_SRC
-
-
-***** help-macro+
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package help-macro+
-    :demand t)
-#+END_SRC
-
-***** help-fns+
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package help-fns+
-    :demand t)
-#+END_SRC
-
-
-
-**** Helpful
-
-#+NAME: help-helpful
-#+BEGIN_SRC emacs-lisp
-(use-package helpful
-  :bind
-  ("C-h f" . helpful-callable)
-  ("C-h v" . helpful-variable)
-  ("C-h k" . helpful-key)
-  ("C-h C" . helpful-command)
-  ("C-c C-d" . helpful-at-point)
-  ("C-h F" . helpful-function))
-
-#+END_SRC
-
-**** Image+
-
-[[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package image+
-    :if (display-graphic-p)
-    :after (image)
-    :config
-    (eval-after-load 'image+
-      `(when (require 'hydra nil t)
-         (defhydra imagex-sticky-binding (global-map "C-x C-l")
-           "Manipulating image"
-           ("+" imagex-sticky-zoom-in "zoom in")
-           ("-" imagex-sticky-zoom-out "zoom out")
-           ("M" imagex-sticky-maximize "maximize")
-           ("O" imagex-sticky-restore-original "restore orginal")
-           ("S" imagex-sticky-save-image "save file")
-           ("r" imagex-sticky-rotate-right "rotate right")
-           ("l" imagex-sticky-rotate-left "rotate left")))))
-#+END_SRC
-
-**** Info+
-
-#+NAME: info=plus
-#+BEGIN_SRC emacs-lisp
-(use-package info+
-  :straight t)
-#+END_SRC
-
-**** FontLock+
-
-#+NAME: font-lock-plus
-#+BEGIN_SRC emacs-lisp
-(use-package font-lock+)
-#+END_SRC
-
-**** Color+
-
-****** Rainbow Mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-mode
-  :init
-  (rainbow-mode 1))
-#+END_SRC
-
-****** Col Highlight
-
-#+BEGIN_SRC emacs-lisp
-(use-package col-highlight)
-#+END_SRC
-
-**** Info+
-
-#+BEGIN_SRC emacs-lisp
-(use-package info+)
-#+END_SRC
-
-*** Frame+
-
-#+NAME: frame-plus
-#+BEGIN_SRC emacs-lisp
-(use-package frame+)
-#+END_SRC
-
-*** Frame-fns
-
-#+NAME: frame-fns-config
-#+BEGIN_SRC emacs-lisp
-(use-package frame-fns)
-#+END_SRC
-
-*** posframe
-
-#+NAME: posframe-spec
-#+BEGIN_SRC emacs-lisp
-(use-package posframe)
-#+END_SRC
-
-*** Thingatpt+
-
-#+NAME: thingatpt-plus
-#+BEGIN_SRC emacs-lisp
-(use-package thingatpt+)
-
-(use-package misc-fns)
-#+END_SRC
-
-*** Bookmark
-**** Bookmark File
-
-#+BEGIN_SRC emacs-lisp
-(setq bookmark-default-file
- (no-littering-expand-var-file-name "bookmarks"))
-#+END_SRC
-
-**** Bookmark+
-
-#+NAME: bookmark-plus
-#+BEGIN_SRC emacs-lisp
-(use-package linkd)
-
-(use-package bookmark+)
-#+END_SRC
-
-**** Bm
-
-#+NAME: bookmark-bm
-#+BEGIN_SRC emacs-lisp
-(use-package bm)
-#+END_SRC
-
-**** zsh sync
-
-Converts Emacs into bookmarks for zsh[fn:16].
-
-#+BEGIN_EXAMPLE shell :shebang /bin/zsh
-setopt cd_able_vars
-[[ -r ~/.zsh.bmk ]] && source ~/.zsh.bmk
-#+END_EXAMPLE
-
-
-#+NAME: bookmark-zsh
-#+BEGIN_SRC emacs-lisp
-  (defadvice bookmark-write-file
-        (after local-directory-bookmarks-to-zsh-advice activate)
-     (local-directory-bookmarks-to-zsh))
-
-  (defun local-directory-bookmarks-to-zsh ()
-        (interactive)
-        (when (and (require 'tramp nil t)
-                   (require 'bookmark nil t))
-          (set-buffer (find-file-noselect "~/.zsh.bmk" t t))
-          (delete-region (point-min) (point-max))
-          (insert "# -*- mode:sh -*-\n")
-          (let (collect-names)
-            (mapc
-             (lambda (item)
-               (let ((name
-                      (replace-regexp-in-string
-                       "-" "_" (car item)))
-                    (file (cdr
-                            (assoc 'filename
-                                   (if (cddr item)
-                                       item
-                                     (cadr item))))))
-                 (when (and (not (tramp-tramp-file-p file))
-                          (file-directory-p file))
-                   (setq collect-names
-                         (cons (concat "~" name) collect-names))
-                   (insert
-                    (format
-                     "%s=\"%s\"\n"
-                     name
-                     (expand-file-name file)
-                     name)))))
-             bookmark-alist)
-            (insert ": "
-                    (mapconcat 'identity collect-names " ") "\n"))
-          (let ((backup-inhibited t)) (save-buffer))
-          (kill-buffer (current-buffer))))
-#+END_SRC
-
-*** Bug Tracking
-
-#+BEGIN_SRC emacs-lisp
-(use-package debbugs
-  :straight (debbugs
-             :type git
-             :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
-             :files ("packages/debbugs/*.el"
-                     "packages/debbugs/Debbugs.wsdl")
-             :local-repo "elpa"))
-
-#+END_SRC
-
-** Multimedia
-*** emms
-
-#+NAME: media-emms
-#+BEGIN_SRC emacs-lisp
-(use-package emms
-    :custom
-    (emms-source-file-default-directory
-     (pcase system-type
-       (`darwin (dropbox-dir "Music" "iTunes" "iTunes Media" "Music"))
-       (`linux (user-home "Music"))))
-    :init
-    (require 'emms-setup)
-    (emms-all)
-    (emms-default-players)
-    :config
-
-    ;; add flv and ogv
-    (define-emms-simple-player mplayer '(file url)
-      (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
-                    ".mpeg" ".wmv" ".wma" ".mov" ".avi"
-                    ".divx" ".ogm" ".asf" ".mkv" "http://"
-                    "mms://" ".rm" ".rmvb" ".mp4" ".flac"
-                    ".vob" ".m4a" ".flv" ".ogv" ".pls"))
-      "mplayer" "-slave" "-quiet" "-really-quiet" "-fullscreen"))
-#+END_SRC
-
-*** Sound Cloud
-
-#+NAME: media-soundcloud
-#+BEGIN_SRC emacs-lisp
-(use-package soundcloud)
-#+END_SRC
-
 * Display
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
-** Fonts
+** Frame
+*** System
 :PROPERTIES:
-:ID:       98543582-0772-4025-917B-38DF6542DD6F
+:ID:       8AA04A03-032A-4FC8-88B1-F712F6235A6D
 :END:
-*** Font variables
+**** Use Emacs terminfo
 
-#+NAME: fonts/variables
+Setting this variable to nil forces Emacs to use internal terminfo,
+rather than the system terminfo.
+
+I'm setting it to non-nil because setting this variable to nil causes
+issues with build commands in [[#gradle-mode][gradle-mode]]
+
 #+BEGIN_SRC emacs-lisp
-(defvar font-list nil
-  "An alist of fonts which can be interactively chosen
-   using the `set-font' function.
-
-   Each font entry is a cons cell composed of the font-family as a string and
-   the associated font weight as an unquoted symbol.
-
-   See `font-weight-table' for a list of available options.
-
-   e.g (\"FONT-FAMILY\" . WEIGHT)"
-  )
-
-
+(setq system-uses-terminfo t)
 #+END_SRC
 
-*** Set font interactively
+**** Exec Path From Shell
 
-#+NAME: fonts/interactive
+The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] package fixes this problem by copying
+user environment variables from the shell.
+
+The ~exec-path-from-shell~ package only works with posix-compliant
+operating systems. This may or may not include Microsoft Windows[fn:8].
+
+However, the ~exec-path-from-shell~ instructions recommends loading
+the package on linux and macOS operating system. I don't use Windows
+all that often anyways, so that's fine with me.
+
+The ~:if~ key of ~use-package~ offers us a really concise way for
+conditionally loading dependencies.
+
 #+BEGIN_SRC emacs-lisp
-(when (eq system-type 'darwin)
-  (let ((font-weight-xs '(("Andale Mono" . extralight)
-                          ("Droid Sans Mono" . normal)
-                          ("Fira Code" . light)
-                          ("Hack" . normal)
-                          ("Inconsolata" . medium)
-                          ("Operator Mono" . extralight)
-                          ("SF Mono" . normal)
-                          ("Programma" . normal))))
-  (mapcar (lambda (font-weight-x)
-	    (add-to-list 'font-list font-weight-x))
-	  font-weight-xs)))
-
-
-(defun set-font (&optional font)
-  "Set the custom FONT with completion"
-  (interactive)
-  (let* ((font (or font (assoc
-			 (completing-read "Font: " font-list nil nil)
-			 font-list)))
-	 (family (car font))
-	 (weight (cdr font)))
-    (run-at-time "0.2 sec" nil
-		 `(lambda () (when (not (eq (face-attribute 'default :family)
-				       ,family))
-			  (set-face-attribute 'default nil :family ,family
-					      :weight (quote ,weight)))))))
+(use-package exec-path-from-shell
+  ;; only load `exec-path-from-shell' package on macos and linux.
+  :if (memq window-system '(mac ns))
+  :config
+  (progn
+    (exec-path-from-shell-initialize)
+    (setq exec-path-from-shell-check-startup-files nil)))
 #+END_SRC
 
-*** Default font
+**** System Packages
 
-#+NAME: fonts/default
+Utilities for managing system packages in Emacs using an external
+package manager.
+
+#+NAME: os-sys-packages
 #+BEGIN_SRC emacs-lisp
-  (defcustom halidom-fonts
-    '(("Fira Code" . light)
-      ("Operator Mono" . extralight)
-      ("SF Mono" . normal)
-      ("Lucida Sans Typewriter" . nil)
-      ("Ubuntu Mono" . nil)
-      ("Menlo" . nil)
-      ("Inconsolota" . nil)
-      ("Input Mono" . nil)
-      ("Courier New" . nil))
-    "The default font stack to use for setting the font
-  on startup and new frame."
-    :type '(string))
-
-  (defcustom halidom-macos-default-font-size 12
-    "The default font size in pixels."
-    :type 'number)
-
-
-  (defun halidom/font-setup ()
-    (interactive)
-    (let* ((font-family
-            (or
-             (car (seq-intersection
-                   (mapcar #'car halidom-fonts) (font-family-list)))
-             (face-attribute 'fixed-pitch :family)))
-           (weight (or (cdr (assoc font-family halidom-fonts)) 'normal)))
-      (run-at-time "0.2 sec" nil
-                   `(lambda ()
-                      (when (not (eq (face-attribute 'default :family)
-                                   ,font-family))
-                        (set-face-attribute
-                         'default nil
-                         :family ,font-family
-                         :weight (quote ,weight)
-                         :height 120))))))
-
-  (defun halidom/font-setup-for-frame (frame)
-    (with-selected-frame frame
-        (halidom/font-setup)))
-
-  (add-hook 'after-init-hook 'halidom/font-setup)
-  ;; (add-hook 'after-make-frame-functions 'halidom/font-setup-for-frame)
-
-#+END_SRC
-
-*** Unicode
-**** Unicode Fonts
-
-#+NAME: unicode/fonts
-#+BEGIN_SRC emacs-lisp
-  (use-package unicode-fonts
-    :init
-    (unicode-fonts-setup))
-#+END_SRC
-
-**** Emojis
-
-#+NAME: unicode/emojis
-#+BEGIN_SRC emacs-lisp
-;; Unicode Emoticons
-
-;; Symbol Font
-
-;; Company Emoji
-
-#+END_SRC
-
-***** Symbol Font
-
-#+NAME: emoji/symbol-font
-#+BEGIN_SRC emacs-lisp
-  (cond
-   ((eq system-type 'gnu/linux)
-    (set-fontset-font "fontset-default" nil "Symbola" nil 'append))
-   ((eq system-type 'darwin)
-    (set-fontset-font
-     t 'symbol
-  	 (font-spec :family "Apple Color Emoji") nil 'prepend)
-    (set-fontset-font
-     t 'symbol
-     (font-spec :family "Apple Symbols") nil 'append)))
-
-#+END_SRC
-
-***** Unicode Emoticons
-
-#+NAME: emoji/unicode-emoticons
-#+BEGIN_SRC emacs-lisp
-(use-package unicode-emoticons)
-#+END_SRC
-
-***** Company Emoji
-
-#+NAME: emoji/company
-#+BEGIN_SRC emacs-lisp
-(use-package company-emoji
-  :after (:all company emojify-mode)
-  :demand t
+(use-package system-packages
   :init
-    ;; https://github.com/dunn/company-emoji#emoji-font-support
-  (defun --set-emoji-font (frame)
-    "Adjust the font settings of FRAME so Emacs can display emoji properly."
-    (if (eq system-type 'darwin)
-        ;; For NS/Cocoa
-        (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") frame 'prepend)
-      ;; For Linux
-      (set-fontset-font t 'symbol (font-spec :family "Symbola") frame 'prepend)))
-  (--set-emoji-font nil)
+  (defun system-packages/update-brew-commands (commands)
+    "Update the brew commands supported in system-packages."
+    (let ((brew-commands-alist
+           (->> system-packages-supported-package-managers
+                (assoc 'brew)
+                cdr)))
+      (dolist (command commands)
+        (destructuring-bind (cmd . cmd-string) command
+          (setf (cdr (assoc cmd brew-commands-alist)) cmd-string)))))
+  :config
+  (with-eval-after-load 'system-packages
+    (let ((commands-alist '((get-info . "brew info")
+                            (verify-all-packages . "brew doctor")
+                            (log . "brew log"))))
+      (system-packages/update-brew-commands commands-alist))))
+#+END_SRC
 
-  ;; Hook for when a frame is created with emacsclient
-  (add-hook 'after-make-frame-functions '--set-emoji-font)
+***** use-package-ensure-system-package
+
+#+BEGIN_SRC emacs-lisp
+(use-package use-package-ensure-system-package
+  :demand t)
+#+END_SRC
+
+**** Anything
+
+#+BEGIN_SRC emacs-lisp
+(use-package anything
+  :init
+  (defun anything/goto-manual ()
+    "Open up the anything PDF manual."
+    (interactive)
+    (find-file (straight-repos-dir "anything/doc/anything.pdf")))
 
   :config
-  (defun company-emoji-setup ()
-    (let ((backends (cons 'company-emoji company-backends)))
-      (set (make-local-variable 'company-backends) backends)))
-
-  (add-hook 'emojify-mode-hook #'company-emoji-setup))
+  (require 'anything-config))
 
 #+END_SRC
 
-**** Icons
+**** Prodigy
 
-#+NAME: unicode/icons
+Interface for controlling external processes in Emacs.
+
 #+BEGIN_SRC emacs-lisp
+(use-package prodigy)
+#+END_SRC
 
-;; vscode
+**** macOS
+
+I work on a macbook, so this section is where I'm loading all of my
+settings that rely on local file paths, macOS applications, and
+external programs.
+
+***** MacOS Keys
+
+#+NAME: macos-keybindings
+#+BEGIN_SRC emacs-lisp
+;; Modifer Keys
+
+;; Mouse-2
 
 #+END_SRC
 
-*****  All the  Icons
+
+****** Modifier Keys
+
+macOS specific settings[fn:9].
+
+Maps the modifier keys based on personal preferences.
+Also sets terminal coding system to "utf-8".
+
+#+NAME: macos-modifier-keys
+#+BEGIN_SRC emacs-lisp
+(setq mac-command-modifier 'super
+      mac-option-modifier  'meta
+      ns-control-modifier  'control
+      ns-function-modifier 'hyper)
+
+(when (eq system-type 'darwin)
+  (global-set-key (kbd "s-=" ) 'text-scale-increase)
+  (global-set-key (kbd "s--")  'text-scale-decrease)
+  ;; Default is <XF86Back> .. C-x <right>
+  (global-set-key (kbd "s-[")  'previous-buffer)
+  (global-set-key (kbd "s-]")  'next-buffer)
+  (global-set-key (kbd "s-}")  'ns-next-frame)
+  (global-set-key (kbd "s-{")  'ns-prev-frame)
+  (global-set-key (kbd "s-L")  'mark-sexp))
+
+#+END_SRC
+
+****** Generate =<mouse-2>= on trackpad
+
+As far as I know, there is no trackpad gesture to trigger the
+=<mouse-2>= event in Emacs. The following snippet uses [[help:key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
+the trackpad (=<mouse-1>=) like normal while holding down Command, or
+"super", modifier key
+
+#+NAME: macos-mouse-2
+#+BEGIN_SRC emacs-lisp
+;; From https://emacs.stackexchange.com/questions/20946/generate-mouse-2-event-from-macbook-trackpadTrackpage
+(when (eq system-type 'darwin)
+  (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>")))
+#+END_SRC
+
+***** MacOS Computer Name
+
+#+NAME: macos-computer-name
+#+BEGIN_SRC emacs-lisp
+(defun macos-computer-name ()
+  "Get the computer name for the current machine."
+  (let* ((has-scutil
+          (executable-find "scutil"))
+	       (scutil-cmd
+          (lambda ()
+            (shell-command-to-string "scutil --get ComputerName"))))
+    (if has-scutil
+	      (replace-regexp-in-string "\n" "" (funcall scutil-cmd)) nil)))
+
+(defvar computer-name nil)
+
+(when (eq system-type 'darwin)
+  (setq computer-name (macos-computer-name)))
+
+#+END_SRC
+
+***** MacOS Dev Utils
+
+Small library for opening files and buffers in external text
+editors and various other applications on macOS.
+
+#+NAME: macos-dev-utils
+#+BEGIN_SRC emacs-lisp
+(use-package macos-dev-utils
+  :if (eq system-type 'darwin)
+  :straight
+  (macos-dev-utils
+   :host github
+   :repo "jchaffin/macos-dev-utils"))
+
+#+END_SRC
+
+***** MacOS Dash
 :PROPERTIES:
-:ID:       A631C362-8BA3-446F-9D5E-DF0FFFA3F2AB
+:ID:       64240356-D983-4422-A359-4F773DD2E946
+:CUSTOM_ID: macos-dash
 :END:
 
-#+NAME: icons/all-the-icons
+Dash.app is an application for quickly searching and navigating API
+docsets for programming tools and languages.
+There are already two Emacs plugins that utilize Dash docsets,
+helm-dash and counsel-dash, which is a simple wrapper around helm
+dash.
+
+For whatever reason, I can't figure out how to open the docset in an
+=eww= frame or in an external browser using =browse-url=.
+
+Because of the OS/licensing restrictions of Dash.app, both these
+packages try to solve the problem of creating an interface for users
+to navigate, query, and switch between docsets.
+
+Because I've purchased a license and run macOS locally, I'm going to
+bypass that problem and define a function that uses the
+=dash-plugin://= protocol to launch/switch to the application and
+query it with the marked region or symbol at point.
+
+#+NAME: macos-dash-config
 #+BEGIN_SRC emacs-lisp
-;; all-the-icons.el
+(defvar dash-plugin-keywords nil
+  "An `alist' of keywords representing the docsets which should
+  searched in the query to Dash.app")
 
-;; dired
+(defun macos-dash-at-point ()
+  (interactive)
+  (let* ((protocol "dash-plugin://")
+         (keywords (if dash-plugin-keywords
+                       (mapconcat 'identity dash-plugin-keywords ",")
+                     ""))
+         (search-string
+          (if (use-region-p)
+              (buffer-substring-no-properties
+               (region-beginning)
+               (region-end))
+            (substring-no-properties (or (thing-at-point 'symbol) "")))))
 
-;; ivy
+    (start-process "Dash" nil "open"
+                   (concat
+                    protocol
+                    (unless (string-empty-p keywords)
+                      (concat "keys=" keywords "&"))
+                    "query="
+                    (url-hexify-string search-string)))))
+#+END_SRC
 
-;; modify glyphs
+***** Reveal in macOS Finder
+
+#+NAME: macos-finder-config
+#+BEGIN_SRC emacs-lisp
+(use-package reveal-in-osx-finder
+  :if (eq system-type 'darwin)
+  :commands (reveal-in-osx-finder))
+#+END_SRC
+
+***** OSX Dictionary
+
+Provides an interface to /Dictionary.app/ in Emacs. I am using this
+package in conjunction with [[#dictionary-el][dictionary.el]] right now. The latter
+package uses an open-source dictionary server to access
+dictionaries. I haven't tested it on a different OS yet, but it should
+provide comparable functionality to [[https://github.com/xuchunyang/osx-dictionary.el][osx-dictionary.el]] on machines not
+running macOS.
+
+#+NAME: macos-dictionary
+#+BEGIN_SRC emacs-lisp
+(use-package osx-dictionary
+  :if (eq system-type 'darwin)
+  :defines (osx-dictionary-open-dictionary-app-at-point)
+  :commands (osx-dictionbary-search-word-at-point
+             osx-dictionary-search-input)
+  :init
+  (progn
+    (defun osx-dictionary-open-dictionary-app-at-point ()
+      "Open `word' at point in Dictionary.app."
+      (interactive)
+      (shell-command (format "open dict://%s" (thing-at-point 'word))))))
 
 #+END_SRC
 
+***** OSX Trash
 
-****** ~all-the-icons.el~
-
-[[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
-
-#+NAME: all-the-icons/el
+#+NAME: macos-trash
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons
-    :demand t)
+(use-package osx-trash
+  :if (and (eq system-type 'darwin) (not (boundp 'mac-system-move-file-to-trash-use-finder)))
+  :init
+  (progn
+    (osx-trash-setup))
+  :config
+  (progn
+    (setq delete-by-moving-to-trash t)))
 #+END_SRC
 
-****** all the icons dired
+***** OSX Clipboard
 
-#+NAME: all-the-icons/dired
+****** In Terminal
+
+#+NAME: macos-pbcopy
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons-dired
-  :after (all-the-icons dired)
+(use-package pbcopy
+  :if (and (eq system-type 'darwin) (not (display-graphic-p)))
+  :init (turn-on-pbcopy))
+#+END_SRC
+
+****** Separate Emacs clipboard from system
+
+#+NAME: macos-simpleclip
+#+BEGIN_SRC emacs-lisp
+(use-package simpleclip
+  :init
+  (simpleclip-mode 1))
+#+END_SRC
+
+***** Counsel OSX App
+
+#+NAME: macos-counsel-osx-app
+#+BEGIN_SRC emacs-lisp
+(use-package counsel-osx-app
   :demand t
-  :init
-  (require 'font-lock+)
-  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
-#+END_SRC
-
-****** all the icons ivy
-
-#+NAME: all-the-icons/ivy
-#+BEGIN_SRC emacs-lisp
-  (use-package all-the-icons-ivy
-    :after (:all ivy all-the-icons)
-    :init
-    (all-the-icons-ivy-setup))
+  :preface
+  (defun wk-osx-app-icon ()
+    `(,(concat
+        (propertize " " 'display '(raise -0.20))
+        "Apps")))
+  :if (eq system-type 'darwin)
+  :custom
+  (counsel-osx-app-location '("/Applications" "/Applications/Setapp"))
+  :after (ivy)
+  :commands (counsel-osx-app))
 
 #+END_SRC
 
-****** Modify default fontspec
+***** UTF-8 Encoding
 :PROPERTIES:
-:ID:       8B26EA14-B8CE-4E10-8B29-B3426E0B6D72
+:ID:       462A8F27-D713-45EA-9CED-BF716C14EF1D
 :END:
 
-#+NAME: all-the-icons/glyphs
+UTF-8 is the recommanded coding system on macOS.
+
 #+BEGIN_SRC emacs-lisp
-(defun fonts/setup-glyphs ()
-  "Modify the default fontset to choose the right icons."
-  (let ((font-glyphs-alist '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
-                             ("file-icons" . (#xE917  #xE600))
-                             ("Material Icons" . (#xE80C #xE8CE))))
-        (font-families (font-family-list)))
-    (dolist (font-glyphs font-glyphs-alist)
-      (when (member (car font-glyphs) font-families)
-        (mapcar
-         (lambda (glyph)
-           (set-fontset-font "fontset-default"
-                             glyph (car font-glyphs)
-                             nil 'prepend))
-         (cdr font-glyphs))))))
+  (when (eq system-type 'darwin)
+    (prefer-coding-system 'utf-8)
+    (set-default-coding-systems 'utf-8)
+    (set-terminal-coding-system 'utf-8)
+    (set-keyboard-coding-system 'utf-8)
+    ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
+    (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
 
 
-(add-hook 'after-init-hook 'fonts/setup-glyphs)
-
-#+END_SRC
-
-
-#+NAME: fonts/unicode
-#+BEGIN_SRC emacs-lisp
-;; Unicode Fonts
-
-;; Emojis
-
-#+END_SRC
-
-***** VS Code Icons
-:PROPERTIES:
-:ID:       4196FB0F-6A8F-4476-AFBD-651C7E5ED8AD
-:END:
-
-#+NAME: icons/vscode
-#+BEGIN_SRC emacs-lisp
-(use-package vscode-icon
-  :init
-  (require 'vscode-icon)
-  :commands (vscode-icon-for-file))
+(global-set-key (kbd "C-x C-m i") 'set-input-method)
 
 #+END_SRC
 
@@ -5627,7 +5544,8 @@ This disables Emacs asking questions about loading a new theme.
 (setq custom-theme-directory (emacs-etc-dir "themes"))
 #+END_SRC
 
-*** Zenburn Theme
+*** Themes
+**** Zenburn Theme
 
 #+NAME: theme-zenburn
 #+BEGIN_SRC emacs-lisp
@@ -5635,34 +5553,16 @@ This disables Emacs asking questions about loading a new theme.
   :straight t)
 #+END_SRC
 
-*** Poet Theme
+**** Poet Theme
+:PROPERTIES:
+:ID:       4CB4E70B-93D6-4DAF-B66E-9322A55B7ACC
+:END:
 
 #+NAME: theme-poet
 #+BEGIN_SRC emacs-lisp
 (use-package poet-theme
   :init
   (setq halidom-light-theme 'poet))
-#+END_SRC
-
-*** Base16 Themes
-
-#+NAME: theme-base16
-#+BEGIN_SRC emacs-lisp
-(use-package base16-theme
-    :init
-    (setq halidom-dark-theme 'base16-snazzy
-          halidom-light-theme 'base16-default-light)
-
-
-     (defun halidom--base16-p (&optional theme)
-      (let ((theme (or theme halidom-theme "")))
-        (string-prefix-p "base16-" (symbol-name theme))))
-
-    (add-to-list 'custom-theme-load-path
-                 (expand-file-name "straight/build/base16-theme"
-                                   user-emacs-directory))
-    :config
-    (setq base16-distinct-fringe-background nil))
 #+END_SRC
 
 *** Load Theme
@@ -5744,7 +5644,121 @@ theme in \"quick mode\" by eliding hooks specified in
 ;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
 #+END_SRC
 
+*** Base16 Themes
+:PROPERTIES:
+:ID:       6C3D859E-C37D-4D75-920A-374E5AAEEEEA
+:END:
+
+#+NAME: theme-base16
+#+BEGIN_SRC emacs-lisp
+(use-package base16-theme
+    :init
+    (setq halidom-dark-theme 'base16-snazzy
+          halidom-light-theme 'base16-default-light)
+
+
+     (defun halidom--base16-p (&optional theme)
+      (let ((theme (or theme halidom-theme "")))
+        (string-prefix-p "base16-" (symbol-name theme))))
+
+    (add-to-list 'custom-theme-load-path
+                 (expand-file-name "straight/build/base16-theme"
+                                   user-emacs-directory))
+    :config
+    (setq base16-distinct-fringe-background nil))
+#+END_SRC
+
+** Faces
+*** Faces+
+
+#+BEGIN_SRC emacs-lisp
+(use-package faces+)
+#+END_SRC
+
+*** Face functions
+
+#+BEGIN_SRC emacs-lisp
+(use-package face-fns)
+#+END_SRC
+
+*** Face remap+
+
+#+BEGIN_SRC emacs-lisp
+(use-package face-remap+)
+#+END_SRC
+
+*** Face Explorer
+
+#+BEGIN_SRC emacs-lisp
+(use-package face-explorer)
+#+END_SRC
+
+*** Font lock
+**** FontLock+
+
+#+NAME: font-lock-plus
+#+BEGIN_SRC emacs-lisp
+(use-package font-lock+)
+#+END_SRC
+
+***** Italicize font lock keyword face
+:PROPERTIES:
+:ID:       C72C2D39-2562-4E7F-B9BC-0F4D0881670B
+:END:
+
+#+NAME: theme-italicize-for-modes
+#+BEGIN_SRC emacs-lisp
+(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
+  "Major modes for which an italicized font lock keyword
+face shall be used."
+  :type '(symbol))
+
+(defun halidom/italicize-keyword-fn ()
+(face-remap-add-relative 'font-lock-keyword-face
+                         '(:slant italic
+                           :family "Operator Mono")))
+
+(defun halidom/italicize-keyword-faces ()
+  (cl-flet ((mode->hook (mode)
+              (intern (concat (symbol-name mode) "-hook"))))
+    (cl-loop
+       for mode in halidom-italicize-keyword-modes
+       for hooksym = (mode->hook mode)
+       do
+         (add-hook hooksym 'halidom/italicize-keyword-fn))))
+
+
+(add-hook 'after-init-hook 'halidom/italicize-keyword-faces)
+
+#+END_SRC
+
+****** Per buffer Themes
+
+#+NAME: theme/per-buffer
+#+BEGIN_SRC emacs-lisp
+(use-package per-buffer-theme)
+#+END_SRC
+
+**** Font lock studio
+
+#+BEGIN_SRC emacs-lisp
+(use-package font-lock-studio)
+#+END_SRC
+
+*** Button Lock
+:PROPERTIES:
+:ID:       24DBC7FD-6AE3-4A2B-A42E-8FBC2E8127C5
+:END:
+
+#+NAME: button/lock
+#+BEGIN_SRC emacs-lisp
+(use-package button-lock)
+#+END_SRC
+
 *** Org Mode Faces
+:PROPERTIES:
+:ID:       D29BA324-2B5B-46A6-A0E6-E266D770AF1F
+:END:
 
 #+NAME: theme-org-mode
 #+BEGIN_SRC emacs-lisp
@@ -5852,44 +5866,634 @@ theme in \"quick mode\" by eliding hooks specified in
 (add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
 #+END_SRC
 
-*** Italicize font lock keyword face
+** Buffer
+:PROPERTIES:
+:ID:       8A78FBDC-E7F7-4119-8755-D34B8109F7F8
+:END:
 
-#+NAME: theme-italicize-for-modes
+*** Initial Buffer
+
+The default splash screen is great when you're starting out,
+but it's more so an annoyance than anything else once you
+know you're around.
+
+**** Initial scratch
+
 #+BEGIN_SRC emacs-lisp
-(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
-  "Major modes for which an italicized font lock keyword
-face shall be used."
-  :type '(symbol))
+(setq initial-scratch-message nil
+      initial-major-mode 'org-mode
+      inhibit-startup-echo-area-message t)
+#+END_SRC
 
-(defun halidom/italicize-keyword-fn ()
-(face-remap-add-relative 'font-lock-keyword-face
-                         '(:slant italic
-                           :family "Operator Mono")))
+**** Dashboard
 
-(defun halidom/italicize-keyword-faces ()
-  (cl-flet ((mode->hook (mode)
-              (intern (concat (symbol-name mode) "-hook"))))
-    (cl-loop
-       for mode in halidom-italicize-keyword-modes
-       for hooksym = (mode->hook mode)
-       do
-         (add-hook hooksym 'halidom/italicize-keyword-fn))))
+[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
+replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
+It's a nice way of consolidating any combination of tasks,
+agenda items, bookmarks, and pretty much any other enumerable
+list that one may use in the wacky world of Emacs.
+
+#+NAME: buffer/dashboard
+#+BEGIN_SRC emacs-lisp
+(use-package dashboard
+  :init
+  (defun halidom/dashboard-banner ()
+      "Set a dashboard banner including information on
+  package initialization time and garbage collections."
+      (setq dashboard-banner-logo-title
+            (format
+             (concat "Emacs ready in %.2f seconds "
+                       "with %d garbage collections.")
+             (float-time (time-subtract
+                          after-init-time
+                          before-init-time))
+             gcs-done)))
 
 
-(add-hook 'after-init-hook 'halidom/italicize-keyword-faces)
+    (unless global-page-break-lines-mode
+      (global-page-break-lines-mode))
+
+    (dashboard-setup-startup-hook)
+
+    :config
+    (add-to-list 'dashboard-items '(agenda) t)
+    ;; Get the week agenda.
+    ;; See `dashboard-get-agenda' for how this
+    ;; variable is being used.
+    (setq show-week-agenda-p t)
+
+    (setq dashboard-items '(( agenda . 10)
+                            ( projects . 5)
+                            ( recents . 3)
+                            ( bookmarks . 5)))
+
+    :hook
+    (after-init     . dashboard-refresh-buffer)
+    (dashboard-mode . halidom/dashboard-banner))
+
 
 #+END_SRC
 
-**** Per buffer Themes
+**** Auto Revert Mode
 
-#+NAME: theme/per-buffer
+#+NAME: buffer/revert
 #+BEGIN_SRC emacs-lisp
-(use-package per-buffer-theme)
+(use-package autorevert
+  :straight nil
+  :config
+  (global-auto-revert-mode 1))
+
 #+END_SRC
 
-** Cursor
+*** bui
 
-*** Disable Blink
+#+BEGIN_sRC emacs-lisp
+(use-package bui)
+#+END_SRC
+
+** Window
+*** Window Resize
+
+Default keybindings for window resize:
+
+- =C-x ^= :: makes current window taller [[help:enlarge-window][`enlarge-window']]
+- =C-x }= :: make it larger [[help:enlarge-window-horizontally][`enlarge-window-horizontally']]
+- =C-x {= :: make it narrower [[help:shrink-window-horizontally][`shrin-window-horizontally']]
+
+This following block modifies the keybindings for these commands to
+use the arrow keys instead. I use the "C-s" modifier because it just
+so happens this prefix can be extended by every key in the arrow pad
+without causing a conflict with external keymaps on my system.
+
+The suggested keybindings from the footnoted EmacsWiki page may be more
+accessible for you [fn:15].
+
+#+NAME: window-resize-keybindings
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-s-<left>") 'shrink-window-horizontally)
+(global-set-key (kbd "C-s-<right>") 'enlarge-window-horizontally)
+(global-set-key (kbd "C-s-<down>") 'shrink-window)
+(global-set-key (kbd "C-s-<up>") 'enlarge-window)
+#+END_SRC
+
+*** Winner Mode
+
+[[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
+different window configurations.
+
+#+NAME: winner-mode-config
+#+BEGIN_SRC emacs-lisp
+(use-package winner-mode
+  :straight nil
+  :init
+  (when (fboundp 'winner-mode)
+    (winner-mode 1)))
+#+END_SRC
+
+*** Ace Window
+
+#+NAME: window/ace
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+      :bind
+      ("M-o" . ace-window)
+      :custom
+      (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+      (aw-background nil))
+
+#+END_SRC
+
+*** Perspective
+
+
+#+NAME: persp/perspective
+#+BEGIN_SRC emacs-lisp
+(use-package perspective)
+#+END_SRC
+
+**** Persp Projectile
+
+#+NAME: persp/projectile
+#+BEGIN_SRC emacs-lisp
+(use-package persp-projectile
+  :after (:all projectile counsel-projectile perspective)
+  :bind ((:map projectile-mode-map
+               ("s-S" . projectile-persp-switch-project))))
+#+END_SRC
+
+*** Popwin
+
+#+NAME: popwin-config
+#+BEGIN_SRC emacs-lisp
+  (use-package popwin
+    :defines popwin:keymap
+    :after (perspective)
+    :bind-keymap ("C-z" . popwin:keymap)
+    :bind (:map popwin:keymap
+                ("m" . popwin:messages))
+    :init
+    (require 'popwin)
+    :config
+    (popwin-mode 1))
+#+END_SRC
+
+*** Poporg
+
+#+BEGIN_SRC emacs-lisp
+(use-package poporg
+  :bind ("C-c \"" . 'poporg-dwim))
+#+END_SRC
+
+*** Golden Ratio
+
+#+BEGIN_SRC emacs-lisp
+(use-package golden-ratio
+  :init
+  (setq golden-ratio-auto-scale t))
+#+END_SRC
+
+*** Purpose
+
+#+NAME: purpose
+#+BEGIN_SRC emacs-lisp
+  (use-package window-purpose)
+
+  (use-package ivy-purpose
+      :custom (pop-up-frames nil)
+      :after (window-purpose)
+      :init
+      (ivy-purpose-setup)
+      :config
+      ;; give help buffers the 'popup-frame purpose
+      (add-to-list 'purpose-user-mode-purposes
+                  '(help-mode . popup-frame))
+      (add-to-list 'purpose-special-action-sequences
+                   '(popup-frame
+                     purpose-display-reuse-window-buffer
+                     purpose-display-reuse-window-purpose
+                     purpose-display-pop-up-frame)))
+#+END_SRC
+
+** Frame
+*** Frame Startup
+:PROPERTIES:
+:ID:       2F513F76-AF1A-4536-B715-A6F648B7AF38
+:END:
+**** Display Time
+:PROPERTIES:
+:ID:       15A7EBBE-44FB-4F7F-B2CC-7C8FDE939BDA
+:END:
+
+#+NAME: frame-time
+#+BEGIN_SRC emacs-lisp
+(display-time-mode 1)
+#+END_SRC
+
+**** Frame Title Format
+:PROPERTIES:
+:ID:       DE7A3072-6422-4808-84B2-F27B754E1088
+:END:
+
+Show full path in the title bar.
+
+#+NAME: frame/title
+#+BEGIN_SRC emacs-lisp
+(setq-default frame-title-format "%b (%f)")
+#+END_SRC
+
+*** Frame utilities
+**** Transpose Frame
+:PROPERTIES:
+:ID:       2F4F7F68-87C1-4BD2-8C19-247751BE2E19
+:END:
+
+#+BEGIN_SRC emacs-lisp
+(use-package transpose-frame)
+#+END_SRC
+
+**** posframe
+:PROPERTIES:
+:ID:       34EA4A31-ADF2-4B0C-811A-1DCA53AE8789
+:END:
+
+#+NAME: posframe-spec
+#+BEGIN_SRC emacs-lisp
+(use-package posframe)
+#+END_SRC
+
+*** Frame libraries
+**** Frame-fns
+:PROPERTIES:
+:ID:       BBFEF753-9BE3-4B00-9CF1-36AA98244704
+:END:
+
+#+NAME: frame-fns-config
+#+BEGIN_SRC emacs-lisp
+(use-package frame-fns)
+#+END_SRC
+
+**** Frame+
+:PROPERTIES:
+:ID:       4B926D23-5661-4301-B4D6-39967E34EA23
+:END:
+
+#+NAME: frame-plus
+#+BEGIN_SRC emacs-lisp
+(use-package frame+)
+#+END_SRC
+
+** Text
+*** Overlays
+**** Highlight
+
+#+NAME: hl-highlight
+#+BEGIN_SRC emacs-lisp
+(use-package highlight)
+#+END_SRC
+
+**** Overlay Highlight
+
+#+NAME: hl-ov
+#+BEGIN_SRC emacs-lisp
+(use-package ov-highlight
+  :straight (ov-highlight
+             :host github
+             :repo "jkitchin/ov-highlight")
+  :bind
+  (:map org-mode-map
+        ("C-c h" . ov-highlight/body))
+  :init
+  (require 'ov)
+  (require 'ov-highlight))
+#+END_SRC
+
+**** Rainbow Mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-mode
+  :init
+  (rainbow-mode 1))
+#+END_SRC
+
+**** Col Highlight
+
+#+BEGIN_SRC emacs-lisp
+(use-package col-highlight)
+#+END_SRC
+
+**** Hl Todo
+
+Highlight =TODO= keywords:
+
+#+NAME: hl-hl-todo
+#+BEGIN_SRC emacs-lisp
+(use-package hl-todo
+  :commands (hl-todo-mode)
+  :config
+  (add-hook 'prog-mode-hook #'hl-todo-mode))
+#+END_SRC
+
+**** Symbol Highlighting
+:PROPERTIES:
+:ID:       37242456-1957-470E-885B-099A5D42A191
+:END:
+***** Symbol Overlay
+
+#+BEGIN_SRC emacs-lisp
+(use-package symbol-overlay)
+#+END_SRC
+
+***** Hlsexp
+
+Minor mode to highlight sexp.
+
+#+NAME: hl-hl-sexp
+#+BEGIN_SRC emacs-lisp
+(use-package highlight-sexp
+  :straight t)
+#+END_SRC
+
+***** Highlight Symbol
+
+#+NAME: hl-highlight-symbol
+#+BEGIN_SRC emacs-lisp
+(use-package highlight-symbol)
+#+END_SRC
+
+**** Highlight Indentation
+:PROPERTIES:
+:ID:       A2FD2DE5-0295-4F22-974F-8D4D7E6F26C2
+:END:
+
+***** Highlight indent guide mode
+
+#+NAME: hli/guides
+#+BEGIN_SRC emacs-lisp
+(use-package highlight-indent-guides)
+#+END_SRC
+
+***** Highlight indentation
+
+#+NAME: hli/indentation
+#+BEGIN_SRC emacs-lisp
+(use-package highlight-indentation)
+
+#+END_SRC
+
+***** Visual indentation
+
+#+NAME: hli/visual
+#+BEGIN_SRC emacs-lisp
+(use-package visual-indentation-mode)
+#+END_SRC
+
+**** Pretty Mode
+:PROPERTIES:
+:ID:       096E820A-240F-4A31-8B93-E72B821FF8CF
+:END:
+
+#+NAME: pretty/mode
+#+BEGIN_SRC emacs-lisp
+(use-package pretty-mode
+  :hook
+  ((emacs-lisp-mode LaTeX-mode) . turn-on-pretty-mode))
+#+END_SRC
+
+**** Prettify Symbols
+:PROPERTIES:
+:ID:       C03FF49A-155B-4D77-AE81-ED0EA7EECD3E
+:END:
+
+Seems to be problems rendering symbols on Debian. Not sure if this is
+because the necessary fonts are not installed or if it's because of
+the absence of a window system. I'll check for the latter for now.
+
+#+NAME: pretty/symbols
+#+BEGIN_SRC emacs-lisp
+  (when (display-graphic-p)
+    (add-hook 'prog-mode-hook 'prettify-symbols-mode))
+#+END_SRC
+
+**** Pretty
+:PROPERTIES:
+:ID:       69A6DC79-7C75-4533-B71D-4E52B24CDE34
+:END:
+***** Prettify Utilities
+
+#+NAME: pretty/utils
+#+BEGIN_SRC emacs-lisp
+(use-package prettify-utils
+  :straight (prettify-utils
+             :host github
+             :repo "Ilazki/prettify-utils.el")
+  :init
+  (require 'prettify-utils))
+
+#+END_SRC
+
+***** Pretty outlines
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package pretty-outlines
+  :straight nil
+  :demand t
+  :load-path "etc/local/pretty-outlines"
+  :preface
+  (set-fontset-font "fontset-default" '#xF016 "Weather Icons" nil 'prepend)
+  :custom
+  (pretty-outlines-ellipsis " ")
+  :hook ((outline-mode       . pretty-outlines-set-display-table)
+         (outline-minor-mode . pretty-outlines-set-display-table)
+         (emacs-lisp-mode . pretty-outlines-add-bullets)
+         (python-mode     . pretty-outlines-add-bullets)))
+
+
+#+END_SRC
+
+***** Pretty Code
+
+*** Fonts
+:PROPERTIES:
+:ID:       98543582-0772-4025-917B-38DF6542DD6F
+:END:
+**** Don't use default font for symbols
+
+See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_blocks/][defining unicode character blocks : emacs]]
+
+#+BEGIN_SRC emacs-lisp
+(setq use-default-font-for-symbols nil)
+#+END_SRC
+
+**** Default font
+
+#+BEGIN_SRC emacs-lisp
+(defcustom user-fonts-list
+  '(("Fira Code" . nil)
+    ("Fira Mono for Powerline" . nil)
+    ("Operator Mono" . extralight)
+    ("SF Mono" . normal)
+    ("Ubuntu Mono" . nil)
+    ("Monaco" . nil)
+    ("Inconsolota" . nil))
+
+  "The default font stack to use for setting the font
+  on startup and new frame."
+  :type '(string))
+
+(defun font/setup ()
+  (interactive)
+  (let* ((font-family (or (car (seq-intersection
+                               (mapcar #'car user-fonts-list) (font-family-list)))
+                         (face-attribute 'fixed-pitch :family)))
+         (weight (or (cdr (assoc font-family user-fonts-list)) 'normal)))
+    (run-at-time "0.2 sec" nil
+                 `(lambda ()
+                    (when (not (eq (face-attribute 'default :family)
+                                 ,font-family))
+                      (set-face-attribute
+                       'default nil
+                       :family ,font-family
+                       :weight (quote ,weight)
+                       :height 120))))))
+
+(add-hook 'after-init-hook 'font/setup)
+#+END_SRC
+
+**** Unicode
+***** Unicode Fonts
+
+#+BEGIN_SRC emacs-lisp
+  (use-package unicode-fonts
+    :init
+    (unicode-fonts-setup))
+#+END_SRC
+
+***** Emojis
+****** Apple Color Emoji
+
+#+BEGIN_SRC emacs-lisp
+(when (eq system-type 'darwin)
+  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
+#+END_SRC
+
+****** Unicode Emoticons
+
+#+BEGIN_SRC emacs-lisp
+(use-package unicode-emoticons)
+#+END_SRC
+
+****** Company Emoji
+
+#+NAME: emoji/company
+#+BEGIN_SRC emacs-lisp
+(use-package company-emoji
+  :after (:all company emojify-mode)
+  :demand t
+  :init
+    ;; https://github.com/dunn/company-emoji#emoji-font-support
+  (defun --set-emoji-font (frame)
+    "Adjust the font settings of FRAME so Emacs can display emoji properly."
+    (if (eq system-type 'darwin)
+        ;; For NS/Cocoa
+        (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") frame 'prepend)
+      ;; For Linux
+      (set-fontset-font t 'symbol (font-spec :family "Symbola") frame 'prepend)))
+  (--set-emoji-font nil)
+
+  ;; Hook for when a frame is created with emacsclient
+  (add-hook 'after-make-frame-functions '--set-emoji-font)
+
+  :config
+  (defun company-emoji-setup ()
+    (let ((backends (cons 'company-emoji company-backends)))
+      (set (make-local-variable 'company-backends) backends)))
+
+  (add-hook 'emojify-mode-hook #'company-emoji-setup))
+
+#+END_SRC
+
+***** Icons
+******  All the  Icons
+
+[[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
+
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons
+    :demand t)
+#+END_SRC
+
+******* all the icons dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons-dired
+  :after (all-the-icons dired)
+  :demand t
+  :init
+  (require 'font-lock+)
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+#+END_SRC
+
+******* all the icons ivy
+
+#+BEGIN_SRC emacs-lisp
+  (use-package all-the-icons-ivy
+    :after (:all ivy all-the-icons)
+    :init
+    (all-the-icons-ivy-setup))
+
+#+END_SRC
+
+******* Modify default fontspec
+:PROPERTIES:
+:ID:       8B26EA14-B8CE-4E10-8B29-B3426E0B6D72
+:END:
+
+#+BEGIN_SRC emacs-lisp
+(defun fonts/setup-glyphs ()
+  "Modify the default fontset to choose the right icons."
+  (let ((font-glyphs-alist '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
+                             ("file-icons" . (#xE917  #xE600))
+                             ("Material Icons" . (#xE80C #xE8CE))))
+        (font-families (font-family-list)))
+    (dolist (font-glyphs font-glyphs-alist)
+      (when (member (car font-glyphs) font-families)
+        (mapcar
+         (lambda (glyph)
+           (set-fontset-font "fontset-default"
+                             glyph (car font-glyphs)
+                             nil 'prepend))
+         (cdr font-glyphs))))))
+
+
+(add-hook 'after-init-hook 'fonts/setup-glyphs)
+
+#+END_SRC
+
+
+#+NAME: fonts/unicode
+#+BEGIN_SRC emacs-lisp
+;; Unicode Fonts
+
+;; Emojis
+
+#+END_SRC
+
+****** VS Code Icons
+:PROPERTIES:
+:ID:       4196FB0F-6A8F-4476-AFBD-651C7E5ED8AD
+:END:
+
+#+NAME: icons/vscode
+#+BEGIN_SRC emacs-lisp
+(use-package vscode-icon
+  :init
+  (require 'vscode-icon)
+  :commands (vscode-icon-for-file))
+
+#+END_SRC
+
+*** Cursor
+**** Disable Blink
 
 Ultimately, I'd like to set a longer blink interval, like the "phase"
 ~caret_style~ setting in Sublime Text.
@@ -5899,7 +6503,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 (blink-cursor-mode -1)
 #+END_SRC
 
-*** Only show cursor in selected window
+**** Only show cursor in selected window
 
 #+NAME: cursor/window
 #+BEGIN_SRC emacs-lisp
@@ -5907,7 +6511,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
               x-stretch-cursor nil)
 #+END_SRC
 
-*** Smart Cursor Color
+**** Smart Cursor Color
 
 #+NAME: cursor/smart-color
 #+BEGIN_SRC emacs-lisp
@@ -5918,7 +6522,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+END_SRC
 
-*** Multiple Cursors
+**** Multiple Cursors
 
 #+NAME: cursor/mc
 #+BEGIN_SRC emacs-lisp
@@ -5940,7 +6544,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
     (global-set-key (kbd "M-s-d" 'mc/edit-beginnings-of-lines))))
 #+END_SRC
 
-*** Centered Cursor Mode
+**** Centered Cursor Mode
 
 #+NAME: cursor/centered
 #+BEGIN_SRC emacs-lisp
@@ -5949,7 +6553,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   (centered-cursor-mode 1))
 #+END_SRC
 
-*** Bar Cursor
+**** Bar Cursor
 
 #+NAME: cursor/bar
 #+BEGIN_SRC emacs-lisp
@@ -5957,218 +6561,202 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   :init (bar-cursor-mode 1))
 #+END_SRC
 
-*** Change Cursor
+**** Change Cursor
 
 #+NAME: cursor/chg
 #+BEGIN_SRC emacs-lisp
 (use-package cursor-chg)
 #+END_SRC
 
-** Modeline
-*** Modeline Customization
+*** Formatting
+:PROPERTIES:
+:ID:       A6A6C1C1-8DF3-45C7-8FB0-D1D1974B8C72
+:END:
 
-#+NAME: ml/interface
+#+NAME: startup-scratch
 #+BEGIN_SRC emacs-lisp
-(defcustom halidom-modeline 'spaceline
-  "When non-nil, the modeline framework to use at startup.
-Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
-  :type '(choice
-          (const :tag "Use the default modeline." nil)
-          (const :tag "Use spaceline" spaceline)
-          (const :tag "Use smart-mode-line" sml)
-          (const :tag "Use powerline" powerline)
-          (const :tag "Use eyeline"  eyeliner))
-  :initialize 'custom-initialize-default)
-#+END_SRC
+(setq-default sentence-end-double-space nil
+              help-window-select t)
+  #+END_SRC
 
-*** Spaceline
+**** Visual Fill Column
+:PROPERTIES:
+:ID:       9343B26B-8EB3-4785-BAD0-427AE4E3DD63
+:END:
 
-**** Spaceline Mode
-
-#+NAME: sl/spaceline
+#+NAME: readview-fc
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline)
-#+END_SRC
-
-**** Spaceline All the Icons
-
-#+NAME: sl/icons
-#+BEGIN_SRC emacs-lisp
-(use-package spaceline-all-the-icons
-  :after (:all all-the-icons spaceline))
-#+END_SRC
-
-**** Spaceline setup
-
-#+NAME: sl/setup
-#+BEGIN_SRC emacs-lisp
-  (defun ml-spaceline-setup ()
-    "Setup the modeline for spaceline."
-    (setq spaceline-all-the-icons-separator-type 'arrow)
-    (require 'spaceline)
-    (require 'spaceline-segments)
-    (require 'spaceline-config)
-    (require 'all-the-icons)
-    (require 'spaceline-all-the-icons)
-    (spaceline-all-the-icons--setup-neotree)
-    (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
-    (spaceline-toggle-all-the-icons-flycheck-status-off))
-#+END_SRC
-
-*** Smart Mode Line
-#+NAME: sml/smart-mode-line
-#+BEGIN_SRC emacs-lisp
-(use-package smart-mode-line)
-#+END_SRC
-
-#+NAME: sml/setup
-#+BEGIN_SRC emacs-lisp
-
-(defun ml-smline-setup ()
-  "Setup the modeline for smart-mode-line."
-  (require 'smart-mode-line)
-  (setq sml/no-confirm-load-theme t)
-  (setq sml/theme 'respectful)
-  (sml/setup)
-  (run-hooks 'sml-setup-hook))
-#+END_SRC
-
-*** Powerline
-
-#+NAME: pl/powerline
-#+BEGIN_SRC emacs-lisp
-(use-package powerline)
-
-#+END_SRC
-
-**** Setup Powerline
-
-#+NAME: pl/setup
-#+BEGIN_SRC emacs-lisp
-(defun ml-powerline-setup ()
-  "Setup the modeline for powerline."
-  (require 'powerline)
-  (powerline-default-theme))
-#+END_SRC
-
-*** Eyeliner
-
-#+NAME: ml/eyeliner
-#+BEGIN_SRC emacs-lisp
-(use-package eyeliner
-    :straight (eyeliner
-               :type git
-               :host github
-               :repo "dustinlacewell/eyeliner")
+(use-package visual-fill-column
+    :commands (visual-fill-column-mode)
     :init
-    (defun ml-eyeliner-setup ()
-      (require 'eyeliner)
-      (eyeliner/install)))
+    (defvar visual-fill-column-use-visual-line nil
+      "Enable `visual-line-mode' when `visual-fill-column-mode' is non-nil.")
+    :config
+    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
+    (setq split-window-preferred-function
+          #'visual-fill-column-split-window-sensibly)
+
+    (setq visual-fill-column-width
+          ;; take Emacs 26 line numbers into account
+          (+ (if (boundp 'display-line-numbers) 6 0)
+             fill-column))
+
+    (unless visual-fill-column-use-visual-line
+        (add-hook 'visual-fill-column-mode-hook #'visual-line-mode)))
 
 #+END_SRC
 
-*** Set the modeline format
+**** Fill Column Indicator
+:PROPERTIES:
+:ID:       8B3DC41D-C8AC-4FE3-801F-A0FFAD14F363
+:END:
 
-#+NAME: ml/setup
+#+NAME: readview-fc-indicator
 #+BEGIN_SRC emacs-lisp
-
-(defun halidom/modeline-setup ()
-  "Setup the modeline."
-  (interactive)
-  (pcase halidom-modeline
-    (`spaceline (ml-spaceline-setup))
-    (`powerline (ml-powerline-setup))
-    (`sml (ml-smline-setup))
-    (`eyeliner (ml-eyeliner-setup))))
-
-(defun halidom/modeline-setup-frame (frame)
-  (with-selected-frame frame
-    (when (daemonp)
-      (if (display-graphic-p)
-          (halidom/modeline-setup)
-        (ml-smline-setup)))))
-
-(add-hook 'after-init-hook 'halidom/modeline-setup)
-(add-hook 'after-make-frame-functions 'halidom/modeline-setup-frame)
-#+END_SRC
-
-** Scrolling
-*** Scroll to first error on compilation
-
-#+NAME: scroll/compile-error
-#+BEGIN_SRC emacs-lisp
-(setq compilation-scroll-output 'first-error)
-#+END_SRC
-
-*** Smooth Scrolling
-
-#+NAME: scroll/smooth
-#+BEGIN_SRC emacs-lisp
-(use-package smooth-scrolling
+(use-package fill-column-indicator
   :init
-  (smooth-scrolling-mode 1)
-  :config
-  (setq scroll-step 1
-        scroll-margin 10
-        next-line-add-newlines nil
-        scroll-preserve-screen-position 1)
-
-  (setq mouse-wheel-follow-mouse 't)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
+  (setq fci-rule-use-dashes nil))
 #+END_SRC
 
-*** Sublimity Scroll
+**** Justify Kp
+:PROPERTIES:
+:ID:       423D21DE-4BD8-49B5-BD6B-F88E267B4008
+:END:
 
-#+NAME: scroll/subliminity
+#+NAME: readview-justify
 #+BEGIN_SRC emacs-lisp
-  (use-package sublimity
-      :init
-    (require 'sublimity-scroll))
+(use-package justify-kp
+  :straight (:host github
+                   :repo "Fuco1/justify-kp"))
 #+END_SRC
 
-** Buttons
+* Utilities
+** Thingatpt+
 
-*** Button Lock
-
-#+NAME: button/lock
+#+NAME: thingatpt-plus
 #+BEGIN_SRC emacs-lisp
-(use-package button-lock)
+(use-package thingatpt+)
+
+(use-package misc-fns)
 #+END_SRC
 
-** Pretty
+** Bug Tracking
 
-*** Prettify Symbols
-
-Seems to be problems rendering symbols on Debian. Not sure if this is
-because the necessary fonts are not installed or if it's because of
-the absence of a window system. I'll check for the latter for now.
-
-#+NAME: pretty/symbols
 #+BEGIN_SRC emacs-lisp
-  (when (display-graphic-p)
-    (add-hook 'prog-mode-hook 'prettify-symbols-mode))
+(use-package debbugs
+  :straight (debbugs
+             :type git
+             :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
+             :files ("packages/debbugs/*.el"
+                     "packages/debbugs/Debbugs.wsdl")
+             :local-repo "elpa"))
+
 #+END_SRC
 
-*** Pretty Mode
+** Documentation
+:PROPERTIES:
+:ID:       67707BA1-09DE-4175-BD74-4BA869BFBAA9
+:END:
+*** Help
+**** Help+
 
-#+NAME: pretty/mode
 #+BEGIN_SRC emacs-lisp
-(use-package pretty-mode
-  :hook
-  ((emacs-lisp-mode LaTeX-mode) . turn-on-pretty-mode))
+(use-package help+
+    :demand t)
 #+END_SRC
 
-*** Prettify Utilities
+***** help-mode+
 
-#+NAME: pretty/utils
+#+BEGIN_SRC emacs-lisp :tangle
+(use-package help-mode+
+    :demand t)
+#+END_SRC
+
+***** help-macro+
+
 #+BEGIN_SRC emacs-lisp
-(use-package prettify-utils
-  :straight (prettify-utils
-             :host github
-             :repo "Ilazki/prettify-utils.el")
-  :init
-  (require 'prettify-utils))
+(use-package help-macro+
+    :demand t)
+#+END_SRC
 
+***** help-fns+
+
+#+BEGIN_SRC emacs-lisp
+(use-package help-fns+
+    :demand t)
+#+END_SRC
+
+**** Helpful
+
+#+NAME: help-helpful
+#+BEGIN_SRC emacs-lisp
+(use-package helpful
+  :bind
+  ("C-h f" . helpful-callable)
+  ("C-h v" . helpful-variable)
+  ("C-h k" . helpful-key)
+  ("C-h C" . helpful-command)
+  ("C-c C-d" . helpful-at-point)
+  ("C-h F" . helpful-function))
+
+#+END_SRC
+
+**** Help find org mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package help-find-org-mode)
+#+END_SRC
+
+*** Elisp refs
+
+#+BEGIN_SRC emacs-lisp
+(use-package elisp-refs)
+#+END_SRC
+
+*** Info+
+:PROPERTIES:
+:ID:       81C8F5CC-5F6E-417F-B549-BE2523A726BB
+:END:
+
+#+BEGIN_SRC emacs-lisp
+(use-package info+)
+#+END_SRC
+
+* Multimedia
+** Sound Cloud
+
+#+NAME: media-soundcloud
+#+BEGIN_SRC emacs-lisp
+(use-package soundcloud)
+#+END_SRC
+
+** emms
+:PROPERTIES:
+:ID:       56DD666B-7EF3-495B-B45C-F617B5D1BBD6
+:END:
+
+#+NAME: media-emms
+#+BEGIN_SRC emacs-lisp
+(use-package emms
+    :custom
+    (emms-source-file-default-directory
+     (pcase system-type
+       (`darwin (dropbox-dir "Music" "iTunes" "iTunes Media" "Music"))
+       (`linux (user-home "Music"))))
+    :init
+    (require 'emms-setup)
+    (emms-all)
+    (emms-default-players)
+    :config
+
+    ;; add flv and ogv
+    (define-emms-simple-player mplayer '(file url)
+      (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
+                    ".mpeg" ".wmv" ".wma" ".mov" ".avi"
+                    ".divx" ".ogm" ".asf" ".mkv" "http://"
+                    "mms://" ".rm" ".rmvb" ".mp4" ".flac"
+                    ".vob" ".m4a" ".flv" ".ogv" ".pls"))
+      "mplayer" "-slave" "-quiet" "-really-quiet" "-fullscreen"))
 #+END_SRC
 
 * Completion
@@ -6205,6 +6793,17 @@ any reason for me reconsider my choice.
           company-echo-metadata-frontend))
   :hook
   (after-init . global-company-mode))
+#+END_SRC
+
+**** Company posframe
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-posframe
+  :after (:all company posframe)
+  :demand t
+  :init
+  (company-posframe-mode 1))
+
 #+END_SRC
 
 **** Company Tabnine :disabled:
@@ -6315,11 +6914,6 @@ for candidates in Ivy menus.
 
 [[https://github.com/joaotavora/yasnippet][YASnippet]] is a template system based off the TextMate snippet syntax.
 
-Here, I create a variable for my personal snippets directory.
-
-After installation and enabling the package, add the personal snippets
-directory to the list of directories where YASnippet should look for snippets.
-
 #+NAME: snippets-yasnippet
 #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
@@ -6330,7 +6924,6 @@ directory to the list of directories where YASnippet should look for snippets.
     :preface
     (defvar snippet-directory (emacs-etc-dir "yasnippet" "snippets")
       "Directory for yasnippets.")
-
     (defun goto-snippet-dir ()
       "Goto `snippet-directory'."
       (interactive)
@@ -6340,6 +6933,7 @@ directory to the list of directories where YASnippet should look for snippets.
     :init
     (yas-global-mode 1)
     :config
+
     (when (featurep 'which-key)
       (which-key-add-key-based-replacements
         "C-c &" " YASnippet")))
@@ -6370,6 +6964,12 @@ directory to the list of directories where YASnippet should look for snippets.
 (use-package auto-yasnippet)
 #+END_SRC
 
+*** header2
+
+#+BEGIN_SRC emacs-lisp
+(use-package header2)
+#+END_SRC
+
 *** Code Library
 
 #+NAME: snippets-code-library
@@ -6380,22 +6980,99 @@ directory to the list of directories where YASnippet should look for snippets.
     (code-library-sync-to-gist t))
 #+END_SRC
 
-** Minibuffer
+*** Skeletor
+:PROPERTIES:
+:ID:       9D7AE17E-5FB7-421F-A92F-C3E43BD26B14
+:END:
 
-#+NAME: completion-minibuffer
+#+NAME: skeletor-spec
 #+BEGIN_SRC emacs-lisp
-;; Minibuffer Prompt Properties
+  (use-package skeletor
+    :custom
+    (skeletor-user-directory (emacs-etc-dir "skeletor/project-skeletons"))
+    (skeletor-completing-read-function 'ivy-completing-read)
+    (skeletor-python-bin-search-path
+     '("/usr/local/bin" "/usr/bin"))
+    (skeletor-project-directory (projects-dir))
 
-;; Ivy Group
+    :init
 
-;; Counsel
+    (defun skeletor-add-pyenv-pythons ()
+      "Add python binaries managed by pyenv to
+   `skeletor-python-bin-search-path'."
+      (let* ((pyenv-dir (or (getenv "PYENV_ROOT")
+                           (user-home ".pyenv")))
+             (pyenv-version-dir
+              (and pyenv-dir (resolve-path pyenv-dir "versions")))
+             (pyenv-versions
+              (directory-files-no-wildcards pyenv-version-dir t))
+             (python-bins
+              (mapcar
+               (lambda (d)
+                 (resolve-path d "bin"))
+               pyenv-versions)))
+        (dolist (python-bin python-bins)
+          (add-to-list 'skeletor-python-bin-search-path
+                       python-bin))))
 
-;; Swiper
+    (when (executable-find "pyenv")
+      (skeletor-add-pyenv-pythons))
 
-;; Omnibox
+    :config
+    (add-to-list 'skeletor-global-substitutions
+                 (cons "__TIME__"
+                       (lambda () (format-time-string "%c"))))
+
+    (skeletor-define-template "cmake-unix-makefiles"
+      :requires-executables
+      '(("cmake". "https://cmake.org")
+        ("make" . "https://www.gnu.org/software/make"))
+
+      :substitutions
+      (list
+       (cons "__DESCRIPTION__"
+             (lambda ()
+               (read-string "Description: ")))
+       (cons "__TARGET_NAME__"
+             (lambda ()
+               (read-string "Target: ")))
+       (cons "__PROJECT-VARS__" ".dir-locals"))
+
+      :after-creation
+      (lambda (dir)
+        (skeletor-async-shell-command "mkdir build")
+        (skeletor-async-shell-command
+         (concat "("
+                 " cd build &&"
+                 " cmake -G 'Unix Makefiles'"
+                 " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. "
+                 ")"))
+        (skeletor-async-shell-command
+         "ln -s `pwd`/build/compile_commands.json .")
+        (dired dir)
+        (revert-buffer)))
+
+
+
+    (defun skeletor/projectile-ignore ()
+      (with-eval-after-load 'projectile
+        (add-to-list
+         'projectile-project-ignored-directories
+         skeletor--directory)))
+
+    :hook
+    (project-mode . skeletor/projectile-ignore))
 
 #+END_SRC
 
+**** Projectile Code Search
+
+#+NAME: project-code-search
+#+BEGIN_SRC emacs-lisp
+(use-package projectile-codesearch)
+#+END_SRC
+
+** Minibuffer
 *** Prompt Properties
 
 Don't let the cursor go into the minibuffer prompt.
@@ -6464,7 +7141,6 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+END_SRC
 
 **** Ivy xref
-
 #+NAME: ivy/xref
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-xref
@@ -6704,14 +7380,7 @@ documentation browser.
 #+NAME: counsel/tramp
 #+BEGIN_SRC emacs-lisp
 (use-package counsel-tramp
-  :after (counsel)
-  :init
-  (defun straight-recipes-installed (pkg)
-    (let ((repo (symbol-name pkg)))
-      (file-directory-p
-       (resolve-path user-emacs-directory "straight" "build" repo))))
-
-  (defalias #'package-installed-p #'straight-recipes-installed))
+  :after (counsel))
 #+END_SRC
 
 *** Swiper
@@ -6739,12 +7408,51 @@ documentation browser.
               ("M-x" . omnibox-M-x)))
 #+END_SRC
 
+** Text Completion
+:PROPERTIES:
+:ID:       ED959BFE-949F-43C4-BE02-4BC01D43FC05
+:END:
+*** Company Dict
+
+#+NAME: completion/company-dict
+#+BEGIN_SRC emacs-lisp
+(use-package company-dict
+  :after (company)
+  :demand t
+  :init
+  (add-to-list 'company-backends 'company-dict)
+  :config
+  (setq company-dict-enable-fuzzy t
+        company-dict-enable-yasnippet t))
+#+END_SRC
+
+*** Dictionary.el
+:PROPERTIES:
+:ID:       98EF59F6-66E8-47B3-A437-B1D53A74832A
+:CUSTOM_ID: dictionary-el
+:END:
+
+The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
+dictionary server to lookup words. What it lacks in bells and
+whistles, it makes up for in compatibility and hackability [fn:18].
+
+#+NAME: completion/dictionary-el
+#+BEGIN_SRC emacs-lisp
+(use-package dictionary
+  :commands (dictionary-lookup-definition)
+  :init
+  (define-prefix-command 'dictionary-keymap))
+#+END_SRC
+
 * Shell
 ** Ansi Color
 
 #+NAME: sh/ansi
 #+BEGIN_SRC emacs-lisp
 (use-package ansi-color
+  :custom
+  (ansi-color-faces-vector
+   [default bold shadow italic underline bold bold-italic bold])
   :init
   (defun colorize-compilation-buffer ()
     "Escape ANSI color sequence in the compilation buffer."
@@ -6760,7 +7468,6 @@ documentation browser.
   ;; (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
   ;; (add-hook 'comint-output-filter-functions 'ansi-color-process-output)
   )
-
 #+END_SRC
 
 ** Eshell
@@ -6950,6 +7657,17 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 #+NAME: sh/term
 #+BEGIN_SRC emacs-lisp
 (use-package term
+  :custom
+  (ansi-term-color-vector
+   [term
+    term-color-black
+    term-color-red
+    term-color-green
+    term-color-yellow
+    term-color-blue
+    term-color-magenta
+    term-color-cyan
+    term-color-white])
   :init
   (defun term-send-tab ()
     "Send tab in term mode."
@@ -6967,8 +7685,6 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
            (kill-buffer (process-buffer proc))
            (when (> (count-windows) 1)
              (delete-window)))))))
-
-
   :hook
   (term-mode . ansi-term-handle-close))
 #+END_SRC
@@ -6979,6 +7695,9 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 #+BEGIN_SRC emacs-lisp
 (use-package multi-term
   :after (term)
+  :bind
+  (:map term-mode-map
+  ( "C-c C-j" . term-line-mode))
   :init
   (defun multiterm (&optional ARG)
     "Wrapper to be able to call multi-term from shell-pop"
@@ -7091,6 +7810,19 @@ over ssh."
   (ssh-mode . ssh/enable-path-completion))
 #+END_SRC
 
+**** SSH tunnels
+
+#+BEGIN_SRC emacs-lisp
+(use-package ssh-tunnels)
+#+END_SRC
+
+**** SSH Deploy
+
+#+BEGIN_SRC emacs-lisp
+(use-package ssh-deploy)
+
+#+END_SRC
+
 *** SCP
 
 #+NAME: remote/scp
@@ -7133,8 +7865,25 @@ directory local variables."
   (tramp-default-user user-login-name))
 #+END_SRC
 
+**** Docker Tramp
+:PROPERTIES:
+:ID:       0BC85ED8-9B18-4CDA-9C45-B4B54BFE632E
+:END:
+
+#+NAME: docker/tramp
+#+BEGIN_SRC emacs-lisp
+(use-package docker-tramp)
+#+END_SRC
+
+
+**** Kubernetes Tramp
+
+#+BEGIN_SRC emacs-lisp
+(use-package kubernetes-tramp)
+#+END_SRC
+
 * Web
-** Web Libraries
+** Libraries
 *** Simple httpd
 
 #+NAME: lib/httpd
@@ -7231,6 +7980,71 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 #+NAME: browser/search
 #+BEGIN_SRC emacs-lisp
   (use-package search-web)
+#+END_SRC
+
+*** xwidget webkit
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package xwidget
+  :straight nil
+  :bind (:map xwidget-webkit-mode-map
+              ("\C-s" . isearch-forward)
+              ("d" . xwidget-webkit-download))
+
+  :defines (xwidget-webkit-current-url-as-kill xwidget-webkit-download)
+  :init
+  (defadvice xwidget-webkit-browse-url (url )
+    "Ask xwidget-webkit to browse URL.
+NEW-SESSION specifies whether to create a new xwidget-webkit session.
+Interactively, URL defaults to the string looking like a url around point."
+    (interactive (progn
+                   (require 'browse-url)
+                   (browse-url-interactive-arg "xwidget-webkit URL: "
+                                               ;;(xwidget-webkit-current-url)
+                                             )))
+  )
+  (defadvice xwidget-webkit-current-url-message-kill
+      (around xwidget-webkit-current-url-message-kill-advice activate)
+    (interactive)
+    (let ((url (funcall-interactively #'xwidget-webkit-current-url)))
+      (kill-new url)
+      (message "Copied to kill ring: %s" url)))
+
+  (when (require 'eww nil t)
+    (defalias #'xwidget-webkit-decode-url-file-name #'eww-decode-url-file-name)
+    (defalias #'xwidget-make-unique-file-name #'eww-make-unique-file-name)
+
+    (defun xwidget-webkit-download (directory)
+      "Download the current file from the url visited in the
+active xwidget buffer and write to file in DIRECTORY."
+      (interactive
+       (list (read-directory-name
+              "Download to: "
+              xwidget-webkit-download-dir  nil nil)))
+      (let ((url (funcall-interactively #'xwidget-webkit-current-url))
+            (default-directory directory))
+        (url-retrieve url #'xwidget-webkit-download-callback (list url directory))))
+
+    (defun xwidget-webkit-download-callback (status url directory)
+      (unless (plist-get status :error)
+        (let* ((obj (url-generic-parse-url url))
+               (path (car (url-path-and-query obj)))
+               (file (eww-make-unique-file-name
+                      (eww-decode-url-file-name (file-name-nondirectory path))
+                      directory)))
+          (goto-char (point-min))
+          (re-search-forward "\r?\n\r?\n")
+          (let ((coding-system-for-write 'no-conversion))
+            (write-region (point) (point-max) file))
+          (message "Saved %s" file)))))
+
+  :config
+  (defun xwidget-webkit-open-file (&optional file)
+    "Open local FILE in"
+    (interactive "fFile: ")
+    (xwidget-webkit-browse-url
+     (concat "file://" (copy-file-path)))))
 #+END_SRC
 
 *** Set default browser
@@ -7418,7 +8232,7 @@ Interactively.
 #+BEGIN_SRC emacs-lisp
   (use-package mu4e
       :straight nil
-      :load-path "/usr/local/opt/mu/share/emacs/site-lisp/mu/mu4e"
+      :load-path "/usr/local/share/emacs/site-lisp/mu4e"
       :init
       (require 'mu4e)
 
@@ -7569,127 +8383,13 @@ Interactively.
     (mu4e-maildirs-extension-load))
 #+END_SRC
 
+**** mu4e conversion
+
+#+BEGIN_SRC emacs-lisp
+(use-package mu4e-conversation)
+#+END_SRC
+
 * Prose
-** Spelling and Grammar
-
-
-Tools for checking lexical and grammatical errors in text
-buffers[fn:17].
-
-*** Flyspell
-
-#+NAME: flyspell-base
-#+BEGIN_SRC emacs-lisp
-  (use-package flyspell
-    :init
-    (with-eval-after-load 'org
-      (add-hook 'org-mode-hook 'flyspell-mode))
-    :config
-    (progn
-      (when (executable-find "hunspell")
-        (setq-default ispell-program-name "hunspell")
-        (setq-default ispell-dictionary "en_US")
-        (setq ispell-really-hunspell t))))
-#+END_SRC
-
-**** Flyspell Correct
-
-#+NAME: flyspell-correct-config
-#+BEGIN_SRC emacs-lisp
-  (use-package flyspell-correct-ivy
-    :after (:all flyspell ivy)
-    :demand t
-    :config
-    (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic))
-#+END_SRC
-
-*** Langtool
-
-LanguageTool is a Java plugin which provides style and grammar
-checking for natural language.
-
-#+NAME: sc-langtool
-#+BEGIN_SRC emacs-lisp
-(use-package langtool
-  :if (eq system-type 'darwin)
-  :after (flyspell)
-  :demand t
-  :custom
-  (langtool-language-tool-jar
-   "/usr/local/opt/languagetool/libexec/languagetool-commandline.jar")
-  (langtool-mother-tongue "en")
-  (langtool-disabled-rules '("DASH_RULE"))
-  :init
-  (defun langtool-autoshow-detail-popup (overlays)
-    (when (require 'popup nil t)
-      ;; Do not interrupt current popup
-      (unless (or popup-instances
-                 ;; suppress popup after type `C-g` .
-                 (memq last-command '(keyboard-quit)))
-        (let ((msg (langtool-details-error-message overlays)))
-          (popup-tip msg)))))
-  :config
-  (setq langtool-autoshow-message-function 'langtool-autoshow-detail-popup))
-#+END_SRC
-
-*** Academic Phrases
-
-#+NAME: sc-academic
-#+BEGIN_SRC emacs-lisp
-(use-package academic-phrases)
-#+END_SRC
-
-*** Proselint
-
-#+NAME: sc-proselint
-#+BEGIN_SRC emacs-lisp
-  (with-eval-after-load 'flycheck
-    (flycheck-define-checker proselint
-                             "A linter for prose."
-                             :command ("proselint" source-inplace)
-                             :error-patterns
-                             ((warning line-start (file-name) ":" line ":" column ": "
-                                       (id (one-or-more (not (any " "))))
-                                       (message) line-end))
-                             :modes (text-mode org-mode markdown-mode gfm-mode))
-    (add-to-list 'flycheck-checkers 'proselint))
-
-#+END_SRC
-
-** Text Completion
-
-*** Company Dict
-
-#+NAME: completion/company-dict
-#+BEGIN_SRC emacs-lisp
-(use-package company-dict
-  :after (company)
-  :demand t
-  :init
-  (add-to-list 'company-backends 'company-dict)
-  :config
-  (setq company-dict-enable-fuzzy t
-        company-dict-enable-yasnippet t))
-#+END_SRC
-
-*** Dictionary.el
-:PROPERTIES:
-:ID:       98EF59F6-66E8-47B3-A437-B1D53A74832A
-:CUSTOM_ID: dictionary-el
-:END:
-
-The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
-dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:18].
-
-#+NAME: completion/dictionary-el
-#+BEGIN_SRC emacs-lisp
-(use-package dictionary
-  :commands (dictionary-lookup-definition)
-  :init
-  (define-prefix-command 'dictionary-keymap))
-#+END_SRC
-
 ** Taking Notes
 *** Deft
 
@@ -7840,15 +8540,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+END_SRC
 
 ** Reading and viewing
-*** Justify Kp
-
-#+NAME: readview-justify
-#+BEGIN_SRC emacs-lisp
-(use-package justify-kp
-  :straight (:host github
-                   :repo "Fuco1/justify-kp"))
-#+END_SRC
-
 *** Nov
 
 [[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
@@ -7899,47 +8590,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
     (add-hook 'nov-post-html-render-hook 'my-nov-post-html-render-hook)))
 #+END_SRC
 
-*** Visual Fill Column
-
-#+NAME: readview-fc
-#+BEGIN_SRC emacs-lisp
-(use-package visual-fill-column
-    :commands (visual-fill-column-mode)
-    :init
-    (defvar visual-fill-column-use-visual-line nil
-      "Enable `visual-line-mode' when `visual-fill-column-mode' is non-nil.")
-    :config
-    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-    (setq split-window-preferred-function
-          #'visual-fill-column-split-window-sensibly)
-
-    (setq visual-fill-column-width
-          ;; take Emacs 26 line numbers into account
-          (+ (if (boundp 'display-line-numbers) 6 0)
-             fill-column))
-
-    (unless visual-fill-column-use-visual-line
-        (add-hook 'visual-fill-column-mode-hook #'visual-line-mode)))
-
-#+END_SRC
-
-*** Fill Column Indicator
-
-#+NAME: readview-fc-indicator
-#+BEGIN_SRC emacs-lisp
-(use-package fill-column-indicator
-  :init
-  (setq fci-rule-use-dashes nil))
-#+END_SRC
-
-*** Adaptive Wrap
-
-#+NAME: readview-adaptive-wrap
-#+BEGIN_SRC emacs-lisp
-(use-package adaptive-wrap
-  :straight t)
-#+END_SRC
-
 ** Graphics
 *** Artist Mode
 
@@ -7953,13 +8603,6 @@ Artist mode is a built-in Emacs package.
 #+END_SRC
 
 *** UML Diagrams
-
-#+NAME: uml-spec
-#+BEGIN_SRC emacs-lisp
-
-
-#+END_SRC
-
 **** Ditaa
 
 #+NAME: uml-ditaa
@@ -8040,6 +8683,31 @@ school's WLAN.
     (setq thesaurus-prompt-mechanism 'counsel-imenu
           url-proxy-services nil)))
 
+#+END_SRC
+
+*** Image+
+:PROPERTIES:
+:ID:       51961976-3E9D-4438-947A-912D21993F1D
+:END:
+
+[[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package image+
+    :if (display-graphic-p)
+    :after (image)
+    :config
+    (eval-after-load 'image+
+      `(when (require 'hydra nil t)
+         (defhydra imagex-sticky-binding (global-map "C-x C-l")
+           "Manipulating image"
+           ("+" imagex-sticky-zoom-in "zoom in")
+           ("-" imagex-sticky-zoom-out "zoom out")
+           ("M" imagex-sticky-maximize "maximize")
+           ("O" imagex-sticky-restore-original "restore orginal")
+           ("S" imagex-sticky-save-image "save file")
+           ("r" imagex-sticky-rotate-right "rotate right")
+           ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
 * Code
@@ -8167,113 +8835,13 @@ school's WLAN.
 (use-package hy-mode)
 #+END_SRC
 
-*** Highlight Indentation
-
-#+NAME: code/indent
-#+BEGIN_SRC emacs-lisp
-;; Highlight indent guides
-
-;; Highlight Indentation
-
-;; Visual Indentation
-
-#+END_SRC
-
-**** Highlight indent guide mode
-
-#+NAME: hli/guides
-#+BEGIN_SRC emacs-lisp
-(use-package highlight-indent-guides)
-#+END_SRC
-
-**** Highlight indentation
-
-#+NAME: hli/indentation
-#+BEGIN_SRC emacs-lisp
-(use-package highlight-indentation)
-
-#+END_SRC
-
-**** Visual indentation
-
-#+NAME: hli/visual
-#+BEGIN_SRC emacs-lisp
-(use-package visual-indentation-mode)
-#+END_SRC
-
-*** Symbol Highlighting
-**** Highlight
-
-#+NAME: hl-highlight
-#+BEGIN_SRC emacs-lisp
-(use-package highlight)
-#+END_SRC
-
-**** Overlay Highlight
-
-#+NAME: hl-ov
-#+BEGIN_SRC emacs-lisp
-(use-package ov-highlight
-  :straight (ov-highlight
-             :host github
-             :repo "jkitchin/ov-highlight")
-  :bind
-  (:map org-mode-map
-        ("C-c h" . ov-highlight/body))
-  :init
-  (require 'ov)
-  (require 'ov-highlight))
-#+END_SRC
-
-**** Hlsexp
-
-Minor mode to highlight sexp.
-
-#+NAME: hl-hl-sexp
-#+BEGIN_SRC emacs-lisp
-(use-package highlight-sexp
-  :straight t)
-#+END_SRC
-
-**** Hl Todo
-
-Highlight =TODO= keywords:
-
-#+NAME: hl-hl-todo
-#+BEGIN_SRC emacs-lisp
-(use-package hl-todo
-  :commands (hl-todo-mode)
-  :config
-  (add-hook 'prog-mode-hook #'hl-todo-mode))
-#+END_SRC
-
-**** Highlight Symbol
-
-#+NAME: hl-highlight-symbol
-#+BEGIN_SRC emacs-lisp
-(use-package highlight-symbol)
-#+END_SRC
-
 *** Code Folding
+**** Vimish fold
 
-#+NAME: code/fold
-#+BEGIN_SRC emacs-lisp
-;; Origami
-
-;; Hideshow
-
-;; Hideshowvis
-
-#+END_SRC
-
-**** Origami
-
-#+NAME: fold/origami
-#+BEGIN_SRC emacs-lisp
-(use-package origami
-  :requires (dash s)
-  :init
-  (global-origami-mode nil))
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package vimish-fold
+    :init
+  (vimish-fold-global-mode 1))
 #+END_SRC
 
 **** Hideshow
@@ -8288,12 +8856,8 @@ Highlight =TODO= keywords:
 
 #+NAME: fold/hsvis
 #+BEGIN_SRC emacs-lisp
-(use-package vimish-fold
-    :init
-  (vimish-fold-global-mode 1))
-
 (use-package hideshowvis
-    :init
+  :init
   (defface halidom-folded-face
       `((((background light)) :background ,(plist-get halidom-theme-colors :base00))
         (((background dark)) :background ,(plist-get halidom-theme-colors :base03)))
@@ -8317,6 +8881,19 @@ Highlight =TODO= keywords:
   :hook
   (prog-mode . hideshowvis/enable))
 
+#+END_SRC
+
+**** Hideshow org
+
+#+BEGIN_SRC emacs-lisp
+(use-package hideshow-org
+  :init
+  (require 'hideshow-org)
+  (defun hideshow-org/enable ()
+    (hs-org/minor-mode +1))
+
+  :hook
+  (org-mode . hideshow-org/enable))
 #+END_SRC
 
 *** Editorconfig
@@ -8348,7 +8925,13 @@ Highlight =TODO= keywords:
 #+END_SRC
 
 *** Code Formatting
+**** Electric Operator
 
+#+BEGIN_SRC emacs-lisp
+(use-package electric-operator)
+#+END_SRC
+
+**** Format all
 #+NAME: tools-code-format
 #+BEGIN_SRC emacs-lisp
 (use-package format-all)
@@ -8547,27 +9130,28 @@ As a git client though, magit is awesome.
 #+NAME: magit/mode
 #+BEGIN_SRC emacs-lisp
 (use-package magit
-  :defines (magit-mode-hook)
-  :bind
-  (("C-c v v" . magit-status)
-   ("C-c v m" . magit-merge)
-   ("C-c v b" . magit-blame)
-   ("C-c v C" . magit-clone)
-   ("C-c v i" . magit-init)
-   ("C-c v l" . magit-log-buffer-file)
-   ("C-c v c" . magit-checkout)
-   ("C-c v f" . magit-stage-file)
-   ("C-c v p" . magit-pull)
-   ("C-c v P" . magit-push)
-   ("C-c v S" . magit-stash))
-  :init
-  (which-key-add-key-based-replacements "C-c v" " Magit")
+    :defines (magit-mode-hook)
+    :bind
+    (("C-c v v" . magit-status)
+     ("C-c v m" . magit-merge)
+     ("C-c v b" . magit-blame)
+     ("C-c v C" . magit-clone)
+     ("C-c v i" . magit-init)
+     ("C-c v l" . magit-log-buffer-file)
+     ("C-c v c" . magit-checkout)
+     ("C-c v f" . magit-stage-file)
+     ("C-c v p" . magit-pull)
+     ("C-c v P" . magit-push)
+     ("C-c v S" . magit-stash))
 
-  (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
-        which-key-replacement-alist)
-  :config
-  (setq magit-save-repository-buffers 'dontask))
+    :init
+    (which-key-add-key-based-replacements "C-c v" " Magit")
 
+    (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
+          which-key-replacement-alist)
+    :custom
+    (magit-save-repository-buffers 'dontask)
+    (magit-completing-read-function 'ivy-completing-read))
 #+END_SRC
 
 ***** Magit topgit
@@ -8608,6 +9192,15 @@ git config --global --add magit.extension stgit
   (magit-mode . magit-stgit-mode))
 #+END_SRC
 
+***** Magit imerge
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit-imerge
+  :ensure-system-package git-imerge
+  :after (magit)
+  :demand t)
+#+END_SRC
+
 ***** Magithub
 
 [[https://github.com/vermiculus/github][Magithub]] offers an interface to github to complement magit.
@@ -8622,6 +9215,12 @@ git config --global --add magit.extension stgit
   :config
   (progn
     (magithub-feature-autoinject t)))
+#+END_SRC
+
+***** Magit org todos
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit-org-todos)
 #+END_SRC
 
 ***** Orgit
@@ -8739,7 +9338,20 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
         (setq browse-url-browser/function 'osx-browse-url-chrome))))
 #+END_SRC
 
-** DevOps
+** Cloud
+*** ecloud
+
+#+BEGIN_SRC emacs-lisp
+(use-package ecloud
+  :ensure-system-package
+  (ecloud . azure-cli)
+  :straight
+  (ecloud :host github
+          :type git
+          :repo "techniumlabs/ecloud"))
+
+#+END_SRC
+
 *** Docker
 
 #+NAME: devops/docker
@@ -8778,13 +9390,6 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 
 #+END_SRC
 
-**** Docker Tramp
-
-#+NAME: docker/tramp
-#+BEGIN_SRC emacs-lisp
-(use-package docker-tramp)
-#+END_SRC
-
 *** AWS
 
 #+NAME: devops/aws
@@ -8809,22 +9414,17 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
     :if (executable-find "wakatime")
     :hook
     (prog-mode . wakatime-mode)
+    :init
+    (defun wakatime-dashboard ()
+      (interactive)
+      (browse-url "https://wakatime.com/dashboard"))
     :custom
     (wakatime-cli-path
-     (user-home ".local" "lib" "python3.6"
-                "site-packages" "wakatime" "cli.py"))
+    "/usr/local/lib/python3.7/site-packages/wakatime/cli.py")
     (wakatime-python-bin
-     (executable-find "python")))
+      "/usr/local/Cellar/python/3.7.2/bin/python3"))
 #+END_SRC
 
-*** RealGUD
-
-A front-end for interacting with external debuggers in Emacs.
-
-#+BEGIN_SRC emacs-lisp
-(use-package realgud)
-
-#+END_SRC
 
 *** Logging
 **** Log view
@@ -8847,6 +9447,13 @@ A front-end for interacting with external debuggers in Emacs.
 (use-package floobits
   :if (file-exists-p (user-home ".floorc.json")))
 
+#+END_SRC
+
+*** Compiler output
+**** rmsbolt
+
+#+BEGIN_SRC emacs-lisp
+(use-package rmsbolt)
 #+END_SRC
 
 ** Programming Languages
@@ -9263,6 +9870,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 	      (highlight-symbol-mode +1))
     (when (require 'rainbow-delimiters nil t)
       (rainbow-delimiters-mode +1))
+    (setq lisp-indent-function 'lisp-indent-function)
     (setq-local dash-plugin-keywords '("elisp")))
 
   :hook
@@ -9271,7 +9879,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 
 **** lisp extra fontlocking
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package lisp-extra-font-lock
   :init
   (lisp-extra-font-lock-global-mode +1))
@@ -9618,31 +10226,39 @@ Real jsx support.
 
 #+NAME: js/indium
 #+BEGIN_SRC emacs-lisp
-  (use-package indium
+(use-package indium
     :bind (:map indium-interaction-mode-map
                 ("C-M-b" . indium-eval-buffer))
     :init
     (el-patch-feature indium-nodejs)
     (with-eval-after-load 'indium-nodejs
-      (el-patch-defun indium-nodejs--process-filter (process output)
-        "Filter function for PROCESS. Append OUTPUT to the PROCESS buffer,
-   and parse it to detect the socket URL to connect to."
-        ;; Append output to the process buffer
-        (with-current-buffer (process-buffer process)
-          (goto-char (point-max))
-          (insert output)
-          (goto-char (point-min))
-          (el-patch-add (ansi-color-apply-on-region (point-min) (point-max))))
-
-        (when (string-match-p "Debugger listening on" output)
-          (ignore-errors
-            (indium-nodejs--connect-to-process process output)))))
+      (el-patch-defun indium-nodejs--process-filter-function (conf)
+        "Return a process filter function for CONF.
+The function detects the socket URL to connect to from the
+process output."
+        (let ((connected))
+          (lambda (process output)
+            ;; Append output to the process buffer
+            (with-current-buffer (process-buffer process)
+	            (goto-char (point-max))
+	            (insert output)
+              (el-patch-add
+                (save-excursion
+                  (goto-char (point-min))
+                  (ansi-color-apply-on-region (point-min) (point-max)))))
+            (when (and (not connected)
+		                 (string-match-p "Debugger listening on" output))
+	            ;; Node will keep outputing the "Debugger listening on" message after
+	            ;; each deconnection, so only try to connect one.
+	            (setq connected t)
+	            (let-alist conf
+	              (indium-client-connect (file-name-directory .projectFile) .name)))))))
 
 
     (cl-defun chrome-debugger-launch (&optional
-                                      (port "3000")
-                                      (host "localhost")
-                                      (type "http"))
+                                        (port "3000")
+                                        (host "localhost")
+                                        (type "http"))
       "Launch a chromium debugger process on HOST using PORT and protocol TYPE.
 
       Note this will kill any running instances of Chromium."
@@ -9787,6 +10403,18 @@ Real jsx support.
     :requires virtualenvwrapper
     :init
   (pyvenv-mode +1))
+#+END_SRC
+
+**** with venv
+
+#+BEGIN_SRC emacs-lisp
+(use-package with-venv)
+#+END_SRC
+
+**** livepy mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package live-py-mode)
 #+END_SRC
 
 **** Pip Requirements
@@ -10013,6 +10641,21 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 (use-package sbt-mode)
 #+END_SRC
 
+*** Shell script mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package sh-mode
+  :straight nil
+  :custom
+  (sh-indentation 2)
+  :init
+  (defun sh-mode/disable-org-link ()
+    (org-link-minor-mode -1))
+  :hook
+  (sh-mode  . sh-mode/disable-org-link))
+
+#+END_SRC
+
 *** Web
 **** web mode
 
@@ -10106,6 +10749,14 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
     (html-mode . tagedit/enable))
 #+END_SRC
 
+***** Auto rename tag
+
+#+BEGIN_SRC emacs-lisp
+(use-package auto-rename-tag)
+#+END_SRC
+
+
+
 ***** Htmlize
 
 #+NAME: html/lize
@@ -10179,8 +10830,20 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 #+NAME: md/mode
 #+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
+    :preface
+    (defun markdown-open-preview ()
+      "Use Marked 2 to preview the current file"
+      (interactive)
+      (let ((app-list (mapcar #'car (counsel-osx-app-list))))
+        (if (member "Marked" app-list)
+            (shell-command
+             (format
+              "open -a 'Marked' %s"
+              (shell-quote-argument (buffer-file-name)))))))
+
       :custom
-      (markdown-command "markdown")
+      (markdown-command "multimarkdown")
+      (markdown-open-command #'markdown-open-preview)
       :mode
       (("README\\.md\\'" . gfm-mode)
        ("\\.md\\'" . markdown-mode)
@@ -10486,9 +11149,13 @@ Or insert those and put point in the middle to add an equation."
 ** Alfred Org Capture
 
 #+BEGIN_SRC emacs-lisp
-(when (eq system-type 'darwin)
-  (load-file (no-littering-expand-etc-file-name
-              "local/alfred-org-capture/alfred-org-capture.el")))
+(use-package alfred-org-capture
+    :straight (alfred-org-capture
+               :type git
+               :host github
+               :repo "jjasghar/alfred-org-capture"
+               :files ("el/alfred-org-capture.el")))
+
 #+END_SRC
 
 * Prologue
