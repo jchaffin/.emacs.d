@@ -205,7 +205,6 @@
     - [[#fill-column-indicator][Fill Column Indicator]]
     - [[#justify-kp][Justify Kp]]
   - [[#modeline][Modeline]]
-    - [[#modeline-customization][Modeline Customization]]
     - [[#spaceline][Spaceline]]
     - [[#eyeliner][Eyeliner]]
 - [[#web][Web]]
@@ -7893,24 +7892,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 :PROPERTIES:
 :ID:       3C550304-3F1D-4682-B4C6-527EBDFA0760
 :END:
-*** Modeline Customization
-
-#+NAME: ml/interface
-#+BEGIN_SRC emacs-lisp
-(defcustom halidom-modeline 'spaceline
-  "When non-nil, the modeline framework to use at startup.
-Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
-  :type '(choice
-          (const :tag "Use the default modeline." nil)
-          (const :tag "Use spaceline" spaceline)
-          (const :tag "Use smart-mode-line" sml)
-          (const :tag "Use powerline" powerline)
-          (const :tag "Use eyeline"  eyeliner))
-  :initialize 'custom-initialize-default)
-#+END_SRC
-
 *** Spaceline
-
 **** Spaceline Mode
 
 #+NAME: sl/spaceline
@@ -7922,10 +7904,8 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
 
 #+NAME: sl/icons
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline-all-the-icons
-  :after (:all all-the-icons spaceline)
-  :demand t
-  :init
+(use-package spaceline-all-the-icons)
+
   (defun ml-spaceline-setup ()
     (interactive)
     "Setup the modeline for spaceline."
@@ -7939,22 +7919,14 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
     (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
     (spaceline-toggle-all-the-icons-flycheck-status-off))
 
-  (defun ml-spaceline-setup-with-frame (frame)
-    (with-selected-frame frame
-    (when (daemonp)
-      (if (display-graphic-p)
-          (halidom/modeline-setup)
-        (ml-smline-setup)))))
-  (add-hook #'after-make-frame-functions #'ml-spaceline-setup-with-frame)
-  :hook
-  (after-init . ml-spaceline-setup))
+  (add-hook 'after-init-hook #'ml-spaceline-setup)
+
 #+END_SRC
 
-**** Spaceline setup
 
 *** Eyeliner
 
-#+NAME: ml/eyeliner
+
 #+BEGIN_SRC emacs-lisp
 (use-package eyeliner
     :straight (eyeliner
@@ -7963,10 +7935,13 @@ Options are 'spaceline, 'sml, 'powerline, and 'eyeliner."
                :repo "dustinlacewell/eyeliner")
     :init
     (defun ml-eyeliner-setup ()
+      (interactive)
       (require 'eyeliner)
       (eyeliner/install)))
 
 #+END_SRC
+
+
 
 * Web
 ** Libraries
@@ -8450,8 +8425,7 @@ Interactively.
 #+BEGIN_SRC emacs-lisp
 (use-package mu4e-alert
     :config
-    (mu4e-alert-enable-notifications)
-    (mu4e-alert-enable-mode-line-display))
+    (mu4e-alert-enable-notifications))
 #+END_SRC
 
 **** mu4e maildirs extension
