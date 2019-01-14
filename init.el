@@ -218,12 +218,7 @@ See `org-export-backends' variable."
 
 
       ;; Debug
-      (defvar literate-debug-blocks
-	      '(paredit-spec
-	        ivy/mode
-	        counsel/mode
-	        mb-swiper
-	        elisp/core))
+      (defvar literate-debug-blocks nil)
 
       (defun literate-src-parameter-string->alist (parameters)
         "Convert src block parameter string into a plist."
@@ -287,8 +282,6 @@ See `org-export-backends' variable."
 element in `halidom-literate-debug-blocks'."
         (interactive)
         (mapcar #'literate-tangle-src-block literate-debug-blocks))
-
-      (add-hook 'prog-mode-hook 'goto-address-prog-mode)
 
       (use-package no-littering
         :custom
