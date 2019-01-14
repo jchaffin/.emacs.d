@@ -1009,12 +1009,16 @@ the the returned file path will be formatted as a directory. "
 
 #+NAME: fd-read-only
 #+BEGIN_SRC emacs-lisp
-(defvar read-only-directories '()
+(defcustom read-only-directories '()
   "A list of directories for which all files and subdirectories
-should open in `read-only-mode'.")
+should open in `read-only-mode'."
+  :type '(repeat :tag "List of blacklisted directories" file)
+  :group 'files)
 
-(defvar read-only-whitelist-directories '()
-  "A list of directories which should not be opened in read-only mode.")
+(defcustom read-only-whitelist-directories '()
+  "A list of directories which should not be opened in read-only mode."
+  :type '(repeat :tag "List of blacklisted directories" file)
+  :group 'files)
 
 (defvar read-only-file-extensions '("\\.gz\\'")
   "Not yet implemented.")
@@ -1047,11 +1051,10 @@ that is a member of `read-only-directories'."
 (defun halidom/find-file-read-only-hook ()
   (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
 
-(setq read-only-directories `(,(straight-dir) "/usr/local/"))
+(setq read-only-directories `(,(straight-dir :slash t) "/usr/local/"))
 
 (setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
 (add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
-
 #+END_SRC
 
 ** Package Manager
