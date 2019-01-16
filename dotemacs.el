@@ -1,390 +1,37 @@
-#+title: dotemacs
-#+language: en
-#+STARTUP: hideblock
-#+AUTHOR: Jacob Chaffin
-#+PROPERTY: :header-args :tangle yes
-#+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
-#+SETUPFILE: ./etc/org/html-themes/theme-readtheorg.setup
-
-* Table Of Contents :TOC_3_gh:noexport:
-- [[#emacs][Emacs]]
-  - [[#startup][Startup]]
-    - [[#depedencies][Depedencies]]
-    - [[#initial-display][Initial Display]]
-    - [[#initial-setup][Initial Setup]]
-    - [[#rebooting][Rebooting]]
-    - [[#reloading][Reloading]]
-    - [[#evaluating][Evaluating]]
-  - [[#utilities][Utilities]]
-    - [[#macros][Macros]]
-    - [[#functions][Functions]]
-    - [[#buffer-utilities][Buffer utilities]]
-    - [[#window-utilities][Window utilities]]
-    - [[#file-utilities][File utilities]]
-  - [[#package-manager][Package Manager]]
-    - [[#goto-local-package-repository][Goto local package repository]]
-    - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
-  - [[#security][Security]]
-    - [[#network-security][Network security]]
-    - [[#encryption][Encryption]]
-  - [[#keybindings][Keybindings]]
-    - [[#hydra][Hydra]]
-    - [[#evil][Evil]]
-    - [[#which-key][Which Key]]
-    - [[#speed-type][Speed Type]]
-    - [[#evil-1][Evil]]
-  - [[#system][System]]
-    - [[#exec-path-from-shell][Exec Path From Shell]]
-    - [[#system-packages][System Packages]]
-    - [[#anything][Anything]]
-    - [[#prodigy][Prodigy]]
-    - [[#macos][macOS]]
-    - [[#save-place-mode][save place mode]]
-    - [[#custom-file][Custom File]]
-    - [[#backup-files][Backup Files]]
-    - [[#autosave][Autosave]]
-    - [[#lockfiles][Lockfiles]]
-    - [[#shortcuts][Shortcuts]]
-    - [[#auto-revert-mode][Auto Revert Mode]]
-  - [[#text-editing][Text editing]]
-    - [[#editing][Editing]]
-    - [[#deleting][Deleting]]
-    - [[#searching][Searching]]
-    - [[#regions][Regions]]
-    - [[#replace][Replace]]
-    - [[#checking][Checking]]
-  - [[#projects][Projects]]
-    - [[#projectile][Projectile]]
-    - [[#find-file-in-project][Find File in Project]]
-    - [[#file-system][File System]]
-    - [[#search][Search]]
-  - [[#shell][Shell]]
-    - [[#terminal-colors][Terminal Colors]]
-    - [[#emacs-shell][Emacs shell]]
-    - [[#m-x-shell][~M-x shell~]]
-    - [[#term][Term]]
-    - [[#multi-term][Multi Term]]
-    - [[#shell-pop][Shell Pop]]
-    - [[#with-editor][With Editor]]
-    - [[#ssh][SSH]]
-    - [[#scp][SCP]]
-    - [[#tramp][Tramp]]
-  - [[#documentation][Documentation]]
-    - [[#help][Help]]
-    - [[#elisp-refs][Elisp refs]]
-    - [[#info][Info+]]
-  - [[#frames][Frames]]
-    - [[#frame][Frame+]]
-    - [[#frame-fns][Frame fns]]
-    - [[#frame-cmds][Frame cmds]]
-    - [[#shrink-wrapped-frames][Shrink wrapped frames]]
-    - [[#posframe][Posframe]]
-  - [[#faces][Faces]]
-    - [[#faces-1][Faces+]]
-    - [[#face-functions][Face functions]]
-    - [[#face-remap][Face remap+]]
-    - [[#face-explorer][Face Explorer]]
-    - [[#font-lock][Font lock]]
-    - [[#button-lock][Button Lock]]
-  - [[#window][Window]]
-    - [[#window-resize][Window Resize]]
-    - [[#winner-mode][Winner Mode]]
-    - [[#ace-window][Ace Window]]
-    - [[#perspective][Perspective]]
-    - [[#popwin][Popwin]]
-    - [[#poporg][Poporg]]
-    - [[#golden-ratio][Golden Ratio]]
-    - [[#purpose][Purpose]]
-  - [[#minibuffer][Minibuffer]]
-    - [[#prompt-properties][Prompt Properties]]
-    - [[#ivy][Ivy]]
-    - [[#counsel][Counsel]]
-    - [[#swiper][Swiper]]
-    - [[#omnibox][Omnibox]]
-  - [[#completion][Completion]]
-    - [[#prescient][Prescient]]
-    - [[#company][Company]]
-    - [[#templating][Templating]]
-  - [[#images][Images]]
-    - [[#artist-mode][Artist Mode]]
-    - [[#uml-diagrams][UML Diagrams]]
-    - [[#graphviz][Graphviz]]
-    - [[#thesaurus][Thesaurus]]
-    - [[#image][Image+]]
-- [[#org][Org]]
-  - [[#org-latex][Org LaTeX]]
-    - [[#latex][Latex]]
-    - [[#preview][Preview]]
-    - [[#cdlatex][cdlatex]]
-    - [[#edit-latex][Edit Latex]]
-    - [[#bibtex][BibTeX]]
-    - [[#org-ref][Org Ref]]
-    - [[#viewing-pdfs][VIewing PDFs]]
-  - [[#org-structure][Org Structure]]
-    - [[#outlines][Outlines]]
-    - [[#org-outline-numbering][Org Outline Numbering]]
-    - [[#org-radiobutton][Org radiobutton]]
-    - [[#org-links][Org Links]]
-    - [[#org-id][Org ID]]
-  - [[#org-coding][Org Coding]]
-    - [[#org-babel][Org Babel]]
-    - [[#polymode][Polymode]]
-    - [[#lentic][Lentic]]
-    - [[#org2elcomment][Org2elcomment]]
-  - [[#org-tasks][Org Tasks]]
-    - [[#attach][Attach]]
-    - [[#capture][Capture]]
-    - [[#habit][Habit]]
-    - [[#agenda][Agenda]]
-    - [[#calendar][Calendar]]
-    - [[#clock][Clock]]
-    - [[#org-brain][Org Brain]]
-  - [[#org-appearance][Org appearance]]
-    - [[#per-image-display-width][Per-image display width]]
-    - [[#org-bullets][Org Bullets]]
-    - [[#org-fancy-priorities][Org Fancy Priorities]]
-    - [[#org-pretty-table][Org Pretty Table]]
-    - [[#toc-org][TOC Org]]
-    - [[#column-view][Column View]]
-    - [[#equation-renumbering][Equation Renumbering]]
-    - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
-  -  [[#org-prose][Org Prose]]
-    - [[#insert-literal-entities][Insert literal entities]]
-    - [[#org-index][Org Index]]
-    - [[#org-interleave][Org Interleave]]
-    - [[#org-journal][Org Journal]]
-  - [[#org-export][Org Export]]
-    - [[#ox-extra][Ox Extra]]
-    - [[#ox-publish][Ox Publish]]
-    - [[#ox-org][Ox Org]]
-    - [[#ox-latex][Ox Latex]]
-    - [[#ox-linguistics][Ox Linguistics]]
-    - [[#ox-bibtex][Ox Bibtex]]
-    - [[#ox-pandoc][Ox Pandoc]]
-    - [[#ox-gfm][Ox GFM]]
-    - [[#ox-hugo][Ox Hugo]]
-    - [[#ox-html][Ox HTML]]
-  - [[#org-hacks][Org Hacks]]
-    - [[#org-occur-open][Org occur open]]
-    - [[#reveal-cursor-in-folded-subtree][Reveal cursor in folded subtree.]]
-    - [[#ibuffer-and-org-files][ibuffer and org files]]
-    - [[#file-conversion][File conversion]]
-  - [[#org-web][Org Web]]
-    - [[#org-protocol][Org Protocol]]
-    - [[#org-download][Org Download]]
-    - [[#org-web-tools][Org Web Tools]]
-    - [[#org-preview-html][Org preview html]]
-- [[#appearance][Appearance]]
-  - [[#theme][Theme]]
-    - [[#custom-theme-settings][Custom Theme Settings]]
-    - [[#themes][Themes]]
-    - [[#load-theme][Load Theme]]
-  - [[#org-faces][Org faces]]
-  - [[#overlays][Overlays]]
-    - [[#highlight][Highlight]]
-    - [[#overlay-highlight][Overlay Highlight]]
-    - [[#rainbow-mode][Rainbow Mode]]
-    - [[#col-highlight][Col Highlight]]
-    - [[#hl-todo][Hl Todo]]
-    - [[#symbol-highlighting][Symbol Highlighting]]
-    - [[#highlight-indentation][Highlight Indentation]]
-    - [[#pretty-mode][Pretty Mode]]
-    - [[#prettify-symbols][Prettify Symbols]]
-    - [[#pretty][Pretty]]
-  - [[#fonts][Fonts]]
-    - [[#dont-use-default-font-for-symbols][Don't use default font for symbols]]
-    - [[#default-font][Default font]]
-    - [[#ligatures][Ligatures]]
-    - [[#unicode][Unicode]]
-  - [[#cursor][Cursor]]
-    - [[#disable-blink][Disable Blink]]
-    - [[#only-show-cursor-in-selected-window][Only show cursor in selected window]]
-    - [[#change-the-cursor-type][Change the cursor type]]
-  - [[#visual][Visual]]
-    - [[#visual-fill-column][Visual Fill Column]]
-    - [[#fill-column-indicator][Fill Column Indicator]]
-    - [[#justify-kp][Justify Kp]]
-  - [[#modeline][Modeline]]
-    - [[#spaceline][Spaceline]]
-    - [[#eyeliner][Eyeliner]]
-- [[#web][Web]]
-  - [[#libraries][Libraries]]
-    - [[#simple-httpd][Simple httpd]]
-    - [[#websocket][WebSocket]]
-    - [[#uuid][UUID]]
-    - [[#web-server][Web Server]]
-    - [[#request][Request]]
-    - [[#oauth][OAuth]]
-  - [[#browsing][Browsing]]
-    - [[#browse-url][Browse url]]
-    - [[#browser-utilities-on-macos][Browser utilities on macOS]]
-    - [[#google-search][Google search]]
-    - [[#search-web][Search Web]]
-    - [[#xwidget-webkit][xwidget webkit]]
-    - [[#set-default-browser][Set default browser]]
-    - [[#engine-mode][Engine Mode]]
-  - [[#email][Email]]
-    - [[#org-mime][Org Mime]]
-    - [[#offlineimap][Offlineimap]]
-    - [[#mu][Mu]]
-  - [[#bug-tracking][Bug Tracking]]
-  - [[#browse-at-remote][Browse at remote]]
-- [[#writing][Writing]]
-  - [[#notetaking][Notetaking]]
-    - [[#deft][Deft]]
-    - [[#org-onenote][Org OneNote]]
-    - [[#lorem-ipsum][Lorem Ipsum]]
-    - [[#org-velocity][Org Velocity]]
-  - [[#nov][Nov]]
-  - [[#variable-pitch][Variable Pitch]]
-  - [[#olivetti][Olivetti]]
-  - [[#writeroom][Writeroom]]
-- [[#code][Code]]
-  - [[#lsp][LSP]]
-    - [[#lsp-mode][LSP Mode]]
-    - [[#lsp-ui-mode][LSP UI Mode]]
-    - [[#company-lsp][Company LSP]]
-    - [[#dap-mode][Dap Mode]]
-  - [[#flycheck][Flycheck]]
-  - [[#code-style][Code Style]]
-    - [[#default][Default]]
-    - [[#code-folding][Code Folding]]
-    - [[#editorconfig][Editorconfig]]
-    - [[#google-c-style][Google C Style]]
-    - [[#code-formatting][Code Formatting]]
-  - [[#eldoc][Eldoc]]
-  - [[#pair-matching][Pair Matching]]
-    - [[#paredit][Paredit]]
-    - [[#smartparens][Smartparens]]
-    - [[#rainbow-delimiters][Rainbow Delimiters]]
-    - [[#parinfer][Parinfer]]
-    - [[#gtags][Gtags]]
-  - [[#version-control][Version Control]]
-    - [[#ediff][Ediff]]
-    - [[#git][Git]]
-    - [[#mercurial][Mercurial]]
-  - [[#cloud][Cloud]]
-    - [[#ecloud][ecloud]]
-    - [[#docker][Docker]]
-    - [[#aws][AWS]]
-  - [[#prog-utils][Prog Utils]]
-    - [[#wakatime][wakatime]]
-    - [[#logging][Logging]]
-    - [[#floobits][floobits]]
-    - [[#rmsbolt][rmsbolt]]
-  - [[#languages][Languages]]
-    - [[#assembly][Assembly]]
-    - [[#cc][C/C++]]
-    - [[#common-lisp][Common Lisp]]
-    - [[#clojure][Clojure]]
-    - [[#emacs-lisp][Emacs Lisp]]
-    - [[#groovy][Groovy]]
-    - [[#java][Java]]
-    - [[#javascript][JavaScript]]
-    - [[#python][Python]]
-    - [[#prolog][Prolog]]
-    - [[#ruby][Ruby]]
-    - [[#ocaml][Ocaml]]
-    - [[#scala][Scala]]
-    - [[#shell-script-mode][Shell script mode]]
-    - [[#web-1][Web]]
-    - [[#markdown][Markdown]]
-    - [[#applescript][Applescript]]
-    - [[#racket][Racket]]
-    - [[#yaml][Yaml]]
-- [[#misc][Misc]]
-  - [[#scimax][Scimax]]
-- [[#footnotes][Footnotes]]
-
-* Emacs
-** Startup
-*** Depedencies
-**** Page Break Lines
-:PROPERTIES:
-:ID:       E0156F78-3E5A-4855-AF01-8DA86779DE0A
-:END:
-
-Global minor-mode that turns ~^L~ form feed characters into
-horizontal line rules.
-
-#+NAME: buffer/page-break-lines
-#+BEGIN_SRC emacs-lisp
+;; org-dotemacs: code extracted from ~/.emacs.d/dotemacs.org
+;; Block = @10248
+(message "org-dotemacs: evaluating @10248 block")
 (use-package page-break-lines
   :init
   (global-page-break-lines-mode))
-#+END_SRC
-
-**** Dash
-
-Functional bindings i.e thread =->= macro.
-
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @10409
+(message "org-dotemacs: evaluating @10409 block")
 (use-package dash
   :config
-  (with-eval-after-load 'dash
-    (dash-enable-font-lock)))
-#+END_SRC
-
-***** Dash functional
-
-#+NAME: dash/functional
-#+BEGIN_SRC emacs-lisp
-(use-package dash-functional
-  :after dash
-  :demand t)
-
-#+END_SRC
-
-**** cl-lib
-***** ~cl-lib~
-
-
-#+BEGIN_SRC emacs-lisp
+  (dash-enable-font-lock))
+;; Block = @10545
+(message "org-dotemacs: evaluating @10545 block")
+(use-package dash-functional)
+;; Block = @10638
+(message "org-dotemacs: evaluating @10638 block")
 (use-package cl-lib)
-#+END_SRC
-
-***** cl-highlight
-
-#+NAME: cl/highlight
-#+BEGIN_SRC emacs-lisp
+;; Block = @10734
+(message "org-dotemacs: evaluating @10734 block")
 (use-package cl-lib-highlight
   :after (cl-lib)
   :demand t)
 
-#+END_SRC
-
-**** =f=
-
-Declarative file and directory utilities.
-
-#+NAME: libs/f
-#+BEGIN_SRC emacs-lisp
+;; Block = @10898
+(message "org-dotemacs: evaluating @10898 block")
 (use-package f)
-#+END_SRC
-
-**** =s=
-
-The string manipulation library.
-
-#+NAME: libs/s
-#+BEGIN_SRC emacs-lisp
+;; Block = @11007
+(message "org-dotemacs: evaluating @11007 block")
 (use-package s)
-#+END_SRC
-
-**** =a=
-
-#+NAME: libs/a
-#+BEGIN_SRC emacs-lisp
+;; Block = @11082
+(message "org-dotemacs: evaluating @11082 block")
 (use-package a)
-#+END_SRC
-
-**** el-patch
-
-Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to advice system and package lazy-loading.
-
-#+NAME: libs/el-patch
-#+BEGIN_SRC emacs-lisp
+;; Block = @11290
+(message "org-dotemacs: evaluating @11290 block")
 (use-package el-patch
     :init
   (defun el-patch-remove-feature ()
@@ -394,11 +41,8 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
       (remove-hook 'el-patch-pre-validate-hook (intern feature))
       (remhash patch el-patch--patches))))
 
-#+END_SRC
-
-**** async
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @11667
+(message "org-dotemacs: evaluating @11667 block")
 (use-package async
   :after dired
   :commands (dired-async-mode async-smtpmail-send-it)
@@ -407,33 +51,16 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
     (require 'smtpmail-async)
     (setq message-send-mail-function 'async-smtpmail-send-it)
     (dired-async-mode 1)))
-#+END_SRC
-
-**** esup
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @11958
+(message "org-dotemacs: evaluating @11958 block")
 (use-package esup)
-#+END_SRC
-
-*** Initial Display
-**** Initial scratch
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @12053
+(message "org-dotemacs: evaluating @12053 block")
 (setq initial-scratch-message nil
       initial-major-mode 'org-mode
       inhibit-startup-echo-area-message t)
-#+END_SRC
-
-***** Dashboard
-
-[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
-replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
-It's a nice way of consolidating any combination of tasks,
-agenda items, bookmarks, and pretty much any other enumerable
-list that one may use in the wacky world of Emacs.
-
-#+NAME: buffer/dashboard
-#+BEGIN_SRC emacs-lisp
+;; Block = @12616
+(message "org-dotemacs: evaluating @12616 block")
 (use-package dashboard
   :init
   (defun halidom/dashboard-banner ()
@@ -471,66 +98,28 @@ list that one may use in the wacky world of Emacs.
     (dashboard-mode . halidom/dashboard-banner))
 
 
-#+END_SRC
-
-**** Initial Frame
-***** Hide tool bar, scroll bar, and menu bar
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @13817
+(message "org-dotemacs: evaluating @13817 block")
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (unless (eq system-type 'darwin)
   (menu-bar-mode -1))
-#+END_SRC
+;; Block = @14457
+(message "org-dotemacs: evaluating @14457 block")
+(use-package ns-auto-titlebar
+  :init
+  (when (eq system-type 'darwin)
+    (ns-auto-titlebar-mode)))
+;; Block = @14733
+(message "org-dotemacs: evaluating @14733 block")
+(setq-default frame-title-format "%b")
 
-***** Default frame properties
-:PROPERTIES:
-:ID:       DDFAD4AE-103D-43C9-B8DF-A55C8AD6A758
-:END:
-
-Starting in Emacs 26, the =default-frame-alist= variable can be used
-create a natural title bar in the GUI. Setting the default frame
-properties to the following values has the same effect as the
-'--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
-recommended for Spacemacs users on macOS[fn:14].
-
-#+BEGIN_SRC emacs-lisp
-(setq default-frame-alist
-      '((ns-transparent-titlebar . t)
-        (ns-appearance . dark)))
-#+END_SRC
-
-***** Title format
-:PROPERTIES:
-:ID:       DE7A3072-6422-4808-84B2-F27B754E1088
-:END:
-
-Show full path in the title bar.
-
-#+NAME: frame/title
-#+BEGIN_SRC emacs-lisp
-(setq-default frame-title-format "%b (%f)")
-#+END_SRC
-
-*** Initial Setup
-**** User Information
-
-These values are initialized with the ’name’ and ’email’
-environment variables, respectively[fn:3].
-
-Emacs uses these variables to fill the mail header when sending
-emails in emacs, and various third-party packages rely on them
-for correct behavior.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @15099
+(message "org-dotemacs: evaluating @15099 block")
 (setq user-full-name "Jacob Chaffin"
       user-mail-address "jchaffin@ucla.edu")
-#+END_SRC
-
-**** Customization
-
-#+NAME: halidom/customization
-#+BEGIN_SRC emacs-lisp
+;; Block = @15265
+(message "org-dotemacs: evaluating @15265 block")
 ;; Customization Group
 (defgroup halidom nil
   "Customization group for the `halidom' Emacs configuration."
@@ -539,29 +128,8 @@ for correct behavior.
 
 (defcustom halidom-prefix "\M-m"
   "The prefix map leader key.")
-#+END_SRC
-
-**** Garbage Collection
-
-Consider the following from the documentation:
-
-#+BEGIN_QUOTE
-By binding this temporarily to a large number, you can effectively
-prevent garbage collection during a part of the program.
-#+END_QUOTE
-
-When I first read how the default garbage collection interval in Emacs
-is notoriously low, I added an arbitrary number of zeros to the
-default value and called it a day. However, because I'm writing this
-monolithic configuration and making a lot of mistakes in the process,
-I've had to start Emacs with essentially its default settings pretty
-frequently and I've noticed the lag time I occasionally experience
-when searching long documents is essentially nonexistent in vanilla
-Emacs. After reading this [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][blogpost]], it seems that jacking up the GC
-interval may actually be the /cause/ of the lagtime rather than
-contributing to the solution.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @16467
+(message "org-dotemacs: evaluating @16467 block")
 (defun rev-up-gc ()
    (interactive)
   (setq gc-cons-threshold most-positive-fixnum))
@@ -571,74 +139,34 @@ contributing to the solution.
   (setq gc-cons-threshold 800000))
 
 
-#+END_SRC
-
-**** Initial minibuffer
-***** Modulate garbage collection
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @16723
+(message "org-dotemacs: evaluating @16723 block")
 (add-hook 'minibuffer-setup-hook #'rev-up-gc)
 (add-hook 'minibuffer-exit-hook #'rev-down-gc)
-#+END_SRC
-
-***** ignore certain extensions
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @16883
+(message "org-dotemacs: evaluating @16883 block")
 
 (setq completion-ignored-extensions
       (append completion-ignored-extensions
               '("o" "~" ".lbin" ".so" ".a"
                 ".git/" ".hg/" ".svn" ".svn-base")))
-#+END_SRC
-
-**** Prefer new bytecode
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @17120
+(message "org-dotemacs: evaluating @17120 block")
 (setq load-prefer-newer t)
-#+END_SRC
-
-**** Alias Yes Or No
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @17203
+(message "org-dotemacs: evaluating @17203 block")
 (defalias 'yes-or-no-p 'y-or-n-p)
-#+END_SRC
-
-**** Fill Column
-:PROPERTIES:
-:ID:       7BB78F7D-BB56-4036-A244-853CAC7D761C
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @17356
+(message "org-dotemacs: evaluating @17356 block")
 (setq-default fill-column 80)
-#+END_SRC
-
-**** Use terminfo
-:PROPERTIES:
-:ID:       AD6F63F5-DB52-4757-89BD-0351AB465678
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @17506
+(message "org-dotemacs: evaluating @17506 block")
 (setq system-uses-terminfo t)
-#+END_SRC
-
-*** Rebooting
-:PROPERTIES:
-:ID:       FE2070D7-91D6-4594-B5E4-0711F5C0E5E6
-:END:
-
-The [[https://github.com/iqbalansari/restart-emacs][restart-emacs]] package allows quickly rebooting Emacs
-from within Emacs.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @17779
+(message "org-dotemacs: evaluating @17779 block")
 (use-package restart-emacs)
-#+END_SRC
-
-*** Reloading
-:PROPERTIES:
-:ID:       8BED33C1-B7FF-4457-AF53-A67AAB7A14DA
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @17923
+(message "org-dotemacs: evaluating @17923 block")
 
 (defun straight-reload-init (&optional debug)
   "Reload init file using straight transaction system."
@@ -652,17 +180,8 @@ from within Emacs.
 	   (expand-file-name "init.el" user-emacs-directory)))
     (load user-init-file nil 'nomessage)
     (message "Reloading initialization file...done.")))
-
-
-#+END_SRC
-
-*** Evaluating
-:PROPERTIES:
-:ID:       8EFDEA98-30BB-47BC-A628-82716AD89DD7
-:END:
-**** Eval buffer
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @18566
+(message "org-dotemacs: evaluating @18566 block")
 (defun straight-eval-buffer ()
   "Evaluate current buffer using the straight transaction system."
   (interactive)
@@ -677,45 +196,26 @@ from within Emacs.
         (load-file buffer-file-name))))
   (message "Evaluating %s...done." (buffer-name)))
 
-#+END_SRC
-
-**** Eval in repl
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @19119
+(message "org-dotemacs: evaluating @19119 block")
 (use-package eval-in-repl)
-#+END_SRC
-
-** Utilities
-*** Macros
-**** ~if-not~
-
-Clojure-like =if-not= macro in elisp.
-
-#+NAME: macros/if-not
-#+BEGIN_SRC emacs-lisp
+;; Block = @19280
+(message "org-dotemacs: evaluating @19280 block")
 (defmacro if-not (condition then-form &rest rest-forms)
   (declare (indent 2))
   `(progn
      (if (not ,condition)
 	       ,then-form
        ,@rest-forms)))
-#+END_SRC
-
-**** ~with-major-mode~
-
-#+NAME: macros/with-major-mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @19526
+(message "org-dotemacs: evaluating @19526 block")
 (defmacro with-major-mode (mode &rest body)
   "If the current major-mode is MODE, then execute BODY."
   (declare (indent defun))
   `(when (equal major-mode ',mode)
      ,@body))
-#+END_SRC
-
-***** ~if-major-mode~
-
-#+NAME: macros/if-major-mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @19790
+(message "org-dotemacs: evaluating @19790 block")
 (defmacro if-major-mode (mode then-form &rest rest-forms)
   "If MODE, then execute THEN-FORM, else execute REST-FORMS."
   (declare (indent defun))
@@ -723,13 +223,8 @@ Clojure-like =if-not= macro in elisp.
      (if (equal major-mode ',mode)
 	       ,then-form
        ,@rest-forms)))
-#+END_SRC
-
-*** Functions
-**** Mode utilities
-
-#+NAME: utility-minor-modes
-#+BEGIN_SRC emacs-lisp
+;; Block = @20121
+(message "org-dotemacs: evaluating @20121 block")
 (defun list-enabled-minor-modes (&optional buf)
   "The minor modes enabled in the current buffer."
   (let ((auto-save-mode nil)
@@ -745,27 +240,16 @@ Clojure-like =if-not= macro in elisp.
 
 (defun minor-mode-enabled-p (mode)
   (member mode (list-enabled-minor-modes (current-buffer))))
-#+END_SRC
-
-**** Unadvise
-
-[[https://emacs.stackexchange.com/questions/24657/unadvise-a-function-remove-all-advice-from-it][Remove advice]].
-
-#+NAME: utility-unadvise
-#+BEGIN_SRC emacs-lisp
+;; Block = @20850
+(message "org-dotemacs: evaluating @20850 block")
 
 (defun unadvise (sym)
   "Remove all advices from symbol SYM."
   (interactive "aFunction symbol: ")
   (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
 
-#+END_SRC
-
-*** Buffer utilities
-**** Buffer List Names
-
-#+NAME: buffer-list-names
-#+BEGIN_SRC emacs-lisp
+;; Block = @21129
+(message "org-dotemacs: evaluating @21129 block")
 
 (defun buffer-list-names ()
   "Get list of buffer names."
@@ -773,12 +257,8 @@ Clojure-like =if-not= macro in elisp.
 	      (buffer-alist (buffer-list)))
     (mapcar f buffer-alist)))
 
-#+END_SRC
-
-**** Regenerate scratch buffer
-
-#+NAME: buf-scratch
-#+BEGIN_SRC emacs-lisp
+;; Block = @21383
+(message "org-dotemacs: evaluating @21383 block")
 
 (defun scratch (&optional new)
   "Switch to scratch buffer. If optional prefix NEW,
@@ -791,41 +271,23 @@ generating a new one if the initial scratch buffer has been killed."
   (switch-to-buffer-other-window "*scratch*"))
 
 
-#+END_SRC
-
-**** bui
-:PROPERTIES:
-:ID:       A2492483-216E-445A-BABB-B760FF83938E
-:END:
-
-#+BEGIN_sRC emacs-lisp
+;; Block = @21947
+(message "org-dotemacs: evaluating @21947 block")
 (use-package bui)
-#+END_SRC
-
-*** Window utilities
-**** Window Count
-
-#+NAME: win-count
-#+BEGIN_SRC emacs-lisp
+;; Block = @22057
+(message "org-dotemacs: evaluating @22057 block")
 (defun window-count ()
   "Count number of windows in the current frame."
   (interactive)
   (length (window-list)))
-#+END_SRC
-
-**** Count Unique Windows
-#+NAME: win-count-unique
-#+BEGIN_SRC emacs-lisp
+;; Block = @22257
+(message "org-dotemacs: evaluating @22257 block")
 (defun window-count-unique ()
   "Count number of unique windows in the current frame"
   (interactive)
   (length (cl-delete-duplicates (mapcar #'window-buffer (window-list)))))
-#+END_SRC
-
-**** Window Buffer List
-
-#+NAME: win-buf-list
-#+BEGIN_SRC emacs-lisp
+;; Block = @22513
+(message "org-dotemacs: evaluating @22513 block")
 (defun window-buffer-list ()
   "Get list of buffers in an open window."
   (let ((windows))
@@ -833,10 +295,8 @@ generating a new one if the initial scratch buffer has been killed."
       (with-selected-frame frame
       (setq windows (append (window-list) windows))))
         (map 'seq-uniq (lambda (w) (window-buffer w)) windows)))
-#+END_SRC
-
-#+NAME: win-buf-list-modes
-#+BEGIN_SRC emacs-lisp
+;; Block = @22858
+(message "org-dotemacs: evaluating @22858 block")
 (defun buffer-list-modes ()
   "Restart org-mode in all org buffers in open windows."
   (let ((modes))
@@ -844,20 +304,8 @@ generating a new one if the initial scratch buffer has been killed."
       (with-current-buffer buf
         (setq modes (push major-mode modes))))
     (seq-uniq modes)))
-#+END_SRC
-
-*** File utilities
-**** Unix-style =basename=
-
-The Elisp =file-name-base= function has somewhat misleading nomenclature. The name seems to suggest that it would have the same behavior of the UNIX =basename= command, but the Emacs function actually behaves quites differently:
-
-1. If the given file path is a directory, the Unix implementation discards the trailing slash and operates on the directory component as if it were a regular file. In Emacs, the same input will return an empty string.
-2. The Emacs function removes the extension from the file - that is, the substring from the last-most '.' character to the end of the string.
-
-As discussed in this 2011[[https://lists.gnu.org/archive/html/emacs-devel/2011-01/msg01217.html][ thread]] from the =emacs-devel= mailing list, it would be nice if Emacs also had a function that behaved similarly to the Unix command.
-
-#+NAME: fd-basename
-#+BEGIN_SRC emacs-lisp
+;; Block = @24033
+(message "org-dotemacs: evaluating @24033 block")
 (defun basename (pathname)
   "Return the filename or directory portion of PATHNAME"
   (if (or (file-directory-p pathname)
@@ -865,12 +313,8 @@ As discussed in this 2011[[https://lists.gnu.org/archive/html/emacs-devel/2011-0
       (let ((dirname (directory-file-name pathname)))
         (file-name-nondirectory dirname))
     (file-name-nondirectory pathname)))
-#+END_SRC
-
-**** Copy File Path
-
-#+NAME: fd-copy
-#+BEGIN_SRC emacs-lisp
+;; Block = @24402
+(message "org-dotemacs: evaluating @24402 block")
 (defun file-path ()
   (destructuring-bind (file dir)
       (cond ((eq major-mode 'dired-mode)
@@ -891,59 +335,35 @@ function FUNC. To copy the file path to the kill-ring, use the
     (kill-new path)
     (message "Copied %s" path)))
 
-#+END_SRC
-
-**** Remove wildcards from directory files list
-
-#+NAME: fd-no-wildcards
-#+BEGIN_SRC emacs-lisp
+;; Block = @25299
+(message "org-dotemacs: evaluating @25299 block")
 (defun directory-files-no-wildcards (directory &optional full nosort)
    "List directory contents without wildcards"
    (cddr (directory-files directory full nil nosort)))
-#+END_SRC
-
-**** Read File Contents
-
-From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
-***** As String
-
-#+NAME: read-file-as-string
-#+BEGIN_SRC emacs-lisp
+;; Block = @25653
+(message "org-dotemacs: evaluating @25653 block")
 (defun read-file-contents (file)
   "Return contents of FILE."
   (with-temp-buffer
     (insert-file-contents file)
     (buffer-string)))
-#+END_SRC
-
-***** As List of Lines
-
-#+NAME: read-file-lines
-#+BEGIN_SRC emacs-lisp
+;; Block = @25871
+(message "org-dotemacs: evaluating @25871 block")
 (defun read-lines (file)
   "Return a list of lines in FILE."
   (with-temp-buffer
     (insert-file-contents file)
     (split-string (buffer-string) "\n" t)))
-#+END_SRC
-
-**** Resolve Path
-
-#+NAME: fd-resolve-path
-#+BEGIN_SRC emacs-lisp
+;; Block = @26105
+(message "org-dotemacs: evaluating @26105 block")
 
 (defun resolve-path (&rest paths)
   "Concatenate path segments."
   (let ((paths- (mapcar #'directory-file-name paths)))
     (mapconcat 'identity paths- "/")))
 
-#+END_SRC
-
-**** User Directories
-***** User Home
-
-#+NAME: fd-user-home
-#+BEGIN_SRC emacs-lisp
+;; Block = @26360
+(message "org-dotemacs: evaluating @26360 block")
 (cl-defun user-home (&rest path-segments &key (slash nil) &allow-other-keys)
   "Resolves the absolute path formed PATH-SEGMENTS to the
    user home directory. If the optional argument SLASH is supplied,
@@ -956,27 +376,15 @@ the the returned file path will be formatted as a directory. "
          (cons (concat "/" (car it)) (cdr it))
          (apply #'resolve-path it)
          (if slash (file-name-as-directory it) it))))
-#+END_SRC
-
-***** Dropbox Directory
-
-#+NAME: fd-dropbox
-#+BEGIN_SRC emacs-lisp
+;; Block = @26992
+(message "org-dotemacs: evaluating @26992 block")
 (defalias #'dropbox-dir (apply-partially #'user-home "Dropbox"))
-#+END_SRC
-
-***** Project Directory
-
-#+NAME: fd-projects
-#+BEGIN_SRC emacs-lisp
+;; Block = @27136
+(message "org-dotemacs: evaluating @27136 block")
 (defalias #'projects-dir
  (apply-partially #'user-home "Developer" "Projects"))
-#+END_SRC
-
-**** Emacs Directories
-
-#+NAME: fd-emacs
-#+BEGIN_SRC emacs-lisp
+;; Block = @27291
+(message "org-dotemacs: evaluating @27291 block")
 (defalias #'emacs-dir (apply-partially #'user-home ".emacs.d")
   "Resolve PATH-SEGMENTS to `user-emacs-directory'.")
 ;; no littering directories
@@ -1003,12 +411,8 @@ the the returned file path will be formatted as a directory. "
 (defalias #'agenda-dir
   (apply-partially #'org-dir "agenda")
   "Resolve PATH-SEGMENTs to directory of agenda files.")
-#+END_SRC
-
-**** Read only
-
-#+NAME: fd-read-only
-#+BEGIN_SRC emacs-lisp
+;; Block = @28426
+(message "org-dotemacs: evaluating @28426 block")
 (defcustom read-only-directories '()
   "A list of directories for which all files and subdirectories
 should open in `read-only-mode'."
@@ -1055,15 +459,8 @@ that is a member of `read-only-directories'."
 
 (setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
 (add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
-#+END_SRC
-
-** Package Manager
-*** Goto local package repository
-
-Function to jump to a repository installed by [[#straight][straight]]. An
-interactive minibuffer completion menu using ivy.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @30434
+(message "org-dotemacs: evaluating @30434 block")
 (defun straight-installed-packages ()
   (--> straight--recipe-cache
        (hash-table-keys it)
@@ -1074,13 +471,8 @@ interactive minibuffer completion menu using ivy.
          straight-built-in-pseudo-packages))
        (sort it #'string-lessp)))
 
-
-(eval-and-compile
-  (defun straight-package-installed-p (pkg)
-    (member (symbol-name pkg) (straight-installed-packages)))
-  (defalias #'package-installed-p #'straight-package-installed-p
-    "If non-nil then PKG is installed."))
-
+(defun straight-package-installed-p (pkg)
+  (member (symbol-name pkg) (straight-installed-packages)))
 
 (cl-defun straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
@@ -1135,11 +527,8 @@ interactive minibuffer completion menu using ivy.
                       (dired pkg-directory)))))))))))
 
 (define-key goto-map "r" #'straight-browse-local)
-#+END_SRC
-
-*** Browse straight repository at GitHub
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @33120
+(message "org-dotemacs: evaluating @33120 block")
 (defun straight-browse-remote (&optional package)
   "View a recipe PACKAGE on GitHub."
   (interactive "P")
@@ -1158,34 +547,11 @@ interactive minibuffer completion menu using ivy.
                      nil 'require-match)))
            (url (remote-url (intern pkg))))
       (browse-url url))))
-#+END_SRC
-
-** Security
-*** Network security
-**** GnuTLS
-
-As GitHub user [[https://github.com/wasamasa][wasamasa]] points out in /h?(er|is)|^\S+/ dotfiles,
-[[https://gnutls.org/][GnuTLS]] throws several warnings when using the default 256 minimum
-prime bits over a TLS handshake.
-
-#+BEGIN_QUOTE
-Minimum number of prime bits accepted by GnuTLS for key exchange.
-During a Diffie-Hellman handshake, if the server sends a prime
-number with fewer than this number of bits, the handshake is
-rejected.  (The smaller the prime number, the less secure the
-key exchange is against man-in-the-middle attacks.)
-#+END_QUOTE
-
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @34573
+(message "org-dotemacs: evaluating @34573 block")
 (setq gnutls-min-prime-bits 4096)
-#+END_SRC
-
-*** Encryption
-**** Use GPG2
-***** Set GPG program to 'gpg2'.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @34704
+(message "org-dotemacs: evaluating @34704 block")
 (when (eq system-type 'darwin)
   (let* ((has-brew (not (string-empty-p
 			 (shell-command-to-string
@@ -1196,43 +562,11 @@ key exchange is against man-in-the-middle attacks.)
 		             (file-exists-p
                   (replace-regexp-in-string "\n" "" gpg-path)))))
     (setq epg-gpg-program (if has-gpg2 "gpg2" "gpg"))))
-#+END_SRC
-
-***** Disable External Pin Entry
-
-Switching between Emacs and an external tools is annoying.
-
-By default, decrypting gpg files in Emacs will result in the pin entry
-window being launched from the terminal session.
-
-By disabling the agent info, we can force Emacs to handle this
-internally[fn:7].
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @35417
+(message "org-dotemacs: evaluating @35417 block")
 (setenv "GPG_AGENT_INFO" nil)
-#+END_SRC
-
-Or so I thought...
-
-***** Internal Pinentry Problem and Solution
-
-While I couldn't figure out how to get Emacs to handle gpg pinentry
-internally, I was able to still find a satisfactory solution using the
-~pinentry-mac~ tool.
-
-Note that this solution requires macOS and using gpg2 for encryption.
-
-See ticket [[https://github.com/Homebrew/homebrew-core/issues/14737][#1437]] from the [[https://github.com/Homebrew/homebrew-core][Homebrew/homebrew-core]] repository.
-
-#+BEGIN_EXAMPLE sh
-brew install pinentry-mac
-echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
-killall gpg-agent
-#+END_EXAMPLE
-
-**** Load Secrets
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @36124
+(message "org-dotemacs: evaluating @36124 block")
 (when (and (executable-find "gpg") (eq system-type 'darwin))
   (if-not (string-empty-p
        (shell-command-to-string
@@ -1242,17 +576,8 @@ killall gpg-agent
         (require 'secrets))
     (print (format "GPG key(s) for %s not found"
                    (or user-full-name user-mail-address)))))
-#+END_SRC
-
-** Keybindings
-:PROPERTIES:
-:ID:       EB6C7429-18A6-4131-8317-19918FDA2E88
-:END:
-
-*** Hydra
-
-#+NAME: kb-hydra
-#+BEGIN_SRC emacs-lisp
+;; Block = @36660
+(message "org-dotemacs: evaluating @36660 block")
 (use-package hydra
   :init
   (eval-and-compile
@@ -1306,31 +631,16 @@ killall gpg-agent
       ("g" straight-get-recipe)
       ("n" straight-prune-build)
       ("q" nil))))
-#+END_SRC
-
-**** Ivy hydra
-:PROPERTIES:
-:ID:       9D78F6B7-1B19-4A0F-9025-C00EC0142B1F
-:END:
-
-#+NAME: ivy/hydra
-#+BEGIN_SRC emacs-lisp
+;; Block = @38609
+(message "org-dotemacs: evaluating @38609 block")
 (use-package ivy-hydra
   :after (hydra)
   :demand t)
-#+END_SRC
-
-*** Evil
-
-#+NAME: kb-evil
-#+BEGIN_SRC emacs-lisp
+;; Block = @38722
+(message "org-dotemacs: evaluating @38722 block")
 (use-package evil)
-#+END_SRC
-
-*** Which Key
-
-#+NAME: kb-which-key
-#+BEGIN_SRC emacs-lisp
+;; Block = @38811
+(message "org-dotemacs: evaluating @38811 block")
 (use-package which-key
   :custom
   (which-key-enable-extended-define-key t)
@@ -1340,43 +650,14 @@ killall gpg-agent
   :init
   (which-key-mode 1))
 
-#+END_SRC
-
-*** Speed Type
-
-I got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboards,hhkbpro2&pid=pdkb400bn][HHKB2]] keyboard. I need all the help I can get.
-
-#+NAME: kb-speed-type
-#+BEGIN_SRC emacs-lisp
+;; Block = @39253
+(message "org-dotemacs: evaluating @39253 block")
 (use-package speed-type)
-#+END_SRC
-
-*** Evil
-:PROPERTIES:
-:ID:       C09DBAD5-77CB-4A78-B80C-86D0EA88C1F2
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @39389
+(message "org-dotemacs: evaluating @39389 block")
 (use-package evil)
-#+END_SRC
-
-** System
-*** Exec Path From Shell
-
-The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] package fixes this problem by copying
-user environment variables from the shell.
-
-The ~exec-path-from-shell~ package only works with posix-compliant
-operating systems. This may or may not include Microsoft Windows[fn:8].
-
-However, the ~exec-path-from-shell~ instructions recommends loading
-the package on linux and macOS operating system. I don't use Windows
-all that often anyways, so that's fine with me.
-
-The ~:if~ key of ~use-package~ offers us a really concise way for
-conditionally loading dependencies.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @40067
+(message "org-dotemacs: evaluating @40067 block")
 (use-package exec-path-from-shell
   ;; only load `exec-path-from-shell' package on macos and linux.
   :if (memq window-system '(mac ns))
@@ -1384,15 +665,8 @@ conditionally loading dependencies.
   (progn
     (exec-path-from-shell-initialize)
     (setq exec-path-from-shell-check-startup-files nil)))
-#+END_SRC
-
-*** System Packages
-
-Utilities for managing system packages in Emacs using an external
-package manager.
-
-#+NAME: os-sys-packages
-#+BEGIN_SRC emacs-lisp
+;; Block = @40482
+(message "org-dotemacs: evaluating @40482 block")
 
 (use-package system-packages
   :init
@@ -1413,19 +687,13 @@ package manager.
                             (verify-all-packages . "brew doctor")
                             (log . "brew log"))))
       (system-packages/update-brew-commands commands-alist))))
-#+END_SRC
-
-**** use-package-ensure-system-package
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @41347
+(message "org-dotemacs: evaluating @41347 block")
 (use-package use-package-ensure-system-package
   :after (system-packages)
   :demand t)
-#+END_SRC
-
-*** Anything
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @41482
+(message "org-dotemacs: evaluating @41482 block")
 (use-package anything
   :init
   (defun anything/goto-manual ()
@@ -1436,42 +704,17 @@ package manager.
   :config
   (require 'anything-config))
 
-#+END_SRC
-
-*** Prodigy
-
-Interface for controlling external processes in Emacs.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @41813
+(message "org-dotemacs: evaluating @41813 block")
 (use-package prodigy)
-#+END_SRC
-
-*** macOS
-
-I work on a macbook, so this section is where I'm loading all of my
-settings that rely on local file paths, macOS applications, and
-external programs.
-
-**** MacOS Keys
-
-#+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp
+;; Block = @42075
+(message "org-dotemacs: evaluating @42075 block")
 ;; Modifer Keys
 
 ;; Mouse-2
 
-#+END_SRC
-
-
-***** Modifier Keys
-
-macOS specific settings[fn:9].
-
-Maps the modifier keys based on personal preferences.
-Also sets terminal coding system to "utf-8".
-
-#+NAME: macos-modifier-keys
-#+BEGIN_SRC emacs-lisp
+;; Block = @42320
+(message "org-dotemacs: evaluating @42320 block")
 (setq mac-command-modifier 'super
       mac-option-modifier  'meta
       ns-control-modifier  'control
@@ -1487,26 +730,13 @@ Also sets terminal coding system to "utf-8".
   (global-set-key (kbd "s-{")  'ns-prev-frame)
   (global-set-key (kbd "s-L")  'mark-sexp))
 
-#+END_SRC
-
-***** Generate =<mouse-2>= on trackpad
-
-As far as I know, there is no trackpad gesture to trigger the
-=<mouse-2>= event in Emacs. The following snippet uses [[help:key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
-the trackpad (=<mouse-1>=) like normal while holding down Command, or
-"super", modifier key
-
-#+NAME: macos-mouse-2
-#+BEGIN_SRC emacs-lisp
+;; Block = @43274
+(message "org-dotemacs: evaluating @43274 block")
 ;; From https://emacs.stackexchange.com/questions/20946/generate-mouse-2-event-from-macbook-trackpadTrackpage
 (when (eq system-type 'darwin)
   (define-key key-translation-map (kbd "<s-mouse-1>") (kbd "<mouse-2>")))
-#+END_SRC
-
-**** MacOS Computer Name
-
-#+NAME: macos-computer-name
-#+BEGIN_SRC emacs-lisp
+;; Block = @43577
+(message "org-dotemacs: evaluating @43577 block")
 (defun macos-computer-name ()
   "Get the computer name for the current machine."
   (let* ((has-scutil
@@ -1522,15 +752,8 @@ the trackpad (=<mouse-1>=) like normal while holding down Command, or
 (when (eq system-type 'darwin)
   (setq computer-name (macos-computer-name)))
 
-#+END_SRC
-
-**** MacOS Dev Utils
-
-Small library for opening files and buffers in external text
-editors and various other applications on macOS.
-
-#+NAME: macos-dev-utils
-#+BEGIN_SRC emacs-lisp
+;; Block = @44214
+(message "org-dotemacs: evaluating @44214 block")
 (use-package macos-dev-utils
   :if (eq system-type 'darwin)
   :straight
@@ -1538,34 +761,8 @@ editors and various other applications on macOS.
    :host github
    :repo "jchaffin/macos-dev-utils"))
 
-#+END_SRC
-
-**** MacOS Dash
-:PROPERTIES:
-:ID:       64240356-D983-4422-A359-4F773DD2E946
-:CUSTOM_ID: macos-dash
-:END:
-
-Dash.app is an application for quickly searching and navigating API
-docsets for programming tools and languages.
-There are already two Emacs plugins that utilize Dash docsets,
-helm-dash and counsel-dash, which is a simple wrapper around helm
-dash.
-
-For whatever reason, I can't figure out how to open the docset in an
-=eww= frame or in an external browser using =browse-url=.
-
-Because of the OS/licensing restrictions of Dash.app, both these
-packages try to solve the problem of creating an interface for users
-to navigate, query, and switch between docsets.
-
-Because I've purchased a license and run macOS locally, I'm going to
-bypass that problem and define a function that uses the
-=dash-plugin://= protocol to launch/switch to the application and
-query it with the marked region or symbol at point.
-
-#+NAME: macos-dash-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @45331
+(message "org-dotemacs: evaluating @45331 block")
 (defvar dash-plugin-keywords nil
   "An `alist' of keywords representing the docsets which should
   searched in the query to Dash.app")
@@ -1590,28 +787,13 @@ query it with the marked region or symbol at point.
                       (concat "keys=" keywords "&"))
                     "query="
                     (url-hexify-string search-string)))))
-#+END_SRC
-
-**** Reveal in macOS Finder
-
-#+NAME: macos-finder-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @46305
+(message "org-dotemacs: evaluating @46305 block")
 (use-package reveal-in-osx-finder
   :if (eq system-type 'darwin)
   :commands (reveal-in-osx-finder))
-#+END_SRC
-
-**** OSX Dictionary
-
-Provides an interface to /Dictionary.app/ in Emacs. I am using this
-package in conjunction with [[#dictionary-el][dictionary.el]] right now. The latter
-package uses an open-source dictionary server to access
-dictionaries. I haven't tested it on a different OS yet, but it should
-provide comparable functionality to [[https://github.com/xuchunyang/osx-dictionary.el][osx-dictionary.el]] on machines not
-running macOS.
-
-#+NAME: macos-dictionary
-#+BEGIN_SRC emacs-lisp
+;; Block = @46904
+(message "org-dotemacs: evaluating @46904 block")
 (use-package osx-dictionary
   :if (eq system-type 'darwin)
   :defines (osx-dictionary-open-dictionary-app-at-point)
@@ -1624,12 +806,8 @@ running macOS.
       (interactive)
       (shell-command (format "open dict://%s" (thing-at-point 'word))))))
 
-#+END_SRC
-
-**** OSX Trash
-
-#+NAME: macos-trash
-#+BEGIN_SRC emacs-lisp
+;; Block = @47400
+(message "org-dotemacs: evaluating @47400 block")
 (use-package osx-trash
   :if (and (eq system-type 'darwin) (not (boundp 'mac-system-move-file-to-trash-use-finder)))
   :init
@@ -1638,30 +816,16 @@ running macOS.
   :config
   (progn
     (setq delete-by-moving-to-trash t)))
-#+END_SRC
-
-**** OSX Clipboard
-
-***** In Terminal
-
-#+NAME: macos-pbcopy
-#+BEGIN_SRC emacs-lisp
+;; Block = @47711
+(message "org-dotemacs: evaluating @47711 block")
 (use-package pbcopy
   :if (and (eq system-type 'darwin) (not (display-graphic-p)))
   :init (turn-on-pbcopy))
-#+END_SRC
-
-***** Separate Emacs clipboard from system
-
-#+NAME: macos-simpleclip
-#+BEGIN_SRC emacs-lisp
+;; Block = @47923
+(message "org-dotemacs: evaluating @47923 block")
 (use-package simpleclip)
-#+END_SRC
-
-**** Counsel OSX App
-
-#+NAME: macos-counsel-osx-app
-#+BEGIN_SRC emacs-lisp
+;; Block = @48034
+(message "org-dotemacs: evaluating @48034 block")
 (use-package counsel-osx-app
   :demand t
   :preface
@@ -1675,16 +839,8 @@ running macOS.
   :after (ivy)
   :commands (counsel-osx-app))
 
-#+END_SRC
-
-**** UTF-8 Encoding
-:PROPERTIES:
-:ID:       462A8F27-D713-45EA-9CED-BF716C14EF1D
-:END:
-
-UTF-8 is the recommanded coding system on macOS.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @48528
+(message "org-dotemacs: evaluating @48528 block")
   (when (eq system-type 'darwin)
     (prefer-coding-system 'utf-8)
     (set-default-coding-systems 'utf-8)
@@ -1696,33 +852,11 @@ UTF-8 is the recommanded coding system on macOS.
 
 (global-set-key (kbd "C-x C-m i") 'set-input-method)
 
-#+END_SRC
-
-g** Files
-:PROPERTIES:
-:ID:       9DAB0C2D-D6AA-4143-9C7C-7CD306E21893
-:END:
-
-*** save place mode
-
-- makuto's [[https://github.com/makuto/editorPreferences/blob/master/Emacs/emacsConfig.txt][emacsConfig.txt]]
-- Xah Lee [[http://ergoemacs.org/emacs/emacs_make_modern.html][emacs make modern]]
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @49250
+(message "org-dotemacs: evaluating @49250 block")
 (save-place-mode 1)
-#+END_SRC
-
-*** Custom File
-
-By default, Emacs customizations[fn:6] done through the =customize=
-interface write to =user-init-file=.
-
-While I usually prefer configuring emacs programmatically, settings
-that depend on resources outside of this repository, such as
-org-agenda files, will impact portability and potentially break on
-other machines.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @49640
+(message "org-dotemacs: evaluating @49640 block")
 (let ((directory (emacs-etc-dir "custom"))
       (file (pcase system-type
               (`darwin "custom-macos.el")
@@ -1737,82 +871,30 @@ other machines.
         (kill-buffer)))
   (load custom-file))
 
-
 (defun goto-custom ()
     (interactive)
     (find-file custom-file))
 
 (define-key goto-map "C" #'goto-custom)
-#+END_SRC
-
-*** Backup Files
-
-This might come back to bite me one day but I never use them.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @50338
+(message "org-dotemacs: evaluating @50338 block")
 (setq make-backup-files nil)
-#+END_SRC
-
-*** Autosave
-#+BEGIN_SRC emacs-lisp
+;; Block = @50414
+(message "org-dotemacs: evaluating @50414 block")
 (setq auto-save-default nil)
 (setq auto-save-no-message t)
-#+END_SRC
-
-*** Lockfiles
-
-Causes a conflict with ~lsp-mode~.
-#+NAME: lockfiles-spec
-#+BEGIN_SRC emacs-lisp
+;; Block = @50580
+(message "org-dotemacs: evaluating @50580 block")
 (setq create-lockfiles nil)
-#+END_SRC
-
-*** Shortcuts
-
-#+BEGIN_SRC emacs-lisp
-
-(defun goto-init ()
-  (interactive)
-  (find-file (expand-file-name "init.el" user-emacs-directory)))
-
-(defun goto-literate ()
-  (interactive)
-  (find-file halidom-user-literate-init-file))
-
-(defun goto-tangled-init ()
-  (interactive)
-  (find-file
-    (concat (file-name-sans-extension halidom-user-literate-init-file) ".el")))
-
-(define-key goto-map "i" #'goto-init)
-(define-key goto-map "l" #'goto-literate)
-(define-key goto-map "t" #'goto-tangled-init)
-
-#+END_SRC
-
-*** Auto Revert Mode
-:PROPERTIES:
-:ID:       0082E12B-58E5-48B9-8E5A-132EE31F99B3
-:END:
-
-#+NAME: buffer/revert
-#+BEGIN_SRC emacs-lisp
+;; Block = @50731
+(message "org-dotemacs: evaluating @50731 block")
 (use-package autorevert
   :straight nil
   :init
   (global-auto-revert-mode t))
 
-#+END_SRC
-
-** Text editing
-:PROPERTIES:
-:ID:       11FDD2DB-E7F5-4EB9-AD41-9B5DFAC004E0
-:END:
-*** Editing
-**** Multiple Cursors
-
-#+NAME: cursor/mc
-#+BEGIN_SRC emacs-lisp
+;; Block = @50981
+(message "org-dotemacs: evaluating @50981 block")
 (use-package multiple-cursors
   :custom
   (mc/always-run-for-all t)
@@ -1829,12 +911,8 @@ Causes a conflict with ~lsp-mode~.
     (global-set-key (kbd "s-d")  'mc/mark-next-like-this)
     (global-set-key (kbd "s-D")  'mc/mark-all-dwin)
     (global-set-key (kbd "M-s-d" 'mc/edit-beginnings-of-lines))))
-#+END_SRC
-
-**** better beginning of line
-From Bozhidar Batsov, the author or prelude.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @51627
+(message "org-dotemacs: evaluating @51627 block")
 
 (defun smarter-move-beginning-of-line (arg)
   "Move point back to indentation of beginning of line.
@@ -1860,45 +938,26 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key (kbd "C-a") 'smarter-move-beginning-of-line)
 (global-set-key (kbd "s-<left>") 'smarter-move-beginning-of-line)
 
-#+END_SRC
-
-**** Cleanup Whitespace
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @52538
+(message "org-dotemacs: evaluating @52538 block")
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 (setq require-final-newline t)
-#+END_SRC
-
-**** End sentences at single space.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @52697
+(message "org-dotemacs: evaluating @52697 block")
 (setq-default sentence-end-double-space nil)
 
-  #+END_SRC
-
-**** Fix word
-:PROPERTIES:
-:ID:       ADAC2F3D-0C61-4700-B25B-894F5C32379A
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @52861
+(message "org-dotemacs: evaluating @52861 block")
 (use-package fix-word
   :bind
   (("M-u" . fix-word-upcase)
    ("M-l" . fix-word-downcase)
    ("M-c" . fix-word-capitalize)))
-#+END_SRC
-
-*** Deleting
-**** Delete Selection Mode
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @53061
+(message "org-dotemacs: evaluating @53061 block")
 (delete-selection-mode 1)
-#+END_SRC
-
-**** smart hungry delete
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @53147
+(message "org-dotemacs: evaluating @53147 block")
 (use-package smart-hungry-delete
   :init
   (smart-hungry-delete-add-default-hooks)
@@ -1910,107 +969,72 @@ point reaches the beginning or end of the buffer, stop there."
   )
 
 
-#+END_SRC
-
-*** Searching
-**** ack
-
-#+NAME: search/ack
-#+BEGIN_SRC emacs-lisp
+;; Block = @53580
+(message "org-dotemacs: evaluating @53580 block")
 (use-package ack
   :if (executable-find "ack")
   :straight t)
-#+END_SRC
-
-**** ag
-
-#+NAME: ag-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @53703
+(message "org-dotemacs: evaluating @53703 block")
 (use-package ag)
-#+END_SRC
-
-**** grep+
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @53766
+(message "org-dotemacs: evaluating @53766 block")
 (use-package grep+)
-#+END_SRC
-
-**** ripgrep
-
-#+NAME: ripgrep
-#+BEGIN_SRC emacs-lisp
+;; Block = @53850
+(message "org-dotemacs: evaluating @53850 block")
 (use-package rg
   :ensure-system-package
   (rg . ripgrep))
 
-#+END_SRC
-
-******* projectile ripgrep
-
-#+NAME: project-ripgrep
-#+BEGIN_SRC emacs-lisp
+;; Block = @53996
+(message "org-dotemacs: evaluating @53996 block")
 
   (use-package projectile-ripgrep
       :after (projectile)
       ;; takes a cons in the form of `(binary . package-name)`
       :ensure-system-package (rg . ripgrep))
 
-#+END_SRC
-
-**** Codesearch
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @54217
+(message "org-dotemacs: evaluating @54217 block")
 (use-package codesearch)
-#+END_SRC
-
-****** Counsel code search
-#+BEGIN_SRC emacs-lisp
+;; Block = @54303
+(message "org-dotemacs: evaluating @54303 block")
 (use-package counsel-codesearch
     :requires codesearch)
-#+END_SRC
-
-****** Projectile code search
-
-#+NAME: project-code-search
-#+BEGIN_SRC emacs-lisp
+;; Block = @54454
+(message "org-dotemacs: evaluating @54454 block")
 (use-package projectile-codesearch)
-#+END_SRC
-
-*** Regions
-**** Whole line or region
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @54563
+(message "org-dotemacs: evaluating @54563 block")
 (use-package whole-line-or-region)
-
-#+END_SRC
-
-**** Expand Region
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @54650
+(message "org-dotemacs: evaluating @54650 block")
+(use-package wrap-region
+  :demand t
+  :config
+  (wrap-region-add-wrappers
+   '(("*" "*" nil org-mode)
+     ("~" "~" nil org-mode)
+     ("/" "/" nil org-mode)
+     ("=" "=" "+" org-mode)
+     ("_" "_" nil org-mode)
+     ("$" "$" nil (org-mode latex-mode))))
+  :init
+  (wrap-region-mode t))
+;; Block = @54994
+(message "org-dotemacs: evaluating @54994 block")
 (use-package expand-region
   :bind
-  ("s-'" .  er/expand-region)
-  ("s-S-'" . er/contract-region))
-#+END_SRC
-
-*** Replace
-**** Visual regexp
-
-#+BEGIN_SRC emacs-lisp
+   (("s-'" .  er/expand-region)
+   ("s-S-'" . er/contract-region)))
+;; Block = @55163
+(message "org-dotemacs: evaluating @55163 block")
 (use-package visual-regexp)
-#+END_SRC
-
-**** Replace from region
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @55251
+(message "org-dotemacs: evaluating @55251 block")
 (use-package replace-from-region)
-#+END_SRC
-
-*** Checking
-**** Flyspell
-
-#+NAME: flyspell-base
-#+BEGIN_SRC emacs-lisp
+;; Block = @55369
+(message "org-dotemacs: evaluating @55369 block")
   (use-package flyspell
     :init
     (with-eval-after-load 'org
@@ -2021,26 +1045,15 @@ point reaches the beginning or end of the buffer, stop there."
         (setq-default ispell-program-name "hunspell")
         (setq-default ispell-dictionary "en_US")
         (setq ispell-really-hunspell t))))
-#+END_SRC
-
-****** Flyspell Correct
-
-#+NAME: flyspell-correct-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @55783
+(message "org-dotemacs: evaluating @55783 block")
   (use-package flyspell-correct-ivy
     :after (:all flyspell ivy)
     :demand t
     :config
     (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic))
-#+END_SRC
-
-**** Langtool
-
-LanguageTool is a Java plugin which provides style and grammar
-checking for natural language.
-
-#+NAME: sc-langtool
-#+BEGIN_SRC emacs-lisp
+;; Block = @56128
+(message "org-dotemacs: evaluating @56128 block")
 (use-package langtool
   :if (eq system-type 'darwin)
   :after (flyspell)
@@ -2061,19 +1074,11 @@ checking for natural language.
           (popup-tip msg)))))
   :config
   (setq langtool-autoshow-message-function 'langtool-autoshow-detail-popup))
-#+END_SRC
-
-**** Academic Phrases
-
-#+NAME: sc-academic
-#+BEGIN_SRC emacs-lisp
+;; Block = @56931
+(message "org-dotemacs: evaluating @56931 block")
 (use-package academic-phrases)
-#+END_SRC
-
-**** Proselint
-
-#+NAME: sc-proselint
-#+BEGIN_SRC emacs-lisp
+;; Block = @57033
+(message "org-dotemacs: evaluating @57033 block")
   (with-eval-after-load 'flycheck
     (flycheck-define-checker proselint
                              "A linter for prose."
@@ -2085,50 +1090,20 @@ checking for natural language.
                              :modes (text-mode org-mode markdown-mode gfm-mode))
     (add-to-list 'flycheck-checkers 'proselint))
 
-#+END_SRC
-
-**** Dictionary.el
-:PROPERTIES:
-:ID:       98EF59F6-66E8-47B3-A437-B1D53A74832A
-:CUSTOM_ID: dictionary-el
-:END:
-
-The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
-dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:18].
-
-#+NAME: completion/dictionary-el
-#+BEGIN_SRC emacs-lisp
+;; Block = @58053
+(message "org-dotemacs: evaluating @58053 block")
 (use-package dictionary
   :commands (dictionary-lookup-definition)
   :init
   (define-prefix-command 'dictionary-keymap))
-#+END_SRC
-
-
-**** Typo Mode
-:PROPERTIES:
-:ID:       7F09312B-CA58-4884-896C-DDC323FB3B83
-:END:
-#+NAME: writing-typo
-#+BEGIN_SRC emacs-lisp
+;; Block = @58312
+(message "org-dotemacs: evaluating @58312 block")
  (use-package typo)
-#+END_SRC
-
-**** Writegood
-:PROPERTIES:
-:ID:       10DB611C-6B5A-4441-8FAB-E6996B14D19C
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @58449
+(message "org-dotemacs: evaluating @58449 block")
  (use-package writegood-mode)
-#+END_SRC
-
-** Projects
-*** Projectile
-
-#+NAME: project-projectile
-#+BEGIN_SRC emacs-lisp
+;; Block = @58568
+(message "org-dotemacs: evaluating @58568 block")
 (use-package projectile
   :bind-keymap
   ("C-c p" . projectile-command-map)
@@ -2176,51 +1151,31 @@ whistles, it makes up for in compatibility and hackability [fn:18].
                   ".gradle" "build" "bin" "node_modules"
                   "ltximg" "CMakeFiles" ".cquery_cached_index"))))
 
-#+END_SRC
-
-**** Projectile Codesearch
-
-#+NAME: project-codesearch
-#+BEGIN_SRC emacs-lisp
+;; Block = @60217
+(message "org-dotemacs: evaluating @60217 block")
   (use-package projectile-codesearch
       :after (projectile)
       :bind (:map projectile-command-map
                   ("s c" . projectile-codesearch-search)))
-#+END_SRC
-
-**** Projectile Ripgrep
-
-#+NAME: project-ripgrep
-#+BEGIN_SRC emacs-lisp
+;; Block = @60463
+(message "org-dotemacs: evaluating @60463 block")
 
   (use-package projectile-ripgrep
       :after (projectile)
       ;; takes a cons in the form of `(binary . package-name)`
       :ensure-system-package (rg . ripgrep))
 
-#+END_SRC
-
-**** Projectile Treemacs
-
-#+NAME: projectile/treemacs
-#+BEGIN_SRC emacs-lisp
+;; Block = @60721
+(message "org-dotemacs: evaluating @60721 block")
 (use-package treemacs-projectile
   :after (treemacs)
   :demand t)
-#+END_SRC
-
-*** Find File in Project
-
-#+NAME: project-ffip
-#+BEGIN_SRC emacs-lisp
+;; Block = @60868
+(message "org-dotemacs: evaluating @60868 block")
 (use-package find-file-in-project
   :bind ("s-p" . ffip))
-#+END_SRC
-
-*** File System
-**** Dired
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @60988
+(message "org-dotemacs: evaluating @60988 block")
 (use-package dired
   :straight nil
   :custom
@@ -2251,27 +1206,13 @@ parent directory."
   :config
   (when (symbolp 'org-file-apps)
     (add-to-list 'org-file-apps '(directory . emacs))))
-#+END_SRC
-
-***** Dired+
-
-
-Adds extensions and functionality to dired mode.
-
-#+NAME: dired-plus-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @62269
+(message "org-dotemacs: evaluating @62269 block")
 (use-package dired+
   :init
   (add-hook #'dired-mode-hook #'dired-hide-details-mode))
-#+END_SRC
-
-***** Dired Sidebar
-:PROPERTIES:
-:ID:       2ABE4F83-BA00-441E-8F77-857B455834AC
-:END:
-
-#+NAME: dired-sidebar-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @62506
+(message "org-dotemacs: evaluating @62506 block")
  (use-package dired-sidebar
      :commands (dired-sidebar-toggle-sidebar)
      :custom
@@ -2281,26 +1222,14 @@ Adds extensions and functionality to dired mode.
      ("C-c d" . dired-sidebar-toggle-sidebar)
      :hook
      (dired-sidebar-mode . dired-sidebar-refresh-buffer))
-#+END_SRC
-
-
-
-
-
-**** Pack
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @62845
+(message "org-dotemacs: evaluating @62845 block")
 (use-package pack
     :bind
   (:map dired-mode-map
         ("P" .  pack-dired-dwim)))
-#+END_SRC
-
-**** Neotree
-
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @63149
+(message "org-dotemacs: evaluating @63149 block")
 (use-package neotree
   :after (projectile)
   :demand t
@@ -2325,10 +1254,8 @@ Adds extensions and functionality to dired mode.
                    (neotree-dir project-dir)
                    (neotree-find file-name)))
           (message "Project root not found."))))))
-#+END_SRC
-
-**** Treemacs
-#+BEGIN_SRC emacs-lisp
+;; Block = @63936
+(message "org-dotemacs: evaluating @63936 block")
 (use-package treemacs
   :init
   (with-eval-after-load 'winum
@@ -2387,98 +1314,49 @@ Adds extensions and functionality to dired mode.
         ("C-x t B"   . treemacs-bookmark)
         ("C-x t C-t" . treemacs-find-file)
         ("C-x t M-t" . treemacs-find-tag)))
-#+END_SRC
-
-**** Speedbar
-
-***** same frame
-#+NAME: speed-sr
-#+BEGIN_SRC emacs-lisp
+;; Block = @66255
+(message "org-dotemacs: evaluating @66255 block")
 (use-package sr-speedbar)
-#+END_SRC
-
-***** Projectile Speedbar
-#+NAME: projectile-speedbar
-#+BEGIN_SRC emacs-lisp
+;; Block = @66369
+(message "org-dotemacs: evaluating @66369 block")
 (use-package projectile-speedbar
   :after (:all speedbar projectile)
   :bind ("M-<f2>" . projectile-speedbar-open-current-buffer-in-tree))
-#+END_SRC
-
-**** Open With
-:PROPERTIES:
-:ID:       8D3D83D3-552F-40DC-91B4-AD9D60315748
-:END:
-
-#+NAME: open-with-spec
-#+BEGIN_SRC emacs-lisp
+;; Block = @66648
+(message "org-dotemacs: evaluating @66648 block")
 (use-package openwith
   :straight t)
-#+END_SRC
-
-*** Search
-**** Codesearch
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @66747
+(message "org-dotemacs: evaluating @66747 block")
 (use-package codesearch)
-#+END_SRC
-
-**** Avy
-Jump to arbitrary point in Buffer
-
-#+NAME: search/avy
-#+BEGIN_SRC emacs-lisp
+;; Block = @66869
+(message "org-dotemacs: evaluating @66869 block")
   (use-package avy
     :bind
     ("C-:" . avy-goto-char))
-#+END_SRC
-
-**** ack
-
-#+NAME: search/ack
-#+BEGIN_SRC emacs-lisp
+;; Block = @66990
+(message "org-dotemacs: evaluating @66990 block")
 (use-package ack
   :if (executable-find "ack")
   :straight t)
-#+END_SRC
-
-**** ag
-
-#+NAME: ag-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @67113
+(message "org-dotemacs: evaluating @67113 block")
 (use-package ag)
-#+END_SRC
-
-**** grep+
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @67176
+(message "org-dotemacs: evaluating @67176 block")
 (use-package grep+)
 
-#+END_SRC
-
-**** rg
-
-#+NAME: ripgrep
-#+BEGIN_SRC emacs-lisp
+;; Block = @67256
+(message "org-dotemacs: evaluating @67256 block")
 (use-package rg
   :ensure-system-package
   (rg . ripgrep))
 
-#+END_SRC
-
-**** Visual Replace
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @67371
+(message "org-dotemacs: evaluating @67371 block")
 (use-package visual-regexp)
-#+END_SRC
-
-**** Undo Tree
-
-Visualize buffer modifications during an Emacs session as an
-interactive tree .
-
-#+NAME: search/undo-tree
-#+BEGIN_SRC emacs-lisp
+;; Block = @67555
+(message "org-dotemacs: evaluating @67555 block")
 (use-package undo-tree
   :custom
   (undo-tree-auto-save-history t)
@@ -2490,17 +1368,8 @@ interactive tree .
   (when (eq system-type 'darwin)
     (global-set-key (kbd "s-z") 'undo-tree-undo)
     (global-set-key (kbd "s-Z") 'undo-tree-redo)))
-#+END_SRC
-
-** Shell
-:PROPERTIES:
-:ID:       055F15AE-FAFA-416A-ABC5-8DBB9D9D7CBF
-:END:
-*** Terminal Colors
-**** Ansi Color
-
-#+NAME: sh/ansi
-#+BEGIN_SRC emacs-lisp
+;; Block = @68032
+(message "org-dotemacs: evaluating @68032 block")
 (use-package ansi-color
   :custom
   (ansi-color-faces-vector
@@ -2520,12 +1389,8 @@ interactive tree .
   ;; (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
   ;; (add-hook 'comint-output-filter-functions 'ansi-color-process-output)
   )
-#+END_SRC
-
-**** xterm color
-
-#+NAME: sh/xtcolor
-#+BEGIN_SRC emacs-lisp
+;; Block = @68761
+(message "org-dotemacs: evaluating @68761 block")
 
  (use-package xterm-color
      :init
@@ -2547,13 +1412,8 @@ interactive tree .
      :hook
      (eshell-mode . esh/xterm-color))
 
-#+END_SRC
-
-*** Emacs shell
-**** eshell
-
-#+NAME: esh/eshell
-#+BEGIN_SRC emacs-lisp
+;; Block = @69612
+(message "org-dotemacs: evaluating @69612 block")
 (use-package eshell
   :custom
   (pcomplete-cycle-completions nil)
@@ -2608,31 +1468,19 @@ windows. Additionally, modify company backends in the local buffer."
   (eshell-mode . esh/company)
   (eshell-mode . esh/disable-semantic)
   (eshell-directory-change . esh/toggle-shell-completion-based-on-path))
-#+END_SRC
-
-**** Pretty Eshell
-
-From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs display layer]].
-
-#+NAME: esh/pretty
-#+BEGIN_SRC emacs-lisp
+;; Block = @71542
+(message "org-dotemacs: evaluating @71542 block")
 (use-package pretty-eshell
-  :if (and (featurep 'no-littering)
-         (file-exists-p
-          (no-littering-expand-etc-file-name
-           "local/pretty-eshell/pretty-eshell.el")))
   :straight nil
   :load-path "etc/local/pretty-eshell"
-  :custom-face
-  (eshell-prompt ((t (:foreground "gray83"))))
-  :custom
-  ;; Eshell prompt regexp and string.
-  (eshell-prompt-regexp "λ ")   ; or "└─> "
   :init
   (progn
     (require 'pretty-eshell)
-    (setq pretty-eshell-header "\n ")
-    (setq pretty-eshell-prompt-string "λ ")
+      ;; More prompt styling
+    (setq pretty-eshell-header "\n︳")
+    (setq eshell-banner-message (s-concat (s-repeat 20 "---") "\n\n"))
+    (setq pretty-eshell-prompt-string " ")
+    (setq eshell-prompt-regexp " ")
     ;; Directory
     (pretty-eshell-section
      esh-dir
@@ -2669,28 +1517,16 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 
     (setq pretty-eshell-funcs
           (list esh-dir esh-git esh-python esh-clock esh-num))))
-#+END_SRC
-
-**** eshell bookmark
-
-#+NAME: esh/bmk
-#+BEGIN_SRC emacs-lisp
+;; Block = @72811
+(message "org-dotemacs: evaluating @72811 block")
 (use-package eshell-bookmark
   :hook
   (eshell-mode . eshell-bookmark-setup))
-#+END_SRC
-
-**** eshell-z
-
-#+NAME: esh/z
-#+BEGIN_SRC emacs-lisp
+;; Block = @72952
+(message "org-dotemacs: evaluating @72952 block")
 (use-package eshell-z)
-#+END_SRC
-
-*** ~M-x shell~
-
-#+NAME: sh/shell
-#+BEGIN_SRC emacs-lisp
+;; Block = @73043
+(message "org-dotemacs: evaluating @73043 block")
 (use-package shell
   :init
 
@@ -2746,12 +1582,8 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
   :hook
   (shell-mode . shell/comint-input-sender-hook)
   (shell-mode . shell/disable-hl-line-mode))
-#+END_SRC
-
-*** Term
-
-#+NAME: sh/term
-#+BEGIN_SRC emacs-lisp
+;; Block = @74984
+(message "org-dotemacs: evaluating @74984 block")
 (use-package term
   :custom
   (ansi-term-color-vector
@@ -2783,12 +1615,8 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
              (delete-window)))))))
   :hook
   (term-mode . ansi-term-handle-close))
-#+END_SRC
-
-*** Multi Term
-
-#+NAME: sh/multiterm
-#+BEGIN_SRC emacs-lisp
+;; Block = @75926
+(message "org-dotemacs: evaluating @75926 block")
 (use-package multi-term
   :after (term)
   :bind
@@ -2802,12 +1630,8 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 
   :config
   (add-to-list 'term-bind-key-alist '("<tab>" . term-send-tab)))
-#+END_SRC
-
-*** Shell Pop
-
-#+NAME: sh/pop
-#+BEGIN_SRC emacs-lisp
+;; Block = @76309
+(message "org-dotemacs: evaluating @76309 block")
 (use-package shell-pop
   :custom
   (shell-pop-window-position 'bottom)
@@ -2851,21 +1675,13 @@ SHELL is the SHELL function to use (i.e. when FUNC represents a terminal)."
   (make-shell-pop-command ansi-term shell-pop-term-shell)
   (make-shell-pop-command inferior-shell)
   (make-shell-pop-command multiterm))
-#+END_SRC
-
-*** With Editor
-
-#+NAME: sh/witheditor
-#+BEGIN_SRC emacs-lisp
+;; Block = @78139
+(message "org-dotemacs: evaluating @78139 block")
 (use-package with-editor
   :hook
   ((shell-mode term-exec eshell-mode) . with-editor-export-editor))
-#+END_SRC
-
-*** SSH
-
-#+NAME: remote/ssh
-#+BEGIN_SRC emacs-lisp
+;; Block = @78302
+(message "org-dotemacs: evaluating @78302 block")
 (use-package ssh
   :init
   (defun ssh/enable-path-completion ()
@@ -2877,25 +1693,15 @@ over ssh."
 
   :hook
   (ssh-mode . ssh/enable-path-completion))
-#+END_SRC
-
-***** SSH tunnels
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @78635
+(message "org-dotemacs: evaluating @78635 block")
 (use-package ssh-tunnels)
-#+END_SRC
-
-***** SSH Deploy
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @78713
+(message "org-dotemacs: evaluating @78713 block")
 (use-package ssh-deploy)
 
-#+END_SRC
-
-*** SCP
-
-#+NAME: remote/scp
-#+BEGIN_SRC emacs-lisp
+;; Block = @78801
+(message "org-dotemacs: evaluating @78801 block")
 (use-package scp
   :preface
   (setq enable-local-variables :all enable-local-eval t)
@@ -2921,73 +1727,37 @@ directory local variables."
                     (list host user password remote-path port))))
       (dolist (var vars)
         (add-dir-local-variable nil (car var) (cdr var))))))
-#+END_SRC
-
-*** Tramp
-
-#+NAME: remote/tramp
-#+BEGIN_SRC emacs-lisp
+;; Block = @79917
+(message "org-dotemacs: evaluating @79917 block")
 (use-package tramp
   :custom
   ;; use ssh by default
   (tramp-default-method "ssh")
   (tramp-default-user user-login-name))
-#+END_SRC
-
-**** Docker Tramp
-:PROPERTIES:
-:ID:       0BC85ED8-9B18-4CDA-9C45-B4B54BFE632E
-:END:
-
-#+NAME: docker/tramp
-#+BEGIN_SRC emacs-lisp
+;; Block = @80182
+(message "org-dotemacs: evaluating @80182 block")
 (use-package docker-tramp)
-#+END_SRC
-
-**** Kubernetes Tramp
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @80266
+(message "org-dotemacs: evaluating @80266 block")
 (use-package kubernetes-tramp)
-#+END_SRC
-
-** Documentation
-:PROPERTIES:
-:ID:       67707BA1-09DE-4175-BD74-4BA869BFBAA9
-:END:
-
-*** Help
-**** Help+
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @80436
+(message "org-dotemacs: evaluating @80436 block")
 (use-package help+
     :demand t)
-#+END_SRC
-
-***** help-mode+
-
-#+BEGIN_SRC emacs-lisp :tangle
+;; Block = @80522
+(message "org-dotemacs: evaluating @80522 block")
 (use-package help-mode+
     :demand t)
-#+END_SRC
-
-***** help-macro+
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @80614
+(message "org-dotemacs: evaluating @80614 block")
 (use-package help-macro+
     :demand t)
-#+END_SRC
-
-***** help-fns+
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @80705
+(message "org-dotemacs: evaluating @80705 block")
 (use-package help-fns+
     :demand t)
-#+END_SRC
-
-**** Helpful
-
-#+NAME: help-helpful
-#+BEGIN_SRC emacs-lisp
+;; Block = @80812
+(message "org-dotemacs: evaluating @80812 block")
 (use-package helpful
   :bind
   ("C-h f" . helpful-callable)
@@ -2997,127 +1767,53 @@ directory local variables."
   ("C-c C-d" . helpful-at-point)
   ("C-h F" . helpful-function))
 
-#+END_SRC
-
-**** Help find org mode
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @81084
+(message "org-dotemacs: evaluating @81084 block")
 (use-package help-find-org-mode)
-#+END_SRC
-
-*** Elisp refs
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @81167
+(message "org-dotemacs: evaluating @81167 block")
 (use-package elisp-refs)
-#+END_SRC
-
-*** Info+
-:PROPERTIES:
-:ID:       81C8F5CC-5F6E-417F-B549-BE2523A726BB
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @81304
+(message "org-dotemacs: evaluating @81304 block")
 (use-package info+)
-#+END_SRC
-
-** Frames
-:PROPERTIES:
-:ID:       0D07CBD4-1F78-4228-A86F-73257A4BA467
-:END:
-*** Frame+
-:PROPERTIES:
-:ID:       4B926D23-5661-4301-B4D6-39967E34EA23
-:END:
-
-#+NAME: frame-plus
-#+BEGIN_SRC emacs-lisp
+;; Block = @81533
+(message "org-dotemacs: evaluating @81533 block")
 (use-package frame+)
-#+END_SRC
-
-*** Frame fns
-#+BEGIN_SRC emacs-lisp
+;; Block = @81602
+(message "org-dotemacs: evaluating @81602 block")
 (use-package frame-fns)
-#+END_SRC
-
-*** Frame cmds
-:PROPERTIES:
-:ID:       BBFEF753-9BE3-4B00-9CF1-36AA98244704
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @81743
+(message "org-dotemacs: evaluating @81743 block")
 (use-package frame-cmds)
-#+END_SRC
-
-*** Shrink wrapped frames
-From [[https://www.emacswiki.org/emacs/FrameModes#toc1][EmacsWiki: Frame Modes]].
-
-**** Auto fit frame
-#+BEGIN_SRC emacs-lisp
+;; Block = @81931
+(message "org-dotemacs: evaluating @81931 block")
 (use-package autofit-frame)
-#+END_SRC
-
-**** fit frame
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @82009
+(message "org-dotemacs: evaluating @82009 block")
 (use-package fit-frame)
-#+END_SRC
-
-
-*** Posframe
-**** Ivy Posframe
-
-#+NAME: ivy/posframe
-#+BEGIN_SRC emacs-lisp
+;; Block = @82121
+(message "org-dotemacs: evaluating @82121 block")
 (use-package ivy-posframe)
-#+END_SRC
-
-** Faces
-:PROPERTIES:
-:ID:       DB2AF151-88E9-4976-8E1D-EA289AFA9630
-:END:
-*** Faces+
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @82270
+(message "org-dotemacs: evaluating @82270 block")
 (use-package faces+)
-#+END_SRC
-
-*** Face functions
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @82345
+(message "org-dotemacs: evaluating @82345 block")
 (use-package face-fns)
-#+END_SRC
-
-*** Face remap+
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @82419
+(message "org-dotemacs: evaluating @82419 block")
 (use-package face-remap+)
-#+END_SRC
-
-*** Face Explorer
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @82498
+(message "org-dotemacs: evaluating @82498 block")
 (use-package face-explorer)
-#+END_SRC
-
-*** Font lock
-**** FontLock+
-
-#+NAME: font-lock-plus
-#+BEGIN_SRC emacs-lisp
+;; Block = @82613
+(message "org-dotemacs: evaluating @82613 block")
 (use-package font-lock+
-  :demand t
   :init
   (require 'font-lock+))
 
-#+END_SRC
-
-***** Italicize font lock keyword face
-:PROPERTIES:
-:ID:       C72C2D39-2562-4E7F-B9BC-0F4D0881670B
-:END:
-
-#+NAME: theme-italicize-for-modes
-#+BEGIN_SRC emacs-lisp
+;; Block = @82846
+(message "org-dotemacs: evaluating @82846 block")
 (defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
   "Major modes for which an italicized font lock keyword
 face shall be used."
@@ -3140,77 +1836,30 @@ face shall be used."
 
 (add-hook 'after-init-hook 'halidom/italicize-keyword-faces)
 
-#+END_SRC
-
-****** Per buffer Themes
-
-#+NAME: theme/per-buffer
-#+BEGIN_SRC emacs-lisp
+;; Block = @83656
+(message "org-dotemacs: evaluating @83656 block")
 (use-package per-buffer-theme)
-#+END_SRC
-
-**** Font lock studio
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @83744
+(message "org-dotemacs: evaluating @83744 block")
 (use-package font-lock-studio)
-#+END_SRC
-
-*** Button Lock
-:PROPERTIES:
-:ID:       24DBC7FD-6AE3-4A2B-A42E-8FBC2E8127C5
-:END:
-
-#+NAME: button/lock
-#+BEGIN_SRC emacs-lisp
+;; Block = @83913
+(message "org-dotemacs: evaluating @83913 block")
 (use-package button-lock)
-#+END_SRC
-
-** Window
-:PROPERTIES:
-:ID:       39D49D11-3663-4F0F-A2CE-2CE4FE8CB2CB
-:END:
-*** Window Resize
-
-Default keybindings for window resize:
-
-- =C-x ^= :: makes current window taller [[help:enlarge-window][`enlarge-window']]
-- =C-x }= :: make it larger [[help:enlarge-window-horizontally][`enlarge-window-horizontally']]
-- =C-x {= :: make it narrower [[help:shrink-window-horizontally][`shrin-window-horizontally']]
-
-This following block modifies the keybindings for these commands to
-use the arrow keys instead. I use the "C-s" modifier because it just
-so happens this prefix can be extended by every key in the arrow pad
-without causing a conflict with external keymaps on my system.
-
-The suggested keybindings from the footnoted EmacsWiki page may be more
-accessible for you [fn:15].
-
-#+NAME: window-resize-keybindings
-#+BEGIN_SRC emacs-lisp
+;; Block = @84789
+(message "org-dotemacs: evaluating @84789 block")
 (global-set-key (kbd "C-s-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "C-s-<right>") 'enlarge-window-horizontally)
 (global-set-key (kbd "C-s-<down>") 'shrink-window)
 (global-set-key (kbd "C-s-<up>") 'enlarge-window)
-#+END_SRC
-
-*** Winner Mode
-
-[[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
-different window configurations.
-
-#+NAME: winner-mode-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @85249
+(message "org-dotemacs: evaluating @85249 block")
 (use-package winner-mode
   :straight nil
   :init
   (when (fboundp 'winner-mode)
     (winner-mode 1)))
-#+END_SRC
-
-*** Ace Window
-
-#+NAME: window/ace
-#+BEGIN_SRC emacs-lisp
+;; Block = @85420
+(message "org-dotemacs: evaluating @85420 block")
   (use-package ace-window
       :bind
       ("M-o" . ace-window)
@@ -3218,30 +1867,17 @@ different window configurations.
       (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
       (aw-background nil))
 
-#+END_SRC
-
-*** Perspective
-
-
-#+NAME: persp/perspective
-#+BEGIN_SRC emacs-lisp
+;; Block = @85651
+(message "org-dotemacs: evaluating @85651 block")
 (use-package perspective)
-#+END_SRC
-
-**** Persp Projectile
-
-#+NAME: persp/projectile
-#+BEGIN_SRC emacs-lisp
+;; Block = @85759
+(message "org-dotemacs: evaluating @85759 block")
 (use-package persp-projectile
   :after (:all projectile counsel-projectile perspective)
   :bind ((:map projectile-mode-map
                ("s-S" . projectile-persp-switch-project))))
-#+END_SRC
-
-*** Popwin
-
-#+NAME: popwin-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @86010
+(message "org-dotemacs: evaluating @86010 block")
   (use-package popwin
     :defines popwin:keymap
     :after (perspective)
@@ -3252,27 +1888,17 @@ different window configurations.
     (require 'popwin)
     :config
     (popwin-mode 1))
-#+END_SRC
-
-*** Poporg
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @86307
+(message "org-dotemacs: evaluating @86307 block")
 (use-package poporg
   :bind ("C-c \"" . 'poporg-dwim))
-#+END_SRC
-
-*** Golden Ratio
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @86414
+(message "org-dotemacs: evaluating @86414 block")
 (use-package golden-ratio
   :init
   (setq golden-ratio-auto-scale t))
-#+END_SRC
-
-*** Purpose
-
-#+NAME: purpose
-#+BEGIN_SRC emacs-lisp
+;; Block = @86547
+(message "org-dotemacs: evaluating @86547 block")
   (use-package window-purpose)
 
   (use-package ivy-purpose
@@ -3289,38 +1915,12 @@ different window configurations.
                      purpose-display-reuse-window-buffer
                      purpose-display-reuse-window-purpose
                      purpose-display-pop-up-frame)))
-#+END_SRC
-
-** Minibuffer
-:PROPERTIES:
-:ID:       356E9F9B-4A80-4D65-9846-2B37DB270206
-:END:
-*** Prompt Properties
-
-Don't let the cursor go into the minibuffer prompt.
-
-From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html][emacs-stop-cursor-enter-prompt]], found in the [[https://github.com/syl20bnr/spacemacs/blob/bd7ef98e4c35fd87538dd2a81356cc83f5fd02f3/layers/%2Bdistributions/spacemacs-base/config.el#L128-L131][config.el]] file of the spacemacs base layer.
-
-#+NAME: mb-prompt
-#+BEGIN_SRC emacs-lisp
+;; Block = @87651
+(message "org-dotemacs: evaluating @87651 block")
 (setq minibuffer-prompt-properties
       '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
-#+END_SRC
-
-*** Ivy
-
-[[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
-as helm.
-
-It doesn't have the same kind of ecosystem or interopability,
-but its easy to configure, offers a minimalistic interface,
-and is every bit as good of a completion tool as helm is,
-if not better.
-
-I prefer the default regex matcher, but if you want fuzzy matching as a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
-
-#+NAME: ivy/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @88300
+(message "org-dotemacs: evaluating @88300 block")
 (use-package ivy
   :bind (("C-c C-r" . ivy-resume))
   :init
@@ -3334,58 +1934,33 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
      (read-file-name-internal . ivy--regex-fuzzy)
      (t . ivy--regex-ignore-order)))
   (ivy-use-selectable-prompt nil))
-#+END_SRC
-
-**** Ivy hydra
-:PROPERTIES:
-:ID:       9D78F6B7-1B19-4A0F-9025-C00EC0142B1F
-:END:
-
-#+NAME: ivy/hydra
-#+BEGIN_SRC emacs-lisp
+;; Block = @88791
+(message "org-dotemacs: evaluating @88791 block")
 (use-package ivy-hydra
   :after (hydra)
   :demand t)
-#+END_SRC
-
-**** Ivy rtags
-:PROPERTIES:
-:ID:       D38BB737-FE4B-4DD6-8208-0F538ED777CB
-:END:
-
-#+NAME: ivy/rtags
-#+BEGIN_SRC emacs-lisp
+;; Block = @88979
+(message "org-dotemacs: evaluating @88979 block")
 (use-package ivy-rtags
   :after (rtags)
   :init
   (setq rtags-display-result-backend 'ivy))
 
-#+END_SRC
-
-**** Ivy xref
-#+NAME: ivy/xref
-#+BEGIN_SRC emacs-lisp
+;; Block = @89137
+(message "org-dotemacs: evaluating @89137 block")
 (use-package ivy-xref
     :init
   (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
-#+END_SRC
-
-**** Ivy todos
-
-#+NAME: ivy/todo
-#+BEGIN_SRC emacs-lisp
+;; Block = @89293
+(message "org-dotemacs: evaluating @89293 block")
 
   (use-package ivy-todo
     :custom
     (ivy-todo-file (agenda-dir "ivy-todo.org")))
 
 
-#+END_SRC
-
-**** Ivy rich
-
-#+NAME: ivy/rich
-#+BEGIN_SRC emacs-lisp
+;; Block = @89447
+(message "org-dotemacs: evaluating @89447 block")
   (use-package ivy-rich
     :after (:all ivy counsel)
     :demand t
@@ -3434,36 +2009,18 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
        (:columns
 	((ivy-rich-candidate (:width 0.8))
 	 (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))))))
-#+END_SRC
-
-**** Ivy pages
-
-#+NAME: ivy/pages
-#+BEGIN_SRC emacs-lisp
+;; Block = @91172
+(message "org-dotemacs: evaluating @91172 block")
   (use-package ivy-pages
     :after (ivy))
-#+END_SRC
-
-**** Ivy Posframe
-
-#+NAME: ivy/posframe
-#+BEGIN_SRC emacs-lisp
+;; Block = @91289
+(message "org-dotemacs: evaluating @91289 block")
 (use-package ivy-posframe)
-#+END_SRC
-
-**** Ivy yasnippet
-:PROPERTIES:
-:ID:       FC448B14-3574-43EB-B7A7-1777E6507C58
-END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @91436
+(message "org-dotemacs: evaluating @91436 block")
 (use-package ivy-yasnippet)
-#+END_SRC
-
-*** Counsel
-
-#+NAME: mb-counsel
-#+BEGIN_SRC emacs-lisp
+;; Block = @91530
+(message "org-dotemacs: evaluating @91530 block")
 ;; counsel mode
 
 ;; Counsel Projectile
@@ -3480,12 +2037,8 @@ END:
 
 ;; Counsel Code Search
 
-#+END_SRC
-
-**** counsel mode
-
-#+NAME: counsel/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @91760
+(message "org-dotemacs: evaluating @91760 block")
   (use-package counsel
     :bind (("<f2> u" . counsel-unicode-char)
            ("<f1> l" . counsel-find-library)
@@ -3511,15 +2064,8 @@ END:
       (setq counsel-describe-function-function #'helpful-callable))
     :blackout t)
 
-#+END_SRC
-
-**** counsel Projectile
-
-[[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
-friends.
-
-#+NAME: counsel/projectile
-#+BEGIN_SRC emacs-lisp
+;; Block = @92902
+(message "org-dotemacs: evaluating @92902 block")
 (use-package counsel-projectile
     :after (:all projectile counsel)
     :demand t
@@ -3527,24 +2073,16 @@ friends.
     (counsel-projectile-mode t)
     ;; Use Dired
     (setcar counsel-projectile-switch-project-action 4))
-#+END_SRC
-
-**** counsel Gtags
-
-#+NAME: counsel/ggtags
-#+BEGIN_SRC emacs-lisp
+;; Block = @93178
+(message "org-dotemacs: evaluating @93178 block")
 (use-package counsel-gtags
   :custom
 	(counsel-gtags-ignore-case t)
   (counsel-gtags-auto-update t)
   :hook
   (c-mode-common . counsel-gtags-mode))
-#+END_SRC
-
-**** counsel iTunes
-
-#+NAME: counsel/itunes
-#+BEGIN_SRC emacs-lisp
+;; Block = @93404
+(message "org-dotemacs: evaluating @93404 block")
 (use-package counsel-itunes
   :if (executable-find "osascript")
   :straight
@@ -3558,56 +2096,28 @@ friends.
    "Material Icons" nil 'prepend)
   :after (:all counsel ivy))
 
-#+END_SRC
-
-**** counsel Spotify
-
-#+NAME: counsel/spotify
-#+BEGIN_SRC emacs-lisp
+;; Block = @93778
+(message "org-dotemacs: evaluating @93778 block")
 (use-package counsel-spotify
   :straight t)
-#+END_SRC
-
-**** counsel Dash
-
-Counsel dash provides a simple wrapper around [[https://github.com/areina/helm-dash][helm-dash]] bindings to provide
-ivy integration with dash docsets. This is not great, as installing
-=helm-dash= requires installing =helm= itself.
-
-See my [[#macos-dash][implementation]] if you are running macOS, have [[https://kapeli.com/dash][Dash]] installed on
-your system, and would like to open docsets natively in the Dash
-documentation browser.
-
-#+NAME: counsel/dash
-#+BEGIN_SRC emacs-lisp
+;; Block = @94335
+(message "org-dotemacs: evaluating @94335 block")
   (use-package counsel-dash
     :after (:all counsel)
     :if (eq system-type 'darwin)
     :ensure-system-package
     ("/Applications/Dash.app" . "brew cask install dash"))
 
-#+END_SRC
-
-**** counsel Codesearch
-
-#+NAME: counsel/codesearch
-#+BEGIN_SRC emacs-lisp
+;; Block = @94595
+(message "org-dotemacs: evaluating @94595 block")
 (use-package counsel-codesearch
     :requires codesearch)
-#+END_SRC
-
-**** counsel Tramp
-
-#+NAME: counsel/tramp
-#+BEGIN_SRC emacs-lisp
+;; Block = @94729
+(message "org-dotemacs: evaluating @94729 block")
 (use-package counsel-tramp
   :after (counsel))
-#+END_SRC
-
-*** Swiper
-
-#+NAME: mb-swiper
-#+BEGIN_SRC emacs-lisp
+;; Block = @94840
+(message "org-dotemacs: evaluating @94840 block")
 (use-package swiper
     :custom
     (enable-recursive-minibuffers t)
@@ -3616,85 +2126,36 @@ documentation browser.
     :config
     (if (eq system-type 'darwin)
         (global-set-key (kbd "s-f") 'swiper)))
-#+END_SRC
-
-*** Omnibox
-
-#+NAME: mb-omnibox
-#+BEGIN_SRC emacs-lisp
+;; Block = @95099
+(message "org-dotemacs: evaluating @95099 block")
 ;; Omnibox
 (use-package omnibox
   :commands omnibox-M-x
   :bind (:map omnibox-mode-map
               ("M-x" . omnibox-M-x)))
-#+END_SRC
-
-** Completion
-:PROPERTIES:
-:ID:       2527EA69-7553-43C5-A1E6-5084BD977200
-:END:
-*** Prescient
-
-Filter and sort completion candidates.
-
-**** prescient.el
-
-Package ~prescient~ is a library for intelligent sorting and
-filtering in various contexts.
-
-#+NAME: prescient/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @95529
+(message "org-dotemacs: evaluating @95529 block")
 (use-package prescient
   :config
   ;; Remember usage statistics across Emacs sessions.
   (prescient-persist-mode +1))
-#+END_SRC
-
-**** company prescient
-
-Package ~company-prescient~ provides intelligent sorting and
-filtering for candidates in Company completions.
-
-#+NAME: prescient/company
-#+BEGIN_SRC emacs-lisp
+;; Block = @95842
+(message "org-dotemacs: evaluating @95842 block")
 (use-package company-prescient
   :after (:all prescient company)
   :demand t
   :config
   ;; Use `prescient' for Company menus.
   (company-prescient-mode +1))
-#+END_SRC
-
-**** ivy prescient
-
-Package ~ivy-prescient~ provides intelligent sorting and filtering
-for candidates in Ivy menus.
-
-#+NAME: prescient/ivy
-#+BEGIN_SRC emacs-lisp
+;; Block = @96173
+(message "org-dotemacs: evaluating @96173 block")
 (use-package ivy-prescient
   :init
   ;; Use `prescient' for Ivy menus.
   (ivy-prescient-mode +1))
 
-#+END_SRC
-
-*** Company
-
-Emacs has two popular packages for code completion --
-[[https://github.com/auto-complete/auto-complete][autocomplete]] and [[https://github.com/company-mode/company-mode][company]]. This reddit [[https://www.reddit.com/r/emacs/comments/2ekw22/autocompletemode_vs_companymode_which_is_better/][thread]] was enough for
-me to go with company.
-
-
-If you need more convincing, [[https://github.com/company-mode/company-mode/issues/68][company-mode/company-mode#68]]
-offers a comprehensive discussion on the two.
-
-The ticket is from the ‘company-mode‘ repository, so there's
-probably some bias there, but company-mode hasn't provided
-any reason for me reconsider my choice.
-
-#+NAME: company/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @97008
+(message "org-dotemacs: evaluating @97008 block")
 (use-package company
   :commands global-company-mode
   :custom
@@ -3709,23 +2170,16 @@ any reason for me reconsider my choice.
           company-echo-metadata-frontend))
   :hook
   (after-init . global-company-mode))
-#+END_SRC
-
-**** Company posframe
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @97454
+(message "org-dotemacs: evaluating @97454 block")
 (use-package company-posframe
   :after (:all company posframe)
   :demand t
   :init
   (company-posframe-mode 1))
 
-#+END_SRC
-
-**** Company Dict
-
-#+NAME: completion/company-dict
-#+BEGIN_SRC emacs-lisp
+;; Block = @97652
+(message "org-dotemacs: evaluating @97652 block")
 (use-package company-dict
   :after (company)
   :demand t
@@ -3734,14 +2188,8 @@ any reason for me reconsider my choice.
   :config
   (setq company-dict-enable-fuzzy t
         company-dict-enable-yasnippet t))
-#+END_SRC
-
-**** Company Quick Help
-
-[[https://github.com/expez/company-quickhelp][Company Quick Help]] emulates =autocomplete= documentation-on-idle behavior, but using the less-buggy =pos-tip= package rather than =popup-el=.
-
-#+NAME: company/quickhelp
-#+BEGIN_SRC emacs-lisp
+;; Block = @98129
+(message "org-dotemacs: evaluating @98129 block")
 (use-package company-quickhelp
   :after (company)
   :commands (company-quickhelp-manual-begin)
@@ -3750,20 +2198,12 @@ any reason for me reconsider my choice.
         ("C-c h" . company-quickhelp-manual-begin))
   :config
   (company-quickhelp-mode 1))
-#+END_SRC
-
-**** Company Box
-
-#+NAME: company/box
-#+BEGIN_SRC emacs-lisp
+;; Block = @98423
+(message "org-dotemacs: evaluating @98423 block")
 (use-package company-box
     :custom (company-box-enable-icon nil))
-#+END_SRC
-
-*** Templating
-**** Autoinsert
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @98557
+(message "org-dotemacs: evaluating @98557 block")
 (use-package autoinsert
   :init
   (defun autoinsert-yas-expand()
@@ -3776,13 +2216,8 @@ any reason for me reconsider my choice.
   :hook
   (find-file . auto-insert))
 
-#+END_SRC
-
-**** YASnippet
-
-[[https://github.com/joaotavora/yasnippet][YASnippet]] is a template system based off the TextMate snippet syntax.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @99075
+(message "org-dotemacs: evaluating @99075 block")
 (use-package yasnippet
     :bind
     (:map goto-map
@@ -3804,36 +2239,20 @@ any reason for me reconsider my choice.
     (when (featurep 'which-key)
       (which-key-add-key-based-replacements
         "C-c &" " YASnippet")))
-#+END_SRC
-
-***** Ivy YASnippet
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @99665
+(message "org-dotemacs: evaluating @99665 block")
 (use-package ivy-yasnippet)
-#+END_SRC
-
-#+NAME: snippets-autoyas
-#+BEGIN_SRC emacs-lisp
+;; Block = @99752
+(message "org-dotemacs: evaluating @99752 block")
 (use-package auto-yasnippet)
-#+END_SRC
-
-***** Autoyas
-
-#+NAME: snippets-autoyas
-#+BEGIN_SRC emacs-lisp
+;; Block = @99855
+(message "org-dotemacs: evaluating @99855 block")
 (use-package auto-yasnippet)
-#+END_SRC
-
-**** header2
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @99932
+(message "org-dotemacs: evaluating @99932 block")
 (use-package header2)
-#+END_SRC
-
-**** Skeletor
-
-#+NAME: skeletor-spec
-#+BEGIN_SRC emacs-lisp
+;; Block = @100025
+(message "org-dotemacs: evaluating @100025 block")
   (use-package skeletor
     :custom
     (skeletor-user-directory (emacs-etc-dir "skeletor/project-skeletons"))
@@ -3910,50 +2329,20 @@ any reason for me reconsider my choice.
     :hook
     (project-mode . skeletor/projectile-ignore))
 
-#+END_SRC
-
-**** Expand Region
-
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :bind
-  ("s-'" .  er/expand-region)
-  ("s-S-'" . er/contract-region))
-#+END_SRC
-
-**** Code Library
-
-#+NAME: snippets-code-library
-#+BEGIN_SRC emacs-lisp
+;; Block = @102509
+(message "org-dotemacs: evaluating @102509 block")
 (use-package code-library
     :custom
     (code-library-directory (emacs-etc-dir "codelibrary"))
     (code-library-sync-to-gist t))
-#+END_SRC
-
-
-
-** Images
-:PROPERTIES:
-:ID:       36DECCD2-7A7F-4B6A-A3AA-88C6CC72CFBE
-:END:
-
-*** Artist Mode
-
-Artist mode is a built-in Emacs package.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @102812
+(message "org-dotemacs: evaluating @102812 block")
 (use-package artist-mode
   :straight nil
   :bind ((:map artist-mode-map
                ("C-c C-a p" . artist-select-op-pen-line))))
-#+END_SRC
-
-*** UML Diagrams
-**** Ditaa
-
-#+NAME: uml-ditaa
-#+BEGIN_SRC emacs-lisp
+;; Block = @103025
+(message "org-dotemacs: evaluating @103025 block")
 
 (when (and (eq system-type 'darwin)
            (executable-find "brew")
@@ -3964,12 +2353,8 @@ Artist mode is a built-in Emacs package.
                       "realpath $(brew --prefix ditaa)/libexec/*.jar"))))
     (setq org-ditaa-jar-path ditaa-path)))
 
-#+END_SRC
-
-**** PlantUML
-
-#+NAME: uml-plantuml
-#+BEGIN_SRC emacs-lisp
+;; Block = @103446
+(message "org-dotemacs: evaluating @103446 block")
 (use-package plantuml-mode
   :if (executable-find "plantuml")
   :defines (org-plantuml-jar-path plantuml-jar-path)
@@ -3983,11 +2368,8 @@ Artist mode is a built-in Emacs package.
   (when (eq system-type 'darwin)
     (setq org-plantuml-jar-path (halidom/plantuml-resolve-jar-path))
     (setq plantuml-jar-path (halidom/plantuml-resolve-jar-path))))
-#+END_SRC
-
-*** Graphviz
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @104030
+(message "org-dotemacs: evaluating @104030 block")
 (use-package graphviz-dot-mode
   :if (executable-find "dot")
   :mode "\\.dot\\'"
@@ -4013,15 +2395,8 @@ Artist mode is a built-in Emacs package.
   (with-eval-after-load 'graphviz-dot-mode
     (halidom/graphviz-dot-mode-setup)))
 
-#+END_SRC
-
-*** Thesaurus
-
-This library needs to allow setting transfer protocol on the user
-end. It's hardcoded to use port 80. HTTP doesn't really work on my
-school's WLAN.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @105189
+(message "org-dotemacs: evaluating @105189 block")
 
 (use-package thesaurus
   :config
@@ -4030,16 +2405,8 @@ school's WLAN.
     (setq thesaurus-prompt-mechanism 'counsel-imenu
           url-proxy-services nil)))
 
-#+END_SRC
-
-*** Image+
-:PROPERTIES:
-:ID:       51961976-3E9D-4438-947A-912D21993F1D
-:END:
-
-[[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @105599
+(message "org-dotemacs: evaluating @105599 block")
   (use-package image+
     :if (display-graphic-p)
     :after (image)
@@ -4055,59 +2422,28 @@ school's WLAN.
            ("S" imagex-sticky-save-image "save file")
            ("r" imagex-sticky-rotate-right "rotate right")
            ("l" imagex-sticky-rotate-left "rotate left")))))
-#+END_SRC
-
-* Org
-:PROPERTIES:
-:ID:       C2106106-C5F8-4B9B-815D-058678CB9242
-:END:
-** Org LaTeX
-*** Latex
-:PROPERTIES:
-:ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
-:CUSTOM_ID: sec:latex
-:END:
-**** Auctex
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @106474
+(message "org-dotemacs: evaluating @106474 block")
 (use-package auctex
   :bind (:map LaTeX-mode-map
               ("M-s l" . TeX-engine-set)))
-#+END_SRC
-
-***** company auctex
-:PROPERTIES:
-:ID:       EF3C7FFE-2A5E-4DF9-A2E6-FC0FBC9E8F9D
-:END:
-
-#+NAME: latex-company-auctex
-#+BEGIN_SRC emacs-lisp
+;; Block = @106718
+(message "org-dotemacs: evaluating @106718 block")
 (use-package company-auctex
   :demand t
   :after (:all company tex)
   :init
   (company-auctex-init))
-#+END_SRC
-
-***** auctex latexmk
-:PROPERTIES:
-:ID:       68110AC8-A864-46E1-B4CC-C3297F78C7B4
-:END:
-
-#+NAME: latex-auctex-latexmk
-#+BEGIN_SRC emacs-lisp
+;; Block = @106971
+(message "org-dotemacs: evaluating @106971 block")
 (use-package auctex-latexmk
   :after (tex)
   :custom
   (auctex-latexmk-inherit-TeX-PDF-mode t)
   :init
   (auctex-latexmk-setup))
-#+END_SRC
-
-**** Tex
-
-#+NAME: latex-tex
-#+BEGIN_SRC emacs-lisp
+;; Block = @107162
+(message "org-dotemacs: evaluating @107162 block")
 (use-package tex
   :straight auctex
   :custom
@@ -4159,30 +2495,15 @@ This requires the pdf-tools package to be installed."
 
 )
 
-#+END_SRC
-
-**** Math
-:PROPERTIES:
-:ID:       1DCF30B4-5549-4415-B588-FE9C5056F0A3
-:END:
-
-***** Company Math
-
-#+NAME: latex-math-completion
-#+BEGIN_SRC emacs-lisp
+;; Block = @108995
+(message "org-dotemacs: evaluating @108995 block")
 (use-package company-math
   :after (company)
   :demand t
   :init
   (add-to-list 'company-backends 'company-math-symbols-unicode))
-#+END_SRC
-
-***** Math Symbols
-
-Entered on [2018-06-13 Wed 11:42]
-
-#+NAME: latex-math-symbols
-#+BEGIN_SRC emacs-lisp
+;; Block = @109241
+(message "org-dotemacs: evaluating @109241 block")
   (use-package math-symbols
     :init
 
@@ -4265,11 +2586,8 @@ Entered on [2018-06-13 Wed 11:42]
     (LaTeX-mode . latex/unbind-osx-browse)
     (LaTeX-mode . latex/prettify-symbols-extra))
 
-#+END_SRC
-
-**** Extra
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @111941
+(message "org-dotemacs: evaluating @111941 block")
 (use-package latex-extra
   :custom
   (latex/no-fill-environments
@@ -4296,18 +2614,8 @@ Entered on [2018-06-13 Wed 11:42]
     :hook
     (LaTeX-mode . latex/extra))
 
-#+END_SRC
-
-**** Reftex
-
-
-RefTeX is a citation and reference tool maintained by the
-AucTeX team.
-
-Since Emacs 24.3, its built in with the Emacs distribution.
-
-#+NAME: latex-reftex
-#+BEGIN_SRC emacs-lisp
+;; Block = @113034
+(message "org-dotemacs: evaluating @113034 block")
 (use-package reftex
     :straight nil
     :init
@@ -4320,26 +2628,13 @@ Since Emacs 24.3, its built in with the Emacs distribution.
             `(,(org-dir "ref/references.bib"))))
     :hook
     (LaTeX-mode . reftex/setup))
-#+END_SRC
-
-***** Company Reftex
-:PROPERTIES:
-:ID:       7E380FB6-09B2-4E73-87D1-5515402B58D1
-:END:
-
-#+NAME: latex-company-reftex
-#+BEGIN_SRC emacs-lisp
+;; Block = @113512
+(message "org-dotemacs: evaluating @113512 block")
 (use-package company-reftex
   :demand t
   :after (:all company reftex))
-#+END_SRC
-
-**** Magic Latex Buffer
-
-Prettify dedicated org-mode latex buffers.
-
-#+NAME: latex-magic-latex-buffer
-#+BEGIN_SRC emacs-lisp
+;; Block = @113720
+(message "org-dotemacs: evaluating @113720 block")
   (use-package magic-latex-buffer
       :custom
       (magic-latex-enable-block-highlight t)
@@ -4349,45 +2644,25 @@ Prettify dedicated org-mode latex buffers.
       (magic-latex-enable-inline-image nil)
       :hook
       (LaTeX-mode . magic-latex-buffer))
-#+END_SRC
-
-**** Texinfo
-
-#+NAME: latex-texinfo
-#+BEGIN_SRC emacs-lisp
+;; Block = @114107
+(message "org-dotemacs: evaluating @114107 block")
 (use-package texinfo
   :defines texinfo-section-list
   :commands texinfo-mode
   :mode
   ("\\.texi\\'" . texinfo-mode))
-#+END_SRC
-
-*** Preview
-**** LaTeX Preview Pane
-
-Not tangling right now because it's creating a new buffer after every
-save.
-
-#+NAME: latex-latex-preview-pane
-#+BEGIN_SRC emacs-lisp
+;; Block = @114407
+(message "org-dotemacs: evaluating @114407 block")
 (use-package latex-preview-pane
     :after (:all pdf-tools tex)
     :init (latex-preview-pane-enable))
-#+END_SRC
-
-**** Use single directory for storing latex fragments
-
-#+NAME: org-preview-directory
-#+BEGIN_SRC emacs-lisp
+;; Block = @114629
+(message "org-dotemacs: evaluating @114629 block")
 (let ((ltximg (file-truename '"~/.tmp/ltximg/")))
   (when (file-directory-p ltximg)
     (setq org-preview-latex-image-directory ltximg)))
-#+END_SRC
-
-**** Clear Cache
-
-#+NAME: org-preview-clear-cache
-#+BEGIN_SRC emacs-lisp
+;; Block = @114851
+(message "org-dotemacs: evaluating @114851 block")
 (defun org-preview-clear-cache ()
   (interactive)
   (let ((preview-cache
@@ -4395,29 +2670,17 @@ save.
     (if (f-directory? preview-cache)
         (f-delete preview-cache t)
       (message "%s" "Directory 'ltximg' does not exist."))))
-#+END_SRC
-
-**** Set the default preview process
-
-#+NAME: org-preview-default
-#+BEGIN_SRC emacs-lisp
+;; Block = @115229
+(message "org-dotemacs: evaluating @115229 block")
 (if (image-type-available-p 'imagemagick)
     (setq org-preview-latex-default-process 'imagemagick)
   (setq org-preview-latex-default-process 'dvisvgm))
-#+END_SRC
-
-**** Format Options
-
-#+NAME: org-preview-format
-#+BEGIN_SRC emacs-lisp
+;; Block = @115464
+(message "org-dotemacs: evaluating @115464 block")
 (when (boundp 'org-format-latex-options)
   (plist-put org-format-latex-options :scale 1.2))
-#+END_SRC
-
-**** Parsing keywords
-
-#+NAME: org-preview-parsing
-#+BEGIN_SRC emacs-lisp
+;; Block = @115641
+(message "org-dotemacs: evaluating @115641 block")
 (defun org-preview/process-keyword  (p)
   (interactive)
   (org-element-map (org-element-parse-buffer) 'keyword
@@ -4446,12 +2709,8 @@ save.
   (let ((latex-class (org-preview/process-class)))
     (string= "uclacs" latex-class)))
 
-#+END_SRC
-
-**** XeLaTeX
-
-#+NAME: org-preview-xelatex
-#+BEGIN_SRC emacs-lisp
+;; Block = @116563
+(message "org-dotemacs: evaluating @116563 block")
 (defcustom xelatex-preview-header org-format-latex-header
   "The preamble to use for previewing LaTeX fragments with XeLaTeX."
   :type 'string)
@@ -4515,12 +2774,8 @@ save.
              (read-file-contents preview-file)
            xelatex-preview-header)))
   )
-#+END_SRC
-
-**** LuaLaTeX
-
-#+NAME: org-preview-lualatex
-#+BEGIN_SRC emacs-lisp
+;; Block = @118768
+(message "org-dotemacs: evaluating @118768 block")
 (defcustom lualatex-preview-header nil
   "The preamble to use for previewing LaTeX fragments with LuLaTeX."
   :type 'string)
@@ -4584,23 +2839,11 @@ save.
              (concat lualatex-preview-header
                      (read-file-contents preview-file))
            lualatex-preview-header))))
-#+END_SRC
-
-***** Scrolling
-:PROPERTIES:
-:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
-:END:
-****** Scroll to first error on compilation
-
-#+NAME: scroll/compile-error
-#+BEGIN_SRC emacs-lisp
+;; Block = @121119
+(message "org-dotemacs: evaluating @121119 block")
 (setq compilation-scroll-output 'first-error)
-#+END_SRC
-
-****** Smooth Scrolling
-
-#+NAME: scroll/smooth
-#+BEGIN_SRC emacs-lisp
+;; Block = @121246
+(message "org-dotemacs: evaluating @121246 block")
 (use-package smooth-scrolling
   :init
   (smooth-scrolling-mode 1)
@@ -4612,23 +2855,13 @@ save.
 
   (setq mouse-wheel-follow-mouse 't)
   (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
-#+END_SRC
-
-****** Sublimity Scroll
-
-#+NAME: scroll/subliminity
-#+BEGIN_SRC emacs-lisp
+;; Block = @121626
+(message "org-dotemacs: evaluating @121626 block")
   (use-package sublimity
       :init
     (require 'sublimity-scroll))
-#+END_SRC
-
-**** Dynamic latex previews
-
-Generate latex fragments based on the latex compiler and class in the current buffer.
-
-#+NAME: org-preview-dynamic
-#+BEGIN_SRC emacs-lisp
+;; Block = @121874
+(message "org-dotemacs: evaluating @121874 block")
 (defun org-preview-with-compiler ()
   (interactive)
   (let ((latex-compiler (org-preview/process-compiler)))
@@ -4644,12 +2877,8 @@ Generate latex fragments based on the latex compiler and class in the current bu
       (org-preview-lualatex))))
 
 (add-hook 'org-mode-hook 'org-preview-with-compiler)
-#+END_SRC
-
-*** cdlatex
-
-#+NAME: latex-cdlatex
-#+BEGIN_SRC emacs-lisp
+;; Block = @122466
+(message "org-dotemacs: evaluating @122466 block")
 (use-package cdlatex
   :custom
   ;; Disable auto label insertion in expanded template.
@@ -4661,18 +2890,11 @@ Generate latex fragments based on the latex compiler and class in the current bu
   ;; with Emacs latex mode
   ;; (latex-mode . turn-on-cdlatex)
   (org-mode . org-cdlatex-mode))
-#+END_SRC
-
-*** Edit Latex
-
-#+NAME: org-latex-edit-latex
-#+BEGIN_SRC emacs-lisp
+;; Block = @122911
+(message "org-dotemacs: evaluating @122911 block")
 (use-package org-edit-latex)
-#+END_SRC
-
-*** BibTeX
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @122986
+(message "org-dotemacs: evaluating @122986 block")
 (use-package bibtex
   :straight nil
   :custom
@@ -4906,15 +3128,8 @@ entry types and required fields."
 	                  (insert "\n")))))
     (switch-to-buffer-other-window buf))))
 
-#+END_SRC
-
-*** Org Ref
-:PROPERTIES:
-:ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
-:CUSTOM_ID: org-ref
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @131940
+(message "org-dotemacs: evaluating @131940 block")
 
 (use-package org-ref
   :after ivy
@@ -5009,19 +3224,8 @@ entry types and required fields."
     (unless path
       (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
     (find-file path)))
-#+END_SRC
-
-*** VIewing PDFs
-**** PDF Tools
-
-[[https://github.com/politza/pdf-tools][PDF Tools]] adds several features and enhancements for interacting with
-PDF documents in Emacs. It serves as a replacement for DocView mode.
-
-Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
-[[http://pragmaticemacs.com/category/emacs/][blogpost]] demonstrating how to get the most out of this package.
-
-#+NAME: pdf/tools
-#+BEGIN_SRC emacs-lisp
+;; Block = @135273
+(message "org-dotemacs: evaluating @135273 block")
 (use-package pdf-tools
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :bind (:map pdf-view-mode-map
@@ -5035,14 +3239,8 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   (setq-default pdf-view-display-size 'fit-page)
   (setq pdf-annot-activate-created-annotations t
         pdf-view-resize-factor 1))
-#+END_SRC
-
-**** Org PDF View
-
-Now we can open pdf files with =org-pdfview= [fn:12]:
-
-#+NAME: pdf/org
-#+BEGIN_SRC emacs-lisp
+;; Block = @135867
+(message "org-dotemacs: evaluating @135867 block")
 (use-package org-pdfview
   :after (:all pdf-tools)
   :demand t
@@ -5054,61 +3252,28 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
                              '("\\.pdf\\'" .
                                (lambda (file link)
                                  (org-pdfview-open link))))))))
-#+END_SRC
-
-** Org Structure
-*** Outlines
-**** Navi
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @136282
+(message "org-dotemacs: evaluating @136282 block")
 (use-package navi)
-#+END_SRC
-
-**** Outshine
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @136350
+(message "org-dotemacs: evaluating @136350 block")
 (use-package outshine
-  :preface (setq outshine-minor-mode-prefix "\M-#")
-  :hook ((prog-mode          . outline-minor-mode)
-         (outline-minor-mode . outshine-mode)))
-#+END_SRC
-
-**** Outorg
-
-#+BEGIN_SRC emacs-lisp
+  :init (setq outshine-minor-mode-prefix "\M-#")
+  :hook ((outline-minor-mode . outshine-mode)))
+;; Block = @136517
+(message "org-dotemacs: evaluating @136517 block")
 (use-package outorg
-    :after (outshine))
-#+END_SRC
-
-**** foldout.el
-:PROPERTIES:
-:ID:       7A037F3A-7569-44C4-858A-B298381AC21D
-:END:
-
-~foldout.el~, which is part of Emacs, is a nice little companion for
-~outline-mode~.  With ~foldout.el~ one can narrow to a subtree and
-later unnarrow.  ~foldout.el~ is useful for Org mode out of the box.
-
-There is one annoyance though (at least for me):
-~foldout-zoom-subtree~ opens the drawers.
-
-This can be fixed e.g. by using the following slightly modified
-version of ~foldout-zoom-subtree~ which uses function ~org-show-entry~
-instead of ~outline-show-entry~.
-
-#+BEGIN_SRC emacs-lisp
+  :after (:all outshine))
+;; Block = @137148
+(message "org-dotemacs: evaluating @137148 block")
   (defun foldout-zoom-org-subtree (&optional exposure)
     "Same as `foldout-zoom-subtree' with often nicer zoom in Org mode."
     (interactive "P")
     (cl-letf
         (((symbol-function #'outline-show-entry) (lambda () (org-show-entry))))
       (foldout-zoom-subtree exposure)))
-#+END_SRC
-
-*** Org Outline Numbering
-
-#+NAME: org-ui-outline-numbering
-#+BEGIN_SRC emacs-lisp
+;; Block = @137524
+(message "org-dotemacs: evaluating @137524 block")
   (use-package org-outline-numbering
     :custom-face
     (org-outline-numbering-face
@@ -5117,33 +3282,21 @@ instead of ~outline-show-entry~.
     (defun org/outline-numbering ()
       (org-outline-numbering-mode 1)))
 
-#+END_SRC
-
-****
-
-*** Org radiobutton
-:PROPERTIES:
-:ID:       EA7D1F8C-6A3E-4154-B1ED-581F8B5446C3
-:END:
-
-The [[https://github.com/Fuco1/org-radiobutton][org-radiobutton]] package a minor mode which automates the property
-requirements for radiobutton lists.
-
-See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-option-from-a-list.html][blogpost]] for more information.
-
-#+NAME: org-ui-radiobutton
-#+BEGIN_SRC emacs-lisp
+;; Block = @137820
+(message "org-dotemacs: evaluating @137820 block")
+(add-hook 'before-save-hook
+          (lambda ()
+            (when (and (eq major-mode 'org-mode)
+                       (eq buffer-read-only nil))
+              (org-list-repair))))
+;; Block = @138443
+(message "org-dotemacs: evaluating @138443 block")
 (use-package org-radiobutton
   :init
   (when (fboundp 'global-org-radiobutton-mode)
     (global-org-radiobutton-mode)))
-#+END_SRC
-
-*** Org Links :structure:
-**** Add Tags Link
-
-#+NAME: org-links-tags
-#+BEGIN_SRC emacs-lisp
+;; Block = @138666
+(message "org-dotemacs: evaluating @138666 block")
 (defun halidom/tag-link (tag)
   "Display a list of TODO headlines with tag TAG.
 With prefix argument, also display headlines without a TODO keyword."
@@ -5151,24 +3304,11 @@ With prefix argument, also display headlines without a TODO keyword."
 
 (org-add-link-type
  "tag" 'halidom/tag-link)
-#+END_SRC
-
-**** Org Elisp Help Links
-
-#+NAME: org-links-elisp-help
-#+BEGIN_SRC emacs-lisp
-(use-package org-elisp-help
-  :straight t)
-#+END_SRC
-
-**** Org YouTube
-
-From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
-
-Embed YouTube Links in iframe.
-
-#+NAME: org-links-youtube
-#+BEGIN_SRC emacs-lisp
+;; Block = @139001
+(message "org-dotemacs: evaluating @139001 block")
+(use-package org-elisp-help)
+;; Block = @139261
+(message "org-dotemacs: evaluating @139261 block")
 (org-link-set-parameters
  "youtube"
  :follow (lambda (path)
@@ -5185,20 +3325,12 @@ Embed YouTube Links in iframe.
 		     path path))))
  :help-echo "A youtube video. Click to open in browser.")
 
-#+END_SRC
-
-**** Org Link Minor Mode
-
-#+NAME: org-links-minor
-#+BEGIN_SRC emacs-lisp
+;; Block = @139832
+(message "org-dotemacs: evaluating @139832 block")
 (use-package org-link-minor-mode
   :hook (prog-mode . org-link-minor-mode))
-#+END_SRC
-
-**** Org Latex Links
-
-#+NAME: org-links-latex
-#+BEGIN_SRC emacs-lisp
+;; Block = @139988
+(message "org-dotemacs: evaluating @139988 block")
 ;; From https://orgmode.org/worg/org-tutorials/org-latex-export.html
 (org-add-link-type
  "latex" nil
@@ -5211,37 +3343,19 @@ Embed YouTube Links in iframe.
 
 ;; See https://lists.gnu.org/archive/html/emacs-orgmode/2014-08/msg00982.html
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
-#+END_SRC
-
-**** Devonthink links
-
-#+BEGIN_SRC emacs-lisp :tangle no
+;; Block = @140466
+(message "org-dotemacs: evaluating @140466 block")
 (use-package org-devonthink
   :straight nil
   :load-path "etc/local/org-devonthink")
 
-#+END_SRC
-
-
-**** Org Bookmark Heading
-
-:PROPERTIES:
-:ID:       B7904803-C4A6-439D-BD21-E449CF0B79F5
-:END:
-
-#+NAME: org-links-bookmark
-#+BEGIN_SRC emacs-lisp
+;; Block = @140720
+(message "org-dotemacs: evaluating @140720 block")
 (use-package org-bookmark-heading
   :init
   (require 'org-bookmark-heading))
-#+END_SRC
-
-**** Check for possibly problematic old link escapes
-:PROPERTIES:
-:ID:       628ECB9A-4F8A-453E-8521-318C008FD287
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @140952
+(message "org-dotemacs: evaluating @140952 block")
   (defun org-check-percent-escapes ()
     "*Check buffer for possibly problematic old link escapes."
     (interactive)
@@ -5264,15 +3378,8 @@ Embed YouTube Links in iframe.
                         (buffer-name)
                         (- (point) 3)))))
             (goto-char end))))))
-#+END_SRC
-
-**** Hyperlink extraction
-:PROPERTIES:
-:ID:       D2FDF2BE-E489-4D6E-8955-F61B7E4AA487
-:END:
-
-#+NAME: org-hacks-extract-hyperlink
-#+BEGIN_SRC emacs-lisp
+;; Block = @142149
+(message "org-dotemacs: evaluating @142149 block")
 
   (defun org-extract-link ()
     "Extract the link location at point and put it on the killring."
@@ -5290,11 +3397,8 @@ Embed YouTube Links in iframe.
   (apply orig-fun args))
 
 (advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
-#+END_SRC
-
-*** Org ID :structure:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @142880
+(message "org-dotemacs: evaluating @142880 block")
 (use-package org-id
   :straight org
   :custom
@@ -5382,72 +3486,40 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
   (org-capture-prepare-finalize . org-capture-add-custom-id)
   (org-mode . org-add-ids-to-headlines-in-file))
 
-#+END_SRC
-
-** Org Coding
-*** Org Babel
-:PROPERTIES:
-:ID:       8209391F-1D45-46CC-8184-78F393D467CA
-:END:
-**** Ob Http
-
-#+NAME: org-ob-http
-#+BEGIN_SRC emacs-lisp
+;; Block = @146638
+(message "org-dotemacs: evaluating @146638 block")
 (use-package ob-http
   :after (ob)
   :demand t)
-#+END_SRC
-
-**** Ob ClojureScript
-
-[[https://github.com/emacsmirror/ob-clojurescript][ob-clojurescript]] uses [[https://github.com/anmonteiro/lumo][lumo]] to evaluate ClojureScript code blocks in
-=org-mode= buffers.
-
-#+NAME: org-ob-cljs
-#+BEGIN_SRC emacs-lisp
+;; Block = @146945
+(message "org-dotemacs: evaluating @146945 block")
 (use-package ob-clojurescript
   :if (executable-find "lumo")
   :after (ob)
   :demand t)
-#+END_SRC
-
-**** Ob async
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @147082
+(message "org-dotemacs: evaluating @147082 block")
 (use-package ob-async)
-#+END_SRC
-
-**** Ob Babel
-
-#+BEGIN_SRC emacs-lisp :tangle no
+;; Block = @147154
+(message "org-dotemacs: evaluating @147154 block")
 (use-package org-babel-eval-in-repl
   :after (eval-in-repl)
   :bind
   (:map org-mode-map
         ("C-<return>" . ober-eval-in-repl)
-        ("C-c C-c" 'ober-eval-block-in-repl)
-        :custom
-        (eir-jump-after-evail nil)))
+        ("C-c C-c" . ober-eval-block-in-repl)))
 
-#+END_SRC
 
-**** ob browser
 
-#+BEGIN_SRC emacs-lisp
+;; Block = @147388
+(message "org-dotemacs: evaluating @147388 block")
 (use-package ob-browser
   :ensure-system-package (ob-browser . "yarn add phantomjs"))
-#+END_SRC
-
-**** Ob Diagrams
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @147526
+(message "org-dotemacs: evaluating @147526 block")
 (use-package ob-diagrams)
-#+END_SRC
-
-**** Load Languages
-
-#+NAME: org-ob-load-langs
-#+BEGIN_SRC emacs-lisp
+;; Block = @147633
+(message "org-dotemacs: evaluating @147633 block")
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((C . t)
@@ -5467,107 +3539,40 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
      (R . t)
      (shell . t)
      (org . t)))
-#+END_SRC
-
-*** Polymode
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package polymode)
-#+END_SRC
-
-**** Poly noweb
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package poly-noweb)
-#+END_SRC
-
-**** Poly org
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package poly-org)
-#+END_SRC
-
-**** Poly markdown
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package poly-markdown)
-#+END_SRC
-
-*** Lentic
-
-#+BEGIN_SRC emacs-lisp
-(use-package lentic
-)
-#+END_SRC
-
-*** Org2elcomment
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @148032
+(message "org-dotemacs: evaluating @148032 block")
+(use-package lentic)
+;; Block = @148106
+(message "org-dotemacs: evaluating @148106 block")
 (use-package org2elcomment)
-#+END_SRC
-
-** Org Tasks
-*** Attach
-
-#+NAME: org-docmgr-attach
-#+BEGIN_SRC emacs-lisp
+;; Block = @148192
+(message "org-dotemacs: evaluating @148192 block")
+(use-package org-drill
+  :straight org
+  :init
+  (require 'org-drill))
+;; Block = @148334
+(message "org-dotemacs: evaluating @148334 block")
   (use-package org-attach
     :straight org
     :custom
     (org-attach-auto-tag "attach"))
 
-#+END_SRC
-
-*** Capture :tasks:
-
-#+BEGIN_SRC emacs-lisp
-
+;; Block = @148482
+(message "org-dotemacs: evaluating @148482 block")
 (use-package org-capture
-    :straight nil
-    :init
-    (defun org-get-target-headline (&optional targets prompt)
-      "Prompt for a location in an org file and jump to it.
-
-This is for promping for refile targets when doing captures.
-Targets are selected from `org-refile-targets'. If TARGETS is
-given it temporarily overrides `org-refile-targets'. PROMPT will
-replace the default prompt message.
-
-If CAPTURE-LOC is is given, capture to that location instead of
-prompting."
-      (let ((org-refile-targets (or targets org-refile-targets))
-            (prompt (or prompt "Capture Location")))
-        (if org-capture-overriding-marker
-            (org-goto-marker-or-bmk org-capture-overriding-marker)
-          (org-refile t nil nil prompt))))
-    (setq org-capture-templates
-          '(,("C" "Config"
-                  (file+function
-                   ,halidom-user-literate-init-file
-                   org-get-target-headline)))))
-
-
-#+END_SRC
-
-
-**** Org Capture popup frame
-
-#+BEGIN_SRC emacs-lisp
+    :straight org
+    :custom
+    (org-default-notes-file
+     (expand-file-name "notes.org" org-directory)))
+;; Block = @148682
+(message "org-dotemacs: evaluating @148682 block")
 (use-package org-capture-pop-frame)
-#+END_SRC
-
-**** Org Category Capture
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @148779
+(message "org-dotemacs: evaluating @148779 block")
 (use-package org-category-capture)
-#+END_SRC
-
-**** Alfred capture
-:PROPERTIES:
-:ID:       A54EEE41-A32C-468D-A736-9CF314311FF6
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @148936
+(message "org-dotemacs: evaluating @148936 block")
 (use-package alfred-org-capture
     :straight (alfred-org-capture
                :type git
@@ -5575,26 +3580,14 @@ prompting."
                :repo "jjasghar/alfred-org-capture"
                :files ("el/alfred-org-capture.el")))
 
-#+END_SRC
-
-*** Habit
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @149205
+(message "org-dotemacs: evaluating @149205 block")
   (use-package org-habit
     :straight org
     :init
     (require 'org-habit))
-#+END_SRC
-
-*** Agenda
-
-
-I use per-project agenda files for the most part (now being managed
-using [[#org-projectile][org-projectile]]), but I like having a designated global one for miscellaneous or arbitrary tasks.
-
-
-#+NAME: agenda/org-agenda
-#+BEGIN_SRC emacs-lisp
+;; Block = @149551
+(message "org-dotemacs: evaluating @149551 block")
   (use-package org-agenda
     :straight org
     :custom
@@ -5650,7 +3643,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               org-level-remap-face))))
 
 
-    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
+    (defvar halidom/default-agenda-file
+      (file-truename  "Dropbox/org/todos/TODOs.org")
       "The file path of the default agenda file.")
 
     (when (file-exists-p halidom/default-agenda-file)
@@ -5658,29 +3652,21 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :hook
     (org-mode . halidom/org-agenda-file-face))
-#+END_SRC
 
-**** Super agenda
 
-#+BEGIN_SRC emacs-lisp
+;; Block = @151793
+(message "org-dotemacs: evaluating @151793 block")
 (use-package org-super-agenda)
 
-#+END_SRC
-
-**** Agenda ng
-
-#+NAME: agenda/ng
-#+BEGIN_SRC emacs-lisp
+;; Block = @151893
+(message "org-dotemacs: evaluating @151893 block")
 (use-package org-agenda-ng
   :straight (org-agenda-ng :host github
                            :repo "alphapapa/org-agenda-ng"
                            :files ("org-agenda-ng.el")))
 
-#+END_SRC
-
-**** Org ql
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @152124
+(message "org-dotemacs: evaluating @152124 block")
 (use-package org-ql
     :straight
     (org-ql
@@ -5688,11 +3674,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       :host github
       :repo "alphapapa/org-agenda-ng"
       :files ("org-ql.el")))
-#+END_SRC
-
-***** QL Agenda
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @152323
+(message "org-dotemacs: evaluating @152323 block")
 (use-package org-ql-agenda
     :straight
     (org-ql-agenda
@@ -5700,12 +3683,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       :host github
       :repo "alphapapa/org-agenda-ng"
       :files ("org-ql-agenda.el")))
-#+END_SRC
-
-**** Org Sidebar
-
-#+NAME: agenda/sidebar
-#+BEGIN_SRC emacs-lisp
+;; Block = @152567
+(message "org-dotemacs: evaluating @152567 block")
 (use-package org-sidebar
   :straight
   (org-sidebar
@@ -5754,16 +3733,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                (functionp sidebar-function))
         (message "%s" sidebar-function)
         (funcall sidebar-function)))))
-#+END_SRC
-
-**** Org Projectile
-:PROPERTIES:
-:ID:       D469E868-7FCB-45FD-AB3E-609018F4BC58
-:CUSTOM_ID: org-projectile
-:END:
-
-#+NAME: org-taskmgr-projectile
-#+BEGIN_SRC emacs-lisp
+;; Block = @154374
+(message "org-dotemacs: evaluating @154374 block")
   (use-package org-projectile
     :commands (org-projectile-files-to-agenda)
     :after (projectile)
@@ -5806,89 +3777,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :config
     (org-projectile-per-project))
 
-#+END_SRC
-
-**** Add sunrise/sunset times to the agenda.
-:PROPERTIES:
-:ID:       0C997113-9274-4671-A432-B4F4775803F1
-:END:
-
--- Nick Dokos
-
-The diary package provides the function =diary-sunrise-sunset= which can be used
-in a diary s-expression in some agenda file like this:
-
-#+BEGIN_SRC org
-  %%(diary-sunrise-sunset)
-#+END_SRC
-
-Seb Vauban asked if it is possible to put sunrise and sunset in
-separate lines. Here is a hack to do that. It adds two functions (they
-have to be available before the agenda is shown, so I add them early
-in my org-config file which is sourced from .emacs, but you'll have to
-suit yourself here) that just parse the output of
-diary-sunrise-sunset, instead of doing the right thing which would be
-to take advantage of the data structures that diary/solar.el provides.
-In short, a hack - so perfectly suited for inclusion here :-)
-
-The functions (and latitude/longitude settings which you have to modify for
-your location) are as follows:
-
-#+BEGIN_SRC emacs-lisp
-  (setq calendar-latitude 48.2)
-  (setq calendar-longitude 16.4)
-  (setq calendar-location-name "Vienna, Austria")
-
-  (autoload 'solar-sunrise-sunset "solar.el")
-  (autoload 'solar-time-string "solar.el")
-  (defun diary-sunrise ()
-    "Local time of sunrise as a diary entry.
-  The diary entry can contain `%s' which will be replaced with
-  `calendar-location-name'."
-    (let ((l (solar-sunrise-sunset date)))
-      (when (car l)
-        (concat
-         (if (string= entry "")
-             "Sunrise"
-           (format entry (eval calendar-location-name))) " "
-           (solar-time-string (caar l) nil)))))
-
-  (defun diary-sunset ()
-    "Local time of sunset as a diary entry.
-  The diary entry can contain `%s' which will be replaced with
-  `calendar-location-name'."
-    (let ((l (solar-sunrise-sunset date)))
-      (when (cadr l)
-        (concat
-         (if (string= entry "")
-             "Sunset"
-           (format entry (eval calendar-location-name))) " "
-           (solar-time-string (caadr l) nil)))))
-#+END_SRC
-
-You also need to add a couple of diary s-expressions in one of your agenda
-files:
-
-#+BEGIN_SRC org
-  %%(diary-sunrise)Sunrise in %s
-  %%(diary-sunset)
-#+END_SRC
-
-This will show sunrise with the location and sunset without it.
-
-The thread on the mailing list that started this can be found [[http://thread.gmane.org/gmane.emacs.orgmode/38723Here%20is%20a%20pointer%20to%20the%20thread%20on%20the%20mailing%20list][here]].
-In comparison to the version posted on the mailing list, this one
-gets rid of the timezone information and can show the location.
-
-*** Calendar
-**** Google Calendar
-
-
-The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode integration with Google
-Calendar.
-
-#+NAME: org-taskmgr-gcal
-#+BEGIN_SRC emacs-lisp
+;; Block = @156012
+(message "org-dotemacs: evaluating @156012 block")
 ;; (use-package org-gcal
 ;;     :init
 ;;   (require 'secrets)
@@ -5900,19 +3790,11 @@ Calendar.
 ;;   (org-agenda-mode . org-gcal-sync)
 ;;   (org-capture-after-finalize . org-gcalcc-sync))
 
-#+END_SRC
-
-**** Google maps
-
-#+NAME: org-taskmgr-maps
-#+BEGIN_SRC emacs-lisp
+;; Block = @156391
+(message "org-dotemacs: evaluating @156391 block")
 (use-package google-maps)
-#+END_SRC
-
-**** calfw
-
-#+NAME: org-taskmgr-calfw
-#+BEGIN_SRC emacs-lisp
+;; Block = @156489
+(message "org-dotemacs: evaluating @156489 block")
 (use-package calfw
   :custom
   (cfw:org-capture-template
@@ -5955,14 +3837,8 @@ Calendar.
              "programming languages" "~/Dropbox/courses/cs131/TODOs.org" "tomato1")))))
      (switch-to-buffer (cfw:cp-get-buffer cp))))
 )
-#+END_SRC
-
-**** Manipulate hours/minutes/seconds in table formulas
-:PROPERTIES:
-:ID:       6C19B664-DF90-4312-A985-20885879D722
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @157981
+(message "org-dotemacs: evaluating @157981 block")
 (defun org-time-string-to-seconds (s)
   "Convert a string HH:MM:SS to a number of seconds."
   (cond
@@ -6003,17 +3879,8 @@ the result as a time value."
                      (cdr expr))))
           `,@exprs))))
 
-#+END_SRC
-
-*** Clock
-**** Pomodoro
-:PROPERTIES:
-:ID:       3600535E-2C20-4E33-8572-E933319E87B3
-:CUSTOM_ID: org-pomodoro
-:END:
-
-#+NAME: org-taskmgr-pomodoro
-#+BEGIN_SRC emacs-lisp
+;; Block = @159701
+(message "org-dotemacs: evaluating @159701 block")
 (use-package org-pomodoro
   :bind (:map org-mode-map
               ("C-c M-RET p" . org-pomodoro))
@@ -6043,25 +3910,14 @@ the result as a time value."
           org-pomodoro-long-break-sound-args "--volume 0.2"
           org-pomodoro-long-break-sound
           (org-pomodoro-path "Complete.wav"))))
-#+END_SRC
-
-**** counsel org clock
-
-#+NAME: org-taskmgr-coclock
-#+BEGIN_SRC emacs-lisp
+;; Block = @160963
+(message "org-dotemacs: evaluating @160963 block")
 (use-package counsel-org-clock
   :straight (:host github
                    :repo "akirak/counsel-org-clock")
   :after (:all org-agenda ivy))
-#+END_SRC
-
-**** org mru clock
-
-The [[https://github.com/unhammer/org-mru-clock][org-mru-clock]] package prefills clock history with clocks from
-org agenda files.
-
-#+NAME: org-taskmgr-mru-clock
-#+BEGIN_SRC emacs-lisp
+;; Block = @161321
+(message "org-dotemacs: evaluating @161321 block")
 (use-package org-mru-clock
   :after (:all org-agenda ivy)
   :demand t
@@ -6071,20 +3927,11 @@ org agenda files.
   (progn
     (setq org-mru-clock-how-many 50
           org-mru-completing-read #'ivy-completing-read)))
-#+END_SRC
-
-Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
-
-**** Org clock convenience
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @161782
+(message "org-dotemacs: evaluating @161782 block")
 (use-package org-clock-convenience)
-#+END_SRC
-
-*** Org Brain
-
-#+NAME: org-ideamgr-brain
-#+BEGIN_SRC emacs-lisp
+;; Block = @161893
+(message "org-dotemacs: evaluating @161893 block")
 (use-package org-brain
   :if (eq system-type 'darwin)
   :defines (org-brain-path)
@@ -6098,47 +3945,18 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
     (push '("b" "Brain" plain (function org-brain-goto-end)
             "* %i%?" :empty-lines 1)
           org-capture-templates)))
-#+END_SRC
-
-** Org appearance
-
-These settings subjectively improve the overall viewable-ness of
-org-mode buffers.
-
-
-*** Per-image display width
-
-Specify image width in org buffer on per-image basis.
-
-#+NAME: org-ui-fixedwidth-image
-#+BEGIN_SRC emacs-lisp
+;; Block = @162593
+(message "org-dotemacs: evaluating @162593 block")
 (setq org-image-actual-width nil)
-#+END_SRC
-
-*** Org Bullets
-
-Inspired by this [[http://nadeausoftware.com/articles/2007/11/latency_friendly_customized_bullets_using_unicode_characters][article]] on creating latency-friendly unicode bullets,
-the [[https://github.com/sabof/org-bullets][org-bullets]] library provides support for displaying org-mode
-bullets as UTF-8 characters.
-
-- The default set ::  ◉ ○ ✸ ✿
-- Smaller set :: ► • ★ ▸
-- Alternative options :: ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
-
-
-The default set of bullet points can be modified via the
-=[[help:org-bullets-bullet-list][org-bullets-bullet-list]]= variable.
-
-
-#+NAME: org-ui-org-bullets
-#+BEGIN_SRC emacs-lisp
+;; Block = @163283
+(message "org-dotemacs: evaluating @163283 block")
 (use-package org-bullets
-    :demand t
-    :custom
-    (org-bullets-bullet-list '("‣" "•"))
-    :init
-    (defun org-bullets/enable ()
-      (org-bullets-mode +1))
+  :custom
+  (org-bullets-bullet-list '("‣" "•"))
+  :init
+  (require 'org-bullets)
+  (defun org-bullets/enable ()
+    (org-bullets-mode +1))
 
     (defun org-bullets/pretty ()
       (setq org-pretty-entities t)
@@ -6149,63 +3967,31 @@ The default set of bullet points can be modified via the
     :hook
     (org-mode . org-bullets/enable)
     (org-bullets . org-bullets/pretty))
-#+END_SRC
 
-*** Org Fancy Priorities
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @163819
+(message "org-dotemacs: evaluating @163819 block")
 (use-package org-fancy-priorities
   :hook
   (org-mode . org-fancy-priorities-mode)
   :config
   (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕")))
-#+END_SRC
-
-*** Org Pretty Table
-
-#+NAME: org-ui-table
-#+BEGIN_SRC emacs-lisp
+;; Block = @164044
+(message "org-dotemacs: evaluating @164044 block")
 (use-package org-pretty-table
   :straight (org-pretty-table
              :host github
              :type git
              :repo "Fuco1/org-pretty-table"))
-#+END_SRC
-
-*** TOC Org
-
-The [[https://github.com/snosov1/toc-org][toc-org]] package automatically generates a table of contents for
-the org-mode document on save.
-
-The org header represented by a TOC entry can be visited via the
-=org-open-at-point= command, which is bound to the keystroke =C-c C-o=
-by default.
-
-Note that this functionality is provided by =toc-org= modifying the
-value of =org-link-translation-function= to the library internal
-=toc-org-unhrefify=, so it won't work if this symbol is non-nil at
-time of install.
-
-#+NAME: org-ui-toc-org
-#+BEGIN_SRC emacs-lisp
+;; Block = @164776
+(message "org-dotemacs: evaluating @164776 block")
 (use-package toc-org
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
-#+END_SRC
-
-*** Column View
-
-#+NAME: org-ui-column-view
-#+BEGIN_SRC emacs-lisp
+;; Block = @164928
+(message "org-dotemacs: evaluating @164928 block")
 (setq org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA")
-#+END_SRC
-
-*** Equation Renumbering
-
-Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbering-in-LaTeX-fragments-in-org-mode/][one]] from the kitchin group!
-
-#+NAME: org-ui-equation-renumbering
-#+BEGIN_SRC emacs-lisp
+;; Block = @165251
+(message "org-dotemacs: evaluating @165251 block")
 (defun org-renumber-environment (orig-func &rest args)
   (let ((results '())
         (counter -1)
@@ -6251,26 +4037,11 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 ;; (advice-add 'org-create-formula-image
 ;;           :around #'org-renumber-environment)
 
-#+END_SRC
-
-*** Highlight inline LaTeX fragments
-:PROPERTIES:
-:ID:       8E0531C6-0E85-4F0A-9340-2868F54F3A6D
-:END:
-
-#+NAME: org-latex-highlight-tex
-#+BEGIN_SRC emacs-lisp
+;; Block = @167093
+(message "org-dotemacs: evaluating @167093 block")
 (setq org-highlight-latex-and-related '(latex))
-#+END_SRC
-
-**  Org Prose
-
-*** Insert literal entities
-
-From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
-
-#+NAME: org-ui-literal
-#+BEGIN_SRC emacs-lisp
+;; Block = @167317
+(message "org-dotemacs: evaluating @167317 block")
 (defun modi/org-entity-get-name (char)
   "Return the entity name for CHAR. For example, return \"ast\" for *."
   (let ((ll (append org-entities-user
@@ -6319,26 +4090,14 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 ;; returns nil.
 (advice-add 'org-self-insert-command :before-until #'modi/org-insert-org-entity-maybe)
 
-#+END_SRC
-
-*** Org Index :notetaking:
-
-#+NAME: org-docmgr-index
-#+BEGIN_SRC emacs-lisp
+;; Block = @169493
+(message "org-dotemacs: evaluating @169493 block")
 (use-package org-index)
-#+END_SRC
-
-*** Org Interleave :notetaking:
-
-#+NAME: org-docmgr-interleave
-#+BEGIN_SRC emacs-lisp
+;; Block = @169614
+(message "org-dotemacs: evaluating @169614 block")
 (use-package org-noter)
-#+END_SRC
-
-*** Org Journal :notetaking:
-
-#+NAME: org-docmgr-journal
-#+BEGIN_SRC emacs-lisp
+;; Block = @169729
+(message "org-dotemacs: evaluating @169729 block")
   (use-package org-journal
     :custom
     (org-journal-enable-agenda-integration t)
@@ -6354,21 +4113,8 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
             "* %?\nEntered on %U\n %i\n %a")
             org-capture-templates)))
 
-#+END_SRC
-
-** Org Export
-:PROPERTIES:
-:ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
-:CUSTOM_ID: sec:ox
-:END:
-
-*** Ox Extra
-
-Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents
-and subtrees of the ignored headlines will be retained.
-
-#+NAME: ox/extra
-#+BEGIN_SRC emacs-lisp
+;; Block = @170535
+(message "org-dotemacs: evaluating @170535 block")
 (use-package ox-extra
   :straight org
   :demand t
@@ -6376,22 +4122,14 @@ and subtrees of the ignored headlines will be retained.
   (ox-extras-activate
    '(ignore-headlines
      org-export-filter-parse-tree-functions)))
-#+END_SRC
-
-*** Ox Publish
-
-#+NAME: ox/publish
-#+BEGIN_SRC emacs-lisp
+;; Block = @170755
+(message "org-dotemacs: evaluating @170755 block")
 (use-package ox-publish
   :straight org
   :after (ox)
   :demand t)
-#+END_SRC
-
-*** Ox Org
-
-#+NAME: ox/org
-#+BEGIN_SRC emacs-lisp
+;; Block = @170883
+(message "org-dotemacs: evaluating @170883 block")
 (defun org-to-org-handle-includes ()
   "Copy the contents of the current buffer to OUTFILE,
 recursively processing #+INCLUDEs."
@@ -6407,15 +4145,8 @@ recursively processing #+INCLUDEs."
     (delete-region (point-min) (point-max))
     (insert result)
     (save-buffer)))
-#+END_SRC
-
-*** Ox Latex
-:PROPERTIES:
-:CUSTOM_ID: sec:ox-latex
-:END:
-
-#+NAME: ox/latex
-#+BEGIN_SRC emacs-lisp
+;; Block = @171492
+(message "org-dotemacs: evaluating @171492 block")
 (require 'ox-latex)
 ;; Prefer user labels
 
@@ -6427,19 +4158,11 @@ recursively processing #+INCLUDEs."
 
 ;; Custom classes
 
-#+END_SRC
-
-**** Prefer user provided labeling
-
-#+NAME: oxl/labels
-#+BEGIN_SRC emacs-lisp
+;; Block = @171705
+(message "org-dotemacs: evaluating @171705 block")
 (setq org-latex-prefer-user-labels t)
-#+END_SRC
-
-**** Subfigure Export
-
-#+NAME: oxl/subfigure
-#+BEGIN_SRC emacs-lisp
+;; Block = @171822
+(message "org-dotemacs: evaluating @171822 block")
 (use-package ox-latex-subfigure
   :straight
   (ox-latex-subfigure
@@ -6450,14 +4173,8 @@ recursively processing #+INCLUDEs."
   (require 'ox-latex-subfigure)
   (add-to-list 'org-latex-packages-alist (("" "subcaption" nil))))
 
-#+END_SRC
-
-**** Minted
-
-Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
-
-#+NAME: oxl/minted
-#+BEGIN_SRC emacs-lisp
+;; Block = @172275
+(message "org-dotemacs: evaluating @172275 block")
 (eval-and-compile
   (defvar enable-default-minted nil))
 
@@ -6490,16 +4207,8 @@ Allow toggling of minted inclusion in exported header. This might be necessary w
       (message "%s" "Disabled default minted."))))
 
 
-#+END_SRC
-
-**** Set latex pdf process
-
-[[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
-
-It can be done through the =org-mode= latex export dispatcher in a single command:
-
-#+NAME: oxl/pdf
-#+BEGIN_SRC emacs-lisp
+;; Block = @173514
+(message "org-dotemacs: evaluating @173514 block")
 (setq latex-process-latex
   '("%latex -interaction nonstopmode -output-directory %o %f"
     "%latex -interaction nonstopmode -output-directory %o %f"
@@ -6539,28 +4248,16 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
     (run-hooks 'org-latex-pdf-process-set-hook)))
 
 
-(add-hook 'org-mode-hook
-          (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
+(bind-keys :map org-mode-map
+            ("M-s l" . org-latex-pdf-process-set))
 
-
-#+END_SRC
-
-**** Hyperref Template
-
-The default cross-referencing and hyperlink styles provided by
-=hyperref= are awful. This makes them less awful.
-
-#+NAME: oxl/hyperref
-#+BEGIN_SRC emacs-lisp
+;; Block = @175192
+(message "org-dotemacs: evaluating @175192 block")
 ;; TODO: Dynamically set to a sensible default if using 'article class
 ;; or a class in `org-latex-classes' that includes hyperref.
 (setq org-latex-hyperref-template nil)
-#+END_SRC
-
-**** Export classes
-
-#+NAME: oxl/classes
-#+BEGIN_SRC emacs-lisp
+;; Block = @175438
+(message "org-dotemacs: evaluating @175438 block")
 ;; Org Ling
 
 ;; UCLA CS
@@ -6571,14 +4268,8 @@ The default cross-referencing and hyperlink styles provided by
 
 ;; Unicode math
 
-#+END_SRC
-
-***** Article Standalone
-
-From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
-
-#+NAME: ox-class/article-standalone
-#+BEGIN_SRC emacs-lisp
+;; Block = @175740
+(message "org-dotemacs: evaluating @175740 block")
 (add-to-list 'org-latex-classes
 	     '("article-standalone"
 	       "\\documentclass{article}
@@ -6590,12 +4281,8 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
 	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-***** Orgling
-
-#+NAME: ox-class/orgling
-#+BEGIN_SRC emacs-lisp
+;; Block = @176258
+(message "org-dotemacs: evaluating @176258 block")
 (if (and (executable-find "kpsewhich")
          (shell-command-to-string "kpsewhich orgling.cls"))
 
@@ -6609,12 +4296,8 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
-#+END_SRC
-
-***** UCLA CS
-
-#+NAME: ox-class/uclacs
-#+BEGIN_SRC emacs-lisp
+;; Block = @176927
+(message "org-dotemacs: evaluating @176927 block")
 (add-to-list 'org-latex-classes
              '("uclacs"
                "\\documentclass{uclacs}
@@ -6625,14 +4308,8 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-***** Humanities
-
-My custom mla-style LaTeX class.
-
-#+NAME: ox-class/humanities
-#+BEGIN_SRC emacs-lisp
+;; Block = @177494
+(message "org-dotemacs: evaluating @177494 block")
 (add-to-list 'org-latex-classes
              '("humanities"
                "\\documentclass{humanities}
@@ -6643,12 +4320,8 @@ My custom mla-style LaTeX class.
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-***** Unicode Math
-
-#+NAME: ox-class/unicode-math
-#+BEGIN_SRC emacs-lisp
+;; Block = @178039
+(message "org-dotemacs: evaluating @178039 block")
   (add-to-list 'org-latex-classes
     '("unicode-math"
       "\\documentclass{article}
@@ -6675,12 +4348,8 @@ My custom mla-style LaTeX class.
       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
       ("\\paragraph{%s}" . "\\paragraph*{%s}")
       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-*** Ox Linguistics
-
-#+NAME: ox/linguistics
-#+BEGIN_SRC emacs-lisp
+;; Block = @179007
+(message "org-dotemacs: evaluating @179007 block")
 (use-package ox-linguistics
     :straight (ox-linguistics
                :host github
@@ -6688,18 +4357,11 @@ My custom mla-style LaTeX class.
                :files ("lisp/*.el"))
     :after (:all ox ox-latex)
     :demand t)
-#+END_SRC
-
-**** gb4e
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @179267
+(message "org-dotemacs: evaluating @179267 block")
 (use-package gb4e)
-#+END_SRC
-
-*** Ox Bibtex
-
-#+NAME: ox/bibtex
-#+BEGIN_SRC emacs-lisp
+;; Block = @179353
+(message "org-dotemacs: evaluating @179353 block")
 (use-package ox-bibtex
   :straight org
   :mode
@@ -6710,16 +4372,8 @@ My custom mla-style LaTeX class.
   (progn
     (require 'org-bibtex)
     (setq org-bibtex-file "references.org")))
-#+END_SRC
-
-*** Ox Pandoc
-
-[[https://pandoc.org/][Pandoc]] is a document conversion tool that can convert pretty much
-anything. The [[https://github.com/kawabata/ox-pandoc][ox-pandoc]] package allows us to utiliize this capability
-for exporting org-mode documents to various formats.
-
-#+NAME: ox/pandoc
-#+BEGIN_SRC emacs-lisp
+;; Block = @179875
+(message "org-dotemacs: evaluating @179875 block")
 (use-package ox-pandoc
   :if (executable-find "pandoc")
   :after (:all ox org-ref)
@@ -6761,31 +4415,17 @@ for exporting org-mode documents to various formats.
     ;; Open MS .doc?x files with system viewer.
     (when (symbolp 'org-file-apps)
       (add-to-list 'org-file-apps '("\\.docx?\\'" . system)))))
-#+END_SRC
-
-*** Ox GFM
-
-#+NAME: ox/gfm
-#+BEGIN_SRC emacs-lisp
+;; Block = @181510
+(message "org-dotemacs: evaluating @181510 block")
 (use-package ox-gfm
   :after (ox)
   :demand t)
-#+END_SRC
-
-*** Ox Hugo
-
-[[https://ox-hugo.scripter.co/][ox-hugo]] is an org exporter for Hugo-compatible markdown.
-
-#+NAME: ox/hugo
-#+BEGIN_SRC emacs-lisp
+;; Block = @181696
+(message "org-dotemacs: evaluating @181696 block")
 (use-package ox-hugo
   :after (ox))
-#+END_SRC
-
-*** Ox HTML
-
-#+NAME: ox/html
-#+BEGIN_SRC emacs-lisp
+;; Block = @181795
+(message "org-dotemacs: evaluating @181795 block")
 (use-package org-html-themes
     :straight
     (org-html-themes
@@ -6793,18 +4433,8 @@ for exporting org-mode documents to various formats.
       :repo "fniessen/org-html-themes"
       :local-repo-name org-html-themes
       :files ("setup/*" "styles/*")))
-#+END_SRC
-
-** Org Hacks
-:PROPERTIES:
-:ID:       872F7F61-7971-42E4-BC24-FEA9D67634D2
-:END:
-
-From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks.html#sec-1-8-5][org hacks]]:
-
-*** Org occur open
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @182239
+(message "org-dotemacs: evaluating @182239 block")
   (defun org-occur-open (uri)
     "Visit the file specified by URI, and run `occur' on the fragment
     (anything after the first '#') in the uri."
@@ -6812,17 +4442,8 @@ From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks
       (org-open-file (car list) t)
       (occur (mapconcat 'identity (cdr list) "#"))))
   (org-add-link-type "occur" 'org-occur-open)
-#+END_SRC
-
-*** Reveal cursor in folded subtree.
-:PROPERTIES:
-:ID:       088BEAF5-B9FE-43F4-995D-5E26FB6DCB16
-:END:
-
-Fix problem with  which puts point back in a folded position.
-
-#+NAME: org-hacks-saveplace-fix
-#+BEGIN_SRC emacs-lisp
+;; Block = @182796
+(message "org-dotemacs: evaluating @182796 block")
 (defun org-mode-save-place-fix ()
   (when (outline-invisible-p)
     (save-excursion
@@ -6830,200 +4451,16 @@ Fix problem with  which puts point back in a folded position.
       (org-show-subtree))))
 
 (add-hook 'org-mode-hook 'org-mode-save-place-fix)
-#+END_SRC
-
-*** ibuffer and org files
-
-Neil Smithline posted this snippet to let you browse org files with
-=ibuffer=:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @183144
+(message "org-dotemacs: evaluating @183144 block")
   (require 'ibuffer)
 
   (defun org-ibuffer ()
     "Open an `ibuffer' window showing only `org-mode' buffers."
     (interactive)
     (ibuffer nil "*Org Buffers*" '((used-mode . org-mode))))
-#+END_SRC
-
-*** File conversion
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  ;; - fileconversion version 0.10
-  ;; - DISCLAIMER: Make a backup of your Org files before trying
-  ;;   `f-org-fileconv-*'. It is recommended to use a version control
-  ;;   system like git and to review and commit the changes in the Org
-  ;;   files regularly.
-  ;; - Supported "#+STARTUP:" formats: "hidestarsfile",
-  ;;   "nbspstarsfile", "markdownstarsfile".
-
-  ;; Design summary: fileconversion is a round robin of two states linked by
-  ;; two actions:
-  ;; - State `v-org-fileconv-level-org-p' is nil: The level is "file"
-  ;;   (encoded).
-  ;; - Action `f-org-fileconv-decode': Replace file char with "*".
-  ;; - State `v-org-fileconv-level-org-p' is non-nil: The level is "Org"
-  ;;   (decoded).
-  ;; - Action `f-org-fileconv-encode': Replace "*" with file char.
-  ;;
-  ;; Naming convention of prefix:
-  ;; - f-[...]: "my function", instead of the unspecific prefix `my-*'.
-  ;; - v-[...]: "my variable", instead of the unspecific prefix `my-*'.
-
-  (defvar v-org-fileconv-level-org-p nil
-    "Whether level of buffer is Org or only file.
-  nil: level is file (encoded), non-nil: level is Org (decoded).")
-  (make-variable-buffer-local 'v-org-fileconv-level-org-p)
-  ;; Survive a change of major mode that does `kill-all-local-variables', e.
-  ;; g. when reentering Org mode through "C-c C-c" on a #+STARTUP: line.
-  (put 'v-org-fileconv-level-org-p 'permanent-local t)
-
-  ;; * Callback `f-org-fileconv-org-mode-beg' before `org-mode'
-  (defadvice org-mode (before org-mode-advice-before-fileconv)
-    (f-org-fileconv-org-mode-beg))
-  (ad-activate 'org-mode)
-  (defun f-org-fileconv-org-mode-beg ()
-    ;; - Reason to test `buffer-file-name': Only when converting really
-    ;;   from/to an Org _file_, not e. g. for a temp Org buffer unrelated to a
-    ;;   file.
-    ;; - No `message' to not wipe a possible "File mode specification error:".
-    ;; - `f-org-fileconv-decode' in org-mode-hook would be too late for
-    ;;   performance reasons, see
-    ;;   http://lists.gnu.org/archive/html/emacs-orgmode/2013-11/msg00920.html
-    (when (buffer-file-name) (f-org-fileconv-decode)))
-
-  ;; * Callback `f-org-fileconv-org-mode-end' after `org-mode'
-  (add-hook 'org-mode-hook 'f-org-fileconv-org-mode-end
-            nil   ; _Prepend_ to hook to have it first.
-            nil)  ; Hook addition global.
-  (defun f-org-fileconv-org-mode-end ()
-    ;; - Reason to test `buffer-file-name': only when converting really
-    ;;   from/to an Org _file_, not e. g. for a temp Org buffer unrelated to a
-    ;;   file.
-    ;; - No `message' to not wipe a possible "File mode specification error:".
-    (when (buffer-file-name)
-      ;; - Adding this to `change-major-mode-hook' or "defadvice before" of
-      ;;   org-mode would be too early and already trigger during find-file.
-      ;; - Argument 4: t to limit hook addition to buffer locally, this way
-      ;;   and as required the hook addition will disappear when the major
-      ;;   mode of the buffer changes.
-      (add-hook 'change-major-mode-hook 'f-org-fileconv-encode nil t)
-      (add-hook 'before-save-hook       'f-org-fileconv-encode nil t)
-      (add-hook 'after-save-hook        'f-org-fileconv-decode nil t)))
-
-  (defun f-org-fileconv-re ()
-    "Check whether there is a #+STARTUP: line for fileconversion.
-  If found then return the expressions required for the conversion."
-    (save-excursion
-      (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-      (let (re-list (count 0))
-        (while (re-search-forward "^[ \t]*#\\+STARTUP:" nil t)
-          ;; #+STARTUP: hidestarsfile
-          (when (string-match-p "\\bhidestarsfile\\b" (thing-at-point 'line))
-            ;; Exclude e. g.:
-            ;; - Line starting with star for bold emphasis.
-            ;; - Line of stars to underline section title in loosely quoted
-            ;;   ASCII style (star at end of line).
-            (setq re-list '("\\(\\* \\)"  ; common-re
-                            ?\ ))         ; file-char
-            (setq count (1+ count)))
-          ;; #+STARTUP: nbspstarsfile
-          (when (string-match-p "\\bnbspstarsfile\\b" (thing-at-point 'line))
-            (setq re-list '("\\(\\* \\)"  ; common-re
-                            ?\xa0))       ; file-char non-breaking space
-            (setq count (1+ count)))
-          ;; #+STARTUP: markdownstarsfile
-          (when (string-match-p "\\bmarkdownstarsfile\\b"
-                                (thing-at-point 'line))
-            ;; Exclude e. g. "#STARTUP:".
-            (setq re-list '("\\( \\)"  ; common-re
-                            ?#))       ; file-char
-            (setq count (1+ count))))
-        (when (> count 1) (error "More than one fileconversion found."))
-        re-list)))
-
-  (defun f-org-fileconv-decode ()
-    "In headings replace file char with '*'."
-    (let ((re-list (f-org-fileconv-re)))
-      (when (and re-list (not v-org-fileconv-level-org-p))
-        ;; No `save-excursion' to be able to keep point in case of error.
-        (let* ((common-re (nth 0 re-list))
-               (file-char (nth 1 re-list))
-               (file-re   (concat "^" (string file-char) "+" common-re))
-               (org-re    (concat "^\\*+" common-re))
-               len
-               (p         (point)))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Syntax check.
-          (when (re-search-forward org-re nil t)
-            (goto-char (match-beginning 0))
-            (org-reveal)
-            (error "Org fileconversion decode: Syntax conflict at point."))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Substitution.
-          (with-silent-modifications
-            (while (re-search-forward file-re nil t)
-              (goto-char (match-beginning 0))
-              ;; Faster than a lisp call of insert and delete on each single
-              ;; char.
-              (setq len (- (match-beginning 1) (match-beginning 0)))
-              (insert-char ?* len)
-              (delete-char len)))
-          (goto-char p))))
-
-          ;; Notes for ediff when only one file has fileconversion:
-          ;; - The changes to the buffer with fileconversion until here are
-          ;;   not regarded by `ediff-files' because the first call to diff is
-          ;;   made with the bare files directly. Only `ediff-update-diffs'
-          ;;   and `ediff-buffers' write the decoded buffers to temp files and
-          ;;   then call diff with them.
-          ;; - Workarounds (choose one):
-          ;;   - After ediff-files first do a "!" (ediff-update-diffs) in the
-          ;;     "*Ediff Control Panel*".
-          ;;   - Instead of using `ediff-files' first open the files and then
-          ;;     run `ediff-buffers' (better for e. g. a script that takes two
-          ;;     files as arguments and uses "emacs --eval").
-
-    ;; The level is Org most of all when no fileconversion is in effect.
-    (setq v-org-fileconv-level-org-p t))
-
-  (defun f-org-fileconv-encode ()
-    "In headings replace '*' with file char."
-    (let ((re-list (f-org-fileconv-re)))
-      (when (and re-list v-org-fileconv-level-org-p)
-        ;; No `save-excursion' to be able to keep point in case of error.
-        (let* ((common-re (nth 0 re-list))
-               (file-char (nth 1 re-list))
-               (file-re   (concat "^" (string file-char) "+" common-re))
-               (org-re    (concat "^\\*+" common-re))
-               len
-               (p         (point)))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Syntax check.
-          (when (re-search-forward file-re nil t)
-            (goto-char (match-beginning 0))
-            (org-reveal)
-            (error "Org fileconversion encode: Syntax conflict at point."))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Substitution.
-          (with-silent-modifications
-            (while (re-search-forward org-re nil t)
-              (goto-char (match-beginning 0))
-              ;; Faster than a lisp call of insert and delete on each single
-              ;; char.
-              (setq len (- (match-beginning 1) (match-beginning 0)))
-              (insert-char file-char len)
-              (delete-char len)))
-          (goto-char p)
-          (setq v-org-fileconv-level-org-p nil))))
-    nil)  ; For the hook.
-
-#+END_SRC
-
-** Org Web
-*** Org Protocol
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @183396
+(message "org-dotemacs: evaluating @183396 block")
 (use-package org-protocol
     :straight org
     :custom
@@ -7034,21 +4471,13 @@ Neil Smithline posted this snippet to let you browse org files with
       (setq server-socket-dir (format "/tmp/emacs%d" (user-uid)))
       (server-start))
     :config
-    (with-eval-after-load 'org-capture
-      (setq org-capture-templates
-            (append org-capture-templates
-                    (list `("l" "Web content and clippings" entry
-                                (file+headline ,org-default-notes-file "Clippings")
-                                "** %:annotation\nCaptured on %u\n%i"
-                                :empty-lines 1 :jump-to-captured 1))))))
-
-
-#+END_SRC
-
-**** Org Mac Protocol
-
-#+NAME: org-protocol-mac
-#+BEGIN_SRC emacs-lisp
+    (require 'org-capture)
+    (add-to-list 'org-capture-templates
+                 `("l" "Protocol Link" entry
+                   (file+headline ,org-default-notes-file "Inbox")
+                   "* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n\nCaptured: %U")))
+;; Block = @184029
+(message "org-dotemacs: evaluating @184029 block")
 (use-package org-mac-protocol
     :straight (org-mac-protocol
                :type git
@@ -7091,12 +4520,8 @@ Neil Smithline posted this snippet to let you browse org files with
             (message "Scripts installed to %s" target-directory)))))
     :init
     (add-to-list 'org-modules 'org-mac-protocol))
-#+END_SRC
-
-**** Org Protocol Capture HTML
-
-#+NAME: org-capture-html
-#+BEGIN_SRC emacs-lisp
+;; Block = @186119
+(message "org-dotemacs: evaluating @186119 block")
 (use-package org-protocol-capture-html
   :straight (org-protocol-capture-html
              :host github
@@ -7130,12 +4555,8 @@ Neil Smithline posted this snippet to let you browse org files with
           (set-file-modes opch-shell-script-path #o755)
           (message "Installed to %s" opch-shell-script-path)))))))
 
-#+END_SRC
-
-**** Org Contacts
-
-#+NAME: org-capture-contacts
-#+BEGIN_SRC emacs-lisp
+;; Block = @187502
+(message "org-dotemacs: evaluating @187502 block")
 (use-package org-contacts
   :straight org
   :init
@@ -7146,14 +4567,8 @@ Neil Smithline posted this snippet to let you browse org files with
               :EMAIL: %(org-contacts-template-email)
               :END:")
         org-capture-templates))
-#+END_SRC
-
-*** Org Download :web:
-
-Drag and Drop images directly from a web browser to an org-mode buffer.
-
-#+NAME: org-docmgr-download
-#+BEGIN_SRC emacs-lisp
+;; Block = @187982
+(message "org-dotemacs: evaluating @187982 block")
 (use-package org-download
   :defines (org-download-image-dir)
   :commands (org-download-enable  org-download-yank org-download-screenshot)
@@ -7162,28 +4577,14 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
     (setq-default org-download-image-dir "~/Dropbox/org/img/"))
   :hook
   ((dired-mode org-mode) . org-download-enable))
-#+END_SRC
-
-*** Org Web Tools :web:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @188342
+(message "org-dotemacs: evaluating @188342 block")
 (use-package org-web-tools)
-#+END_SRC
-
-*** Org preview html
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @188426
+(message "org-dotemacs: evaluating @188426 block")
 (use-package org-preview-html)
-#+END_SRC
-
-* Appearance
-
-Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
-
-** Theme
-
-#+NAME: theme-interface
-#+BEGIN_SRC emacs-lisp
+;; Block = @188703
+(message "org-dotemacs: evaluating @188703 block")
 (defcustom halidom--theme-style 'dark
   "The default theme mode. Only symbols 'dark and 'light are considered."
   :type '(choice
@@ -7214,46 +4615,21 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 (defcustom halidom-theme-colors nil
   "plist of colors for the current theme."
   :type '(plist :key-type symbol :value-type sexp))
-#+END_SRC
-
-*** Custom Theme Settings
-
-This disables Emacs asking questions about loading a new theme.
-
-#+NAME: theme-custom-theme
-#+BEGIN_SRC emacs-lisp
+;; Block = @189734
+(message "org-dotemacs: evaluating @189734 block")
 (setq custom-safe-themes t)
 (setq custom-theme-directory (emacs-etc-dir "themes"))
-#+END_SRC
-
-*** Themes
-**** Zenburn Theme
-
-#+NAME: theme-zenburn
-#+BEGIN_SRC emacs-lisp
+;; Block = @189904
+(message "org-dotemacs: evaluating @189904 block")
 (use-package zenburn-theme
   :straight t)
-#+END_SRC
-
-**** Poet Theme
-:PROPERTIES:
-:ID:       4CB4E70B-93D6-4DAF-B66E-9322A55B7ACC
-:END:
-
-#+NAME: theme-poet
-#+BEGIN_SRC emacs-lisp
+;; Block = @190083
+(message "org-dotemacs: evaluating @190083 block")
 (use-package poet-theme
   :init
   (setq halidom-light-theme 'poet))
-#+END_SRC
-
-**** Base16 Themes
-:PROPERTIES:
-:ID:       6C3D859E-C37D-4D75-920A-374E5AAEEEEA
-:END:
-
-#+NAME: theme-base16
-#+BEGIN_SRC emacs-lisp
+;; Block = @190293
+(message "org-dotemacs: evaluating @190293 block")
 (use-package base16-theme
     :demand t
     :init
@@ -7270,12 +4646,8 @@ This disables Emacs asking questions about loading a new theme.
                                    user-emacs-directory))
     :config
     (setq base16-distinct-fringe-background nil))
-#+END_SRC
-
-*** Load Theme
-
-#+NAME: theme-load-theme
-#+BEGIN_SRC emacs-lisp
+;; Block = @190934
+(message "org-dotemacs: evaluating @190934 block")
 (setq-default custom-enabled-themes (list halidom-theme))
 
 (defun remove-themes ()
@@ -7284,8 +4656,6 @@ This disables Emacs asking questions about loading a new theme.
 
 (defvar halidom/load-theme-hook nil
   "List of functions to run when `halidom/load-theme' is invoked.")
-
-
 
 (defun halidom--default-theme ()
   (cl-flet ((default-theme-symbol ()
@@ -7349,15 +4719,8 @@ theme in \"quick mode\" by eliding hooks specified in
 
 (add-hook 'after-init-hook #'halidom/load-theme)
 ;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
-#+END_SRC
-
-** Org faces
-:PROPERTIES:
-:ID:       D29BA324-2B5B-46A6-A0E6-E266D770AF1F
-:END:
-
-#+NAME: theme-org-mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @193564
+(message "org-dotemacs: evaluating @193564 block")
 
 ;; Org Mode faces
 (defun halidom/org-faces ()
@@ -7444,7 +4807,9 @@ theme in \"quick mode\" by eliding hooks specified in
     (dolist (buf org-buffers)
       (with-current-buffer buf
         (org-mode-restart)
-        (halidom/org-faces)))))
+        (halidom/org-faces)
+        (unless org-bullets-mode
+          (org-bullets-mode 1))))))
 
 (defun halidom/org-theme-hook ()
   (halidom/org-faces)
@@ -7460,20 +4825,14 @@ theme in \"quick mode\" by eliding hooks specified in
 (add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
 (add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
 (add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
-#+END_SRC
-
-** Overlays
-*** Highlight
-
-#+NAME: hl-highlight
-#+BEGIN_SRC emacs-lisp
+;; Block = @197505
+(message "org-dotemacs: evaluating @197505 block")
 (use-package highlight)
-#+END_SRC
-
-*** Overlay Highlight
-
-#+NAME: hl-ov
-#+BEGIN_SRC emacs-lisp
+;; Block = @197576
+(message "org-dotemacs: evaluating @197576 block")
+(use-package ov)
+;; Block = @197651
+(message "org-dotemacs: evaluating @197651 block")
 (use-package ov-highlight
   :straight (ov-highlight
              :host github
@@ -7484,123 +4843,58 @@ theme in \"quick mode\" by eliding hooks specified in
   :init
   (require 'ov)
   (require 'ov-highlight))
-#+END_SRC
-
-*** Rainbow Mode
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @197944
+(message "org-dotemacs: evaluating @197944 block")
 (use-package rainbow-mode
   :init
   (rainbow-mode 1))
-#+END_SRC
-
-*** Col Highlight
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @198051
+(message "org-dotemacs: evaluating @198051 block")
 (use-package col-highlight)
-#+END_SRC
-
-*** Hl Todo
-
-Highlight =TODO= keywords:
-
-#+NAME: hl-hl-todo
-#+BEGIN_SRC emacs-lisp
+;; Block = @198173
+(message "org-dotemacs: evaluating @198173 block")
 (use-package hl-todo
   :commands (hl-todo-mode)
   :config
   (add-hook 'prog-mode-hook #'hl-todo-mode))
-#+END_SRC
-
-*** Symbol Highlighting
-:PROPERTIES:
-:ID:       37242456-1957-470E-885B-099A5D42A191
-:END:
-**** Symbol Overlay
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @198422
+(message "org-dotemacs: evaluating @198422 block")
 (use-package symbol-overlay)
-#+END_SRC
-
-**** Hlsexp
-
-Minor mode to highlight sexp.
-
-#+NAME: hl-hl-sexp
-#+BEGIN_SRC emacs-lisp
+;; Block = @198548
+(message "org-dotemacs: evaluating @198548 block")
 (use-package highlight-sexp
   :straight t)
-#+END_SRC
-
-**** Highlight Symbol
-
-#+NAME: hl-highlight-symbol
-#+BEGIN_SRC emacs-lisp
+;; Block = @198676
+(message "org-dotemacs: evaluating @198676 block")
 (use-package highlight-symbol)
-#+END_SRC
-
-*** Highlight Indentation
-:PROPERTIES:
-:ID:       A2FD2DE5-0295-4F22-974F-8D4D7E6F26C2
-:END:
-
-**** Highlight indent guide mode
-
-#+NAME: hli/guides
-#+BEGIN_SRC emacs-lisp
+;; Block = @198888
+(message "org-dotemacs: evaluating @198888 block")
 (use-package highlight-indent-guides)
-#+END_SRC
-
-**** Highlight indentation
-
-#+NAME: hli/indentation
-#+BEGIN_SRC emacs-lisp
+;; Block = @199012
+(message "org-dotemacs: evaluating @199012 block")
 (use-package highlight-indentation)
 
-#+END_SRC
-
-**** Visual indentation
-
-#+NAME: hli/visual
-#+BEGIN_SRC emacs-lisp
+;; Block = @199127
+(message "org-dotemacs: evaluating @199127 block")
 (use-package visual-indentation-mode)
-#+END_SRC
-
-*** Pretty Mode
-:PROPERTIES:
-:ID:       096E820A-240F-4A31-8B93-E72B821FF8CF
-:END:
-
-#+NAME: pretty/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @199303
+(message "org-dotemacs: evaluating @199303 block")
 (use-package pretty-mode
-  :hook
-  ((emacs-lisp-mode LaTeX-mode) . turn-on-pretty-mode))
-#+END_SRC
+  :init
+  (global-pretty-mode t)
 
-*** Prettify Symbols
-:PROPERTIES:
-:ID:       C03FF49A-155B-4D77-AE81-ED0EA7EECD3E
-:END:
-
-Seems to be problems rendering symbols on Debian. Not sure if this is
-because the necessary fonts are not installed or if it's because of
-the absence of a window system. I'll check for the latter for now.
-
-#+NAME: pretty/symbols
-#+BEGIN_SRC emacs-lisp
+  :config
+  (pretty-deactivate-groups
+   '(:equality :ordering :ordering-double :ordering-triple
+               :arrows :arrows-twoheaded :punctuation
+               :logic :sets))
+  (pretty-activate-groups '(:greek)))
+;; Block = @199933
+(message "org-dotemacs: evaluating @199933 block")
   (when (display-graphic-p)
     (add-hook 'prog-mode-hook 'prettify-symbols-mode))
-#+END_SRC
-
-*** Pretty
-:PROPERTIES:
-:ID:       69A6DC79-7C75-4533-B71D-4E52B24CDE34
-:END:
-**** Prettify Utilities
-
-#+NAME: pretty/utils
-#+BEGIN_SRC emacs-lisp
+;; Block = @200095
+(message "org-dotemacs: evaluating @200095 block")
 (use-package prettify-utils
   :straight (prettify-utils
              :host github
@@ -7608,17 +4902,14 @@ the absence of a window system. I'll check for the latter for now.
   :init
   (require 'prettify-utils))
 
-#+END_SRC
-
-**** Pretty outlines
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @200317
+(message "org-dotemacs: evaluating @200317 block")
 (use-package pretty-outlines
   :straight nil
-  :demand t
   :load-path "etc/local/pretty-outlines"
-  :preface
-  (set-fontset-font "fontset-default" '#xF016 "Weather Icons" nil 'prepend)
+  :init
+  (defalias #'package-installed-p #'straight-package-installed-p
+    "If non-nil then PKG is installed.")
   :custom
   (pretty-outlines-ellipsis " ")
   :hook ((outline-mode       . pretty-outlines-set-display-table)
@@ -7627,25 +4918,58 @@ the absence of a window system. I'll check for the latter for now.
          (python-mode     . pretty-outlines-add-bullets)))
 
 
-#+END_SRC
+;; Block = @200863
+(message "org-dotemacs: evaluating @200863 block")
+(use-package pretty-fonts
+  :load-path "etc/local/pretty-fonts"
+  :straight nil
+  :init
+  (defun pretty-fonts/setup ()
+    (require 'pretty-fonts)
+    "Setup fira code ligatures and icon font sets."
+    (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
+    (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist)
 
-**** Pretty Code
+    (pretty-fonts-set-fontsets-for-fira-code)
+    (pretty-fonts-set-fontsets
+     '(;; All-the-icons fontsets
+       ("fontawesome"
+        ;;                         
+        #xf07c #xf0c9 #xf0c4 #xf0cb #xf017 #xf101)
 
-** Fonts
-:PROPERTIES:
-:ID:       98543582-0772-4025-917B-38DF6542DD6F
-:END:
-*** Don't use default font for symbols
+       ("all-the-icons"
+        ;;    
+        #xe907 #xe928)
 
-See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_blocks/][defining unicode character blocks : emacs]]
+       ("github-octicons"
+        ;;                               
+        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071)
 
-#+BEGIN_SRC emacs-lisp
+       ("material icons"
+        ;;              
+        #xe871 #xe918 #xe3e7  #xe5da
+        ;;              
+        #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
+  :hook
+  (halidom/load-theme . pretty-fonts/setup))
+;; Block = @201899
+(message "org-dotemacs: evaluating @201899 block")
+
+(use-package pretty-code
+  :load-path "etc/local/pretty-code"
+  :straight nil
+  :init
+  (require 'pretty-code)
+  (pretty-code-add-hook 'emacs-lisp-mode-hook '((:def "defun")))
+  (pretty-code-add-hook 'hy-mode-hook         '((:def "defn")
+                                                    (:lambda "fn")))
+  (pretty-code-add-hook 'python-mode-hook     '((:def "def")
+                                                (:lambda "lambda"))))
+;; Block = @202622
+(message "org-dotemacs: evaluating @202622 block")
 (setq use-default-font-for-symbols nil)
-#+END_SRC
-
-*** Default font
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @202714
+(message "org-dotemacs: evaluating @202714 block")
 (defcustom user-fonts-list
   '(("Fira Code" . nil)
     ("Fira Mono for Powerline" . nil)
@@ -7676,35 +5000,34 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
                        :height 120))))))
 
 (add-hook 'after-init-hook 'font/setup)
-#+END_SRC
-*** Ligatures
-*** Unicode
-**** Unicode Fonts
+;; Block = @203832
+(message "org-dotemacs: evaluating @203832 block")
+(use-package org-variable-pitch
+  :straight (org-variable-pitch
+             :type git
+             :host github
+             :repo "emacsmirror/org-variable-pitch")
+  :init
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  :hook
+  (org-mode . org-variable-pitch-minor-mode))
+;; Block = @204289
+(message "org-dotemacs: evaluating @204289 block")
 
-#+BEGIN_SRC emacs-lisp
+;; Block = @204370
+(message "org-dotemacs: evaluating @204370 block")
   (use-package unicode-fonts
     :init
     (unicode-fonts-setup))
-#+END_SRC
-
-**** Emojis
-***** Apple Color Emoji
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @204507
+(message "org-dotemacs: evaluating @204507 block")
 (when (eq system-type 'darwin)
   (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
-#+END_SRC
-
-***** Unicode Emoticons
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @204663
+(message "org-dotemacs: evaluating @204663 block")
 (use-package unicode-emoticons)
-#+END_SRC
-
-***** Company Emoji
-
-#+NAME: emoji/company
-#+BEGIN_SRC emacs-lisp
+;; Block = @204772
+(message "org-dotemacs: evaluating @204772 block")
 (use-package company-emoji
   :after (:all company emojify-mode)
   :demand t
@@ -7729,45 +5052,27 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
   (add-hook 'emojify-mode-hook #'company-emoji-setup))
 
-#+END_SRC
-
-**** Icons
-*****  All the  Icons
-
-[[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @205818
+(message "org-dotemacs: evaluating @205818 block")
 (use-package all-the-icons
     :demand t)
-#+END_SRC
-
-****** all the icons dired
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @205922
+(message "org-dotemacs: evaluating @205922 block")
 (use-package all-the-icons-dired
   :after (all-the-icons dired)
   :demand t
   :init
   (require 'font-lock+)
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
-#+END_SRC
-
-****** all the icons ivy
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @206147
+(message "org-dotemacs: evaluating @206147 block")
   (use-package all-the-icons-ivy
     :after (:all ivy all-the-icons)
     :init
     (all-the-icons-ivy-setup))
 
-#+END_SRC
-
-****** Modify default fontspec
-:PROPERTIES:
-:ID:       8B26EA14-B8CE-4E10-8B29-B3426E0B6D72
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @206391
+(message "org-dotemacs: evaluating @206391 block")
 (defun fonts/setup-glyphs ()
   "Modify the default fontset to choose the right icons."
   (let ((font-glyphs-alist '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
@@ -7786,222 +5091,107 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 (add-hook 'after-init-hook 'fonts/setup-glyphs)
 
-#+END_SRC
-
-
-#+NAME: fonts/unicode
-#+BEGIN_SRC emacs-lisp
+;; Block = @207149
+(message "org-dotemacs: evaluating @207149 block")
 ;; Unicode Fonts
 
 ;; Emojis
 
-#+END_SRC
-
-***** VS Code Icons
-:PROPERTIES:
-:ID:       4196FB0F-6A8F-4476-AFBD-651C7E5ED8AD
-:END:
-
-#+NAME: icons/vscode
-#+BEGIN_SRC emacs-lisp
+;; Block = @207321
+(message "org-dotemacs: evaluating @207321 block")
 (use-package vscode-icon
   :init
   (require 'vscode-icon)
   :commands (vscode-icon-for-file))
 
-#+END_SRC
-
-** Cursor
-*** Disable Blink
-
-Ultimately, I'd like to set a longer blink interval, like the "phase"
-~caret_style~ setting in Sublime Text.
-
-#+NAME: cursor/blink
-#+BEGIN_SRC emacs-lisp
+;; Block = @207610
+(message "org-dotemacs: evaluating @207610 block")
 (blink-cursor-mode -1)
-#+END_SRC
-
-*** Only show cursor in selected window
-
-#+NAME: cursor/window
-#+BEGIN_SRC emacs-lisp
+;; Block = @207730
+(message "org-dotemacs: evaluating @207730 block")
 (setq-default cursor-in-non-selected-windows nil
               x-stretch-cursor nil)
-#+END_SRC
-
-*** Change the cursor type
-
-#+NAME: cursor/chg
-#+BEGIN_SRC emacs-lisp
+;; Block = @207896
+(message "org-dotemacs: evaluating @207896 block")
 (use-package cursor-chg
   :config
   (require 'cursor-chg)
   (change-cursor-mode 1) ; On for overwrite/read-only/input mode
   (toggle-cursor-type-when-idle 1))
-#+END_SRC
-
-** Visual
-:PROPERTIES:
-:ID:       A6A6C1C1-8DF3-45C7-8FB0-D1D1974B8C72
-:END:
-
-*** Visual Fill Column
-:PROPERTIES:
-:ID:       9343B26B-8EB3-4785-BAD0-427AE4E3DD63
-:END:
-
-#+NAME: readview-fc
-#+BEGIN_SRC emacs-lisp
+;; Block = @208257
+(message "org-dotemacs: evaluating @208257 block")
 (use-package visual-fill-column
-  :commands (visual-fill-column-mode)
   :custom
   (visual-fill-column-width
    ;; take Emacs 26 line numbers into account
    (+ (if (boundp 'display-line-numbers) 6 0)
       fill-column))
-    :config
-    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-    :hook
-    ((visual-fill-column-mode . visual-line-mode)
-     (org-mode . visual-fill-column-mode)))
-#+END_SRC
-
-*** Fill Column Indicator
-:PROPERTIES:
-:ID:       8B3DC41D-C8AC-4FE3-801F-A0FFAD14F363
-:END:
-
-#+NAME: readview-fc-indicator
-#+BEGIN_SRC emacs-lisp
+  :config
+  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
+  (defun org-visual-fill-column ()
+      (visual-fill-column-mode 1)
+      (visual-line-mode 1))
+  :hook
+  (org-mode . org-visual-fill-column))
+;; Block = @208820
+(message "org-dotemacs: evaluating @208820 block")
 (use-package fill-column-indicator
   :init
   (setq fci-rule-use-dashes nil))
-#+END_SRC
-
-*** Justify Kp
-:PROPERTIES:
-:ID:       423D21DE-4BD8-49B5-BD6B-F88E267B4008
-:END:
-
-#+NAME: readview-justify
-#+BEGIN_SRC emacs-lisp
+;; Block = @209039
+(message "org-dotemacs: evaluating @209039 block")
 (use-package justify-kp
   :straight (:host github
                    :repo "Fuco1/justify-kp"))
-#+END_SRC
-
-** Modeline
-:PROPERTIES:
-:ID:       3C550304-3F1D-4682-B4C6-527EBDFA0760
-:END:
-*** Spaceline
-**** Spaceline Mode
-
-#+NAME: sl/spaceline
-#+BEGIN_SRC emacs-lisp
+;; Block = @209304
+(message "org-dotemacs: evaluating @209304 block")
 (use-package spaceline)
-#+END_SRC
+;; Block = @209392
+(message "org-dotemacs: evaluating @209392 block")
+(use-package spaceline-all-the-icons
+  :after (:all spacemacs all-the-icons))
 
-**** Spaceline All the Icons
-
-#+NAME: sl/icons
-#+BEGIN_SRC emacs-lisp
-(use-package spaceline-all-the-icons)
-
-  (defun ml-spaceline-setup ()
-    (interactive)
-    "Setup the modeline for spaceline."
-    (setq spaceline-all-the-icons-separator-type 'arrow)
-    (require 'spaceline)
-    (require 'spaceline-segments)
-    (require 'spaceline-config)
-    (require 'all-the-icons)
-    (require 'spaceline-all-the-icons)
-    (spaceline-all-the-icons--setup-neotree)
-    (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
-    (spaceline-toggle-all-the-icons-flycheck-status-off))
+(defun ml-spaceline-setup ()
+  (interactive)
+  "Setup the modeline for spaceline."
+  (setq spaceline-all-the-icons-separator-type 'arrow)
+  (require 'spaceline)
+  (require 'spaceline-segments)
+  (require 'spaceline-config)
+  (require 'all-the-icons)
+  (require 'spaceline-all-the-icons)
+  (spaceline-all-the-icons--setup-neotree)
+  (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
+  (spaceline-toggle-all-the-icons-flycheck-status-off))
 
   (add-hook 'after-init-hook #'ml-spaceline-setup)
 
-#+END_SRC
 
-
-*** Eyeliner
-
-
-#+BEGIN_SRC emacs-lisp
-(use-package eyeliner
-    :straight (eyeliner
-               :type git
-               :host github
-               :repo "dustinlacewell/eyeliner")
-    :init
-    (defun ml-eyeliner-setup ()
-      (interactive)
-      (require 'eyeliner)
-      (eyeliner/install)))
-
-#+END_SRC
-
-
-
-* Web
-** Libraries
-*** Simple httpd
-
-#+NAME: lib/httpd
-#+BEGIN_SRC emacs-lisp
+;; Block = @210132
+(message "org-dotemacs: evaluating @210132 block")
 (use-package simple-httpd
     :straight (simple-httpd
                :type git
                :host github
                :repo "skeeto/emacs-web-server"
                :local-repo "simple-httpd"))
-#+END_SRC
-
-*** WebSocket
-
-#+NAME: lib/websocket
-#+BEGIN_SRC emacs-lisp
+;; Block = @210401
+(message "org-dotemacs: evaluating @210401 block")
 (use-package websocket)
-#+END_SRC
-
-*** UUID
-
-#+NAME: lib/uuid
-#+BEGIN_SRC emacs-lisp
+;; Block = @210486
+(message "org-dotemacs: evaluating @210486 block")
 (use-package uuid)
-#+END_SRC
-
-*** Web Server
-
-#+NAME: lib/webserver
-#+BEGIN_SRC emacs-lisp
+;; Block = @210577
+(message "org-dotemacs: evaluating @210577 block")
 (use-package web-server)
-#+END_SRC
-
-*** Request
-
-#+NAME: lib/request
-#+BEGIN_SRC emacs-lisp
+;; Block = @210669
+(message "org-dotemacs: evaluating @210669 block")
 (use-package request)
-#+END_SRC
-
-*** OAuth
-
-#+NAME: lib/oauth2
-#+BEGIN_SRC emacs-lisp
+;; Block = @210755
+(message "org-dotemacs: evaluating @210755 block")
 (use-package oauth2)
-#+END_SRC
-
-** Browsing
-*** Browse url
-
-- [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
-
-#+NAME: browser/url
-#+BEGIN_SRC emacs-lisp
+;; Block = @210963
+(message "org-dotemacs: evaluating @210963 block")
 (use-package browse-url
     :custom (browse-url-chromium-program
              (if (eq system-type 'darwin)
@@ -8012,15 +5202,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
     (when (not (display-graphic-p))
       (setq browse-url-browser-function 'eww-browse-url))))
 
-#+END_SRC
-
-*** Browser utilities on macOS
-
-The =osx-browse= library provides several useful commands for using the
-Google Chrome, Safari, and Firefox web browsers on macOS.
-
-#+NAME: browser/macos
-#+BEGIN_SRC emacs-lisp
+;; Block = @211503
+(message "org-dotemacs: evaluating @211503 block")
 (use-package osx-browse
   :if (eq system-type 'darwin)
   :defines (osx-browse-mode osx-browse-mode-map)
@@ -8028,12 +5211,8 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
   :init
   (progn
     (osx-browse-mode 1)))
-#+END_SRC
-
-*** Google search
-
-#+NAME: browser/google
-#+BEGIN_SRC emacs-lisp
+;; Block = @211738
+(message "org-dotemacs: evaluating @211738 block")
 (use-package google-this
   :init
   (google-this-mode 1)
@@ -8042,19 +5221,11 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
     (which-key-add-key-based-replacements "C-c /" " This")
     (push '(( nil . "google-this-\\(.+\\)") . (nil . "this \\1"))
           which-key-replacement-alist)))
-#+END_SRC
-
-*** Search Web
-
-#+NAME: browser/search
-#+BEGIN_SRC emacs-lisp
+;; Block = @212079
+(message "org-dotemacs: evaluating @212079 block")
   (use-package search-web)
-#+END_SRC
-
-*** xwidget webkit
-
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @212161
+(message "org-dotemacs: evaluating @212161 block")
 (use-package xwidget
   :straight nil
   :bind (:map xwidget-webkit-mode-map
@@ -8104,14 +5275,8 @@ active xwidget buffer and write to file in DIRECTORY."
     (interactive "fFile: ")
     (xwidget-webkit-browse-url
      (concat "file://" (copy-file-path)))))
-#+END_SRC
-
-*** Set default browser
-
-Interactively.
-
-#+NAME: browser/default
-#+BEGIN_SRC emacs-lisp
+;; Block = @214260
+(message "org-dotemacs: evaluating @214260 block")
 (defvar browse-url-browser-alist
       '(("chrome" . browse-url-chrome)
         ("firefox" . browse-url-firefox)
@@ -8145,12 +5310,8 @@ Interactively.
 
 (eval `(make-browser-functions ,(mapcar 'car browse-url-browser-alist)))
 
-#+END_SRC
-
-*** Engine Mode
-
-#+NAME: browser/engine
-#+BEGIN_SRC emacs-lisp
+;; Block = @215533
+(message "org-dotemacs: evaluating @215533 block")
 (use-package engine-mode
   :init
   (engine-mode t)
@@ -8242,13 +5403,8 @@ Interactively.
     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
     :keybinding "y"
     :docstring "Search Youtube"))
-#+END_SRC
-
-** Email
-*** Org Mime
-
-#+NAME: mail/mime
-#+BEGIN_SRC emacs-lisp
+;; Block = @218079
+(message "org-dotemacs: evaluating @218079 block")
 (use-package org-mime
   :config
   (setq org-mime-export-options
@@ -8275,20 +5431,11 @@ Interactively.
   (org-mode     . org-mime/org-mode-hook)
   (org-mime-html . org-mime/style))
 
-#+END_SRC
-
-*** Offlineimap
-
-#+NAME: mail/imap
-#+BEGIN_SRC emacs-lisp
+;; Block = @218910
+(message "org-dotemacs: evaluating @218910 block")
 (use-package offlineimap)
-#+END_SRC
-
-*** Mu
-**** Mu4e
-
-#+NAME: mu-mu4e
-#+BEGIN_SRC emacs-lisp
+;; Block = @219004
+(message "org-dotemacs: evaluating @219004 block")
   (use-package mu4e
       :straight nil
       :load-path "/usr/local/share/emacs/site-lisp/mu/mu4e"
@@ -8420,39 +5567,22 @@ Interactively.
       (setq gnus-dired-mail-mode 'mu4e-user-agent)
 
       (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
-#+END_SRC
-
-**** Mu Notifications
-
-#+NAME: mu-alert
-#+BEGIN_SRC emacs-lisp
+;; Block = @224209
+(message "org-dotemacs: evaluating @224209 block")
 (use-package mu4e-alert
     :config
     (mu4e-alert-enable-notifications))
-#+END_SRC
-
-**** mu4e maildirs extension
-
-#+NAME: mu-maildirs
-#+BEGIN_SRC emacs-lisp
+;; Block = @224368
+(message "org-dotemacs: evaluating @224368 block")
 (use-package mu4e-maildirs-extension
     :after (mu4e)
     :init
     (mu4e-maildirs-extension-load))
-#+END_SRC
-
-**** mu4e conversion
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @224525
+(message "org-dotemacs: evaluating @224525 block")
 (use-package mu4e-conversation)
-#+END_SRC
-
-** Bug Tracking
-:PROPERTIES:
-:ID:       B9B7C7ED-8D05-44F2-95C3-C08F008966C5
-:END:
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @224675
+(message "org-dotemacs: evaluating @224675 block")
 (use-package debbugs
   :straight (debbugs
              :type git
@@ -8461,30 +5591,15 @@ Interactively.
                      "packages/debbugs/Debbugs.wsdl")
              :local-repo "elpa"))
 
-#+END_SRC
-
-** Browse at remote
-:PROPERTIES:
-:ID:       5A68686E-3476-47FD-AF46-E76FEA8FBD84
-:END:
-
-#+NAME: vcs/remote
-#+BEGIN_SRC emacs-lisp
+;; Block = @225084
+(message "org-dotemacs: evaluating @225084 block")
 (use-package browse-at-remote
   :init
   (if (eq system-type 'darwin)
       (when (fboundp 'osx-browse-url-chrome)
         (setq browse-url-browser/function 'osx-browse-url-chrome))))
-#+END_SRC
-
-* Writing
-** Notetaking
-*** Deft
-
-[[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
-
-#+NAME: notes/deft
-#+BEGIN_SRC emacs-lisp
+;; Block = @225508
+(message "org-dotemacs: evaluating @225508 block")
 (use-package deft
   :if (eq system-type 'darwin)
   :bind ("C-x C-n" . deft)
@@ -8494,34 +5609,20 @@ Interactively.
   (deft-directory "~/Dropbox/org/notes/")
   (deft-use-filename-as-title t)
   (deft-default-extension "org"))
-#+END_SRC
-
-*** Org OneNote
-
-Work account is for office portal, not a Microsoft account. I need integration or authorization via office.
-
-#+NAME: cloud-onenote
-#+BEGIN_SRC emacs-lisp
+;; Block = @225944
+(message "org-dotemacs: evaluating @225944 block")
 (use-package org-onenote
   :init
   (require 'secrets)
   :custom
   (org-onenote-token-file
    (emacs-etc-dir "org-onenote-oauth2.plstore")))
-#+END_SRC
-
-*** Lorem Ipsum
-
-#+NAME: notes/lorem-ipsum
-#+BEGIN_SRC emacs-lisp
+;; Block = @226161
+(message "org-dotemacs: evaluating @226161 block")
 (use-package lorem-ipsum
   :straight t)
-#+END_SRC
-
-*** Org Velocity
-
-#+NAME: notes/velocity
-#+BEGIN_SRC emacs-lisp
+;; Block = @226276
+(message "org-dotemacs: evaluating @226276 block")
   (use-package org-velocity
     :straight org
     :bind
@@ -8531,14 +5632,8 @@ Work account is for office portal, not a Microsoft account. I need integration o
     (org-velocity-bucket (expand-file-name "bucket.org" org-directory))
     :init
   (require 'org-velocity))
-#+END_SRC
-
-** Nov
-
-[[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
-
-#+NAME: readview-epub
-#+BEGIN_SRC emacs-lisp
+;; Block = @226663
+(message "org-dotemacs: evaluating @226663 block")
 (use-package nov
   :mode (("\\.epub\\'" . nov-mode))
   :config
@@ -8581,65 +5676,8 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
     (add-hook 'nov-mode-hook 'nov-setup)
     (add-hook 'nov-post-html-render-hook 'my-nov-post-html-render-hook)))
-#+END_SRC
-
-** Variable Pitch
-
-#+NAME: writing-variable-pitch
-#+BEGIN_SRC emacs-lisp
-(defcustom halidom-org-fixed-pitch-faces
-  '(org-table
-    org-code
-    org-special-keyword
-    org-verbatim
-    org-latex-and-related
-    org-meta-line
-    org-block
-    org-block-begin-line
-    org-block-end-line
-    org-document-info-keyword)
-  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
-  :type '(list symbol))
-
-(defvar org-fixed-pitch-font
-  (face-attribute 'fixed-pitch :family))
-
-(defvar org-variable-pitch-font
-  (face-attribute 'variable-pitch :family))
-
-
-(setq org-fixed-pitch-font "Fira Code")
-(setq org-variable-pitch-font "Baskerville")
-
-
-(setq face-remapping-alist nil)
-
-(defvar variable-pitch-toggle-hook nil
-  "Hooks to run when `org-toggle-variable-pitch' is called.")
-
-(defun org-toggle-variable-pitch ()
-  "Toggle use of face `variable-pitch'.
-  This works by frobbing `face-remapping-alist'."
-  (interactive)
-  (if face-remapping-alist
-      (setq face-remapping-alist nil)
-    (face-remap-add-relative 'variable-pitch
-                             :family org-variable-pitch-font
-                             :height 130)
-    (face-remap-add-relative 'default 'variable-pitch)
-    (->> halidom-org-fixed-pitch-faces
-       (mapcar (lambda (x) (list x
-                            :family org-fixed-pitch-font
-                            :height 100)))
-       (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
-  (run-hooks 'variable-pitch-toggle-hook))
-
-#+END_SRC
-
-** Olivetti
-
-#+NAME:  writing-olivetti
-#+BEGIN_SRC emacs-lisp
+;; Block = @228128
+(message "org-dotemacs: evaluating @228128 block")
 
 (use-package olivetti
   :init
@@ -8650,26 +5688,16 @@ Work account is for office portal, not a Microsoft account. I need integration o
   :hook
   (olivetti-mode . halidom/olivetti-setup))
 
-#+END_SRC
-
-** Writeroom
-
-#+NAME: writing-writeroom
-#+BEGIN_SRC emacs-lisp
+;; Block = @228418
+(message "org-dotemacs: evaluating @228418 block")
   (use-package writeroom-mode
     :config
     (defun halidom/writeroom-mode-hook ()
       (org-toggle-variable-pitch)
       (auto-fill-mode -1))
     (add-hook 'writeroom-mode #'halidom/writeroom-mode-hook))
-#+END_SRC
-
-* Code
-** LSP
-*** LSP Mode
-
-#+NAME: lsp/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @228775
+(message "org-dotemacs: evaluating @228775 block")
 (use-package lsp-mode
   :custom
   (lsp-prefer-flymake nil)
@@ -8678,12 +5706,8 @@ Work account is for office portal, not a Microsoft account. I need integration o
   (require 'lsp-clients)
   :hook
   (lsp-after-open . lsp-enable-imenu))
-#+END_SRC
-
-*** LSP UI Mode
-
-#+NAME: lsp/ui
-#+BEGIN_SRC emacs-lisp
+;; Block = @228997
+(message "org-dotemacs: evaluating @228997 block")
 (use-package lsp-ui)
 
 (use-package lsp-ui-peek
@@ -8692,12 +5716,8 @@ Work account is for office portal, not a Microsoft account. I need integration o
   (:map lsp-ui-peek-mode-map
         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
         ([remap xref-find-references]  . lsp-ui-peek-find-references)))
-#+END_SRC
-
-*** Company LSP
-
-#+NAME: lsp/company
-#+BEGIN_SRC emacs-lisp
+;; Block = @229314
+(message "org-dotemacs: evaluating @229314 block")
 (use-package company-lsp
     :after company
     :demand t
@@ -8707,27 +5727,16 @@ Work account is for office portal, not a Microsoft account. I need integration o
     (company-transformers nil)
     (company-lsp-async t)
     (company-lsp-cache-candidates nil))
-#+END_SRC
-
-*** Dap Mode
-:PROPERTIES:
-:ID:       EEB674B8-A1AA-4965-834F-0550F5FBF4A7
-:END:
-
-#+NAME: dap/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @229664
+(message "org-dotemacs: evaluating @229664 block")
 (use-package dap-mode
   :after lsp-mode
   :demand t
   :config
   (dap-mode t)
   (dap-ui-mode t))
-#+END_SRC
-
-** Flycheck
-
-#+NAME: flycheck-spec
-#+BEGIN_SRC emacs-lisp
+;; Block = @229829
+(message "org-dotemacs: evaluating @229829 block")
   (use-package flycheck
       :custom
       (flycheck-global-modes nil)
@@ -8760,49 +5769,27 @@ Work account is for office portal, not a Microsoft account. I need integration o
           (flycheck-list-errors)
           (switch-to-buffer-other-window
            flycheck-error-list-buffer))))
-#+END_SRC
-
-** Code Style
-*** Default
-**** Disable tabs
-
-#+NAME: default/notabs
-#+BEGIN_SRC emacs-lisp
+;; Block = @231049
+(message "org-dotemacs: evaluating @231049 block")
 (setq-default tab-width 2
               indent-tabs-mode nil)
-#+END_SRC
-
-**** Display Line Numbers
-
-#+NAME: default/linenos
-#+BEGIN_SRC emacs-lisp
+;; Block = @231196
+(message "org-dotemacs: evaluating @231196 block")
   ; Line Numbering
   (when (>= emacs-major-version 26)
     (add-hook 'prog-mode-hook #'display-line-numbers-mode))
 
-#+END_SRC
-
-*** Code Folding
-**** Vimish fold
-
-#+BEGIN_SRC emacs-lisp :tangle no
+;; Block = @231381
+(message "org-dotemacs: evaluating @231381 block")
 (use-package vimish-fold
   :init
   (vimish-fold-global-mode 1))
-#+END_SRC
-
-**** Hide show
-
-#+NAME: fold/hs
-#+BEGIN_SRC emacs-lisp
+;; Block = @231522
+(message "org-dotemacs: evaluating @231522 block")
 (use-package hideshow
   :straight nil)
-#+END_SRC
-
-**** Hide show visual
-
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @231619
+(message "org-dotemacs: evaluating @231619 block")
 (use-package hideshowvis
   :init
   (defface halidom-folded-face
@@ -8828,32 +5815,22 @@ Work account is for office portal, not a Microsoft account. I need integration o
   :hook
   (prog-mode . hideshowvis/enable))
 
-#+END_SRC
-
-**** Org Hideshow
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @232568
+(message "org-dotemacs: evaluating @232568 block")
 (use-package hideshow-org
   :bind
   ("C-c h" . hs-org/minor-mode)
 
   :hook
   (org-mode . hs-org/minor-mode))
-#+END_SRC
-
-*** Editorconfig
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @232729
+(message "org-dotemacs: evaluating @232729 block")
 ;; Editorconfig
 (use-package editorconfig
   :if (executable-find "editorconfig")
   :init (editorconfig-mode 1))
-#+END_SRC
-
-*** Google C Style
-
-#+NAME: google-c-styleguide
-#+BEGIN_SRC emacs-lisp
+;; Block = @232923
+(message "org-dotemacs: evaluating @232923 block")
 (use-package google-c-style
   :straight
   (google-c-style
@@ -8867,62 +5844,30 @@ Work account is for office portal, not a Microsoft account. I need integration o
   :hook
   (c++-mode . halidom/google-c-style)
   (java-mode . halidom/google-c-style))
-#+END_SRC
-
-*** Code Formatting
-**** Electric Operator
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @233315
+(message "org-dotemacs: evaluating @233315 block")
 (use-package electric-operator)
-#+END_SRC
-
-**** Format all
-#+NAME: tools-code-format
-#+BEGIN_SRC emacs-lisp
+;; Block = @233423
+(message "org-dotemacs: evaluating @233423 block")
 (use-package format-all)
-#+END_SRC
-
-** Eldoc
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @233492
+(message "org-dotemacs: evaluating @233492 block")
 (use-package eldoc
   :config
   (when (fboundp 'paredit)
     (eldoc-add-command
      'paredit-backward-delete
      'paredit-close-round)))
-#+END_SRC
-
-** Pair Matching
-*** Paredit
-
-We could use ~:init~ key to hook the ~enable-paredit-mode~
-function to each of the implementing languages like is
-done [[https://github.com/tomjakubowski/.emacs.d/blob/master/init.el][here]], but I think adding the hook in the configuration
-block of the programming language is easier to follow and
-offers more meaningful semantics.
-
-#+NAME: pairs/paredit
-#+BEGIN_SRC emacs-lisp
+;; Block = @234050
+(message "org-dotemacs: evaluating @234050 block")
 (use-package paredit
-  :config
-  (progn
-    (autoload 'enable-paredit-mode "paredit"
-      "Turn on pseudo-structural editing of Lisp code." t)))
-   #+END_SRC
+  :defines (enable-paredit-mode)
+  :hook
+  ((emacs-lisp-mode clojure-mode lisp-mode) . enable-paredit-mode))
 
-*** Smartparens
 
-Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-mode for managing parens
-pairs. However, it also offers support for curly brackets in
-JavaScript objects, angle brackets in HTML, and most other major
-programming languages. I think I the "delete-on-command" behavior of
-paredit for lisp programming, but in languages where locating
-unmatched pairs is less comparable to searching for a needle in a
-haystack, =smartparens= are a great productivity tool.
-
-#+NAME: smartparens-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @234746
+(message "org-dotemacs: evaluating @234746 block")
 (use-package smartparens
   :custom-face
   (sp-show-pair-match-face
@@ -8986,20 +5931,11 @@ haystack, =smartparens= are a great productivity tool.
            '(:add (smartparens-pair-newline-and-indent "RET")))
   (sp-pair "[" nil :post-handlers
            '(:add (smartparens-pair-newline-and-indent "RET"))))
-#+END_SRC
-
-*** Rainbow Delimiters
-
-#+NAME: pair/rainbow
-#+BEGIN_SRC emacs-lisp
+;; Block = @236722
+(message "org-dotemacs: evaluating @236722 block")
 (use-package rainbow-delimiters)
-#+END_SRC
-
-*** Parinfer
-
-Disabling for now.
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @236823
+(message "org-dotemacs: evaluating @236823 block")
 (use-package parinfer
   :bind
   (("C-," . parinfer-toggle-mode))
@@ -9007,73 +5943,30 @@ Disabling for now.
   (parinfer-extensions
    '(defaults smart-yank pretty-parens paredit)))
 
-#+END_SRC
-
-***** Lispy
-
-#+NAME: lispy-config
-#+BEGIN_SRC emacs-lisp
+;; Block = @237040
+(message "org-dotemacs: evaluating @237040 block")
 (use-package lispy
   :config
   (when (functionp 'lispy-set-key-theme)
     (lispy-set-key-theme '(special paredit c-digits))))
 
-#+END_SRC
-
-*** Gtags
-:PROPERTIES:
-:ID:       0E4B8051-2EB4-454F-BBB0-BD57A5AEAFA6
-:END:
-
-#+NAME: ggtags-spec
-#+BEGIN_SRC emacs-lisp
+;; Block = @237299
+(message "org-dotemacs: evaluating @237299 block")
 (use-package ggtags
   :if (and (getenv "GTAGSLABEL") (executable-find "global"))
   :custom (ggtags-highlight-tag nil))
-#+END_SRC
-
-** Version Control
-*** Ediff
-
-#+NAME: vcs/ediff
-#+BEGIN_SRC emacs-lisp
+;; Block = @237500
+(message "org-dotemacs: evaluating @237500 block")
 (use-package ediff
   :custom
   (ediff-diff-options "-w"))
-#+END_SRC
-
-*** Git
-**** git modes
-
-#+NAME: git/modes
-#+BEGIN_SRC emacs-lisp
+;; Block = @237634
+(message "org-dotemacs: evaluating @237634 block")
 (use-package git-modes
   :straight t
   :mode (".projectile\\'" . gitignore-mode))
-#+END_SRC
-
-**** Magit
-:PROPERTIES:
-:ID:       AE7AB6CA-A097-4CB0-9B13-2B131CC2F5D9
-:CUSTOM_ID: magit
-:END:
-
-
-[[https://github.com/magit/magit][Magit]] describes itself as one of two git porcelains, the other being
-git itself.
-
-A git porcelain is jargon for a program that features a user-friendly
-vcs interface, as opposed to lower-level scripting commands.
-
-It's not a vitrified ceramic commonly used for decorative tableware.
-Magit would not be very good at that.
-
-As a git client though, magit is awesome.
-
-***** magit mode
-
-#+NAME: magit/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @238286
+(message "org-dotemacs: evaluating @238286 block")
 (use-package magit
     :defines (magit-mode-hook)
     :bind
@@ -9097,19 +5990,8 @@ As a git client though, magit is awesome.
     :custom
     (magit-save-repository-buffers 'dontask)
     (magit-completing-read-function 'ivy-completing-read))
-#+END_SRC
-
-***** Magit topgit
-
-To configure:
-
-#+BEGIN_EXAMPLE shell
-git config --global --add magit.extension topgit
-#+END_EXAMPLE
-
-
-#+NAME: magit/topgit
-#+BEGIN_SRC emacs-lisp
+;; Block = @239166
+(message "org-dotemacs: evaluating @239166 block")
 (use-package magit-topgit
   :ensure-system-package tg
   :demand t
@@ -9117,75 +5999,37 @@ git config --global --add magit.extension topgit
   :hook
   (magit-mode . turn-on-magit-topgit)
 )
-#+END_SRC
-
-***** Magit stgit
-
-To configure:
-
-#+BEGIN_SRC shell
-git config --global --add magit.extension stgit
-#+END_SRC
-
-#+NAME: magit/stgit
-#+BEGIN_SRC emacs-lisp
+;; Block = @239462
+(message "org-dotemacs: evaluating @239462 block")
 (use-package magit-stgit
   :ensure-system-package stg
   :after (magit)
   :demand t
   :hook
   (magit-mode . magit-stgit-mode))
-#+END_SRC
-
-***** Magit imerge
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @239642
+(message "org-dotemacs: evaluating @239642 block")
 (use-package magit-imerge
   :ensure-system-package git-imerge
   :after (magit)
   :demand t)
-#+END_SRC
-
-***** Magithub
-
-[[https://github.com/vermiculus/github][Magithub]] offers an interface to github to complement magit.
-
-#+NAME: magit/hub
-#+BEGIN_SRC emacs-lisp
+;; Block = @239905
+(message "org-dotemacs: evaluating @239905 block")
 (use-package magithub
   :after (magit)
   :commands magithub-dispatch-popup
   :bind (:map magit-status-mode-map
 	      ("@" . magithub-dispatch-popup))
   :config
-  (progn
-    (magithub-feature-autoinject t)))
-#+END_SRC
-
-***** Magit org todos
-
-#+BEGIN_SRC emacs-lisp
+  (magithub-feature-autoinject t))
+;; Block = @240158
+(message "org-dotemacs: evaluating @240158 block")
 (use-package magit-org-todos)
-#+END_SRC
-
-***** Orgit
-
-Insert Org links to magit buffers.
-
-#+NAME: magit/orgit
-#+BEGIN_SRC emacs-lisp
+;; Block = @240291
+(message "org-dotemacs: evaluating @240291 block")
 (use-package orgit)
-#+END_SRC
-
-**** gist.el
-
-Emacs integration for gist.github.com.
-
-[[https://github.com/defunkt/gist.el][Gist]] requires generating a personal access token with ~gist~ scope, and
-optionally ~user~ and ~repo~ scopes.
-
-#+NAME: git/gist
-#+BEGIN_SRC emacs-lisp
+;; Block = @240566
+(message "org-dotemacs: evaluating @240566 block")
 (use-package gist
   :bind
   (("C-c C-g l" . gist-list)
@@ -9200,14 +6044,8 @@ optionally ~user~ and ~repo~ scopes.
 
   (which-key-add-key-based-replacements
       "C-c C-g" " Gist"))
-#+END_SRC
-
-**** Git timemachine
-
-Travel back in time (to your last commit).
-
-#+NAME: git/timemachine
-#+BEGIN_SRC emacs-lisp
+;; Block = @241104
+(message "org-dotemacs: evaluating @241104 block")
 (use-package git-timemachine
   :bind
   ("C-c v t" . git-timemachine-toggle)
@@ -9215,64 +6053,33 @@ Travel back in time (to your last commit).
   (setq git-timemachine-abbreviation-length 7)
   (which-key-add-key-based-replacements
     "C-c v t" " Timemachine"))
-#+END_SRC
-
-**** Git messenger
-
-Pop-up feature for viewing the last git commit.
-
-#+NAME: git/messenger
-#+BEGIN_SRC emacs-lisp
+;; Block = @241434
+(message "org-dotemacs: evaluating @241434 block")
 (use-package git-messenger
   :bind
   ("C-c C-v m" . git-messenger:popup-message))
-#+END_SRC
-
-**** Git Gutter
-***** git gutter+
-
-#+NAME: gutter/+
-#+BEGIN_SRC emacs-lisp
+;; Block = @241602
+(message "org-dotemacs: evaluating @241602 block")
 (use-package git-gutter+
   :custom
   (git-gutter+-disabled-modes '(image-mode org-mode))
   :init
   (global-git-gutter+-mode))
-#+END_SRC
-
-***** git gutter fringe+
-
-#+NAME:
-#+BEGIN_SRC emacs-lisp
+;; Block = @241796
+(message "org-dotemacs: evaluating @241796 block")
 (use-package git-gutter-fringe+
   :hook
   (org-mode . git-gutter-fr+-minimal))
-#+END_SRC
-
-*** Mercurial
-**** Monky
-
-Monky provides an interactive interface for mercurial. It's
-essentially to ~hg~ what [[#magit][magit]] is for ~git~.
-
-#+NAME: hg/monky
-#+BEGIN_SRC emacs-lisp
+;; Block = @242070
+(message "org-dotemacs: evaluating @242070 block")
 (use-package monky
   :custom
   (monky-process-type 'cmdserver))
-#+END_SRC
-
-**** ahg
-
-#+NAME: hg/ahg
-#+BEGIN_SRC emacs-lisp
+;; Block = @242193
+(message "org-dotemacs: evaluating @242193 block")
 (use-package ahg)
-#+END_SRC
-
-** Cloud
-*** ecloud
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @242266
+(message "org-dotemacs: evaluating @242266 block")
 (use-package ecloud
   :ensure-system-package
   (ecloud . azure-cli)
@@ -9281,35 +6088,20 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
           :type git
           :repo "techniumlabs/ecloud"))
 
-#+END_SRC
-
-*** Docker
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @242476
+(message "org-dotemacs: evaluating @242476 block")
 (use-package docker)
-#+END_SRC
-
-**** Dockerfile
-
-#+NAME: docker/dockerfile
-#+BEGIN_SRC emacs-lisp
+;; Block = @242574
+(message "org-dotemacs: evaluating @242574 block")
 (use-package dockerfile-mode
   :mode "Dockerfile\\'")
-#+END_SRC
-
-**** Docker Compose
-
-#+NAME: docker/compose
-#+BEGIN_SRC emacs-lisp
+;; Block = @242706
+(message "org-dotemacs: evaluating @242706 block")
 (use-package docker-compose-mode
     :mode ("docker-compose.yml\\'" . docker-compose-mode))
 
-#+END_SRC
-
-*** AWS
-
-#+NAME: devops/aws
-#+BEGIN_SRC emacs-lisp
+;; Block = @242861
+(message "org-dotemacs: evaluating @242861 block")
 (use-package aws
   :config
   (progn
@@ -9318,14 +6110,8 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
     (autoload 'ec2-describe-snapshots "aws")
     (autoload 'ec2-describe-group "aws")
     (autoload 'ec2-get-console "aws")))
-#+END_SRC
-
-** Prog Utils
-*** wakatime
-
-Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatime]].
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @243258
+(message "org-dotemacs: evaluating @243258 block")
   (use-package wakatime-mode
     :if (executable-find "wakatime")
     :hook
@@ -9339,66 +6125,35 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
     "/usr/local/lib/python3.7/site-packages/wakatime/cli.py")
     (wakatime-python-bin
       "/usr/local/Cellar/python/3.7.2/bin/python3"))
-#+END_SRC
-
-*** Logging
-**** Log view
-
-#+NAME: logview
-#+BEGIN_SRC emacs-lisp
+;; Block = @243734
+(message "org-dotemacs: evaluating @243734 block")
 (use-package logview)
-#+END_SRC
-
-**** Log nav
-
-#+NAME: lognav
-#+BEGIN_SRC emacs-lisp
+;; Block = @243819
+(message "org-dotemacs: evaluating @243819 block")
 (use-package lognav-mode)
-#+END_SRC
-
-*** floobits
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @243893
+(message "org-dotemacs: evaluating @243893 block")
 (use-package floobits
   :if (file-exists-p (user-home ".floorc.json")))
 
-#+END_SRC
-
-*** rmsbolt
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @244013
+(message "org-dotemacs: evaluating @244013 block")
 (use-package rmsbolt)
-#+END_SRC
-
-** Languages
-*** Assembly
-
-- See Spacemacs [[https://github.com/syl20bnr/spacemacs/blob/master/layers/%2Blang/asm/][ASM layer]].
-**** ASM Mode
-
-#+NAME: asm/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @244230
+(message "org-dotemacs: evaluating @244230 block")
 (use-package asm-mode
   :mode (("\\.64sa\\'" . asm-mode)
          ("\\.64da\\'" . asm-mode)
          ("\\.32sa\\'" . asm-mode)
          ("\\.32da\\'" . asm-mode)))
-#+END_SRC
-
-**** NASM mode
-
-#+NAME: asm/nasm
-#+BEGIN_SRC emacs-lisp
+;; Block = @244461
+(message "org-dotemacs: evaluating @244461 block")
 (use-package nasm-mode
   :mode
   (("\\.[n]*\\(asm\\|s\\)\\'" . nasm-mode)))
 
-#+END_SRC
-
-**** ASM Init x86 Lookup
-
-#+NAME: asm/x86-lookup
-#+BEGIN_SRC emacs-lisp
+;; Block = @244621
+(message "org-dotemacs: evaluating @244621 block")
 (use-package x86-lookup
   :init
   (when (featurep 'pdf-tools)
@@ -9423,13 +6178,8 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
   :init
   (x86-lookup-install-pdf))
 
-#+END_SRC
-
-*** C/C++
-**** cmake
-
-#+NAME: cc/cmake
-#+BEGIN_SRC emacs-lisp
+;; Block = @245510
+(message "org-dotemacs: evaluating @245510 block")
 (use-package cmake-mode
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
          ("\\.cmake\\'" . cmake-mode))
@@ -9462,12 +6212,8 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 
   :hook (cmake-mode . cmake-mode-dash-docsets))
 
-#+END_SRC
-
-**** Cquery
-
-#+NAME: cc/cquery
-#+BEGIN_SRC emacs-lisp
+;; Block = @246927
+(message "org-dotemacs: evaluating @246927 block")
 
 (use-package cquery
     :commands lsp-cquery-enable
@@ -9507,35 +6253,23 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
         (add-to-list 'projectile-project-root-files-top-down-recurring
                      ".cquery")))
 
-#+END_SRC
-
-**** rtags
-
-#+NAME: cc/rtags
-#+BEGIN_SRC emacs-lisp
+;; Block = @248228
+(message "org-dotemacs: evaluating @248228 block")
 (use-package rtags
     :ensure-system-package (rdm . rtags)
     :hook
     ((c-mode c++-mode objc-mode) . rtags-start-process-unless-running))
 
-#+END_SRC
-
-**** llvm mode
-
-#+NAME: cc/llvm
-#+BEGIN_SRC emacs-lisp
+;; Block = @248437
+(message "org-dotemacs: evaluating @248437 block")
 (use-package llvm-mode
     :straight nil
     :load-path "~/.emacs.d/etc/local/llvm-mode"
     :init
     (require 'llvm-mode)
     (require 'tablegen-mode))
-#+END_SRC
-
-**** Clang Tidy
-
-#+NAME: cc/clang-tidy
-#+BEGIN_SRC emacs-lisp
+;; Block = @248664
+(message "org-dotemacs: evaluating @248664 block")
 (use-package flycheck-clang-tidy
     :after flycheck
     :if (executable-find "clang-tidy")
@@ -9547,12 +6281,8 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
           (flycheck-clang-tidy-setup))))
     (add-hook 'c-mode-common-hook 'clang-tidy/enable))
 
-#+END_SRC
-
-**** Clang Format
-
-#+NAME: cc/clang-format
-#+BEGIN_SRC emacs-lisp
+;; Block = @249123
+(message "org-dotemacs: evaluating @249123 block")
 (use-package clang-format
     :if (executable-find "clang-format")
     :bind (:map c-mode-base-map
@@ -9561,47 +6291,60 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
     :custom
     (clang-format-style-option "google"))
 
-#+END_SRC
+;; Block = @249464
+(message "org-dotemacs: evaluating @249464 block")
+(use-package emacs-lisp-mode
+  :straight nil
+  :init
+  (defun emacs-lisp/setup ()
+    "Setup elisp."
+    (when (require 'highlight-symbol nil t)
+      (highlight-symbol-mode +1))
+    (when (require 'rainbow-delimiters nil t)
+      (rainbow-delimiters-mode +1))
+    (setq lisp-indent-function 'lisp-indent-function)
+    (setq-local dash-plugin-keywords '("elisp")))
 
-*** Common Lisp
-
-Configuration for common-lisp.
-
-**** common lisp mode
-
-#+NAME: cl/mode
-#+BEGIN_SRC emacs-lisp
+  :hook
+  (emacs-lisp-mode . emacs-lisp/setup))
+;; Block = @249941
+(message "org-dotemacs: evaluating @249941 block")
+(use-package lisp-extra-font-lock
+  :init
+  (lisp-extra-font-lock-global-mode +1))
+;; Block = @250098
+(message "org-dotemacs: evaluating @250098 block")
+  (use-package elisp-format
+    :custom
+    (elisp-format-column 80))
+;; Block = @250279
+(message "org-dotemacs: evaluating @250279 block")
 (use-package lisp-mode
   :straight nil
   :init
-  (defun common-lisp-setup ()
+  (defun lisp-setup ()
     "setup for common lisp."
-    (if (fboundp 'paredit-mode)
-        (paredit-mode +1))
     (if (fboundp 'highlight-symbol-mode)
         (highlight-symbol-mode +1))
     (if (eq system-type 'darwin)
         (setq-local dash-plugin-keywords '("lisp"))))
   :hook
-  (lisp-mode . common-lisp-setup))
-#+END_SRC
-
-**** Slime
-
-[[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
-
-#+NAME: cl/slime
-#+BEGIN_SRC emacs-lisp
+  (lisp-mode . lisp-setup))
+;; Block = @250741
+(message "org-dotemacs: evaluating @250741 block")
 (use-package slime
-  :ensure-system-package sbcl
   :commands slime
   :defines
   (slime-complete-symbol*-fancy
    slime-completion-at-point-functions)
   :init
   (setq slime-contribs
-        '(slime-asdf slime-fancy slime-indentation slime-sbcl- slime-scratch)
-	      inferior-lisp-program "sbcl"
+        '(slime-fancy
+          slime-indentation
+          slime-references
+          slime-tramp
+          slime-scratch)
+	      inferior-lisp-program "clisp"
       	;; enable fuzzy matching in code buffer and SLIME REPL
       	slime-complete-symbol*-fancy t
       	slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
@@ -9612,22 +6355,8 @@ Configuration for common-lisp.
       (turn-off-smartparens-mode)))
   :hook
   (slime-repl-mode . slime/disable-smartparens))
-#+END_SRC
-
-*** Clojure
-
-**** Clojure Mode
-:PROPERTIES:
-:ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
-:END:
-
-Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
-before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
-
-Provides key bindings and font-locking for Clojure.
-
-#+NAME: clj/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @251847
+(message "org-dotemacs: evaluating @251847 block")
 (use-package clojure-mode
   :custom (clojure-indent-style :always-indent)
 
@@ -9677,32 +6406,16 @@ Provides key bindings and font-locking for Clojure.
 
   (add-hook 'clojure-mode-hook #'halidom/clj-dash-docsets)
   (add-hook 'clojure-mode-hook #'halidom/clj-style-guide))
-#+END_SRC
-
-**** Clojure Mode Extra Font Locking
-
-Additional syntax highlighting for ~clojure-mode~.
-
-#+NAME: clj/extra-font-locking
-#+BEGIN_SRC emacs-lisp
+;; Block = @253339
+(message "org-dotemacs: evaluating @253339 block")
 (use-package clojure-mode-extra-font-locking
   :config
   (defun clj/enable-extra-font-locking ()
     (require 'clojure-mode-extra-font-locking))
   :hook
   (clojure-mode . clj/enable-extra-font-locking))
-#+END_SRC
-
-**** CIDER
-:PROPERTIES:
-:ID:       324C7B10-8B92-4C49-8FAC-702C65C7A2EE
-:CUSTOM_ID: cider
-:END:
-
-[[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
-
-#+NAME: clj/cider
-#+BEGIN_SRC emacs-lisp
+;; Block = @253801
+(message "org-dotemacs: evaluating @253801 block")
 (use-package cider
   :custom
   (cider-repl-use-clojure-font-lock t)
@@ -9716,12 +6429,8 @@ Additional syntax highlighting for ~clojure-mode~.
   ((cider-mode cider-repl-mode) . eldoc-mode)
   ((cider-mode cider-repl-mode) . cider-company-enable-fuzzy-completion)
   (cider-repl-mode . subword-mode))
-#+END_SRC
-
-**** Clojure Refactor
-
-#+NAME: clj/refactor
-#+BEGIN_SRC emacs-lisp
+;; Block = @254306
+(message "org-dotemacs: evaluating @254306 block")
 (use-package clj-refactor
   :init
   (defun clj/refactor-enable ()
@@ -9734,129 +6443,24 @@ Additional syntax highlighting for ~clojure-mode~.
 
   :hook (clojure-mode . clj/refactor-enable))
 
-#+END_SRC
-
-**** ClojureScript
-
-#+NAME: clj/cljs
-#+BEGIN_SRC emacs-lisp
+;; Block = @254717
+(message "org-dotemacs: evaluating @254717 block")
 ;; elein
 
 ;; Cljsbuild
 
-#+END_SRC
-
-***** elein
-
-[[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
-
-#+NAME: cljs/elein
-#+BEGIN_SRC emacs-lisp
+;; Block = @254900
+(message "org-dotemacs: evaluating @254900 block")
 (use-package elein
   :if (executable-find "lein")
   :straight t)
-#+END_SRC
-
-***** Cljsbuild
-
-Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
-
-#+NAME: cljs/build
-#+BEGIN_SRC emacs-lisp
+;; Block = @255156
+(message "org-dotemacs: evaluating @255156 block")
 (use-package cljsbuild-mode
   :if (executable-find "lein")
   :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
-#+END_SRC
-
-*** Emacs Lisp
-**** Emacs lisp mode
-
-#+NAME: elisp/mode
-#+BEGIN_SRC emacs-lisp
-(use-package emacs-lisp-mode
-  :straight nil
-  :init
-  (defun emacs-lisp/setup ()
-    "Setup elisp."
-    (when (require 'paredit nil t)
-	    (paredit-mode +1))
-    (when (require 'highlight-symbol nil t)
-	      (highlight-symbol-mode +1))
-    (when (require 'rainbow-delimiters nil t)
-      (rainbow-delimiters-mode +1))
-    (setq lisp-indent-function 'lisp-indent-function)
-    (setq-local dash-plugin-keywords '("elisp")))
-
-  :hook
-  (emacs-lisp-mode . emacs-lisp/setup))
-#+END_SRC
-
-**** lisp extra fontlocking
-
-#+BEGIN_SRC emacs-lisp
-(use-package lisp-extra-font-lock
-  :init
-  (lisp-extra-font-lock-global-mode +1))
-#+END_SRC
-
-**** Emacs Lisp  Format
-
-#+NAME: elisp/format
-#+BEGIN_SRC emacs-lisp
-  (use-package elisp-format
-    :custom
-    (elisp-format-column 80))
-#+END_SRC
-
-**** Cask
-
-#+NAME: elisp/cask
-#+BEGIN_SRC emacs-lisp
-;; Cask Mode
-
-;; Flycheck cask
-
-;; Cask Package Toolset
-
-#+END_SRC
-
-***** Cask Mode
-
-#+NAME: cask/mode
-#+BEGIN_SRC emacs-lisp
-(use-package cask-mode)
-#+END_SRC
-
-***** Flycheck Cask
-
-#+NAME: cask/flycheck
-#+BEGIN_SRC emacs-lisp
-  (use-package flycheck-cask
-    :init
-    (defun flycheck-cask/enable ()
-      (when (eq projectile-project-type 'emacs-cask)
-        (flycheck-cask-setup)))
-
-    (defun flycheck-cask/disable-dir-locals ()
-      (when (string= ".dir-locals.el" (buffer-file-name))
-        (set (make-variable-buffer-local 'flycheck-mode) nil)))
-
-    :hook
-    (flycheck-mode . flycheck-cask/enable)
-    (flycheck-mode . flycheck-cask/disable-dir-locals))
-
-#+END_SRC
-
-***** Cask Toolset
-
-#+NAME: cask/toolset
-#+BEGIN_SRC emacs-lisp
-(use-package cask-package-toolset)
-#+END_SRC
-
-*** Groovy
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @255323
+(message "org-dotemacs: evaluating @255323 block")
 (use-package groovy-mode
   :mode  "\\.gradle\\'"
   :init
@@ -9868,12 +6472,8 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
           c-indent-comments-syntactically-p t))
   :hook
   (groovy-mode . groovy-setup))
-#+END_SRC
-
-*** Java
-**** java mode
-#+NAME: java/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @255690
+(message "org-dotemacs: evaluating @255690 block")
 (use-package java-mode
   :straight nil
   :init
@@ -9887,42 +6487,17 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   :hook
   (java-mode . java/setup))
 
-#+END_SRC
-
-**** Autodisass Java Bytecode
-:PROPERTIES:
-:ID:       892B3341-D8D3-4E12-A540-5A19DD54A459
-:END:
-
-The [[https://github.com/gbalats/autodisass-java-bytecode][autodisass-java-bytecode]] package enables automatic disassembly of
-Java bytecode inside Emacs buffers.
-
-#+NAME: java/disass
-#+BEGIN_SRC emacs-lisp
+;; Block = @256331
+(message "org-dotemacs: evaluating @256331 block")
 (use-package autodisass-java-bytecode)
-#+END_SRC
-
-**** Gradle Mode
-:PROPERTIES:
-:ID:       0D4DEC79-5E2D-48D0-A8B1-38E2432565C8
-:CUSTOM_ID: gradle-mode
-:END:
-
-Gradle is a build tool for Java. It's awesome.
-
-#+NAME: java/gradle
-#+BEGIN_SRC emacs-lisp
+;; Block = @256581
+(message "org-dotemacs: evaluating @256581 block")
 (use-package gradle-mode
   :if (executable-find "gradle")
   :hook
   (java-mode . gradle-mode))
-#+END_SRC
-
-**** Lsp Java
-***** Lsp Java Mode
-
-#+NAME: lsp/java
-#+BEGIN_SRC emacs-lisp
+;; Block = @256762
+(message "org-dotemacs: evaluating @256762 block")
 (use-package lsp-java
   :defines (lsp-java-enable)
   :custom
@@ -9934,52 +6509,31 @@ Gradle is a build tool for Java. It's awesome.
   (lsp-eldoc-render-all nil)
   (lsp-java-compilation-guess-arguments t))
 
-#+END_SRC
-
-***** Lsp Java Treemacs
-
-#+NAME: lsp/treemacs
-#+BEGIN_SRC emacs-lisp
+;; Block = @257160
+(message "org-dotemacs: evaluating @257160 block")
 (use-package lsp-java-treemacs
   :straight lsp-java
   :after (treemacs))
-#+END_SRC
-
-**** Dap
-
-#+NAME: java/dap
-#+BEGIN_SRC emacs-lisp
+;; Block = @257294
+(message "org-dotemacs: evaluating @257294 block")
 ;; Dap Mode
 
 ;; Dap Java
 
-#+END_SRC
-
-***** Dap Java
-
-#+NAME: dap/java
-#+BEGIN_SRC emacs-lisp
+;; Block = @257387
+(message "org-dotemacs: evaluating @257387 block")
 (use-package dap-java
   :straight dap-mode
   :after (lsp-java))
-#+END_SRC
-
-**** Javadoc lookup
-
-#+NAME: java/doc
-#+BEGIN_SRC emacs-lisp
+;; Block = @257523
+(message "org-dotemacs: evaluating @257523 block")
 (use-package javadoc-lookup
   :bind
   ("C-h j" . javadoc-lookup)
   :custom
   (javadoc-lookup-completing-read-function #'ivy-completing-read))
-#+END_SRC
-
-*** JavaScript
-**** js2 mode
-
-#+NAME: js/2
-#+BEGIN_SRC emacs-lisp
+;; Block = @257742
+(message "org-dotemacs: evaluating @257742 block")
 (use-package js2-mode
   :custom
   (js-indent-level 2)
@@ -9987,12 +6541,8 @@ Gradle is a build tool for Java. It's awesome.
          ("\\.mjs\\'" . js2-mode))
   :interpreter "node"
   :hook (js2-mode . lsp))
-#+END_SRC
-
-**** JSON
-
-#+NAME: js/json
-#+BEGIN_SRC emacs-lisp
+;; Block = @257973
+(message "org-dotemacs: evaluating @257973 block")
 (use-package json-mode
   :mode "\\.json\\'"
   :init
@@ -10012,24 +6562,15 @@ Gradle is a build tool for Java. It's awesome.
   (json-mode . json-mode-faces)
   (json-mode . json-inhibit-message))
 
-#+END_SRC
-
-**** Node JS
-***** Add Node Modules Path
-
-#+NAME: node/modules
-#+BEGIN_SRC emacs-lisp
+;; Block = @258666
+(message "org-dotemacs: evaluating @258666 block")
 (use-package add-node-modules-path
   :if (executable-find "node")
   :init
   (progn
     (add-hook 'js-mode-hook #'add-node-modules-path)))
-#+END_SRC
-
-***** NPM Mode
-
-#+NAME: node/npm
-#+BEGIN_SRC emacs-lisp
+;; Block = @258871
+(message "org-dotemacs: evaluating @258871 block")
 (use-package npm-mode
     :if (executable-find "npm")
     :init
@@ -10048,40 +6589,24 @@ Gradle is a build tool for Java. It's awesome.
 
     :hook
     (js-mode . npm-mode))
-#+END_SRC
-
-***** Yarn mode
-
-#+NAME: node/yarn
-#+BEGIN_SRC emacs-lisp
+;; Block = @259423
+(message "org-dotemacs: evaluating @259423 block")
 (use-package yarn-mode
     :if (executable-find "yarn"))
-#+END_SRC
-
-***** NVM
-
-#+NAME: node/nvm
-#+BEGIN_SRC emacs-lisp
+;; Block = @259542
+(message "org-dotemacs: evaluating @259542 block")
 (use-package nvm
   :if (executable-find "nvm"))
-#+END_SRC
-
-**** TypeScript
-
-#+NAME: js/typescript
-#+BEGIN_SRC emacs-lisp
+;; Block = @259663
+(message "org-dotemacs: evaluating @259663 block")
   (use-package typescript-mode
     :custom
     (typescript-indent-level 2)
     :hook
     (typescript-mode . lsp)
     (typescript-mode . subword-mode))
-#+END_SRC
-
-**** Tide mode
-
-#+NAME: js/tide
-#+BEGIN_SRC emacs-lisp
+;; Block = @259880
+(message "org-dotemacs: evaluating @259880 block")
   (use-package tide
     :functions (tide/setup)
     :after (:all typescript-mode)
@@ -10105,41 +6630,23 @@ Gradle is a build tool for Java. It's awesome.
     (before-save . tide-format-before-save)
     (typescript-mode . tide/setup)
     (typescript-mode . tide-hl-identifier-mode))
-#+END_SRC
-
-**** rjsx-mode
-
-Real jsx support.
-
-#+NAME: js/rjsx
-#+BEGIN_SRC emacs-lisp
+;; Block = @260713
+(message "org-dotemacs: evaluating @260713 block")
 (use-package rjsx-mode
   :mode "\\.jsx\\'")
-#+END_SRC
-
-**** Flycheck Jest
-
-#+NAME: js/jest
-#+BEGIN_SRC emacs-lisp
+;; Block = @260827
+(message "org-dotemacs: evaluating @260827 block")
   (use-package flycheck-jest
     :after flycheck
     :init
     (flycheck-jest-setup))
 
-#+END_SRC
-
-**** CoffeeScript
-
-#+NAME: js/coffee
-#+BEGIN_SRC emacs-lisp
+;; Block = @260985
+(message "org-dotemacs: evaluating @260985 block")
 (use-package coffee-mode
   :mode ("\\.coffee\\'" . coffee-mode))
-#+END_SRC
-
-**** Indium
-
-#+NAME: js/indium
-#+BEGIN_SRC emacs-lisp
+;; Block = @261115
+(message "org-dotemacs: evaluating @261115 block")
 (use-package indium
   :bind (:map indium-interaction-mode-map
                 ("C-M-b" . indium-eval-buffer))
@@ -10204,13 +6711,8 @@ process outputp."
                        chromium-program "--remote-debugging-port=9222" ip)))
     :hook
     (js-mode . indium-interaction-mode))
-#+END_SRC
-
-*** Python
-**** Python Mode
-
-#+NAME: py/python
-#+BEGIN_SRC emacs-lisp
+;; Block = @263987
+(message "org-dotemacs: evaluating @263987 block")
 (use-package python-mode
   :init
   (when (executable-find "ipython3")
@@ -10228,13 +6730,8 @@ process outputp."
     (add-hook 'python-mode-hook #'python-dash-docsets))
   :hook
   (python-mode . lsp))
-#+END_SRC
-
-**** Pyenv
-***** Pyenv mode
-
-#+NAME: pyenv/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @264667
+(message "org-dotemacs: evaluating @264667 block")
   (use-package pyenv-mode
     :if (executable-find "pyenv")
     :init
@@ -10283,19 +6780,11 @@ process outputp."
                      (pyenv-current-version (s-trim (f-read-text pyenv-version-path 'utf-8))))
                 (pyenv-mode-set pyenv-current-version)
                 (message (concat "Setting virtualenv to " pyenv-current-version))))))))
-#+END_SRC
-
-**** Pyenv Auto Set
-
-#+NAME: pyenv/auto
-#+BEGIN_SRC emacs-lisp
+;; Block = @266715
+(message "org-dotemacs: evaluating @266715 block")
 (use-package pyenv-mode-auto)
-#+END_SRC
-
-**** Virtualenv Wrapper
-
-#+NAME: py/virtualenvwrapper
-#+BEGIN_SRC emacs-lisp
+;; Block = @266833
+(message "org-dotemacs: evaluating @266833 block")
 (use-package virtualenvwrapper
     :init
     (setq venv-dirlookup-names '(".pyenv" ".venv"))
@@ -10307,71 +6796,38 @@ process outputp."
               (venv-projectile-auto-workon)
               (projectile-find-file)))))
 
-#+END_SRC
-
-**** Pyvenv
-
-#+NAME: py/venv
-#+BEGIN_SRC emacs-lisp
+;; Block = @267241
+(message "org-dotemacs: evaluating @267241 block")
 (use-package pyvenv
     :requires virtualenvwrapper
     :init
   (pyvenv-mode +1))
-#+END_SRC
-
-**** with venv
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @267373
+(message "org-dotemacs: evaluating @267373 block")
 (use-package with-venv)
-#+END_SRC
-
-**** livepy mode
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @267449
+(message "org-dotemacs: evaluating @267449 block")
 (use-package live-py-mode)
-#+END_SRC
-
-**** Pip Requirements
-
-#+NAME: py/pip
-#+BEGIN_SRC emacs-lisp
+;; Block = @267548
+(message "org-dotemacs: evaluating @267548 block")
 (use-package pip-requirements
     :straight t)
-#+END_SRC
-
-**** Pydoc
-
-#+NAME: py/doc
-#+BEGIN_SRC emacs-lisp
+;; Block = @267656
+(message "org-dotemacs: evaluating @267656 block")
 (use-package pydoc
     :straight t)
-#+END_SRC
-
-**** EIN
-
-The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook]] client.
-
-#+NAME: py/notebook
-#+BEGIN_SRC emacs-lisp
+;; Block = @267848
+(message "org-dotemacs: evaluating @267848 block")
 (use-package ein
     :config
     (setq ein:use-smartrep t))
-#+END_SRC
-
-*** Prolog
-
-#+NAME: lang/prolog
-#+BEGIN_SRC emacs-lisp
+;; Block = @267974
+(message "org-dotemacs: evaluating @267974 block")
 (use-package prolog-mode
   :straight nil
   :mode "\\.pl\\'")
-#+END_SRC
-
-*** Ruby
-**** Ruby Mode
-
-#+NAME: ruby/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @268112
+(message "org-dotemacs: evaluating @268112 block")
 (use-package ruby-mode
   :mode "\\.rb\\'"
   :interpreter "ruby"
@@ -10383,43 +6839,27 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 
   (add-hook 'ruby-mode-hook #'halidom/ruby-dash-docsets))
 
-#+END_SRC
-
-**** Enhanced Ruby Mode
-
-#+NAME: ruby/enhanced
-#+BEGIN_SRC emacs-lisp
+;; Block = @268424
+(message "org-dotemacs: evaluating @268424 block")
 (use-package enh-ruby-mode
     :after ruby-mode
     :demand t
     :mode "\\.rb\\'"
     :config
     (add-hook 'enh-ruby-mode-hook #'halidom/ruby-dash-docsets))
-#+END_SRC
-
-**** Inf ruby
-
-#+NAME: ruby/inf
-#+BEGIN_SRC emacs-lisp
+;; Block = @268649
+(message "org-dotemacs: evaluating @268649 block")
 (use-package inf-ruby
     :hook
     ((ruby-mode enh-ruby-mode) . inf-ruby-minor-mode)
     (compilation-filter . inf-ruby-auto-enter))
-#+END_SRC
-
-**** RVM
-
-#+NAME: ruby/rvm
-#+BEGIN_SRC emacs-lisp
+;; Block = @268844
+(message "org-dotemacs: evaluating @268844 block")
 (use-package rvm
   :init
   (rvm-use-default))
-#+END_SRC
-
-**** Robe
-
-#+NAME: ruby/robe
-#+BEGIN_SRC emacs-lisp
+;; Block = @268953
+(message "org-dotemacs: evaluating @268953 block")
   (use-package robe
     :init
     ;; ensure `rvm' activates the proper project Ruby
@@ -10438,50 +6878,29 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 
     :hook
     ((ruby-mode enh-ruby-mode) . robe/enable))
-#+END_SRC
-
-**** Yard Mode
-
-#+NAME: ruby-yard
-#+BEGIN_SRC emacs-lisp
+;; Block = @269598
+(message "org-dotemacs: evaluating @269598 block")
 (use-package yard-mode
   :hook
   ((ruby-mode enh-ruby-mode) . yard-mode)
   ((ruby-mode enh-ruby-mode) . eldoc-mode))
 
-#+END_SRC
-
-*** Ocaml
-**** Utop
-
-#+NAME: ocaml/utop
-#+BEGIN_SRC emacs-lisp
+;; Block = @269790
+(message "org-dotemacs: evaluating @269790 block")
 (use-package utop)
-#+END_SRC
-
-**** Merlin
-
-#+NAME: ocaml/merlin
-#+BEGIN_SRC emacs-lisp
+;; Block = @269877
+(message "org-dotemacs: evaluating @269877 block")
 (use-package merlin
   :custom
   (merlin-command 'opam)
   (merlin-error-after-save nil))
-#+END_SRC
-
-**** caml mode
-
-#+NAME: ocaml/caml
-#+BEGIN_SRC emacs-lisp
+;; Block = @270034
+(message "org-dotemacs: evaluating @270034 block")
 (use-package caml
   :hook
   (caml . ocaml/merlin))
-#+END_SRC
-
-**** Tuareg
-
-#+NAME: ocaml/tuareg
-#+BEGIN_SRC emacs-lisp
+;; Block = @270153
+(message "org-dotemacs: evaluating @270153 block")
   (use-package tuareg
     :mode
     ("\\.ml\\'" . tuareg-mode)
@@ -10495,12 +6914,8 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
     :hook
     (tuareg-mode . tuareg/prettify-symbols)
     (tuareg-mode . merlin-mode))
-#+END_SRC
-
-**** Dune
-
-#+NAME: ocaml/dune
-#+BEGIN_SRC emacs-lisp
+;; Block = @270556
+(message "org-dotemacs: evaluating @270556 block")
 (use-package dune
   :straight
   (dune
@@ -10517,47 +6932,29 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
   :ensure-system-package
   (dune . "opam install dune")
   :init
-
   (with-eval-after-load 'projectile
     (projectile-register-project-type 'dune
                                       '("dune-project")
                                       :compile "dune build"
                                       :test "dune runtest"
                                       :run "dune exec"))
-
   :hook
   (dune-mode . enable-paredit-mode))
-#+END_SRC
-
-**** Reason Mode
-
-#+NAME: ocaml/reason
-#+BEGIN_SRC emacs-lisp
+;; Block = @271353
+(message "org-dotemacs: evaluating @271353 block")
 (use-package reason-mode
   :hook
   (reason . merlin-mode))
-#+END_SRC
-
-*** Scala
-**** Scala Mode
-
-#+NAME: scala/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @271492
+(message "org-dotemacs: evaluating @271492 block")
 (use-package scala-mode
   :interpreter
   ("scala" . scala-mode))
-#+END_SRC
-
-**** Sbt
-
-#+NAME: scala/sbt
-#+BEGIN_SRC emacs-lisp
+;; Block = @271619
+(message "org-dotemacs: evaluating @271619 block")
 (use-package sbt-mode)
-#+END_SRC
-
-*** Shell script mode
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @271699
+(message "org-dotemacs: evaluating @271699 block")
 (use-package sh-mode
   :straight nil
   :custom
@@ -10568,12 +6965,8 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
   :hook
   (sh-mode  . sh-mode/disable-org-link))
 
-#+END_SRC
-
-*** Web
-**** web mode
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @271949
+(message "org-dotemacs: evaluating @271949 block")
   (use-package web-mode
     :bind
     (:map web-mode-map
@@ -10633,25 +7026,15 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
     :hook
     (web-mode . web/tsx)
     (web-mode . web/docsets))
-#+END_SRC
-
-**** HTML
-
-***** HTML mode
-
-#+NAME: html/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @273963
+(message "org-dotemacs: evaluating @273963 block")
 (use-package html-mode
   :straight nil
   :hook
   (html-mode . lsp))
 
-#+END_SRC
-
-***** Tag Edit
-
-#+NAME: html/tagedit
-#+BEGIN_SRC emacs-lisp
+;; Block = @274103
+(message "org-dotemacs: evaluating @274103 block")
   (use-package tagedit
     :init
     (defun tagedit/enable ()
@@ -10661,88 +7044,47 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 
     :hook
     (html-mode . tagedit/enable))
-#+END_SRC
-
-***** Auto rename tag
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @274364
+(message "org-dotemacs: evaluating @274364 block")
 (use-package auto-rename-tag)
-#+END_SRC
-
-
-
-***** Htmlize
-
-#+NAME: html/lize
-#+BEGIN_SRC emacs-lisp
+;; Block = @274463
+(message "org-dotemacs: evaluating @274463 block")
 (use-package htmlize)
-#+END_SRC
-
-**** CSS
-***** css mode
-
-#+NAME: css/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @274561
+(message "org-dotemacs: evaluating @274561 block")
 (use-package css-mode
   :custom (css-indent-offset 2)
   :hook
   (css-mode . lsp))
-#+END_SRC
-
-***** Less
-
-#+NAME: css/less
-#+BEGIN_SRC emacs-lisp
+;; Block = @274706
+(message "org-dotemacs: evaluating @274706 block")
 (use-package less-mode
   :mode "\\.less\\'"
   :hook
   (less-mode . lsp))
-#+END_SRC
-
-***** sass mode
-
-#+NAME: css/sass
-#+BEGIN_SRC emacs-lisp
+;; Block = @274847
+(message "org-dotemacs: evaluating @274847 block")
 (use-package sass-mode
   :mode "\\.sass\\'"
   :hook
   (sass-mode . lsp))
-#+END_SRC
-
-***** scss mode
-
-#+NAME: css/scss
-#+BEGIN_SRC emacs-lisp
+;; Block = @274988
+(message "org-dotemacs: evaluating @274988 block")
 (use-package scss-mode
   :mode "\\.scss\\'"
   :hook
   (scss-mode . lsp))
-#+END_SRC
-
-**** Nginx
-
-#+NAME: web/nginx
-#+BEGIN_SRC emacs-lisp
+;; Block = @275125
+(message "org-dotemacs: evaluating @275125 block")
 (use-package nginx-mode
     :mode ("/nginx/sites-\\(?:available|enabled\\)/" . nginx-mode))
-#+END_SRC
-
-**** Emmet
-
-#+NAME: web/emmet
-#+BEGIN_SRC emacs-lisp
+;; Block = @275281
+(message "org-dotemacs: evaluating @275281 block")
 (use-package emmet-mode
   :hook
   ((css-mode html-mode web-mode) . emmet-mode))
-#+END_SRC
-
-*** Markdown
-**** markdown mode
-
-- See https://jblevins.org/projects/markdown-mode/
-
-#+NAME: md/mode
-#+BEGIN_SRC emacs-lisp
+;; Block = @275496
+(message "org-dotemacs: evaluating @275496 block")
   (use-package markdown-mode
     :preface
     (defun markdown-open-preview ()
@@ -10764,37 +7106,21 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
        ("\\.markdown\\'" . markdown-mode))
       :hook
       ((markdown-mode gfm-mode) . visual-fill-column-mode))
-#+END_SRC
-
-**** markdown-mode+
-
-#+NAME: md/plus
-#+BEGIN_SRC emacs-lisp
+;; Block = @276270
+(message "org-dotemacs: evaluating @276270 block")
 (use-package markdown-mode+)
-#+END_SRC
-
-**** markdown toc
-
-#+NAME: md/toc
-#+BEGIN_SRC emacs-lisp
+;; Block = @276367
+(message "org-dotemacs: evaluating @276367 block")
 (use-package markdown-toc)
-#+END_SRC
-
-**** markdownfmt
-
-#+NAME: md/fmt
-#+BEGIN_SRC emacs-lisp
+;; Block = @276461
+(message "org-dotemacs: evaluating @276461 block")
 (use-package markdownfmt
   :bind (:map markdown-mode-map
 	      ("C-c C-f" . markdown-format-buffer))
   :hook
   (markdown-mode . markdownfmt-enable-on-save))
-#+END_SRC
-
-**** Livedown
-
-#+NAME: md/livedown
-#+BEGIN_SRC emacs-lisp
+;; Block = @276688
+(message "org-dotemacs: evaluating @276688 block")
   (use-package livedown
       :straight (livedown
                  :type git
@@ -10809,290 +7135,21 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 
         (defadvice livedown-preview (after livedown-preview-after activate)
           (xwidget-webkit-browse-url "http://localhost:1337"))))
-#+END_SRC
-
-*** Applescript
-
-
-#+BEGIN_SRC emacs-lisp
+;; Block = @277190
+(message "org-dotemacs: evaluating @277190 block")
 (use-package apples-mode
   :mode "\\.applescript\\'")
-#+END_SRC
-
-*** Racket
-
-#+NAME: lang/racket
-#+BEGIN_SRC emacs-lisp
+;; Block = @277310
+(message "org-dotemacs: evaluating @277310 block")
 (use-package racket-mode
   :hook
   (racket . paredit-mode))
-#+END_SRC
-
-*** Yaml
-
-#+NAME: lang/yaml
-#+BEGIN_SRC emacs-lisp
+;; Block = @277432
+(message "org-dotemacs: evaluating @277432 block")
 
 (use-package yaml-mode
     :mode (("\\.yml\\'" . yaml-mode)
            (".clang-tidy\\'" . yaml-mode)))
 
-#+END_SRC
-
-* Misc
-** Scimax
-
-#+NAME: research/scimax
-#+BEGIN_SRC emacs-lisp
-(use-package scimax
-  :straight nil
-  :if (file-directory-p (emacs-etc-dir "local" "scimax"))
-  :custom
-  (scimax-dir (emacs-etc-dir "local" "scimax"))
-  (scimax-snippet-dir (car yas-snippet-dirs))
-  :load-path "etc/local/scimax"
-  :init
-  (setq ore-user-directory (emacs-etc-dir "ore"))
-  (require 'scimax-ivy)
-  (require 'scimax-latex)
-  (require 'scimax-utils)
-  (require 'scimax-yas)
-  (require 'scimax-link-thumbnails)
-  (require 'ore)
-  (require 'ox-word))
-
-;; copied from scimax
-;; * Fragment overlays
-(defun org-latex-fragment-tooltip (beg end image imagetype)
-  "Add the fragment tooltip to the overlay and set click function to toggle it."
-  (overlay-put (ov-at) 'help-echo
-	       (concat (buffer-substring beg end)
-		       "\nmouse-1 to toggle."))
-  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
-				    (define-key map [mouse-1]
-				      `(lambda ()
-					 (interactive)
-					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
-				    map)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
-
-(defun org-latex-fragment-justify (justification)
-  "Justify the latex fragment at point with JUSTIFICATION.
-JUSTIFICATION is a symbol for 'left, 'center or 'right."
-  (interactive
-   (list (intern-soft
-          (completing-read "Justification (left): " '(left center right)
-                           nil 'require-match))))
-
-  (let* ((ov (ov-at))
-	 (beg (ov-beg ov))
-	 (end (ov-end ov))
-	 (shift (- beg (line-beginning-position)))
-	 (img (overlay-get ov 'display))
-	 (img (and (and img (consp img) (eq (car img) 'image)
-			(image-type-available-p (plist-get (cdr img) :type)))
-		   img))
-	 space-left offset)
-    (when (and img (= beg (line-beginning-position)))
-      (setq space-left (- (window-max-chars-per-line) (car (image-display-size img)))
-	    offset (floor (cond
-			   ((eq justification 'center)
-			    (- (/ space-left 2) shift))
-			   ((eq justification 'right)
-			    (- space-left shift))
-			   (t
-			    0))))
-      (when (>= offset 0)
-	(overlay-put ov 'before-string (make-string offset ?\ ))))))
-
-(defun org-latex-fragment-justify-advice (beg end image imagetype)
-  "After advice function to justify fragments."
-  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
-
-;; ** numbering latex equations
-(defun org-renumber-environment (orig-func &rest args)
-  "A function to inject numbers in LaTeX fragment previews."
-  (let ((results '())
-	(counter -1)
-	(numberp))
-
-    (setq results (loop for (begin .  env) in
-			(org-element-map (org-element-parse-buffer) 'latex-environment
-			  (lambda (env)
-			    (cons
-			     (org-element-property :begin env)
-			     (org-element-property :value env))))
-			collect
-			(cond
-			 ((and (string-match "\\\\begin{equation}" env)
-			       (not (string-match "\\\\tag{" env)))
-			  (incf counter)
-			  (cons begin counter))
-			 ((string-match "\\\\begin{align}" env)
-			  (prog2
-			      (incf counter)
-			      (cons begin counter)
-			    (with-temp-buffer
-			      (insert env)
-			      (goto-char (point-min))
-			      ;; \\ is used for a new line. Each one leads to a number
-			      (incf counter (count-matches "\\\\$"))
-			      ;; unless there are nonumbers.
-			      (goto-char (point-min))
-			      (decf counter (count-matches "\\nonumber")))))
-			 (t
-			  (cons begin nil)))))
-
-    (when (setq numberp (cdr (assoc (point) results)))
-      (setf (car args)
-	    (concat
-	     (format "\\setcounter{equation}{%s}\n" numberp)
-	     (car args)))))
-
-  (apply orig-func args))
-
-(advice-add 'org-create-formula-image :around #'org-renumber-environment)
-
-
-;; * Markup commands for org-mode
-(loop for (type beginning-marker end-marker)
-      in '((subscript "_{" "}")
-	   (superscript "^{" "}")
-	   (italics "/" "/")
-	   (bold "*" "*")
-	   (verbatim "=" "=")
-	   (code "~" "~")
-	   (underline "_" "_")
-	   (strikethrough "+" "+"))
-      do
-      (eval `(defun ,(intern (format "org-%s-region-or-point" type)) ()
-	       ,(format "%s the region, word or character at point"
-			(upcase (symbol-name type)))
-	       (interactive)
-	       (cond
-		;; We have an active region we want to apply
-		((region-active-p)
-		 (let* ((bounds (list (region-beginning) (region-end)))
-			(start (apply 'min bounds))
-			(end (apply 'max bounds))
-			(lines))
-		   (unless (memq ',type '(subscript superscript))
-		     (save-excursion
-		       (goto-char start)
-		       (unless (looking-at " \\|\\<")
-			 (backward-word)
-			 (setq start (point)))
-		       (goto-char end)
-		       (unless (looking-at " \\|\>")
-			 (forward-word)
-			 (setq end (point)))))
-		   (setq lines
-			 (s-join "\n" (mapcar
-				       (lambda (s)
-					 (if (not (string= (s-trim s) ""))
-					     (concat ,beginning-marker
-						     (s-trim s)
-						     ,end-marker)
-					   s))
-				       (split-string
-					(buffer-substring start end) "\n"))))
-		   (setf (buffer-substring start end) lines)
-		   (forward-char (length lines))))
-		;; We are on a word with no region selected
-		((thing-at-point 'word)
-		 (cond
-		  ;; beginning of a word
-		  ((looking-back " " 1)
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))
-		  ;; end of a word
-		  ((looking-back "\\>" 1)
-		   (insert ,(concat beginning-marker end-marker))
-		   (backward-char ,(length end-marker)))
-		  ;; not at start or end, so we just sub/sup the character at point
-		  ((memq ',type '(subscript superscript))
-		   (insert ,beginning-marker)
-		   (forward-char ,(- (length beginning-marker) 1))
-		   (insert ,end-marker))
-		  ;; somewhere else in a word, and handled sub/sup. mark up the
-		  ;; whole word.
-		  (t
-		   (re-search-backward "\\<")
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))))
-		;; not at a word or region, insert markers and put point between
-		;; them.
-		(t
-		 (insert ,(concat beginning-marker end-marker))
-		 (backward-char ,(length end-marker)))))))
-
-(defun org-latex-math-region-or-point (&optional arg)
-  "Wrap the selected region in latex math markup.
-\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
-Or insert those and put point in the middle to add an equation."
-  (interactive "P")
-  (let ((chars
-	 (cond
-	  ((null arg)
-	   '("\\(" . "\\)"))
-	  ((equal arg '(4))
-	   '("$" . "$"))
-	  ((equal arg '(16))
-	   '("@@latex:" . "@@")))))
-    (if (region-active-p)
-	(progn
-	  (goto-char (region-end))
-	  (insert (cdr chars))
-	  (goto-char (region-beginning))
-	  (insert (car chars)))
-      (insert (concat  (car chars) (cdr chars)))
-      (backward-char (length (cdr chars))))))
-#+END_SRC
-
-* Footnotes
-
-[fn:1] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
-
-[fn:2]  "Next-generation, purely functional package manager for the
-Emacs hacker."
-
-[fn:3] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
-
-[fn:4] In lisp, global variables are called /top-level defintions/. By
-convention, globals are wrapped in a pair of asterisks called
-/earmuffs/. Earmuffs are completely optional -- they have no effect on
-how the program is compiled -- its a best practice in all of the many
-dialects of Lisp.
-
-[fn:5] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
-
-[fn:9] [[https://www.emacswiki.org/emacs/EmacsForMacOS][Emacs Wiki - Emacs For MacOS]]
-
-[fn:6] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
-
-[fn:7] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
-
-[fn:8] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
-
-[fn:10] http://www.jonathanleroux.org/bibtex-mode.html
-
-[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
-
-[fn:12] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
-
-[fn:14] [[https://github.com/d12frosted/homebrew-emacs-plus][d12frosted/homebrew-emacs-plus]]
-
-[fn:13] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
-
-[fn:15] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
-
-[fn:16] https://www.emacswiki.org/emacs/BookMarks#toc7
-
-[fn:17] https://joelkuiper.eu/spellcheck_emacs
-
-[fn:18] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
+(message "org-dotemacs: 563 blocks evaluated.")
+(message "org-dotemacs: 0 blocks not considered (see ~/.emacs.d/dotemacs.org).")

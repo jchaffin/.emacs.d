@@ -4,7 +4,6 @@
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
-#+SETUPFILE: ./etc/org/html-themes/theme-readtheorg.setup
 
 * Table Of Contents :TOC_3_gh:noexport:
 - [[#emacs][Emacs]]
@@ -44,7 +43,6 @@
     - [[#backup-files][Backup Files]]
     - [[#autosave][Autosave]]
     - [[#lockfiles][Lockfiles]]
-    - [[#shortcuts][Shortcuts]]
     - [[#auto-revert-mode][Auto Revert Mode]]
   - [[#text-editing][Text editing]]
     - [[#editing][Editing]]
@@ -128,10 +126,9 @@
     - [[#org-id][Org ID]]
   - [[#org-coding][Org Coding]]
     - [[#org-babel][Org Babel]]
-    - [[#polymode][Polymode]]
-    - [[#lentic][Lentic]]
     - [[#org2elcomment][Org2elcomment]]
   - [[#org-tasks][Org Tasks]]
+    - [[#drill][Drill]]
     - [[#attach][Attach]]
     - [[#capture][Capture]]
     - [[#habit][Habit]]
@@ -148,7 +145,7 @@
     - [[#column-view][Column View]]
     - [[#equation-renumbering][Equation Renumbering]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
-  -  [[#org-prose][Org Prose]]
+  - [[#org-prose][Org Prose]]
     - [[#insert-literal-entities][Insert literal entities]]
     - [[#org-index][Org Index]]
     - [[#org-interleave][Org Interleave]]
@@ -168,7 +165,6 @@
     - [[#org-occur-open][Org occur open]]
     - [[#reveal-cursor-in-folded-subtree][Reveal cursor in folded subtree.]]
     - [[#ibuffer-and-org-files][ibuffer and org files]]
-    - [[#file-conversion][File conversion]]
   - [[#org-web][Org Web]]
     - [[#org-protocol][Org Protocol]]
     - [[#org-download][Org Download]]
@@ -182,6 +178,7 @@
   - [[#org-faces][Org faces]]
   - [[#overlays][Overlays]]
     - [[#highlight][Highlight]]
+    - [[#overlay][overlay]]
     - [[#overlay-highlight][Overlay Highlight]]
     - [[#rainbow-mode][Rainbow Mode]]
     - [[#col-highlight][Col Highlight]]
@@ -190,8 +187,12 @@
     - [[#highlight-indentation][Highlight Indentation]]
     - [[#pretty-mode][Pretty Mode]]
     - [[#prettify-symbols][Prettify Symbols]]
-    - [[#pretty][Pretty]]
+    - [[#prettify-utilities][Prettify Utilities]]
+    - [[#pretty-outlines][Pretty outlines]]
+    - [[#pretty-fonts][Pretty Fonts]]
+    - [[#pretty-code][Pretty Code]]
   - [[#fonts][Fonts]]
+  - [[#fonts-1][Fonts]]
     - [[#dont-use-default-font-for-symbols][Don't use default font for symbols]]
     - [[#default-font][Default font]]
     - [[#ligatures][Ligatures]]
@@ -206,7 +207,6 @@
     - [[#justify-kp][Justify Kp]]
   - [[#modeline][Modeline]]
     - [[#spaceline][Spaceline]]
-    - [[#eyeliner][Eyeliner]]
 - [[#web][Web]]
   - [[#libraries][Libraries]]
     - [[#simple-httpd][Simple httpd]]
@@ -275,9 +275,9 @@
   - [[#languages][Languages]]
     - [[#assembly][Assembly]]
     - [[#cc][C/C++]]
+    - [[#emacs-lisp][Emacs Lisp]]
     - [[#common-lisp][Common Lisp]]
     - [[#clojure][Clojure]]
-    - [[#emacs-lisp][Emacs Lisp]]
     - [[#groovy][Groovy]]
     - [[#java][Java]]
     - [[#javascript][JavaScript]]
@@ -296,7 +296,7 @@
   - [[#scimax][Scimax]]
 - [[#footnotes][Footnotes]]
 
-* Emacs
+* Emacs :compile:
 ** Startup
 *** Depedencies
 **** Page Break Lines
@@ -318,22 +318,17 @@ horizontal line rules.
 
 Functional bindings i.e thread =->= macro.
 
-
 #+BEGIN_SRC emacs-lisp
 (use-package dash
   :config
-  (with-eval-after-load 'dash
-    (dash-enable-font-lock)))
+  (dash-enable-font-lock))
 #+END_SRC
 
 ***** Dash functional
 
 #+NAME: dash/functional
 #+BEGIN_SRC emacs-lisp
-(use-package dash-functional
-  :after dash
-  :demand t)
-
+(use-package dash-functional)
 #+END_SRC
 
 **** cl-lib
@@ -494,10 +489,12 @@ properties to the following values has the same effect as the
 '--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
 recommended for Spacemacs users on macOS[fn:14].
 
+
 #+BEGIN_SRC emacs-lisp
-(setq default-frame-alist
-      '((ns-transparent-titlebar . t)
-        (ns-appearance . dark)))
+(use-package ns-auto-titlebar
+  :init
+  (when (eq system-type 'darwin)
+    (ns-auto-titlebar-mode)))
 #+END_SRC
 
 ***** Title format
@@ -509,7 +506,8 @@ Show full path in the title bar.
 
 #+NAME: frame/title
 #+BEGIN_SRC emacs-lisp
-(setq-default frame-title-format "%b (%f)")
+(setq-default frame-title-format "%b")
+
 #+END_SRC
 
 *** Initial Setup
@@ -652,14 +650,13 @@ from within Emacs.
 	   (expand-file-name "init.el" user-emacs-directory)))
     (load user-init-file nil 'nomessage)
     (message "Reloading initialization file...done.")))
-
-
 #+END_SRC
 
 *** Evaluating
 :PROPERTIES:
 :ID:       8EFDEA98-30BB-47BC-A628-82716AD89DD7
 :END:
+
 **** Eval buffer
 
 #+BEGIN_SRC emacs-lisp
@@ -814,6 +811,7 @@ generating a new one if the initial scratch buffer has been killed."
 #+END_SRC
 
 **** Count Unique Windows
+
 #+NAME: win-count-unique
 #+BEGIN_SRC emacs-lisp
 (defun window-count-unique ()
@@ -1005,57 +1003,6 @@ the the returned file path will be formatted as a directory. "
   "Resolve PATH-SEGMENTs to directory of agenda files.")
 #+END_SRC
 
-**** Read only
-
-#+NAME: fd-read-only
-#+BEGIN_SRC emacs-lisp
-(defcustom read-only-directories '()
-  "A list of directories for which all files and subdirectories
-should open in `read-only-mode'."
-  :type '(repeat :tag "List of blacklisted directories" file)
-  :group 'files)
-
-(defcustom read-only-whitelist-directories '()
-  "A list of directories which should not be opened in read-only mode."
-  :type '(repeat :tag "List of blacklisted directories" file)
-  :group 'files)
-
-(defvar read-only-file-extensions '("\\.gz\\'")
-  "Not yet implemented.")
-
-(defun dir-level (dir)
-  (length (f-split dir)))
-
-(defun dir-or-subdir-p (d1 d2)
-  "If non-nil, then directory D1 is subdirectory or the same directory as D2."
-  (cond ((< (dir-level d1) (dir-level d2)) nil)
-        ((string= d1 d2) t)
-        (t (dir-or-subdir-p
-            (--> d1 basename file-name-as-directory (string-remove-suffix it d1))
-            d2))))
-
-(defun read-only-directory-p (bf)
-"Determine whether the current buffer file is in a directory
-that is a member of `read-only-directories'."
-  (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
-    (and (not (null (seq-filter #'f read-only-directories)))
-         (null (seq-filter #'f read-only-whitelist-directories))
-         (file-writable-p bf))))
-
-(defun halidom/open-buffer-as-read-only (file)
-  "All buffers from `read-only-directories' or
-`read-only-file-extensions' are set to read-only."
-  (let ((bd (and buffer-file-name (file-name-directory file))))
-    (if (read-only-directory-p bd) (read-only-mode 1))))
-
-(defun halidom/find-file-read-only-hook ()
-  (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
-
-(setq read-only-directories `(,(straight-dir :slash t) "/usr/local/"))
-
-(setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
-(add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
-#+END_SRC
 
 ** Package Manager
 *** Goto local package repository
@@ -1074,13 +1021,8 @@ interactive minibuffer completion menu using ivy.
          straight-built-in-pseudo-packages))
        (sort it #'string-lessp)))
 
-
-(eval-and-compile
-  (defun straight-package-installed-p (pkg)
-    (member (symbol-name pkg) (straight-installed-packages)))
-  (defalias #'package-installed-p #'straight-package-installed-p
-    "If non-nil then PKG is installed."))
-
+(defun straight-package-installed-p (pkg)
+  (member (symbol-name pkg) (straight-installed-packages)))
 
 (cl-defun straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
@@ -1248,6 +1190,13 @@ killall gpg-agent
 :PROPERTIES:
 :ID:       EB6C7429-18A6-4131-8317-19918FDA2E88
 :END:
+*** Remap defaults
+
+#+BEGIN_SRC emacs-lisp
+(bind-key*
+ "C-x C-b" 'ibuffer)
+#+END_SRC
+
 
 *** Hydra
 
@@ -1698,10 +1647,58 @@ UTF-8 is the recommanded coding system on macOS.
 
 #+END_SRC
 
-g** Files
+** Files
 :PROPERTIES:
 :ID:       9DAB0C2D-D6AA-4143-9C7C-7CD306E21893
 :END:
+
+*** Read only
+
+#+NAME: fd-read-only
+#+BEGIN_SRC emacs-lisp
+(defcustom read-only-directories '()
+  "A list of directories for which all files and subdirectories
+should open in `read-only-mode'."
+  :type '(repeat :tag "List of blacklisted directories" file)
+  :group 'files)
+
+(defcustom read-only-whitelist-directories '()
+  "A list of directories which should not be opened in read-only mode."
+  :type '(repeat :tag "List of blacklisted directories" file)
+  :group 'files)
+
+(defun dir-level (dir)
+  (length (f-split dir)))
+
+(defun dir-or-subdir-p (d1 d2)
+  "If non-nil, then directory D1 is subdirectory or the same directory as D2."
+  (cond ((< (dir-level d1) (dir-level d2)) nil)
+        ((string= d1 d2) t)
+        (t (dir-or-subdir-p
+            (--> d1 basename file-name-as-directory (string-remove-suffix it d1))
+            d2))))
+
+(defun read-only-directory-p (bf)
+"Determine whether the current buffer file is in a directory
+that is a member of `read-only-directories'."
+  (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
+    (and (not (null (seq-filter #'f read-only-directories)))
+         (null (seq-filter #'f read-only-whitelist-directories))
+         (file-writable-p bf))))
+
+(defun halidom/open-buffer-as-read-only (file)
+  "All buffers from `read-only-directories' or
+`read-only-file-extensions' are set to read-only."
+  (let ((bd (and buffer-file-name (file-name-directory file))))
+    (if (read-only-directory-p bd) (read-only-mode 1))))
+
+(defun halidom/find-file-read-only-hook ()
+  (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
+
+(setq read-only-directories `(,(straight-dir :slash t) "/usr/local/"))
+
+(add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
+#+END_SRC
 
 *** save place mode
 
@@ -1737,7 +1734,6 @@ other machines.
         (kill-buffer)))
   (load custom-file))
 
-
 (defun goto-custom ()
     (interactive)
     (find-file custom-file))
@@ -1767,41 +1763,23 @@ Causes a conflict with ~lsp-mode~.
 (setq create-lockfiles nil)
 #+END_SRC
 
-*** Shortcuts
-
-#+BEGIN_SRC emacs-lisp
-
-(defun goto-init ()
-  (interactive)
-  (find-file (expand-file-name "init.el" user-emacs-directory)))
-
-(defun goto-literate ()
-  (interactive)
-  (find-file halidom-user-literate-init-file))
-
-(defun goto-tangled-init ()
-  (interactive)
-  (find-file
-    (concat (file-name-sans-extension halidom-user-literate-init-file) ".el")))
-
-(define-key goto-map "i" #'goto-init)
-(define-key goto-map "l" #'goto-literate)
-(define-key goto-map "t" #'goto-tangled-init)
-
-#+END_SRC
-
 *** Auto Revert Mode
 :PROPERTIES:
 :ID:       0082E12B-58E5-48B9-8E5A-132EE31F99B3
 :END:
 
-#+NAME: buffer/revert
 #+BEGIN_SRC emacs-lisp
 (use-package autorevert
   :straight nil
   :init
   (global-auto-revert-mode t))
+#+END_SRC
 
+*** Noconfirm follow symlinks
+
+#+BEGIN_SRC emacs-lisp
+;; Ask and warn
+(setq vc-follow-symlinks nil)
 #+END_SRC
 
 ** Text editing
@@ -1981,6 +1959,22 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+BEGIN_SRC emacs-lisp
 (use-package whole-line-or-region)
+#+END_SRC
+
+**** Wrap region
+
+#+BEGIN_SRC emacs-lisp
+(use-package wrap-region
+  :init
+  (require 'wrap-region)
+  (wrap-region-add-wrappers
+   '(("*" "*" nil org-mode)
+     ("~" "~" nil org-mode)
+     ("/" "/" nil org-mode)
+     ("=" "=" "+" org-mode)
+     ("_" "_" nil org-mode)
+     ("$" "$" nil (org-mode latex-mode))))
+  (wrap-region-mode t))
 
 #+END_SRC
 
@@ -1989,8 +1983,8 @@ point reaches the beginning or end of the buffer, stop there."
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :bind
-  ("s-'" .  er/expand-region)
-  ("s-S-'" . er/contract-region))
+   (("s-'" .  er/expand-region)
+   ("s-S-'" . er/contract-region)))
 #+END_SRC
 
 *** Replace
@@ -2231,6 +2225,8 @@ whistles, it makes up for in compatibility and hackability [fn:18].
               ;; When moving to parent directory by `^´, Dired by default
               ;; creates a new buffer for each movement up. This rebinds
               ;; `^´ to use the same buffer.
+              ("[" . switch-to-prev-buffer)
+              ("]" . switch-to-next-buffer)
               ("^" . dired/reuse-buffer)
               ("z" . dired-do-open-with))
   :init
@@ -2241,7 +2237,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
     (cl-flet ((dired-open-with (file)
                                (start-process "default app" nil "open" file)))
       (let ((file-list (dired-get-marked-files t arg nil nil t)))
-        (mapcar #'dired-open-with file-list))))
+    refactor    (mapcar #'dired-open-with file-list))))
 
   (defun dired/reuse-buffer ()
     "Reuse the existing dired buffer when moving to the
@@ -2617,22 +2613,16 @@ From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs disp
 #+NAME: esh/pretty
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-eshell
-  :if (and (featurep 'no-littering)
-         (file-exists-p
-          (no-littering-expand-etc-file-name
-           "local/pretty-eshell/pretty-eshell.el")))
   :straight nil
   :load-path "etc/local/pretty-eshell"
-  :custom-face
-  (eshell-prompt ((t (:foreground "gray83"))))
-  :custom
-  ;; Eshell prompt regexp and string.
-  (eshell-prompt-regexp "λ ")   ; or "└─> "
   :init
   (progn
     (require 'pretty-eshell)
-    (setq pretty-eshell-header "\n ")
-    (setq pretty-eshell-prompt-string "λ ")
+      ;; More prompt styling
+    (setq pretty-eshell-header "\n︳")
+    (setq eshell-banner-message (s-concat (s-repeat 20 "---") "\n\n"))
+    (setq pretty-eshell-prompt-string " ")
+    (setq eshell-prompt-regexp " ")
     ;; Directory
     (pretty-eshell-section
      esh-dir
@@ -2954,8 +2944,12 @@ directory local variables."
 :PROPERTIES:
 :ID:       67707BA1-09DE-4175-BD74-4BA869BFBAA9
 :END:
-
 *** Help
+**** button push
+
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
 **** Help+
 
 #+BEGIN_SRC emacs-lisp
@@ -2965,7 +2959,7 @@ directory local variables."
 
 ***** help-mode+
 
-#+BEGIN_SRC emacs-lisp :tangle
+#+BEGIN_SRC emacs-lisp
 (use-package help-mode+
     :demand t)
 #+END_SRC
@@ -3105,7 +3099,6 @@ From [[https://www.emacswiki.org/emacs/FrameModes#toc1][EmacsWiki: Frame Modes]]
 #+NAME: font-lock-plus
 #+BEGIN_SRC emacs-lisp
 (use-package font-lock+
-  :demand t
   :init
   (require 'font-lock+))
 
@@ -3225,6 +3218,7 @@ different window configurations.
 
 #+NAME: persp/perspective
 #+BEGIN_SRC emacs-lisp
+
 (use-package perspective)
 #+END_SRC
 
@@ -3242,16 +3236,16 @@ different window configurations.
 
 #+NAME: popwin-config
 #+BEGIN_SRC emacs-lisp
-  (use-package popwin
-    :defines popwin:keymap
-    :after (perspective)
-    :bind-keymap ("C-z" . popwin:keymap)
-    :bind (:map popwin:keymap
-                ("m" . popwin:messages))
-    :init
-    (require 'popwin)
-    :config
-    (popwin-mode 1))
+(use-package popwin
+  :defines popwin:keymap
+  :bind-keymap* ("C-c C-z" . popwin:keymap)
+  :bind (:map popwin:keymap
+              ("m" . popwin:messages))
+  :init
+  (require 'perspective)
+  (require 'popwin)
+  :config
+  (popwin-mode 1))
 #+END_SRC
 
 *** Poporg
@@ -3333,7 +3327,8 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
    '((swiper . ivy--regex-plus)
      (read-file-name-internal . ivy--regex-fuzzy)
      (t . ivy--regex-ignore-order)))
-  (ivy-use-selectable-prompt nil))
+  (ivy-use-selectable-prompt nil)
+  (ivy-wrap t))
 #+END_SRC
 
 **** Ivy hydra
@@ -3912,14 +3907,6 @@ any reason for me reconsider my choice.
 
 #+END_SRC
 
-**** Expand Region
-
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :bind
-  ("s-'" .  er/expand-region)
-  ("s-S-'" . er/contract-region))
-#+END_SRC
 
 **** Code Library
 
@@ -3930,8 +3917,6 @@ any reason for me reconsider my choice.
     (code-library-directory (emacs-etc-dir "codelibrary"))
     (code-library-sync-to-gist t))
 #+END_SRC
-
-
 
 ** Images
 :PROPERTIES:
@@ -4057,7 +4042,7 @@ school's WLAN.
            ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
-* Org
+* Org :compile:
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
 :END:
@@ -4410,7 +4395,7 @@ save.
 
 #+NAME: org-preview-format
 #+BEGIN_SRC emacs-lisp
-(when (boundp 'org-format-latex-options)
+ (when (boundp 'org-format-latex-options)
   (plist-put org-format-latex-options :scale 1.2))
 #+END_SRC
 
@@ -5068,16 +5053,18 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 
 #+BEGIN_SRC emacs-lisp
 (use-package outshine
-  :preface (setq outshine-minor-mode-prefix "\M-#")
-  :hook ((prog-mode          . outline-minor-mode)
-         (outline-minor-mode . outshine-mode)))
+  :init
+  (setq outshine-minor-mode-prefix "\M-#")
+  (bind-keys* :map org-mode-map ("C-c M-o" . org-store-link))
+  :hook ((outline-minor-mode . outshine-mode)))
 #+END_SRC
 
 **** Outorg
 
+
 #+BEGIN_SRC emacs-lisp
 (use-package outorg
-    :after (outshine))
+  :after (:all outshine))
 #+END_SRC
 
 **** foldout.el
@@ -5121,6 +5108,16 @@ instead of ~outline-show-entry~.
 
 ****
 
+*** Fix lists on save
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'before-save-hook
+          (lambda ()
+            (when (and (eq major-mode 'org-mode)
+                       (eq buffer-read-only nil))
+              (org-list-repair))))
+#+END_SRC
+
 *** Org radiobutton
 :PROPERTIES:
 :ID:       EA7D1F8C-6A3E-4154-B1ED-581F8B5446C3
@@ -5157,8 +5154,7 @@ With prefix argument, also display headlines without a TODO keyword."
 
 #+NAME: org-links-elisp-help
 #+BEGIN_SRC emacs-lisp
-(use-package org-elisp-help
-  :straight t)
+(use-package org-elisp-help)
 #+END_SRC
 
 **** Org YouTube
@@ -5419,15 +5415,15 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 
 **** Ob Babel
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-babel-eval-in-repl
   :after (eval-in-repl)
   :bind
   (:map org-mode-map
         ("C-<return>" . ober-eval-in-repl)
-        ("C-c C-c" 'ober-eval-block-in-repl)
-        :custom
-        (eir-jump-after-evail nil)))
+        ("C-c C-c" . ober-eval-block-in-repl)))
+
+
 
 #+END_SRC
 
@@ -5469,35 +5465,9 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
      (org . t)))
 #+END_SRC
 
-*** Polymode
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package polymode)
-#+END_SRC
-
-**** Poly noweb
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package poly-noweb)
-#+END_SRC
-
-**** Poly org
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package poly-org)
-#+END_SRC
-
-**** Poly markdown
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package poly-markdown)
-#+END_SRC
-
-*** Lentic
-
+**** Lentic
 #+BEGIN_SRC emacs-lisp
-(use-package lentic
-)
+(use-package lentic)
 #+END_SRC
 
 *** Org2elcomment
@@ -5507,6 +5477,14 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 #+END_SRC
 
 ** Org Tasks
+*** Drill
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-drill
+  :straight org
+  :init
+  (require 'org-drill))
+#+END_SRC
 *** Attach
 
 #+NAME: org-docmgr-attach
@@ -5521,32 +5499,18 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 *** Capture :tasks:
 
 #+BEGIN_SRC emacs-lisp
-
 (use-package org-capture
-    :straight nil
+    :straight org
+    :custom
+    (org-default-notes-file
+     (expand-file-name "notes.org" org-directory))
     :init
-    (defun org-get-target-headline (&optional targets prompt)
-      "Prompt for a location in an org file and jump to it.
-
-This is for promping for refile targets when doing captures.
-Targets are selected from `org-refile-targets'. If TARGETS is
-given it temporarily overrides `org-refile-targets'. PROMPT will
-replace the default prompt message.
-
-If CAPTURE-LOC is is given, capture to that location instead of
-prompting."
-      (let ((org-refile-targets (or targets org-refile-targets))
-            (prompt (or prompt "Capture Location")))
-        (if org-capture-overriding-marker
-            (org-goto-marker-or-bmk org-capture-overriding-marker)
-          (org-refile t nil nil prompt))))
-    (setq org-capture-templates
-          '(,("C" "Config"
-                  (file+function
-                   ,halidom-user-literate-init-file
-                   org-get-target-headline)))))
-
-
+    (require 'org-capture)
+    (setq-default org-capture-templates
+                  `(("l" "Protocol Link" entry
+                     (file+headline ,org-default-notes-file "Inbox")
+                     
+"* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n\nCaptured: %U"))))
 #+END_SRC
 
 
@@ -5650,7 +5614,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               org-level-remap-face))))
 
 
-    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
+    (defvar halidom/default-agenda-file
+      (file-truename  "Dropbox/org/todos/TODOs.org")
       "The file path of the default agenda file.")
 
     (when (file-exists-p halidom/default-agenda-file)
@@ -5658,6 +5623,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
     :hook
     (org-mode . halidom/org-agenda-file-face))
+
+
 #+END_SRC
 
 **** Super agenda
@@ -5718,21 +5685,20 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (require 'org-sidebar)
 
   :config
-  (cl-defmacro course-sidebar (name description &optional extra)
+  (cl-defmacro course-sidebar (name description)
     `(progn
        (org-sidebar-defsidebar
          ,(intern (concat name "/sidebar"))
          :header ,description
          :sidebars (((and (not (done))
-                        (todo)
-                        (or (deadline <=)
-                           (scheduled <=))
-                        (not (tags "optional")))))
+                          (todo)
+                          (or (deadline <=)
+                              (scheduled <=))
+                          (not (tags "optional")))))
          :super-groups ',(append
                           '((:name " Overdue" :scheduled past :deadline past)
                             (:name " Today" :scheduled today :deadline today)
-                            (:name " Homework" :tag "homework"))
-                          (list extra))
+                            (:name " Homework" :tag "homework")))
          :files ,(expand-file-name
                   "TODOs.org"
                   (concat "~/Dropbox/courses/" name "/")))
@@ -5740,20 +5706,15 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
          (interactive)
          (funcall ',(intern (concat name "/sidebar"))))))
 
-  (cl-defun org-course-sidebar ()
-    (interactive)
-    (let ((todo-file
-           (car (directory-files
-                 (projectile-project-root) t "TODOs.org")))
-          (sidebar-function
-           (intern
-            (concat
-             (basename (projectile-project-root))
-             "-sidebar"))))
-      (when (and (member todo-file org-agenda-files)
-               (functionp sidebar-function))
-        (message "%s" sidebar-function)
-        (funcall sidebar-function)))))
+  (defvar org-course-courses
+    '(("comsci161" . "Intro to A.I.")
+      ("comsci131" . "Programming Languages")
+      ("ling165c"  . "Semantics II")
+      ("ling102"   . "Phonetics")))
+  
+
+  (cl-loop for (course . description) in org-course-courses do
+           (eval `(course-sidebar ,course ,description))))
 #+END_SRC
 
 **** Org Projectile
@@ -5808,77 +5769,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+END_SRC
 
-**** Add sunrise/sunset times to the agenda.
-:PROPERTIES:
-:ID:       0C997113-9274-4671-A432-B4F4775803F1
-:END:
-
--- Nick Dokos
-
-The diary package provides the function =diary-sunrise-sunset= which can be used
-in a diary s-expression in some agenda file like this:
-
-#+BEGIN_SRC org
-  %%(diary-sunrise-sunset)
-#+END_SRC
-
-Seb Vauban asked if it is possible to put sunrise and sunset in
-separate lines. Here is a hack to do that. It adds two functions (they
-have to be available before the agenda is shown, so I add them early
-in my org-config file which is sourced from .emacs, but you'll have to
-suit yourself here) that just parse the output of
-diary-sunrise-sunset, instead of doing the right thing which would be
-to take advantage of the data structures that diary/solar.el provides.
-In short, a hack - so perfectly suited for inclusion here :-)
-
-The functions (and latitude/longitude settings which you have to modify for
-your location) are as follows:
-
-#+BEGIN_SRC emacs-lisp
-  (setq calendar-latitude 48.2)
-  (setq calendar-longitude 16.4)
-  (setq calendar-location-name "Vienna, Austria")
-
-  (autoload 'solar-sunrise-sunset "solar.el")
-  (autoload 'solar-time-string "solar.el")
-  (defun diary-sunrise ()
-    "Local time of sunrise as a diary entry.
-  The diary entry can contain `%s' which will be replaced with
-  `calendar-location-name'."
-    (let ((l (solar-sunrise-sunset date)))
-      (when (car l)
-        (concat
-         (if (string= entry "")
-             "Sunrise"
-           (format entry (eval calendar-location-name))) " "
-           (solar-time-string (caar l) nil)))))
-
-  (defun diary-sunset ()
-    "Local time of sunset as a diary entry.
-  The diary entry can contain `%s' which will be replaced with
-  `calendar-location-name'."
-    (let ((l (solar-sunrise-sunset date)))
-      (when (cadr l)
-        (concat
-         (if (string= entry "")
-             "Sunset"
-           (format entry (eval calendar-location-name))) " "
-           (solar-time-string (caadr l) nil)))))
-#+END_SRC
-
-You also need to add a couple of diary s-expressions in one of your agenda
-files:
-
-#+BEGIN_SRC org
-  %%(diary-sunrise)Sunrise in %s
-  %%(diary-sunset)
-#+END_SRC
-
-This will show sunrise with the location and sunset without it.
-
-The thread on the mailing list that started this can be found [[http://thread.gmane.org/gmane.emacs.orgmode/38723Here%20is%20a%20pointer%20to%20the%20thread%20on%20the%20mailing%20list][here]].
-In comparison to the version posted on the mailing list, this one
-gets rid of the timezone information and can show the location.
 
 *** Calendar
 **** Google Calendar
@@ -6105,7 +5995,6 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
 
-
 *** Per-image display width
 
 Specify image width in org buffer on per-image basis.
@@ -6127,28 +6016,25 @@ bullets as UTF-8 characters.
 
 
 The default set of bullet points can be modified via the
-=[[help:org-bullets-bullet-list][org-bullets-bullet-list]]= variable.
+[[elisp-variable:org-bullets:org-bullets-bullet-list][org-bullets-bullet-list]] variable.
 
 
 #+NAME: org-ui-org-bullets
 #+BEGIN_SRC emacs-lisp
 (use-package org-bullets
-    :demand t
-    :custom
-    (org-bullets-bullet-list '("‣" "•"))
-    :init
-    (defun org-bullets/enable ()
-      (org-bullets-mode +1))
-
-    (defun org-bullets/pretty ()
+  :custom
+  (org-bullets-bullet-list '("‣" "•"))
+  :init
+  (defun org-bullets/pretty ()
       (setq org-pretty-entities t)
       (setq org-pretty-entities-include-sub-superscripts nil)
       (setq org-hide-emphasis-markers t)
       (setq org-fontify-quote-and-verse-blocks t))
+  (require 'org-bullets)
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode +1)))
+  :hook
+  (org-bullets . org-bullets/pretty))
 
-    :hook
-    (org-mode . org-bullets/enable)
-    (org-bullets . org-bullets/pretty))
 #+END_SRC
 
 *** Org Fancy Priorities
@@ -6263,7 +6149,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 (setq org-highlight-latex-and-related '(latex))
 #+END_SRC
 
-**  Org Prose
+** Org Prose
 
 *** Insert literal entities
 
@@ -6539,9 +6425,8 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
     (run-hooks 'org-latex-pdf-process-set-hook)))
 
 
-(add-hook 'org-mode-hook
-          (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
-
+(bind-keys :map org-mode-map
+            ("M-s l" . org-latex-pdf-process-set))
 
 #+END_SRC
 
@@ -6776,7 +6661,6 @@ for exporting org-mode documents to various formats.
 
 [[https://ox-hugo.scripter.co/][ox-hugo]] is an org exporter for Hugo-compatible markdown.
 
-#+NAME: ox/hugo
 #+BEGIN_SRC emacs-lisp
 (use-package ox-hugo
   :after (ox))
@@ -6846,180 +6730,6 @@ Neil Smithline posted this snippet to let you browse org files with
     (ibuffer nil "*Org Buffers*" '((used-mode . org-mode))))
 #+END_SRC
 
-*** File conversion
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  ;; - fileconversion version 0.10
-  ;; - DISCLAIMER: Make a backup of your Org files before trying
-  ;;   `f-org-fileconv-*'. It is recommended to use a version control
-  ;;   system like git and to review and commit the changes in the Org
-  ;;   files regularly.
-  ;; - Supported "#+STARTUP:" formats: "hidestarsfile",
-  ;;   "nbspstarsfile", "markdownstarsfile".
-
-  ;; Design summary: fileconversion is a round robin of two states linked by
-  ;; two actions:
-  ;; - State `v-org-fileconv-level-org-p' is nil: The level is "file"
-  ;;   (encoded).
-  ;; - Action `f-org-fileconv-decode': Replace file char with "*".
-  ;; - State `v-org-fileconv-level-org-p' is non-nil: The level is "Org"
-  ;;   (decoded).
-  ;; - Action `f-org-fileconv-encode': Replace "*" with file char.
-  ;;
-  ;; Naming convention of prefix:
-  ;; - f-[...]: "my function", instead of the unspecific prefix `my-*'.
-  ;; - v-[...]: "my variable", instead of the unspecific prefix `my-*'.
-
-  (defvar v-org-fileconv-level-org-p nil
-    "Whether level of buffer is Org or only file.
-  nil: level is file (encoded), non-nil: level is Org (decoded).")
-  (make-variable-buffer-local 'v-org-fileconv-level-org-p)
-  ;; Survive a change of major mode that does `kill-all-local-variables', e.
-  ;; g. when reentering Org mode through "C-c C-c" on a #+STARTUP: line.
-  (put 'v-org-fileconv-level-org-p 'permanent-local t)
-
-  ;; * Callback `f-org-fileconv-org-mode-beg' before `org-mode'
-  (defadvice org-mode (before org-mode-advice-before-fileconv)
-    (f-org-fileconv-org-mode-beg))
-  (ad-activate 'org-mode)
-  (defun f-org-fileconv-org-mode-beg ()
-    ;; - Reason to test `buffer-file-name': Only when converting really
-    ;;   from/to an Org _file_, not e. g. for a temp Org buffer unrelated to a
-    ;;   file.
-    ;; - No `message' to not wipe a possible "File mode specification error:".
-    ;; - `f-org-fileconv-decode' in org-mode-hook would be too late for
-    ;;   performance reasons, see
-    ;;   http://lists.gnu.org/archive/html/emacs-orgmode/2013-11/msg00920.html
-    (when (buffer-file-name) (f-org-fileconv-decode)))
-
-  ;; * Callback `f-org-fileconv-org-mode-end' after `org-mode'
-  (add-hook 'org-mode-hook 'f-org-fileconv-org-mode-end
-            nil   ; _Prepend_ to hook to have it first.
-            nil)  ; Hook addition global.
-  (defun f-org-fileconv-org-mode-end ()
-    ;; - Reason to test `buffer-file-name': only when converting really
-    ;;   from/to an Org _file_, not e. g. for a temp Org buffer unrelated to a
-    ;;   file.
-    ;; - No `message' to not wipe a possible "File mode specification error:".
-    (when (buffer-file-name)
-      ;; - Adding this to `change-major-mode-hook' or "defadvice before" of
-      ;;   org-mode would be too early and already trigger during find-file.
-      ;; - Argument 4: t to limit hook addition to buffer locally, this way
-      ;;   and as required the hook addition will disappear when the major
-      ;;   mode of the buffer changes.
-      (add-hook 'change-major-mode-hook 'f-org-fileconv-encode nil t)
-      (add-hook 'before-save-hook       'f-org-fileconv-encode nil t)
-      (add-hook 'after-save-hook        'f-org-fileconv-decode nil t)))
-
-  (defun f-org-fileconv-re ()
-    "Check whether there is a #+STARTUP: line for fileconversion.
-  If found then return the expressions required for the conversion."
-    (save-excursion
-      (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-      (let (re-list (count 0))
-        (while (re-search-forward "^[ \t]*#\\+STARTUP:" nil t)
-          ;; #+STARTUP: hidestarsfile
-          (when (string-match-p "\\bhidestarsfile\\b" (thing-at-point 'line))
-            ;; Exclude e. g.:
-            ;; - Line starting with star for bold emphasis.
-            ;; - Line of stars to underline section title in loosely quoted
-            ;;   ASCII style (star at end of line).
-            (setq re-list '("\\(\\* \\)"  ; common-re
-                            ?\ ))         ; file-char
-            (setq count (1+ count)))
-          ;; #+STARTUP: nbspstarsfile
-          (when (string-match-p "\\bnbspstarsfile\\b" (thing-at-point 'line))
-            (setq re-list '("\\(\\* \\)"  ; common-re
-                            ?\xa0))       ; file-char non-breaking space
-            (setq count (1+ count)))
-          ;; #+STARTUP: markdownstarsfile
-          (when (string-match-p "\\bmarkdownstarsfile\\b"
-                                (thing-at-point 'line))
-            ;; Exclude e. g. "#STARTUP:".
-            (setq re-list '("\\( \\)"  ; common-re
-                            ?#))       ; file-char
-            (setq count (1+ count))))
-        (when (> count 1) (error "More than one fileconversion found."))
-        re-list)))
-
-  (defun f-org-fileconv-decode ()
-    "In headings replace file char with '*'."
-    (let ((re-list (f-org-fileconv-re)))
-      (when (and re-list (not v-org-fileconv-level-org-p))
-        ;; No `save-excursion' to be able to keep point in case of error.
-        (let* ((common-re (nth 0 re-list))
-               (file-char (nth 1 re-list))
-               (file-re   (concat "^" (string file-char) "+" common-re))
-               (org-re    (concat "^\\*+" common-re))
-               len
-               (p         (point)))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Syntax check.
-          (when (re-search-forward org-re nil t)
-            (goto-char (match-beginning 0))
-            (org-reveal)
-            (error "Org fileconversion decode: Syntax conflict at point."))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Substitution.
-          (with-silent-modifications
-            (while (re-search-forward file-re nil t)
-              (goto-char (match-beginning 0))
-              ;; Faster than a lisp call of insert and delete on each single
-              ;; char.
-              (setq len (- (match-beginning 1) (match-beginning 0)))
-              (insert-char ?* len)
-              (delete-char len)))
-          (goto-char p))))
-
-          ;; Notes for ediff when only one file has fileconversion:
-          ;; - The changes to the buffer with fileconversion until here are
-          ;;   not regarded by `ediff-files' because the first call to diff is
-          ;;   made with the bare files directly. Only `ediff-update-diffs'
-          ;;   and `ediff-buffers' write the decoded buffers to temp files and
-          ;;   then call diff with them.
-          ;; - Workarounds (choose one):
-          ;;   - After ediff-files first do a "!" (ediff-update-diffs) in the
-          ;;     "*Ediff Control Panel*".
-          ;;   - Instead of using `ediff-files' first open the files and then
-          ;;     run `ediff-buffers' (better for e. g. a script that takes two
-          ;;     files as arguments and uses "emacs --eval").
-
-    ;; The level is Org most of all when no fileconversion is in effect.
-    (setq v-org-fileconv-level-org-p t))
-
-  (defun f-org-fileconv-encode ()
-    "In headings replace '*' with file char."
-    (let ((re-list (f-org-fileconv-re)))
-      (when (and re-list v-org-fileconv-level-org-p)
-        ;; No `save-excursion' to be able to keep point in case of error.
-        (let* ((common-re (nth 0 re-list))
-               (file-char (nth 1 re-list))
-               (file-re   (concat "^" (string file-char) "+" common-re))
-               (org-re    (concat "^\\*+" common-re))
-               len
-               (p         (point)))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Syntax check.
-          (when (re-search-forward file-re nil t)
-            (goto-char (match-beginning 0))
-            (org-reveal)
-            (error "Org fileconversion encode: Syntax conflict at point."))
-          (goto-char (point-min))  ; `beginning-of-buffer' is not allowed.
-          ;; Substitution.
-          (with-silent-modifications
-            (while (re-search-forward org-re nil t)
-              (goto-char (match-beginning 0))
-              ;; Faster than a lisp call of insert and delete on each single
-              ;; char.
-              (setq len (- (match-beginning 1) (match-beginning 0)))
-              (insert-char file-char len)
-              (delete-char len)))
-          (goto-char p)
-          (setq v-org-fileconv-level-org-p nil))))
-    nil)  ; For the hook.
-
-#+END_SRC
-
 ** Org Web
 *** Org Protocol
 
@@ -7032,17 +6742,9 @@ Neil Smithline posted this snippet to let you browse org files with
     (require 'server)
     (unless (server-running-p)
       (setq server-socket-dir (format "/tmp/emacs%d" (user-uid)))
-      (server-start))
-    :config
-    (with-eval-after-load 'org-capture
-      (setq org-capture-templates
-            (append org-capture-templates
-                    (list `("l" "Web content and clippings" entry
-                                (file+headline ,org-default-notes-file "Clippings")
-                                "** %:annotation\nCaptured on %u\n%i"
-                                :empty-lines 1 :jump-to-captured 1))))))
+      (server-start)))
 
-
+(require 'org-protocol)
 #+END_SRC
 
 **** Org Mac Protocol
@@ -7176,7 +6878,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 (use-package org-preview-html)
 #+END_SRC
 
-* Appearance
+* Appearance :compile:
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
 
@@ -7284,8 +6986,6 @@ This disables Emacs asking questions about loading a new theme.
 
 (defvar halidom/load-theme-hook nil
   "List of functions to run when `halidom/load-theme' is invoked.")
-
-
 
 (defun halidom--default-theme ()
   (cl-flet ((default-theme-symbol ()
@@ -7444,7 +7144,9 @@ theme in \"quick mode\" by eliding hooks specified in
     (dolist (buf org-buffers)
       (with-current-buffer buf
         (org-mode-restart)
-        (halidom/org-faces)))))
+        (halidom/org-faces)
+        (unless org-bullets-mode
+          (org-bullets-mode 1))))))
 
 (defun halidom/org-theme-hook ()
   (halidom/org-faces)
@@ -7470,9 +7172,15 @@ theme in \"quick mode\" by eliding hooks specified in
 (use-package highlight)
 #+END_SRC
 
+*** overlay
+
+#+BEGIN_SRC emacs-lisp
+(use-package ov)
+#+END_SRC
+
 *** Overlay Highlight
 
-#+NAME: hl-ov
+
 #+BEGIN_SRC emacs-lisp
 (use-package ov-highlight
   :straight (ov-highlight
@@ -7574,8 +7282,15 @@ Minor mode to highlight sexp.
 #+NAME: pretty/mode
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-mode
-  :hook
-  ((emacs-lisp-mode LaTeX-mode) . turn-on-pretty-mode))
+  :init
+  (global-pretty-mode t)
+
+  :config
+  (pretty-deactivate-groups
+   '(:equality :ordering :ordering-double :ordering-triple
+               :arrows :arrows-twoheaded :punctuation
+               :logic :sets))
+  (pretty-activate-groups '(:greek)))
 #+END_SRC
 
 *** Prettify Symbols
@@ -7593,11 +7308,7 @@ the absence of a window system. I'll check for the latter for now.
     (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
 
-*** Pretty
-:PROPERTIES:
-:ID:       69A6DC79-7C75-4533-B71D-4E52B24CDE34
-:END:
-**** Prettify Utilities
+*** Prettify Utilities
 
 #+NAME: pretty/utils
 #+BEGIN_SRC emacs-lisp
@@ -7610,15 +7321,15 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-**** Pretty outlines
+*** Pretty outlines
 
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-outlines
   :straight nil
-  :demand t
   :load-path "etc/local/pretty-outlines"
-  :preface
-  (set-fontset-font "fontset-default" '#xF016 "Weather Icons" nil 'prepend)
+  :init
+  (defalias #'package-installed-p #'straight-package-installed-p
+    "If non-nil then PKG is installed.")
   :custom
   (pretty-outlines-ellipsis " ")
   :hook ((outline-mode       . pretty-outlines-set-display-table)
@@ -7629,7 +7340,58 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-**** Pretty Code
+*** Pretty Fonts
+
+#+BEGIN_SRC emacs-lisp
+(use-package pretty-fonts
+  :load-path "etc/local/pretty-fonts"
+  :straight nil
+  :init
+  (defun pretty-fonts/setup ()
+    (require 'pretty-fonts)
+    "Setup fira code ligatures and icon font sets."
+    (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
+    (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist)
+
+    (pretty-fonts-set-fontsets-for-fira-code)
+    (pretty-fonts-set-fontsets
+     '(;; All-the-icons fontsets
+       ("fontawesome"
+        ;;                         
+        #xf07c #xf0c9 #xf0c4 #xf0cb #xf017 #xf101)
+
+       ("all-the-icons"
+        ;;    
+        #xe907 #xe928)
+
+       ("github-octicons"
+        ;;                               
+        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071)
+
+       ("material icons"
+        ;;              
+        #xe871 #xe918 #xe3e7  #xe5da
+        ;;              
+        #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
+  :hook
+  (halidom/load-theme . pretty-fonts/setup))
+#+END_SRC
+
+*** Pretty Code
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package pretty-code
+  :load-path "etc/local/pretty-code"
+  :straight nil
+  :init
+  (require 'pretty-code)
+  (pretty-code-add-hook 'emacs-lisp-mode-hook '((:def "defun")))
+  (pretty-code-add-hook 'hy-mode-hook         '((:def "defn")
+                                                    (:lambda "fn")))
+  (pretty-code-add-hook 'python-mode-hook     '((:def "def")
+                                                (:lambda "lambda"))))
+#+END_SRC
 
 ** Fonts
 :PROPERTIES:
@@ -7677,6 +7439,31 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 (add-hook 'after-init-hook 'font/setup)
 #+END_SRC
+
+*** Variable Pitch
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-variable-pitch
+  :straight (org-variable-pitch
+             :type git
+             :host github
+             :repo "emacsmirror/org-variable-pitch")
+  :init
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  :hook
+  (org-mode . org-variable-pitch-minor-mode))
+#+END_SRC
+
+*** Serif
+
+From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when editing plain text in Emacs]]
+
+
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+
 *** Ligatures
 *** Unicode
 **** Unicode Fonts
@@ -7732,7 +7519,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 #+END_SRC
 
 **** Icons
-*****  All the  Icons
+*****  All the Icons
 
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
@@ -7845,26 +7632,28 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 :PROPERTIES:
 :ID:       A6A6C1C1-8DF3-45C7-8FB0-D1D1974B8C72
 :END:
-
 *** Visual Fill Column
 :PROPERTIES:
 :ID:       9343B26B-8EB3-4785-BAD0-427AE4E3DD63
 :END:
 
-#+NAME: readview-fc
 #+BEGIN_SRC emacs-lisp
 (use-package visual-fill-column
-  :commands (visual-fill-column-mode)
   :custom
   (visual-fill-column-width
    ;; take Emacs 26 line numbers into account
    (+ (if (boundp 'display-line-numbers) 6 0)
       fill-column))
-    :config
-    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-    :hook
-    ((visual-fill-column-mode . visual-line-mode)
-     (org-mode . visual-fill-column-mode)))
+  :config
+  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
+
+(defun org-visual-fill-column ()
+  (visual-fill-column-mode 1)
+  (visual-line-mode 1))
+
+(add-hook 'org-mode-hook #'org-visual-fill-column)
+
+  
 #+END_SRC
 
 *** Fill Column Indicator
@@ -7903,50 +7692,31 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 (use-package spaceline)
 #+END_SRC
 
-**** Spaceline All the Icons
+**** spaceline all the icons
 
-#+NAME: sl/icons
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline-all-the-icons)
+(use-package spaceline-all-the-icons
+  :after (:all spacemacs all-the-icons))
 
-  (defun ml-spaceline-setup ()
-    (interactive)
-    "Setup the modeline for spaceline."
-    (setq spaceline-all-the-icons-separator-type 'arrow)
-    (require 'spaceline)
-    (require 'spaceline-segments)
-    (require 'spaceline-config)
-    (require 'all-the-icons)
-    (require 'spaceline-all-the-icons)
-    (spaceline-all-the-icons--setup-neotree)
-    (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
-    (spaceline-toggle-all-the-icons-flycheck-status-off))
+(defun ml-spaceline-setup ()
+  (interactive)
+  "Setup the modeline for spaceline."
+  (setq spaceline-all-the-icons-separator-type 'arrow)
+  (require 'spaceline)
+  (require 'spaceline-segments)
+  (require 'spaceline-config)
+  (require 'all-the-icons)
+  (require 'spaceline-all-the-icons)
+  (spaceline-all-the-icons--setup-neotree)
+  (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
+  (spaceline-toggle-all-the-icons-flycheck-status-off))
 
   (add-hook 'after-init-hook #'ml-spaceline-setup)
 
-#+END_SRC
-
-
-*** Eyeliner
-
-
-#+BEGIN_SRC emacs-lisp
-(use-package eyeliner
-    :straight (eyeliner
-               :type git
-               :host github
-               :repo "dustinlacewell/eyeliner")
-    :init
-    (defun ml-eyeliner-setup ()
-      (interactive)
-      (require 'eyeliner)
-      (eyeliner/install)))
 
 #+END_SRC
 
-
-
-* Web
+* Web                                                               :compile:
 ** Libraries
 *** Simple httpd
 
@@ -8477,7 +8247,7 @@ Interactively.
         (setq browse-url-browser/function 'osx-browse-url-chrome))))
 #+END_SRC
 
-* Writing
+* Writing                                                           :compile:
 ** Notetaking
 *** Deft
 
@@ -8583,58 +8353,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
     (add-hook 'nov-post-html-render-hook 'my-nov-post-html-render-hook)))
 #+END_SRC
 
-** Variable Pitch
-
-#+NAME: writing-variable-pitch
-#+BEGIN_SRC emacs-lisp
-(defcustom halidom-org-fixed-pitch-faces
-  '(org-table
-    org-code
-    org-special-keyword
-    org-verbatim
-    org-latex-and-related
-    org-meta-line
-    org-block
-    org-block-begin-line
-    org-block-end-line
-    org-document-info-keyword)
-  "Faces to keep fixed-width when using ‘org-variable-pitch-minor-mode’."
-  :type '(list symbol))
-
-(defvar org-fixed-pitch-font
-  (face-attribute 'fixed-pitch :family))
-
-(defvar org-variable-pitch-font
-  (face-attribute 'variable-pitch :family))
-
-
-(setq org-fixed-pitch-font "Fira Code")
-(setq org-variable-pitch-font "Baskerville")
-
-
-(setq face-remapping-alist nil)
-
-(defvar variable-pitch-toggle-hook nil
-  "Hooks to run when `org-toggle-variable-pitch' is called.")
-
-(defun org-toggle-variable-pitch ()
-  "Toggle use of face `variable-pitch'.
-  This works by frobbing `face-remapping-alist'."
-  (interactive)
-  (if face-remapping-alist
-      (setq face-remapping-alist nil)
-    (face-remap-add-relative 'variable-pitch
-                             :family org-variable-pitch-font
-                             :height 130)
-    (face-remap-add-relative 'default 'variable-pitch)
-    (->> halidom-org-fixed-pitch-faces
-       (mapcar (lambda (x) (list x
-                            :family org-fixed-pitch-font
-                            :height 100)))
-       (mapcar (lambda (x) (apply #'face-remap-add-relative x)))))
-  (run-hooks 'variable-pitch-toggle-hook))
-
-#+END_SRC
 
 ** Olivetti
 
@@ -8664,7 +8382,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
     (add-hook 'writeroom-mode #'halidom/writeroom-mode-hook))
 #+END_SRC
 
-* Code
+* Code                                                              :compile:
 ** LSP
 *** LSP Mode
 
@@ -8905,10 +8623,11 @@ offers more meaningful semantics.
 #+NAME: pairs/paredit
 #+BEGIN_SRC emacs-lisp
 (use-package paredit
-  :config
-  (progn
-    (autoload 'enable-paredit-mode "paredit"
-      "Turn on pseudo-structural editing of Lisp code." t)))
+  :defines (enable-paredit-mode)
+  :hook
+  ((emacs-lisp-mode clojure-mode lisp-mode) . enable-paredit-mode))
+
+
    #+END_SRC
 
 *** Smartparens
@@ -8920,6 +8639,7 @@ programming languages. I think I the "delete-on-command" behavior of
 paredit for lisp programming, but in languages where locating
 unmatched pairs is less comparable to searching for a needle in a
 haystack, =smartparens= are a great productivity tool.
+
 
 #+NAME: smartparens-config
 #+BEGIN_SRC emacs-lisp
@@ -9033,6 +8753,8 @@ Disabling for now.
 #+END_SRC
 
 ** Version Control
+[[info:emacs#Version%20Control][Version Control]] is the built-in version control system for Emacs.
+
 *** Ediff
 
 #+NAME: vcs/ediff
@@ -9158,8 +8880,7 @@ git config --global --add magit.extension stgit
   :bind (:map magit-status-mode-map
 	      ("@" . magithub-dispatch-popup))
   :config
-  (progn
-    (magithub-feature-autoinject t)))
+  (magithub-feature-autoinject t))
 #+END_SRC
 
 ***** Magit org todos
@@ -9268,6 +8989,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
 #+BEGIN_SRC emacs-lisp
 (use-package ahg)
 #+END_SRC
+
 
 ** Cloud
 *** ecloud
@@ -9563,45 +9285,85 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 
 #+END_SRC
 
+*** Emacs Lisp
+**** emacs lisp mdoe
+
+#+NAME: elisp/mode
+#+BEGIN_SRC emacs-lisp
+(use-package emacs-lisp-mode
+  :straight nil
+  :init
+  (defun emacs-lisp/setup ()
+    "Setup elisp."
+    (when (require 'highlight-symbol nil t)
+      (highlight-symbol-mode +1))
+    (when (require 'rainbow-delimiters nil t)
+      (rainbow-delimiters-mode +1))
+    (setq lisp-indent-function 'lisp-indent-function)
+    (setq-local dash-plugin-keywords '("elisp")))
+
+  :hook
+  (emacs-lisp-mode . emacs-lisp/setup))
+#+END_SRC
+
+**** lisp extra fontlocking
+
+#+BEGIN_SRC emacs-lisp
+(use-package lisp-extra-font-lock
+  :init
+  (lisp-extra-font-lock-global-mode +1))
+#+END_SRC
+
+**** elisp format
+
+#+NAME: elisp/format
+#+BEGIN_SRC emacs-lisp
+  (use-package elisp-format
+    :custom
+    (elisp-format-column 80))
+#+END_SRC
+
 *** Common Lisp
 
 Configuration for common-lisp.
 
-**** common lisp mode
+**** clisp
 
 #+NAME: cl/mode
 #+BEGIN_SRC emacs-lisp
 (use-package lisp-mode
   :straight nil
   :init
-  (defun common-lisp-setup ()
+  (defun lisp-setup ()
     "setup for common lisp."
-    (if (fboundp 'paredit-mode)
-        (paredit-mode +1))
     (if (fboundp 'highlight-symbol-mode)
         (highlight-symbol-mode +1))
     (if (eq system-type 'darwin)
         (setq-local dash-plugin-keywords '("lisp"))))
   :hook
-  (lisp-mode . common-lisp-setup))
+  (lisp-mode . lisp-setup))
 #+END_SRC
 
-**** Slime
+**** slime
 
 [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
+
 
 #+NAME: cl/slime
 #+BEGIN_SRC emacs-lisp
 (use-package slime
-  :ensure-system-package sbcl
   :commands slime
   :defines
   (slime-complete-symbol*-fancy
    slime-completion-at-point-functions)
   :init
   (setq slime-contribs
-        '(slime-asdf slime-fancy slime-indentation slime-sbcl- slime-scratch)
-	      inferior-lisp-program "sbcl"
+        '(slime-fancy
+          slime-indentation
+          slime-references
+          slime-tramp
+          slime-scratch)
+	      inferior-lisp-program "clisp"
       	;; enable fuzzy matching in code buffer and SLIME REPL
       	slime-complete-symbol*-fancy t
       	slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
@@ -9613,6 +9375,20 @@ Configuration for common-lisp.
   :hook
   (slime-repl-mode . slime/disable-smartparens))
 #+END_SRC
+
+*** Company slime
+:PROPERTIES:
+:ID:       6EE87F7B-2275-4874-83F9-96833C4E8DA1
+:END:
+
+#+BEGIN_SRC emacs-lisp
+(use-package slime-company
+  :custom
+  (slime-company-completion 'fuzzy)
+  :init
+  (add-to-list 'slime-contribs 'slime-company))
+#+END_SRC
+
 
 *** Clojure
 
@@ -9766,92 +9542,6 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 (use-package cljsbuild-mode
   :if (executable-find "lein")
   :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
-#+END_SRC
-
-*** Emacs Lisp
-**** Emacs lisp mode
-
-#+NAME: elisp/mode
-#+BEGIN_SRC emacs-lisp
-(use-package emacs-lisp-mode
-  :straight nil
-  :init
-  (defun emacs-lisp/setup ()
-    "Setup elisp."
-    (when (require 'paredit nil t)
-	    (paredit-mode +1))
-    (when (require 'highlight-symbol nil t)
-	      (highlight-symbol-mode +1))
-    (when (require 'rainbow-delimiters nil t)
-      (rainbow-delimiters-mode +1))
-    (setq lisp-indent-function 'lisp-indent-function)
-    (setq-local dash-plugin-keywords '("elisp")))
-
-  :hook
-  (emacs-lisp-mode . emacs-lisp/setup))
-#+END_SRC
-
-**** lisp extra fontlocking
-
-#+BEGIN_SRC emacs-lisp
-(use-package lisp-extra-font-lock
-  :init
-  (lisp-extra-font-lock-global-mode +1))
-#+END_SRC
-
-**** Emacs Lisp  Format
-
-#+NAME: elisp/format
-#+BEGIN_SRC emacs-lisp
-  (use-package elisp-format
-    :custom
-    (elisp-format-column 80))
-#+END_SRC
-
-**** Cask
-
-#+NAME: elisp/cask
-#+BEGIN_SRC emacs-lisp
-;; Cask Mode
-
-;; Flycheck cask
-
-;; Cask Package Toolset
-
-#+END_SRC
-
-***** Cask Mode
-
-#+NAME: cask/mode
-#+BEGIN_SRC emacs-lisp
-(use-package cask-mode)
-#+END_SRC
-
-***** Flycheck Cask
-
-#+NAME: cask/flycheck
-#+BEGIN_SRC emacs-lisp
-  (use-package flycheck-cask
-    :init
-    (defun flycheck-cask/enable ()
-      (when (eq projectile-project-type 'emacs-cask)
-        (flycheck-cask-setup)))
-
-    (defun flycheck-cask/disable-dir-locals ()
-      (when (string= ".dir-locals.el" (buffer-file-name))
-        (set (make-variable-buffer-local 'flycheck-mode) nil)))
-
-    :hook
-    (flycheck-mode . flycheck-cask/enable)
-    (flycheck-mode . flycheck-cask/disable-dir-locals))
-
-#+END_SRC
-
-***** Cask Toolset
-
-#+NAME: cask/toolset
-#+BEGIN_SRC emacs-lisp
-(use-package cask-package-toolset)
 #+END_SRC
 
 *** Groovy
@@ -10517,14 +10207,12 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
   :ensure-system-package
   (dune . "opam install dune")
   :init
-
   (with-eval-after-load 'projectile
     (projectile-register-project-type 'dune
                                       '("dune-project")
                                       :compile "dune build"
                                       :test "dune runtest"
                                       :run "dune exec"))
-
   :hook
   (dune-mode . enable-paredit-mode))
 #+END_SRC
@@ -10844,6 +10532,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 
 #+NAME: research/scimax
 #+BEGIN_SRC emacs-lisp
+
 (use-package scimax
   :straight nil
   :if (file-directory-p (emacs-etc-dir "local" "scimax"))
