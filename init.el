@@ -158,9 +158,11 @@
         (org-src-window-setup 'other-window)
         (org-confirm-babel-evaluate nil)
         (org-edit-src-persistent-message nil)
-        (org-catch-invisible-edits)
+        (org-catch-invisible-edits t)
         (org-babel-uppercase-example-markers t)
-
+        (org-hide-block-startup t)
+        (org-hide-leading-stars t)
+        (org-hide-emphasis-markers t)
         :bind
         ("C-c a" . org-agenda)
         ("C-c c" . org-capture)
@@ -176,125 +178,39 @@
         :config
         (when (eq system-type 'darwin)
           (setq org-directory (file-truename "~/Dropbox/org/")
-                org-default-notes-file
-                (expand-file-name "capture.org" org-directory)
                 org-id-locations-file
                 (expand-file-name
-                 "var/org/id-locations.el" user-emacs-directory)))
+                 "var/org/id-locations.el" user-emacs-directory))))
 
-        (defun org-update-backends (val)
-          "Update Emacs export backends while Emacs is running.
-See `org-export-backends' variable."
-          (interactive)
-          (progn
-            (setq org-export-registered-backends
-                  (cl-remove-if-not
-                   (lambda (backend)
-                     (let ((name (org-export-backend-name backend)))
-                       (or (memq name val)
-                          (catch 'parentp
-                            (dolist (b val)
-                              (and (org-export-derived-backend-p b name)
-                                 (throw 'parentp t)))))))
-                   org-export-registered-backends))
-            (let ((new-list (mapcar #'org-export-backend-name
-                                    org-export-registered-backends)))
-              (dolist (backend val)
-                (cond
-                 ((not (load (format \"ox-%s\" backend) t t))
-                  (message
-                   "Problems while trying to load export back-end
-                   `%s'" backend))
-                 ((not (memq backend new-list)) (push backend new-list))))
-              (set-default 'org-export-backends new-list))))
-
-        :hook
-        (org-mode . halidom/resolve-org-ivy-conflict))
-
-      ;; Literate
-      (defcustom halidom-literate-config-file "halidom.org"
-        "The *.org file containing the source code responsible for
-      declaration and configuration of third-party packages, as well as
-      any settings and customizations defined in this GNU Emacs
-      distribution."
-        :type 'string)
-
-      (defcustom halidom-user-literate-init-file
-        (expand-file-name halidom-literate-config-file user-emacs-directory)
-        "The absolute path of `halidom-literate-config-file.'"
-        :type 'string)
+      (use-package no-littering
+	      :init
+	      (setq no-littering-etc-directory
+	            (expand-file-name "etc/" user-emacs-directory))
+	      (setq no-littering-var-directory
+	            (expand-file-name "var/" user-emacs-directory))
+	      (require 'no-littering))
 
 
-      (defun load-literate (&optional user-config-file)
-        "If USER-CONFIG-FILE is passed as an argument, then tangle.
-    Else use the value of `halidom-literate-config-file'."
-        (let ((target-file (or user-config-file halidom-literate-config-file))
-              (target-dir (or user-emacs-directory default-directory)))
+      (cl-letf (((symbol-function 'var)
+                 (symbol-function #'no-littering-expand-var-file-name)))
+        (with-no-warnings
+          (setq auto-save-file-name-transforms
+	              `((".*" ,(var "auto-save/") t)))
+          (setq srecode-map-save-file (var "srecode-map.el"))))
 
-          (if target-file
-              (org-babel-load-file
-               (expand-file-name target-file target-dir))
-            (error "%s not found, cannot tangle." target-file))))
+      (require 'recentf)
+      (add-to-list 'recentf-exclude no-littering-var-directory)
+      (add-to-list 'recentf-exclude no-littering-etc-directory)
 
-
-      ;; Debug
-      (defvar halidom-literate-debug-blocks nil)
-
-
-      (defun literate-src-parameter-string->alist (parameters)
-        "Convert src block parameter string into a plist."
-        (let ((params-list (split-string parameters " " t)))
-          (cl-loop for x in params-list
-                   for i from 1 to (length params-list)
-                   if (cl-oddp i)
-                   collect (intern x) into odds
-                   else
-                   collect x into evens
-                   end
-                   finally (return (seq-mapn #'cons odds evens)))))
+      (use-package org-dotemacs
+	      :custom
+	      (org-dotemacs-default-file "~/.emacs.d/dotemacs.org")
+	      :init
+	      (require 'org-dotemacs))
 
 
-      (defun literate-src-block-noweb-p (parameters)
-        (let ((params-alist (literate-src-parameter-string->alist parameters)))
-          (string= "yes" (cdr (assoc :noweb params-alist)))))
-
-      (defun sanitize-no-web-block (code)
-        (let ((sx (split-string code "\n" t)))
-          (cl-flet ((func (s)
-                          (replace-regexp-in-string "<<\\(.*?\\)>>" "\\1" s)))
-            (mapcar #'func sx))))
-
-
-      (defun literate-tangle-src-block (name)
-        (let ((buf (find-file-noselect halidom-user-literate-init-file)))
-          (with-current-buffer halidom-literate-config-file
-            (org-element-map (org-element-parse-buffer) 'src-block
-              (lambda (block)
-                (if (string= name (org-element-property :name block))
-                    (let ((code (org-element-property :value block))
-                          (params (org-element-property :parameters block))
-                          (noweb-p (literate-src-block-noweb-p
-                                    (org-element-property :parameters block))))
-
-                      (if noweb-p
-                          (mapcar #'literate-tangle-src-block (sanitize-no-web-block code))
-                        (with-temp-buffer
-                          (message "%s" code)
-                          (insert code)
-                          (eval-buffer))))))))
-          (kill-buffer buf)))
-
-      (defun literate-debug-enabled ()
-        "Tangle only the source blocks with a name property matching an element in
-    `halidom-literate-debug-blocks'.
-    This is useful for providing a set of defaults for debugging purposes."
-        (interactive)
-        (mapcar #'literate-tangle-src-block halidom-literate-debug-blocks))
-
-      (if (and (boundp 'use-literate-p) (not use-literate-p))
-          (literate-debug-enabled)
-        (load-literate)))
-
+      (org-dotemacs-load-file "compile" org-dotemacs-default-file
+        (expand-file-name "dotemacs.el" user-emacs-directory)))
   (straight-finalize-transaction))
 
  ;;;; init.el ends here

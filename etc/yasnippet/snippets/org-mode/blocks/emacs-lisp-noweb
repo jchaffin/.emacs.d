@@ -3,6 +3,6 @@
 # key: <sew
 # --
 #+NAME: $0
-#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+#+BEGIN_SRC emacs-lisp :noweb yes
 $1
 #+END_SRC
