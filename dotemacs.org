@@ -436,7 +436,7 @@ list that one may use in the wacky world of Emacs.
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
   :init
-  (defun halidom/dashboard-banner ()
+  (defun dotemacs/dashboard-banner ()
       "Set a dashboard banner including information on
   package initialization time and garbage collections."
       (setq dashboard-banner-logo-title
@@ -468,7 +468,7 @@ list that one may use in the wacky world of Emacs.
 
     :hook
     (after-init     . dashboard-refresh-buffer)
-    (dashboard-mode . halidom/dashboard-banner))
+    (dashboard-mode . dotemacs/dashboard-banner))
 
 
 #+END_SRC
@@ -529,15 +529,15 @@ for correct behavior.
 
 **** Customization
 
-#+NAME: halidom/customization
+#+NAME: dotemacs/customization
 #+BEGIN_SRC emacs-lisp
 ;; Customization Group
-(defgroup halidom nil
-  "Customization group for the `halidom' Emacs configuration."
+(defgroup dotemacs nil
+  "Customization group for the `dotemacs' Emacs configuration."
   :group 'applications
-  :prefix "halidom-")
+  :prefix "dotemacs-")
 
-(defcustom halidom-prefix "\M-m"
+(defcustom dotemacs-prefix "\M-m"
   "The prefix map leader key.")
 #+END_SRC
 
@@ -1042,19 +1042,19 @@ that is a member of `read-only-directories'."
          (null (seq-filter #'f read-only-whitelist-directories))
          (file-writable-p bf))))
 
-(defun halidom/open-buffer-as-read-only (file)
+(defun dotemacs/open-buffer-as-read-only (file)
   "All buffers from `read-only-directories' or
 `read-only-file-extensions' are set to read-only."
   (let ((bd (and buffer-file-name (file-name-directory file))))
     (if (read-only-directory-p bd) (read-only-mode 1))))
 
-(defun halidom/find-file-read-only-hook ()
-  (funcall #'halidom/open-buffer-as-read-only (buffer-file-name)))
+(defun dotemacs/find-file-read-only-hook ()
+  (funcall #'dotemacs/open-buffer-as-read-only (buffer-file-name)))
 
 (setq read-only-directories `(,(straight-dir :slash t) "/usr/local/"))
 
 (setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
-(add-hook 'find-file-hook #'halidom/find-file-read-only-hook)
+(add-hook 'find-file-hook #'dotemacs/find-file-read-only-hook)
 #+END_SRC
 
 ** Package Manager
@@ -1777,12 +1777,12 @@ Causes a conflict with ~lsp-mode~.
 
 (defun goto-literate ()
   (interactive)
-  (find-file halidom-user-literate-init-file))
+  (find-file dotemacs-user-literate-init-file))
 
 (defun goto-tangled-init ()
   (interactive)
   (find-file
-    (concat (file-name-sans-extension halidom-user-literate-init-file) ".el")))
+    (concat (file-name-sans-extension dotemacs-user-literate-init-file) ".el")))
 
 (define-key goto-map "i" #'goto-init)
 (define-key goto-map "l" #'goto-literate)
@@ -2146,17 +2146,17 @@ whistles, it makes up for in compatibility and hackability [fn:18].
         (funcall cmd)
       (compile cmd (el-patch-add t))))
 
-  (defvar halidom/ignored-project-directories
+  (defvar dotemacs/ignored-project-directories
     '("~/.emacs.d/straight"))
 
   (defun projectile-ignore-projects-in-directory (project-root)
-    "Ignore directories in `halidom/ignored-project-directories'."
+    "Ignore directories in `dotemacs/ignored-project-directories'."
     (cl-flet ((ignored-dir-or-subdir-p
                (path)
                (f-descendant-of?
                 (f-expand project-root)
                 path)))
-      (->> halidom/ignored-project-directories
+      (->> dotemacs/ignored-project-directories
          (seq-filter #'ignored-dir-or-subdir-p)
          seq-empty-p not)))
 
@@ -3118,27 +3118,27 @@ From [[https://www.emacswiki.org/emacs/FrameModes#toc1][EmacsWiki: Frame Modes]]
 
 #+NAME: theme-italicize-for-modes
 #+BEGIN_SRC emacs-lisp
-(defcustom halidom-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
+(defcustom dotemacs-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
   "Major modes for which an italicized font lock keyword
 face shall be used."
   :type '(symbol))
 
-(defun halidom/italicize-keyword-fn ()
+(defun dotemacs/italicize-keyword-fn ()
 (face-remap-add-relative 'font-lock-keyword-face
                          '(:slant italic
                            :family "Operator Mono")))
 
-(defun halidom/italicize-keyword-faces ()
+(defun dotemacs/italicize-keyword-faces ()
   (cl-flet ((mode->hook (mode)
               (intern (concat (symbol-name mode) "-hook"))))
     (cl-loop
-       for mode in halidom-italicize-keyword-modes
+       for mode in dotemacs-italicize-keyword-modes
        for hooksym = (mode->hook mode)
        do
-         (add-hook hooksym 'halidom/italicize-keyword-fn))))
+         (add-hook hooksym 'dotemacs/italicize-keyword-fn))))
 
 
-(add-hook 'after-init-hook 'halidom/italicize-keyword-faces)
+(add-hook 'after-init-hook 'dotemacs/italicize-keyword-faces)
 
 #+END_SRC
 
@@ -3974,15 +3974,15 @@ Artist mode is a built-in Emacs package.
   :if (executable-find "plantuml")
   :defines (org-plantuml-jar-path plantuml-jar-path)
   :init
-  (defun halidom/plantuml-resolve-jar-path ()
+  (defun dotemacs/plantuml-resolve-jar-path ()
       (when (executable-find "plantuml")
         (replace-regexp-in-string
          "\n" ""
          (shell-command-to-string
           "realpath $(brew --prefix plantuml)/libexec/plantuml.jar"))))
   (when (eq system-type 'darwin)
-    (setq org-plantuml-jar-path (halidom/plantuml-resolve-jar-path))
-    (setq plantuml-jar-path (halidom/plantuml-resolve-jar-path))))
+    (setq org-plantuml-jar-path (dotemacs/plantuml-resolve-jar-path))
+    (setq plantuml-jar-path (dotemacs/plantuml-resolve-jar-path))))
 #+END_SRC
 
 *** Graphviz
@@ -4001,7 +4001,7 @@ Artist mode is a built-in Emacs package.
     (let ((dot-program (or program (completing-read "Process: " graphviz-dot-layout-programs))))
       (setq graphviz-dot-dot-program dot-program)))
 
-  (defun halidom/graphviz-dot-mode-setup ()
+  (defun dotemacs/graphviz-dot-mode-setup ()
     "Setup graphviz dot mode."
     (define-key graphviz-dot-mode-map "{" nil)
     (define-key graphviz-dot-mode-map "}" nil)
@@ -4011,7 +4011,7 @@ Artist mode is a built-in Emacs package.
                   (delete '("dot" . fundamental) org-src-lang-modes))))
 
   (with-eval-after-load 'graphviz-dot-mode
-    (halidom/graphviz-dot-mode-setup)))
+    (dotemacs/graphviz-dot-mode-setup)))
 
 #+END_SRC
 
@@ -5144,13 +5144,13 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+NAME: org-links-tags
 #+BEGIN_SRC emacs-lisp
-(defun halidom/tag-link (tag)
+(defun dotemacs/tag-link (tag)
   "Display a list of TODO headlines with tag TAG.
 With prefix argument, also display headlines without a TODO keyword."
   (org-tags-view (null current-prefix-arg) tag))
 
 (org-add-link-type
- "tag" 'halidom/tag-link)
+ "tag" 'dotemacs/tag-link)
 #+END_SRC
 
 **** Org Elisp Help Links
@@ -5543,7 +5543,7 @@ prompting."
     (setq org-capture-templates
           '(,("C" "Config"
                   (file+function
-                   ,halidom-user-literate-init-file
+                   ,dotemacs-user-literate-init-file
                    org-get-target-headline)))))
 
 
@@ -5626,7 +5626,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (defvar-local org-use-level-faces nil)
     (defvar org-level-remap-face nil)
 
-    (defun halidom/remap-org-level-faces ()
+    (defun dotemacs/remap-org-level-faces ()
       "Use minimal foreground face in `org-agenda-files' buffers."
 
       (let ((foreground (face-foreground 'default nil 'default)))
@@ -5640,8 +5640,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
            org-level-faces)
           (setq-local org-use-level-faces t))))
 
-    (defun halidom/org-agenda-file-face ()
-      (cond ((org-agenda-file-p) (halidom/remap-org-level-faces))
+    (defun dotemacs/org-agenda-file-face ()
+      (cond ((org-agenda-file-p) (dotemacs/remap-org-level-faces))
             (org-use-level-faces
              (mapcar
               (lambda (f)
@@ -5650,14 +5650,14 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               org-level-remap-face))))
 
 
-    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
+    (defvar dotemacs/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
       "The file path of the default agenda file.")
 
-    (when (file-exists-p halidom/default-agenda-file)
-      (add-to-list 'org-agenda-files halidom/default-agenda-file))
+    (when (file-exists-p dotemacs/default-agenda-file)
+      (add-to-list 'org-agenda-files dotemacs/default-agenda-file))
 
     :hook
-    (org-mode . halidom/org-agenda-file-face))
+    (org-mode . dotemacs/org-agenda-file-face))
 #+END_SRC
 
 **** Super agenda
@@ -6514,7 +6514,7 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
 (setq latex-process-lualatex
   '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
 
-(defcustom halidom-latex-pdf-engines
+(defcustom dotemacs-latex-pdf-engines
   '(("latex" . latex-process-latex)
     ("lualatex" . latex-process-lualatex)
     ("xelatex" . latex-process-xelatex)
@@ -6531,8 +6531,8 @@ It can be done through the =org-mode= latex export dispatcher in a single comman
   (interactive)
   (let* ((process (or
                    process
-                   (assoc (completing-read "Process: " halidom-latex-pdf-engines nil nil)
-                          halidom-latex-pdf-engines)))
+                   (assoc (completing-read "Process: " dotemacs-latex-pdf-engines nil nil)
+                          dotemacs-latex-pdf-engines)))
          (cmd-string (cdr process)))
     (setq org-latex-pdf-process (symbol-value cmd-string))
     (setq org-latex-compiler (car process))
@@ -6734,7 +6734,7 @@ for exporting org-mode documents to various formats.
     ;; LaTeX-Beamer-PDF
     (defun ox-pandoc--pdf-engine ()
       "Set the default latex pdf engine to the one set by `org-latex-pdf-process'. "
-      (let ((syms (mapcar (lambda (x) (cdr x)) halidom-latex-pdf-engines))
+      (let ((syms (mapcar (lambda (x) (cdr x)) dotemacs-latex-pdf-engines))
             (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
             (sep "latex-process-"))
         (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
@@ -6750,8 +6750,8 @@ for exporting org-mode documents to various formats.
       (let* ((process (or process
                           (assoc
                            (completing-read "Pandoc Process: "
-                                            halidom-latex-pdf-engines nil nil)
-                           halidom-latex-pdf-engines)))
+                                            dotemacs-latex-pdf-engines nil nil)
+                           dotemacs-latex-pdf-engines)))
              (sym (substring-no-properties (car process))))
         (setq org-pandoc-options-for-beamer-pdf
               `((pdf-engine . ,sym))
@@ -7184,34 +7184,34 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 
 #+NAME: theme-interface
 #+BEGIN_SRC emacs-lisp
-(defcustom halidom--theme-style 'dark
+(defcustom dotemacs--theme-style 'dark
   "The default theme mode. Only symbols 'dark and 'light are considered."
   :type '(choice
           (const :tag "Use a dark theme by default." dark)
           (const :tag "Use a light theme by default" light)
           (const :tag "Ignore the value of this variable" nil)))
 
-(defcustom halidom-term-theme 'wombat
+(defcustom dotemacs-term-theme 'wombat
   "The default term theme."
   :type 'symbol)
 
-(defcustom halidom-prose-theme 'tsdh-light
+(defcustom dotemacs-prose-theme 'tsdh-light
    "The default theme for writing text."
    :type 'symbol)
 
-(defcustom halidom-light-theme 'tsdh-light
+(defcustom dotemacs-light-theme 'tsdh-light
   "The light theme."
   :type 'symbol)
 
-(defcustom halidom-dark-theme 'tsdh-dark
+(defcustom dotemacs-dark-theme 'tsdh-dark
   "The dark theme."
   :type 'symbol)
 
-(defcustom halidom-theme 'tsdh-dark
+(defcustom dotemacs-theme 'tsdh-dark
   "The default theme to load."
   :type 'string)
 
-(defcustom halidom-theme-colors nil
+(defcustom dotemacs-theme-colors nil
   "plist of colors for the current theme."
   :type '(plist :key-type symbol :value-type sexp))
 #+END_SRC
@@ -7244,7 +7244,7 @@ This disables Emacs asking questions about loading a new theme.
 #+BEGIN_SRC emacs-lisp
 (use-package poet-theme
   :init
-  (setq halidom-light-theme 'poet))
+  (setq dotemacs-light-theme 'poet))
 #+END_SRC
 
 **** Base16 Themes
@@ -7257,12 +7257,12 @@ This disables Emacs asking questions about loading a new theme.
 (use-package base16-theme
     :demand t
     :init
-    (setq halidom-dark-theme 'base16-snazzy
-          halidom-light-theme 'base16-default-light)
+    (setq dotemacs-dark-theme 'base16-snazzy
+          dotemacs-light-theme 'base16-default-light)
 
      (require 'base16-snazzy-theme)
-     (defun halidom--base16-p (&optional theme)
-      (let ((theme (or theme halidom-theme "")))
+     (defun dotemacs--base16-p (&optional theme)
+      (let ((theme (or theme dotemacs-theme "")))
         (string-prefix-p "base16-" (symbol-name theme))))
 
     (add-to-list 'custom-theme-load-path
@@ -7276,22 +7276,22 @@ This disables Emacs asking questions about loading a new theme.
 
 #+NAME: theme-load-theme
 #+BEGIN_SRC emacs-lisp
-(setq-default custom-enabled-themes (list halidom-theme))
+(setq-default custom-enabled-themes (list dotemacs-theme))
 
 (defun remove-themes ()
   "Forcibly load the themes listed in `custom-enabled-themes'."
   (mapc #'disable-theme custom-enabled-themes))
 
-(defvar halidom/load-theme-hook nil
-  "List of functions to run when `halidom/load-theme' is invoked.")
+(defvar dotemacs/load-theme-hook nil
+  "List of functions to run when `dotemacs/load-theme' is invoked.")
 
 
 
-(defun halidom--default-theme ()
+(defun dotemacs--default-theme ()
   (cl-flet ((default-theme-symbol ()
               (symbol-value
-               `,(intern (concat "halidom-"
-                                 (format "%s" (symbol-value 'halidom--theme-style))
+               `,(intern (concat "dotemacs-"
+                                 (format "%s" (symbol-value 'dotemacs--theme-style))
                                  "-theme"))))
             (req-theme (theme)
                        (require
@@ -7299,13 +7299,13 @@ This disables Emacs asking questions about loading a new theme.
     (let ((theme (default-theme-symbol)))
       (and  (req-theme theme) theme))))
 
-(cl-defun halidom/load-theme (&optional (theme (halidom--default-theme)))
+(cl-defun dotemacs/load-theme (&optional (theme (dotemacs--default-theme)))
   "Opionated theme loading. If invoked without arguments, this
-function will load the theme associated with `halidom--theme-style'.
+function will load the theme associated with `dotemacs--theme-style'.
 
 Calling this function with the universal-argument `C-u' loads the new
 theme in \"quick mode\" by eliding hooks specified in
- `halidom/load-theme-hook'."
+ `dotemacs/load-theme-hook'."
 
   (interactive
    (let ((themes (mapcar 'symbol-name (custom-available-themes))))
@@ -7316,39 +7316,39 @@ theme in \"quick mode\" by eliding hooks specified in
   (let ((theme-symbol (if (symbolp theme) theme (intern theme))))
     (remove-themes)
     (if (not window-system)
-        (load-theme halidom-term-theme)
-      (setq halidom-theme theme-symbol)
-      (if (halidom--base16-p halidom-theme)
-          (setq halidom-theme-colors
+        (load-theme dotemacs-term-theme)
+      (setq dotemacs-theme theme-symbol)
+      (if (dotemacs--base16-p dotemacs-theme)
+          (setq dotemacs-theme-colors
                 (symbol-value
                  (intern
                   (eval
                    `(concat
-                     ,(symbol-name (symbol-value 'halidom-theme))
+                     ,(symbol-name (symbol-value 'dotemacs-theme))
                      "-colors")))))
-        (setq halidom-theme-colors nil))
-      (load-theme halidom-theme))
+        (setq dotemacs-theme-colors nil))
+      (load-theme dotemacs-theme))
     (unless (equal current-prefix-arg '(4))
-      (run-hooks 'halidom/load-theme-hook))))
+      (run-hooks 'dotemacs/load-theme-hook))))
 
-(defun halidom/load-theme-with-frame (frame)
+(defun dotemacs/load-theme-with-frame (frame)
   (with-selected-frame frame
     (unless (daemonp)
-      (halidom/load-theme))))
+      (dotemacs/load-theme))))
 
-(defun halidom--toggle-theme-style ()
+(defun dotemacs--toggle-theme-style ()
   (interactive)
-  (if (eq halidom--theme-style 'dark)
-      (setq halidom--theme-style 'light)
-    (setq halidom--theme-style 'dark)))
+  (if (eq dotemacs--theme-style 'dark)
+      (setq dotemacs--theme-style 'light)
+    (setq dotemacs--theme-style 'dark)))
 
-(defun halidom/toggle-theme ()
+(defun dotemacs/toggle-theme ()
   (interactive)
-  (halidom--toggle-theme-style)
-  (halidom/load-theme))
+  (dotemacs--toggle-theme-style)
+  (dotemacs/load-theme))
 
-(add-hook 'after-init-hook #'halidom/load-theme)
-;; (add-hook 'after-make-frame-functions #'halidom/load-theme-with-frame)
+(add-hook 'after-init-hook #'dotemacs/load-theme)
+;; (add-hook 'after-make-frame-functions #'dotemacs/load-theme-with-frame)
 #+END_SRC
 
 ** Org faces
@@ -7360,11 +7360,11 @@ theme in \"quick mode\" by eliding hooks specified in
 #+BEGIN_SRC emacs-lisp
 
 ;; Org Mode faces
-(defun halidom/org-faces ()
+(defun dotemacs/org-faces ()
   "Customize `org-mode' faces for base-16 themes."
   (let ((fg (face-foreground 'default nil 'default))
-        (fg2 (or (plist-get halidom-theme-colors :base04)))
-        (bg2 (or (plist-get halidom-theme-colors :base01)))
+        (fg2 (or (plist-get dotemacs-theme-colors :base04)))
+        (bg2 (or (plist-get dotemacs-theme-colors :base01)))
         (sans-font "Source Sans Pro")
         (header-font "EtBembo"))
     (if (and fg2 bg2)
@@ -7438,28 +7438,28 @@ theme in \"quick mode\" by eliding hooks specified in
                         :inherit 'org-block-begin-line)))
 
 ;; https://github.com/syl20bnr/spacemacs/pull/7667
-(defun halidom/org-restart ()
+(defun dotemacs/org-restart ()
   "Restart all open org-mode buffers."
   (let ((org-buffers (org-buffer-list)))
     (dolist (buf org-buffers)
       (with-current-buffer buf
         (org-mode-restart)
-        (halidom/org-faces)))))
+        (dotemacs/org-faces)))))
 
-(defun halidom/org-theme-hook ()
-  (halidom/org-faces)
-  (halidom/org-restart))
+(defun dotemacs/org-theme-hook ()
+  (dotemacs/org-faces)
+  (dotemacs/org-restart))
 
-(defun halidom/disable-scroll-bar (&optional frame)
+(defun dotemacs/disable-scroll-bar (&optional frame)
   (if frame
       (with-selected-frame frame
         (toggle-scroll-bar -1))
     (toggle-scroll-bar -1)))
 
 ;; Add Hooks
-(add-hook 'halidom/load-theme-hook #'halidom/org-theme-hook)
-(add-hook 'halidom/load-theme-hook #'halidom/disable-scroll-bar)
-(add-hook 'after-make-frame-functions #'halidom/disable-scroll-bar)
+(add-hook 'dotemacs/load-theme-hook #'dotemacs/org-theme-hook)
+(add-hook 'dotemacs/load-theme-hook #'dotemacs/disable-scroll-bar)
+(add-hook 'after-make-frame-functions #'dotemacs/disable-scroll-bar)
 #+END_SRC
 
 ** Overlays
@@ -8587,7 +8587,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 #+NAME: writing-variable-pitch
 #+BEGIN_SRC emacs-lisp
-(defcustom halidom-org-fixed-pitch-faces
+(defcustom dotemacs-org-fixed-pitch-faces
   '(org-table
     org-code
     org-special-keyword
@@ -8627,7 +8627,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
                              :family org-variable-pitch-font
                              :height 130)
     (face-remap-add-relative 'default 'variable-pitch)
-    (->> halidom-org-fixed-pitch-faces
+    (->> dotemacs-org-fixed-pitch-faces
        (mapcar (lambda (x) (list x
                             :family org-fixed-pitch-font
                             :height 100)))
@@ -8643,12 +8643,12 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 (use-package olivetti
   :init
-  (defun halidom/olivetti-setup ()
+  (defun dotemacs/olivetti-setup ()
     (auto-fill-mode -1)
     (when (fboundp 'centered-cursor-mode)
       (centered-cursor-mode)))
   :hook
-  (olivetti-mode . halidom/olivetti-setup))
+  (olivetti-mode . dotemacs/olivetti-setup))
 
 #+END_SRC
 
@@ -8658,10 +8658,10 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+BEGIN_SRC emacs-lisp
   (use-package writeroom-mode
     :config
-    (defun halidom/writeroom-mode-hook ()
+    (defun dotemacs/writeroom-mode-hook ()
       (org-toggle-variable-pitch)
       (auto-fill-mode -1))
-    (add-hook 'writeroom-mode #'halidom/writeroom-mode-hook))
+    (add-hook 'writeroom-mode #'dotemacs/writeroom-mode-hook))
 #+END_SRC
 
 * Code
@@ -8734,16 +8734,16 @@ Work account is for office portal, not a Microsoft account. I need integration o
       (flycheck-disabled-checkers '(emacs-lisp-checkdoc))
       (flycheck-emacs-lisp-load-path 'inherit)
       :init
-      (defun halidom/flycheck-enable (mode)
+      (defun dotemacs/flycheck-enable (mode)
         "Use flycheck in MODE."
         (push mode flycheck-global-modes))
 
-      (defun halidom/flycheck-enable-hook ()
+      (defun dotemacs/flycheck-enable-hook ()
         "Enable Flycheck as a hook."
         (when (fboundp 'flycheck-mode)
           (flycheck-mode +1)))
 
-      (defun halidom/toggle-flycheck-error-list ()
+      (defun dotemacs/toggle-flycheck-error-list ()
         "Toggle flycheck's error list window.
   If the error list is visible, hide the window.
   Else display the buffer."
@@ -8752,7 +8752,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
             (quit-window nil window)
           (flycheck-list-errors)))
 
-      (defun halidom/goto-flycheck-error-list ()
+      (defun dotemacs/goto-flycheck-error-list ()
         "Open and go to the error list buffer."
         (interactive)
         (unless (get-buffer-window
@@ -8805,9 +8805,9 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+BEGIN_SRC emacs-lisp
 (use-package hideshowvis
   :init
-  (defface halidom-folded-face
-      `((((background light)) :background ,(plist-get halidom-theme-colors :base00))
-        (((background dark)) :background ,(plist-get halidom-theme-colors :base03)))
+  (defface dotemacs-folded-face
+      `((((background light)) :background ,(plist-get dotemacs-theme-colors :base00))
+        (((background dark)) :background ,(plist-get dotemacs-theme-colors :base03)))
     "Face to highlight `hideshow' overlays.")
 
   (setq hs-set-up-overlay
@@ -8821,7 +8821,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
                                  'empty-line
                                  'vimish-fold-fringe))))
             (overlay-put
-             ov 'display (propertize " [...] " 'face 'halidom-folded-face)))))
+             ov 'display (propertize " [...] " 'face 'dotemacs-folded-face)))))
 
   (defun hideshowvis/enable ()
     (hideshowvis-minor-mode 1))
@@ -8861,12 +8861,12 @@ Work account is for office portal, not a Microsoft account. I need integration o
    :repo "google/styleguide"
    :branch "gh-pages")
   :init
-  (defun halidom/google-c-style ()
+  (defun dotemacs/google-c-style ()
     (google-set-c-style)
     (google-make-newline-indent))
   :hook
-  (c++-mode . halidom/google-c-style)
-  (java-mode . halidom/google-c-style))
+  (c++-mode . dotemacs/google-c-style)
+  (java-mode . dotemacs/google-c-style))
 #+END_SRC
 
 *** Code Formatting
@@ -9486,7 +9486,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 
     :hook
     ((c-mode c++-mode)  . cquery/enable)
-    ((c-mode c++-mode) . halidom/flycheck-enable-hook)
+    ((c-mode c++-mode) . dotemacs/flycheck-enable-hook)
 
     :config
 
@@ -9641,11 +9641,11 @@ Provides key bindings and font-locking for Clojure.
 
   :config
 
-  (defun halidom/clj-dash-docsets ()
+  (defun dotemacs/clj-dash-docsets ()
     "Keywords for Clojure Docsets via Dash.app."
     (setq-local dash-plugin-keywords '("clojure")))
 
-  (defun halidom/clj-style-compojure ()
+  (defun dotemacs/clj-style-compojure ()
     "Indendation for macros defined in compojure routing framework.
 
      See https://github.com/weavejester/compojure/wiki/Emacs-indentation."
@@ -9665,18 +9665,18 @@ Provides key bindings and font-locking for Clojure.
         (context 2)))
 
 
-  (defun halidom/clj-style-om-next ()
+  (defun dotemacs/clj-style-om-next ()
     "Indendation for om-next macros."
       (put-clojure-indent 'defui '(1 nil nil (1)))
       (put-clojure-indent 'dom/div 1))
 
-  (defun halidom/clj-style-guide ()
+  (defun dotemacs/clj-style-guide ()
     "Styleguide for clojure."
-    (halidom/clj-style-compojure)
-    (halidom/clj-style-om-next))
+    (dotemacs/clj-style-compojure)
+    (dotemacs/clj-style-om-next))
 
-  (add-hook 'clojure-mode-hook #'halidom/clj-dash-docsets)
-  (add-hook 'clojure-mode-hook #'halidom/clj-style-guide))
+  (add-hook 'clojure-mode-hook #'dotemacs/clj-dash-docsets)
+  (add-hook 'clojure-mode-hook #'dotemacs/clj-style-guide))
 #+END_SRC
 
 **** Clojure Mode Extra Font Locking
@@ -10377,11 +10377,11 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
   :interpreter "ruby"
   :config
 
-  (defun halidom/ruby-dash-docsets ()
+  (defun dotemacs/ruby-dash-docsets ()
     (setq-local dash-plugin-keywords '("ruby" "rails")))
 
 
-  (add-hook 'ruby-mode-hook #'halidom/ruby-dash-docsets))
+  (add-hook 'ruby-mode-hook #'dotemacs/ruby-dash-docsets))
 
 #+END_SRC
 
@@ -10394,7 +10394,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
     :demand t
     :mode "\\.rb\\'"
     :config
-    (add-hook 'enh-ruby-mode-hook #'halidom/ruby-dash-docsets))
+    (add-hook 'enh-ruby-mode-hook #'dotemacs/ruby-dash-docsets))
 #+END_SRC
 
 **** Inf ruby

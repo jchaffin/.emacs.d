@@ -55,6 +55,6 @@
   (feature-check #'literate-disabled-env #'literate-disabled-cli))
 
 (defvar use-literate-p (check-literate)
-"If non-nil, disable tangling of `halidom-literate-config-file.'")
+  "If non-nil, disable tangling of `halidom-literate-config-file.'")
 
 ;;; early-init.el ends here

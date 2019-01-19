@@ -30,7 +30,8 @@
 
 
 (unwind-protect
-    (let ((straight-treat-as-init t))
+    (let ((straight-treat-as-init t)
+          (toggle-debug-on-error t))
       (when (locate-library "gnutls")
         (require 'gnutls)
         ;; Prevent elpa from loading `package.el' in case loading fails.
@@ -40,9 +41,9 @@
 
       (setq straight-repository-branch "develop"
             ;; Use the macos lockfile
-            straight-profiles '((halidom . "versions.el")
+            straight-profiles '((dotemacs . "versions.el")
                                 (nil . "default.el"))
-            straight-current-profile 'halidom
+            straight-current-profile 'dotemacs
             straight-recipes-gnu-elpa-use-mirror t)
 
       (if (and (executable-find "watchexec")
@@ -191,24 +192,24 @@ See `org-export-backends' variable."
 
 
       ;; Literate
-      (defcustom halidom-literate-config-file "halidom.org"
+      (defcustom dotemacs-literate-config-file "dotemacs.org"
         "The *.org file containing the source code responsible for
       declaration and configuration of third-party packages, as well as
       any settings and customizations defined in this GNU Emacs
       distribution."
         :type 'string)
 
-      (defcustom halidom-user-literate-init-file
-        (expand-file-name halidom-literate-config-file user-emacs-directory)
-        "The absolute path of `halidom-literate-config-file.'"
+      (defcustom dotemacs-user-literate-init-file
+        (expand-file-name dotemacs-literate-config-file user-emacs-directory)
+        "The absolute path of `dotemacs-literate-config-file.'"
         :type 'string)
 
 
       (defun load-literate (&optional user-config-file)
         "If USER-CONFIG-FILE is passed as an argument, then tangle.
-    Else use the value of `halidom-literate-config-file'."
+    Else use the value of `dotemacs-literate-config-file'."
         (let ((target-file
-               (or user-config-file halidom-literate-config-file))
+               (or user-config-file dotemacs-literate-config-file))
               (target-dir
                (or user-emacs-directory default-directory)))
           (if target-file
@@ -247,8 +248,8 @@ See `org-export-backends' variable."
 
 
       (defun literate-tangle-src-block (name)
-        (let ((buf (find-file-noselect halidom-user-literate-init-file)))
-          (with-current-buffer halidom-literate-config-file
+        (let ((buf (find-file-noselect dotemacs-user-literate-init-file)))
+          (with-current-buffer dotemacs-literate-config-file
             (org-element-map (org-element-parse-buffer) 'src-block
               (lambda (block)
                 (if (string= name (org-element-property :name block))
@@ -279,11 +280,12 @@ See `org-export-backends' variable."
 
       (defun literate-debug-enabled ()
         "Tangle only the source blocks with a name property matching an
-element in `halidom-literate-debug-blocks'."
+element in `dotemacs-literate-debug-blocks'."
         (interactive)
         (mapcar #'literate-tangle-src-block literate-debug-blocks))
 
       (use-package no-littering
+        :demand t
         :custom
         (no-littering-etc-directory
          (expand-file-name "etc" user-emacs-directory)
