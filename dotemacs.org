@@ -180,6 +180,7 @@
   - [[#org-faces][Org faces]]
   - [[#overlays][Overlays]]
     - [[#highlight][Highlight]]
+    - [[#overlay][overlay]]
     - [[#overlay-highlight][Overlay Highlight]]
     - [[#rainbow-mode][Rainbow Mode]]
     - [[#col-highlight][Col Highlight]]
@@ -188,10 +189,15 @@
     - [[#highlight-indentation][Highlight Indentation]]
     - [[#pretty-mode][Pretty Mode]]
     - [[#prettify-symbols][Prettify Symbols]]
-    - [[#pretty][Pretty]]
+    - [[#prettify-utilities][Prettify Utilities]]
+    - [[#pretty-fonts][Pretty Fonts]]
+    - [[#pretty-code][Pretty Code]]
+    - [[#pretty-outlines][Pretty Outlines]]
   - [[#fonts][Fonts]]
     - [[#dont-use-default-font-for-symbols][Don't use default font for symbols]]
     - [[#default-font][Default font]]
+    - [[#variable-pitch][Variable Pitch]]
+    - [[#serif][Serif]]
     - [[#ligatures][Ligatures]]
     - [[#unicode][Unicode]]
   - [[#cursor][Cursor]]
@@ -234,7 +240,7 @@
     - [[#lorem-ipsum][Lorem Ipsum]]
     - [[#org-velocity][Org Velocity]]
   - [[#nov][Nov]]
-  - [[#variable-pitch][Variable Pitch]]
+  - [[#variable-pitch-1][Variable Pitch]]
   - [[#olivetti][Olivetti]]
   - [[#writeroom][Writeroom]]
 - [[#code][Code]]
@@ -7362,35 +7368,35 @@ theme in \"quick mode\" by eliding hooks specified in
                         :height 1.2
                         :inherit 'outline-2)
     (set-face-attribute 'org-level-1 nil
-                        :family sans-font
+                        :family header-font
                         :height 1.6
                         :inherit 'outline-1)
     (set-face-attribute 'org-level-2 nil
-                        :family sans-font
+                        :family header-font
                         :height 1.3
                         :inherit 'outline-2)
     (set-face-attribute 'org-level-3 nil
-                        :family sans-font
+                        :family header-font
                         :height 1.2
                         :slant 'normal
                         :inherit 'outline-3)
     (set-face-attribute 'org-level-4 nil
-                        :family sans-font
+                        :family header-font
                         :height 1.1
                         :slant 'normal
                         :inherit 'outline-4)
     (set-face-attribute 'org-level-5 nil
-                        :family sans-font
+                        :family header-font
                         :height 1.1
                         :slant 'normal
                         :inherit 'outline-5)
     (set-face-attribute 'org-level-6 nil
-                        :family sans-font
+                        :family header-font
                         :height 1.1
                         :slant 'normal
                         :inherit 'outline-6)
     (set-face-attribute 'org-level-7 nil
-                        :family sans-font
+                        :family header-font
                         :height 1.0
                         :slant 'normal
                         :inherit 'outline-7)
@@ -7406,7 +7412,6 @@ theme in \"quick mode\" by eliding hooks specified in
                         :height 1.8
                         :underline nil
                         :inherit 'variable-pitch)
-
     (set-face-attribute 'org-block-end-line nil
                         :inherit 'org-block-begin-line)))
 
@@ -7592,24 +7597,6 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-**** Pretty Code
-
-**** Pretty Outlines
-
-#+BEGIN_SRC emacs-lisp
-(use-package pretty-outlines
-  :straight nil
-  :load-path "etc/local/pretty-outlines"
-  :custom
-  (pretty-outlines-ellipsis " ")
-  :hook ((outline-mode       . pretty-outlines-set-display-table)
-         (outline-minor-mode . pretty-outlines-set-display-table)
-         (emacs-lisp-mode . pretty-outlines-add-bullets)
-         (python-mode     . pretty-outlines-add-bullets)))
-
-
-#+END_SRC
-
 *** Pretty Fonts
 
 #+BEGIN_SRC emacs-lisp
@@ -7661,6 +7648,23 @@ the absence of a window system. I'll check for the latter for now.
                                                     (:lambda "fn")))
   (pretty-code-add-hook 'python-mode-hook     '((:def "def")
                                                 (:lambda "lambda"))))
+#+END_SRC
+
+*** Pretty Outlines
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package pretty-outlines
+  :straight nil
+  :load-path "etc/local/pretty-outlines"
+  :custom
+  (pretty-outlines-ellipsis "")
+  :hook ((outline-mode       . pretty-outlines-set-display-table)
+         (outline-minor-mode . pretty-outlines-set-display-table)
+         (emacs-lisp-mode . pretty-outlines-add-bullets)
+         (python-mode     . pretty-outlines-add-bullets)))
+
+
 #+END_SRC
 
 ** Fonts
@@ -7844,14 +7848,6 @@ From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when 
 
 #+END_SRC
 
-
-#+NAME: fonts/unicode
-#+BEGIN_SRC emacs-lisp
-;; Unicode Fonts
-
-;; Emojis
-
-#+END_SRC
 
 ***** VS Code Icons
 :PROPERTIES:
