@@ -121,15 +121,15 @@
   - [[#org-structure][Org Structure]]
     - [[#outlines][Outlines]]
     - [[#org-outline-numbering][Org Outline Numbering]]
+    - [[#fix-lists-on-save][Fix lists on save]]
     - [[#org-radiobutton][Org radiobutton]]
     - [[#org-links][Org Links]]
     - [[#org-id][Org ID]]
   - [[#org-coding][Org Coding]]
     - [[#org-babel][Org Babel]]
-    - [[#polymode][Polymode]]
-    - [[#lentic][Lentic]]
     - [[#org2elcomment][Org2elcomment]]
   - [[#org-tasks][Org Tasks]]
+    - [[#drill][Drill]]
     - [[#attach][Attach]]
     - [[#capture][Capture]]
     - [[#habit][Habit]]
@@ -5504,7 +5504,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
     (setq-default org-capture-templates
                   `(("l" "Protocol Link" entry
                      (file+headline ,org-default-notes-file "Inbox")
-                     
+
 "* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n\nCaptured: %U"))))
 #+END_SRC
 
@@ -5706,7 +5706,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       ("comsci131" . "Programming Languages")
       ("ling165c"  . "Semantics II")
       ("ling102"   . "Phonetics")))
-  
+
 
   (cl-loop for (course . description) in org-course-courses do
            (eval `(course-sidebar ,course ,description))))
@@ -6917,15 +6917,7 @@ Neil Smithline posted this snippet to let you browse org files with
     (require 'server)
     (unless (server-running-p)
       (setq server-socket-dir (format "/tmp/emacs%d" (user-uid)))
-      (server-start))
-    :config
-    (with-eval-after-load 'org-capture
-      (setq org-capture-templates
-            (append org-capture-templates
-                    (list `("l" "Web content and clippings" entry
-                                (file+headline ,org-default-notes-file "Clippings")
-                                "** %:annotation\nCaptured on %u\n%i"
-                                :empty-lines 1 :jump-to-captured 1))))))
+      (server-start)))
 
 
 #+END_SRC
