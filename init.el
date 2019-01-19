@@ -47,7 +47,7 @@
             straight-recipes-gnu-elpa-use-mirror t)
 
       (if (and (executable-find "watchexec")
-             (executable-find "python3"))
+               (executable-find "python3"))
           (setq straight-check-for-modifications
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
@@ -80,9 +80,8 @@
       ;; Enable the `:ensure-system-package' keyword
       (straight-use-package 'use-package-ensure-system-package)
       ;; Use  the `:blackout' to clean mode lighters
-      (straight-use-package '(blackout
-                              :host github
-                              :repo "raxod502/blackout"))
+      (straight-use-package
+       '(blackout :host github :repo "raxod502/blackout"))
       (require 'blackout)
 
       ;; lazy load by default
@@ -174,10 +173,10 @@ See `org-export-backends' variable."
                    (lambda (backend)
                      (let ((name (org-export-backend-name backend)))
                        (or (memq name val)
-                          (catch 'parentp
-                            (dolist (b val)
-                              (and (org-export-derived-backend-p b name)
-                                 (throw 'parentp t)))))))
+                           (catch 'parentp
+                             (dolist (b val)
+                               (and (org-export-derived-backend-p b name)
+                                    (throw 'parentp t)))))))
                    org-export-registered-backends))
             (let ((new-list (mapcar #'org-export-backend-name
                                     org-export-registered-backends)))

@@ -18,48 +18,48 @@
 ;;    is initialized.  The primary purpose is to allow customizing how the
 ;;    package system is initialized given that initialization now happens
 ;;    before loading the regular init file (see below).
-;;    PKG_COMMENTARY
-;;
 ;;
 ;;; Code:
 
-(setq package-enable-at-startup nil)
 
+;;;; CLI Utilities
 
-(defun feature-disabled-cli (arg args)
+(defun feature-inhibit-cli-check (arg args)
   (cond ((= (length args) 0) nil)
 	      ((equal (car args) arg) t)
-	      (t (feature-disabled-cli arg (cdr args)))))
+	      (t (feature-inhibit-cli-check arg (cdr args)))))
 
-(defun feature-disabled-env (var)
+(defun feature-inhibit-env-check (var)
   (let ((env (getenv var)))
     (and env (= (string-to-number env) 1))))
 
-(defun feature-check (env-func cli-func)
-  (let ((env-disabled (funcall env-func))
-	      (cli-disabled (funcall cli-func command-line-args)))
-    (if (or env-disabled cli-disabled) nil t)))
+(defun feature-inhibited-p (env-func cli-func)
+  (let ((env-inhibited (funcall env-func))
+	      (cli-inhibited (funcall cli-func command-line-args)))
+    (if (or env-inhibited cli-inhibited) nil t)))
 
+;;; Literate CLI option
+;; By default, my Emacs configuration
+;; will look for a literate CLI option
+;; Debup
 (add-to-list 'command-switch-alist
 	     '("--no-literate" .
                (lambda (_) (pop command-line-args-left))))
 
-(defun literate-disabled-env ()
-  (feature-disabled-env "HALIDOM_NO_LITERATE"))
+(defun literate-check-env ()
+  (feature-inhibit-env-check "LITERATE"))
 
-(defalias #'literate-disabled-cli
-  (apply-partially #'feature-disabled-cli "--no-literate"))
+(defalias #'literate-check-cli
+  (apply-partially #'feature-inhibit-cli-check "--no-literate"))
 
 (defun check-literate ()
   "Check whether literate mode is enabled."
-  (feature-check #'literate-disabled-env #'literate-disabled-cli))
+  (feature-inhibited-p #'literate-check-env #'literate-check-cli))
 
-(defvar use-literate-p (check-literate)
-  "If non-nil, disable tangling of `halidom-literate-config-file.'")
+(defcustom use-literate-p (check-literate)
+  "If non-nil, disable tangling of `dotemacs-literate-config-file.'")
 
-
-;;
-;; Chemacs - Emacs Profile Switcher v0.1
+;;; Chemacs - Emacs Profile Switcher v0.1
 ;;
 ;; INSTALLATION
 ;;
@@ -89,10 +89,14 @@
 ;;; Code:
 (defvar chemacs-profiles-path "~/.emacs-profiles.el")
 (defvar chemacs-default-profile-path "~/.emacs-profile")
+(defcustom emacs-package-manager "package.el"
+  "The library used to install and load third party elisp libraries."
+  :type 'string)
 
 (when (not (file-exists-p chemacs-profiles-path))
   (with-temp-file chemacs-profiles-path
     (insert "((\"default\" . ((user-emacs-directory . \"~/.emacs.d\"))))")))
+
 
 (defvar chemacs-emacs-profiles
   (with-temp-buffer
@@ -125,9 +129,17 @@
   (let* ((emacs-directory (file-name-as-directory
                            (chemacs-emacs-profile-key 'user-emacs-directory)))
          (init-file       (expand-file-name "init.el" emacs-directory))
+         (package-manager (chemacs-emacs-profile-key 'package-manager "package.el"))
          (custom-file-    (chemacs-emacs-profile-key 'custom-file init-file))
          (server-name-    (chemacs-emacs-profile-key 'server-name)))
+
     (setq user-emacs-directory emacs-directory)
+
+    (when package-manager
+      (setq emacs-package-manager package-manager)
+      (when (not (string= package-manager "package.el"))
+        (setq package-enabled-at-startup nil)))
+
 
     ;; Allow multiple profiles to each run their server
     ;; use `emacsclient -s profile_name' to connect

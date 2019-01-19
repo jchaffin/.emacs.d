@@ -316,22 +316,17 @@ horizontal line rules.
 
 Functional bindings i.e thread =->= macro.
 
-
 #+BEGIN_SRC emacs-lisp
 (use-package dash
   :config
-  (with-eval-after-load 'dash
-    (dash-enable-font-lock)))
+  (dash-enable-font-lock))
 #+END_SRC
 
 ***** Dash functional
 
 #+NAME: dash/functional
 #+BEGIN_SRC emacs-lisp
-(use-package dash-functional
-  :after dash
-  :demand t)
-
+(use-package dash-functional)
 #+END_SRC
 
 **** cl-lib
@@ -7448,9 +7443,15 @@ theme in \"quick mode\" by eliding hooks specified in
 (use-package highlight)
 #+END_SRC
 
+*** overlay
+
+#+BEGIN_SRC emacs-lisp
+(use-package ov)
+#+END_SRC
+
 *** Overlay Highlight
 
-#+NAME: hl-ov
+
 #+BEGIN_SRC emacs-lisp
 (use-package ov-highlight
   :straight (ov-highlight
@@ -7552,8 +7553,15 @@ Minor mode to highlight sexp.
 #+NAME: pretty/mode
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-mode
-  :hook
-  ((emacs-lisp-mode LaTeX-mode) . turn-on-pretty-mode))
+  :init
+  (global-pretty-mode t)
+
+  :config
+  (pretty-deactivate-groups
+   '(:equality :ordering :ordering-double :ordering-triple
+               :arrows :arrows-twoheaded :punctuation
+               :logic :sets))
+  (pretty-activate-groups '(:greek)))
 #+END_SRC
 
 *** Prettify Symbols
@@ -7571,11 +7579,7 @@ the absence of a window system. I'll check for the latter for now.
     (add-hook 'prog-mode-hook 'prettify-symbols-mode))
 #+END_SRC
 
-*** Pretty
-:PROPERTIES:
-:ID:       69A6DC79-7C75-4533-B71D-4E52B24CDE34
-:END:
-**** Prettify Utilities
+*** Prettify Utilities
 
 #+NAME: pretty/utils
 #+BEGIN_SRC emacs-lisp
@@ -7588,7 +7592,9 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-**** Pretty outlines
+**** Pretty Code
+
+**** Pretty Outlines
 
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-outlines
@@ -7604,7 +7610,58 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-**** Pretty Code
+*** Pretty Fonts
+
+#+BEGIN_SRC emacs-lisp
+(use-package pretty-fonts
+  :load-path "etc/local/pretty-fonts"
+  :straight nil
+  :init
+  (defun pretty-fonts/setup ()
+    (require 'pretty-fonts)
+    "Setup fira code ligatures and icon font sets."
+    (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
+    (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist)
+
+    (pretty-fonts-set-fontsets-for-fira-code)
+    (pretty-fonts-set-fontsets
+     '(;; All-the-icons fontsets
+       ("fontawesome"
+        ;;                         
+        #xf07c #xf0c9 #xf0c4 #xf0cb #xf017 #xf101)
+
+       ("all-the-icons"
+        ;;    
+        #xe907 #xe928)
+
+       ("github-octicons"
+        ;;                               
+        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071)
+
+       ("material icons"
+        ;;              
+        #xe871 #xe918 #xe3e7  #xe5da
+        ;;              
+        #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
+  :hook
+  (halidom/load-theme . pretty-fonts/setup))
+#+END_SRC
+
+*** Pretty Code
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package pretty-code
+  :load-path "etc/local/pretty-code"
+  :straight nil
+  :init
+  (require 'pretty-code)
+  (pretty-code-add-hook 'emacs-lisp-mode-hook '((:def "defun")))
+  (pretty-code-add-hook 'hy-mode-hook         '((:def "defn")
+                                                    (:lambda "fn")))
+  (pretty-code-add-hook 'python-mode-hook     '((:def "def")
+                                                (:lambda "lambda"))))
+#+END_SRC
 
 ** Fonts
 :PROPERTIES:
@@ -7652,6 +7709,31 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 (add-hook 'after-init-hook 'font/setup)
 #+END_SRC
+
+*** Variable Pitch
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-variable-pitch
+  :straight (org-variable-pitch
+             :type git
+             :host github
+             :repo "emacsmirror/org-variable-pitch")
+  :init
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  :hook
+  (org-mode . org-variable-pitch-minor-mode))
+#+END_SRC
+
+*** Serif
+
+From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when editing plain text in Emacs]]
+
+
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+
 *** Ligatures
 *** Unicode
 **** Unicode Fonts
