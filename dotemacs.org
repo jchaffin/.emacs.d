@@ -1946,6 +1946,22 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+BEGIN_SRC emacs-lisp
 (use-package whole-line-or-region)
+#+END_SRC
+
+**** Wrap region
+
+#+BEGIN_SRC emacs-lisp
+(use-package wrap-region
+  :init
+  (require 'wrap-region)
+  (wrap-region-add-wrappers
+   '(("*" "*" nil org-mode)
+     ("~" "~" nil org-mode)
+     ("/" "/" nil org-mode)
+     ("=" "=" "+" org-mode)
+     ("_" "_" nil org-mode)
+     ("$" "$" nil (org-mode latex-mode))))
+  (wrap-region-mode t))
 
 #+END_SRC
 
