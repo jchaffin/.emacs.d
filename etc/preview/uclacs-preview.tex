@@ -19,6 +19,7 @@
 \usepackage{fontspec}
 \usepackage{amsmath}
 \usepackage{unicode-math}
+\usepackage{hologo}
 
 \setmathfont{STIX2Math}[
   Extension = .otf,
@@ -31,6 +32,83 @@
   ItalicFont     = *-Italic,
   BoldItalicFont = *-BoldItalic
 ]
+
+
+\usepackage{tikz}
+\usetikzlibrary{graphs,graphdrawing} % Requires LuaLatex
+\usegdlibrary{UclacsGraph}
+\usegdlibrary{trees}
+\usegdlibrary{layered}
+\newcommand{\vertex}{\node[circle, draw, radius=1cm]}
+
+\usepackage{adjustbox}
+\usepackage{forest}
+\forestset{
+   default preamble={%
+     for tree={circle,draw, l sep=2mm}%
+   }%
+}%
+
+\usepackage{amsthm}    % https://ctan.org/pkg/amsthm
+\usepackage{thmtools}  % https://ctan.org/pkg/thmtools
+
+\definecolor{thmtextcolor}{RGB}{0, 175, 236}
+\definecolor{thmbackgroundcolor}{RGB}{226, 244, 253}
+
+\colorlet{LightGray}{White!90!Periwinkle}
+
+\AtBeginEnvironment{mdframed}{%
+  \def\mdf@footnoterule{}
+} % Remove footnote rule in amsthm environment frames.
+
+\declaretheoremstyle[%
+    mdframed={
+      skipabove=8pt,
+      skipbelow=6pt,
+      nobreak=true,
+      hidealllines=true,
+      backgroundcolor={LightGray},
+      innerleftmargin=-3pt,
+      innerrightmargin=5pt,
+      align=center
+    },
+    spaceabove=3pt,spacebelow=3pt,%
+    headfont=\normalfont\bfseries,%
+    notefont=\normalfont\bfseries,%
+    notebraces={}{. },%
+    headpunct={},%
+    postheadspace=0pt,%
+    postheadhook={\hangindent16pt},
+    headindent=0pt,%
+    bodyfont=\normalfont,%
+    headformat={\llap{\smash{\parbox[t]{0.8in}{\centering \NAME\\
+            \NUMBER}}} \hspace{8pt} \NOTE},%
+  ]{thmsty}
+
+  % Theorems
+  \declaretheorem[
+    style=thmsty,
+    numberwithin=section
+  ]{theorem}
+
+  % Definitions
+  \declaretheorem[
+    style=thmsty,
+    sharenumber=theorem
+  ]{definition}
+
+  % Lemmas
+  \declaretheorem[
+    style=thmsty,
+    sharenumber=theorem
+  ]{lemma}
+
+  \renewcommand\thmt@space{}
+
+\fi
+
+
+
 % NOTE: algorithm2e contains non UTF-8 characters.
 % Have to manually save algorithme2e.sty as UTF-8 for compatibility
 % with LuaLaTeX, which may cause issues with 8-bit encodings and pdflatex.
@@ -56,25 +134,13 @@
 \usepackage{varioref}
 \labelformat{algocf}{\textit{alg.}\,(#1)}
 
+\usepackage{minted}
+\AtBeginEnvironment{minted}{%
+    \renewcommand{\fcolorbox}[4][]{#4}
+  } % Remove red boxing around syntax errors
+
 \usepackage{listings}
 \lstset{
   basicstyle=\ttfamily,
   mathescape
 }
-
-\usepackage{tikz}
-\usetikzlibrary{graphs,graphdrawing} % Requires LuaLatex
-\usegdlibrary{UclacsGraph}
-\usegdlibrary{trees}
-\usegdlibrary{layered}
-\newcommand{\vertex}{\node[circle, draw, radius=1cm]}
-
-\usepackage{adjustbox}
-\usepackage{forest}
-\forestset{
-  default preamble={
-    for tree={circle,draw, l sep=2mm}
-  }
-}
-
-
