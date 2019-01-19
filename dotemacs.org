@@ -29,10 +29,8 @@
     - [[#encryption][Encryption]]
   - [[#keybindings][Keybindings]]
     - [[#hydra][Hydra]]
-    - [[#evil][Evil]]
     - [[#which-key][Which Key]]
     - [[#speed-type][Speed Type]]
-    - [[#evil-1][Evil]]
   - [[#system][System]]
     - [[#exec-path-from-shell][Exec Path From Shell]]
     - [[#system-packages][System Packages]]
@@ -1075,12 +1073,8 @@ interactive minibuffer completion menu using ivy.
        (sort it #'string-lessp)))
 
 
-(eval-and-compile
-  (defun straight-package-installed-p (pkg)
-    (member (symbol-name pkg) (straight-installed-packages)))
-  (defalias #'package-installed-p #'straight-package-installed-p
-    "If non-nil then PKG is installed."))
-
+(defun straight-installed-p (pkg)
+  (member (symbol-name pkg) (straight-installed-packages)))
 
 (cl-defun straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
@@ -1320,13 +1314,6 @@ killall gpg-agent
   :demand t)
 #+END_SRC
 
-*** Evil
-
-#+NAME: kb-evil
-#+BEGIN_SRC emacs-lisp
-(use-package evil)
-#+END_SRC
-
 *** Which Key
 
 #+NAME: kb-which-key
@@ -1349,15 +1336,6 @@ I got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboar
 #+NAME: kb-speed-type
 #+BEGIN_SRC emacs-lisp
 (use-package speed-type)
-#+END_SRC
-
-*** Evil
-:PROPERTIES:
-:ID:       C09DBAD5-77CB-4A78-B80C-86D0EA88C1F2
-:END:
-
-#+BEGIN_SRC emacs-lisp
-(use-package evil)
 #+END_SRC
 
 ** System
@@ -2100,9 +2078,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
 #+NAME: completion/dictionary-el
 #+BEGIN_SRC emacs-lisp
 (use-package dictionary
-  :commands (dictionary-lookup-definition)
-  :init
-  (define-prefix-command 'dictionary-keymap))
+  :commands (dictionary-lookup-definition))
 #+END_SRC
 
 
@@ -3225,7 +3201,9 @@ different window configurations.
 
 #+NAME: persp/perspective
 #+BEGIN_SRC emacs-lisp
-(use-package perspective)
+(use-package perspective
+  :init
+  (persp-mode 1))
 #+END_SRC
 
 **** Persp Projectile
@@ -7615,10 +7593,7 @@ the absence of a window system. I'll check for the latter for now.
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-outlines
   :straight nil
-  :demand t
   :load-path "etc/local/pretty-outlines"
-  :preface
-  (set-fontset-font "fontset-default" '#xF016 "Weather Icons" nil 'prepend)
   :custom
   (pretty-outlines-ellipsis " ")
   :hook ((outline-mode       . pretty-outlines-set-display-table)
@@ -7737,15 +7712,14 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons
-    :demand t)
+(use-package all-the-icons)
 #+END_SRC
 
 ****** all the icons dired
 
 #+BEGIN_SRC emacs-lisp
 (use-package all-the-icons-dired
-  :after (all-the-icons dired)
+  :after (:all all-the-icons dired)
   :demand t
   :init
   (require 'font-lock+)
@@ -9806,52 +9780,6 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   (use-package elisp-format
     :custom
     (elisp-format-column 80))
-#+END_SRC
-
-**** Cask
-
-#+NAME: elisp/cask
-#+BEGIN_SRC emacs-lisp
-;; Cask Mode
-
-;; Flycheck cask
-
-;; Cask Package Toolset
-
-#+END_SRC
-
-***** Cask Mode
-
-#+NAME: cask/mode
-#+BEGIN_SRC emacs-lisp
-(use-package cask-mode)
-#+END_SRC
-
-***** Flycheck Cask
-
-#+NAME: cask/flycheck
-#+BEGIN_SRC emacs-lisp
-  (use-package flycheck-cask
-    :init
-    (defun flycheck-cask/enable ()
-      (when (eq projectile-project-type 'emacs-cask)
-        (flycheck-cask-setup)))
-
-    (defun flycheck-cask/disable-dir-locals ()
-      (when (string= ".dir-locals.el" (buffer-file-name))
-        (set (make-variable-buffer-local 'flycheck-mode) nil)))
-
-    :hook
-    (flycheck-mode . flycheck-cask/enable)
-    (flycheck-mode . flycheck-cask/disable-dir-locals))
-
-#+END_SRC
-
-***** Cask Toolset
-
-#+NAME: cask/toolset
-#+BEGIN_SRC emacs-lisp
-(use-package cask-package-toolset)
 #+END_SRC
 
 *** Groovy
