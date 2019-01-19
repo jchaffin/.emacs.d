@@ -1,4 +1,4 @@
-#+title: dotemacs
+#+title: Dotemacs
 #+language: en
 #+STARTUP: hideblock
 #+AUTHOR: Jacob Chaffin
@@ -31,6 +31,7 @@
     - [[#hydra][Hydra]]
     - [[#which-key][Which Key]]
     - [[#speed-type][Speed Type]]
+    - [[#counsel-straight][Counsel straight]]
   - [[#system][System]]
     - [[#exec-path-from-shell][Exec Path From Shell]]
     - [[#system-packages][System Packages]]
@@ -75,7 +76,6 @@
     - [[#frame][Frame+]]
     - [[#frame-fns][Frame fns]]
     - [[#frame-cmds][Frame cmds]]
-    - [[#shrink-wrapped-frames][Shrink wrapped frames]]
     - [[#posframe][Posframe]]
   - [[#faces][Faces]]
     - [[#faces-1][Faces+]]
@@ -121,7 +121,6 @@
   - [[#org-structure][Org Structure]]
     - [[#outlines][Outlines]]
     - [[#org-outline-numbering][Org Outline Numbering]]
-    - [[#fix-lists-on-save][Fix lists on save]]
     - [[#org-radiobutton][Org radiobutton]]
     - [[#org-links][Org Links]]
     - [[#org-id][Org ID]]
@@ -137,8 +136,9 @@
     - [[#calendar][Calendar]]
     - [[#clock][Clock]]
     - [[#org-brain][Org Brain]]
-  - [[#org-appearance][Org appearance]]
+  - [[#org-appearance][Org Appearance]]
     - [[#per-image-display-width][Per-image display width]]
+    - [[#org-visual][Org Visual]]
     - [[#org-bullets][Org Bullets]]
     - [[#org-fancy-priorities][Org Fancy Priorities]]
     - [[#org-pretty-table][Org Pretty Table]]
@@ -180,7 +180,7 @@
   - [[#org-faces][Org faces]]
   - [[#overlays][Overlays]]
     - [[#highlight][Highlight]]
-    - [[#overlay][overlay]]
+    - [[#overlay][Overlay]]
     - [[#overlay-highlight][Overlay Highlight]]
     - [[#rainbow-mode][Rainbow Mode]]
     - [[#col-highlight][Col Highlight]]
@@ -798,7 +798,17 @@ generating a new one if the initial scratch buffer has been killed."
 :END:
 
 #+BEGIN_sRC emacs-lisp
-(use-package bui)
+(use-package bui
+  :hook
+  (info-mode . bui-info-mode))
+#+END_SRC
+
+**** ibuffer
+
+#+BEGIN_SRC emacs-lisp
+(use-package ibuffer
+  :straight nil
+  :bind ("C-x C-b" . ibuffer))
 #+END_SRC
 
 *** Window utilities
@@ -844,6 +854,7 @@ generating a new one if the initial scratch buffer has been killed."
         (setq modes (push major-mode modes))))
     (seq-uniq modes)))
 #+END_SRC
+
 
 *** File utilities
 **** Unix-style =basename=
@@ -955,6 +966,8 @@ the the returned file path will be formatted as a directory. "
          (cons (concat "/" (car it)) (cdr it))
          (apply #'resolve-path it)
          (if slash (file-name-as-directory it) it))))
+
+(user-home "hi/" :slash t)
 #+END_SRC
 
 ***** Dropbox Directory
@@ -1006,54 +1019,19 @@ the the returned file path will be formatted as a directory. "
 
 **** Read only
 
+See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
+
 #+NAME: fd-read-only
-#+BEGIN_SRC emacs-lisp
-(defcustom read-only-directories '()
-  "A list of directories for which all files and subdirectories
-should open in `read-only-mode'."
-  :type '(repeat :tag "List of blacklisted directories" file)
-  :group 'files)
+#+BEGIN_SRC emacs-Lisp
+;; Define a read-only directory class
+(dir-locals-set-class-variables 'read-only
+ '((nil . ((buffer-read-only . t)))))
 
-(defcustom read-only-whitelist-directories '()
-  "A list of directories which should not be opened in read-only mode."
-  :type '(repeat :tag "List of blacklisted directories" file)
-  :group 'files)
-
-(defvar read-only-file-extensions '("\\.gz\\'")
-  "Not yet implemented.")
-
-(defun dir-level (dir)
-  (length (f-split dir)))
-
-(defun dir-or-subdir-p (d1 d2)
-  "If non-nil, then directory D1 is subdirectory or the same directory as D2."
-  (cond ((< (dir-level d1) (dir-level d2)) nil)
-        ((string= d1 d2) t)
-        (t (dir-or-subdir-p
-            (--> d1 basename file-name-as-directory (string-remove-suffix it d1))
-            d2))))
-
-(defun read-only-directory-p (bf)
-"Determine whether the current buffer file is in a directory
-that is a member of `read-only-directories'."
-  (cl-flet ((f (d) (funcall #'dir-or-subdir-p bf d)))
-    (and (not (null (seq-filter #'f read-only-directories)))
-         (null (seq-filter #'f read-only-whitelist-directories))
-         (file-writable-p bf))))
-
-(defun dotemacs/open-buffer-as-read-only (file)
-  "All buffers from `read-only-directories' or
-`read-only-file-extensions' are set to read-only."
-  (let ((bd (and buffer-file-name (file-name-directory file))))
-    (if (read-only-directory-p bd) (read-only-mode 1))))
-
-(defun dotemacs/find-file-read-only-hook ()
-  (funcall #'dotemacs/open-buffer-as-read-only (buffer-file-name)))
-
-(setq read-only-directories `(,(straight-dir :slash t) "/usr/local/"))
-
-(setq read-only-whitelist-directories '("/usr/local/src/llvm-project/"))
-(add-hook 'find-file-hook #'dotemacs/find-file-read-only-hook)
+;; Associate directories with the read-only class
+(dolist (dir (list
+              (expand-file-name "straight" user-emacs-directory)
+              "/usr/local"))
+  (dir-locals-set-directory-class (file-truename dir) 'read-only))
 #+END_SRC
 
 ** Package Manager
@@ -1072,7 +1050,6 @@ interactive minibuffer completion menu using ivy.
          #'symbol-name
          straight-built-in-pseudo-packages))
        (sort it #'string-lessp)))
-
 
 (defun straight-installed-p (pkg)
   (member (symbol-name pkg) (straight-installed-packages)))
@@ -1337,6 +1314,15 @@ I got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboar
 #+NAME: kb-speed-type
 #+BEGIN_SRC emacs-lisp
 (use-package speed-type)
+#+END_SRC
+
+*** Counsel straight
+
+#+BEGIN_SRC emacs-lisp
+(with-eval-after-load 'ivy
+  (ivy-set-actions 'straight-use-package
+                   '(("d" straight-browse-local "browse local")
+                     ("h" straight-browse-remote "browse remote"))))
 #+END_SRC
 
 ** System
@@ -2186,6 +2172,7 @@ whistles, it makes up for in compatibility and hackability [fn:18].
   :demand t)
 #+END_SRC
 
+
 *** Find File in Project
 
 #+NAME: project-ffip
@@ -2340,8 +2327,6 @@ Adds extensions and functionality to dired mode.
   (treemacs-tag-follow-cleanup         t)
   (treemacs-tag-follow-delay           1.5)
   (treemacs-width                      35)
-  :config
-
   :config
   ;; The default width and height of the icons is 22 pixels. If you are
   ;; using a Hi-DPI display, uncomment this to double the icon size.
@@ -2979,7 +2964,9 @@ directory local variables."
 **** Help find org mode
 
 #+BEGIN_SRC emacs-lisp
-(use-package help-find-org-mode)
+(use-package help-find-org-mode
+  :init
+  (help-find-org-mode 1))
 #+END_SRC
 
 *** Elisp refs
@@ -3024,21 +3011,6 @@ directory local variables."
 #+BEGIN_SRC emacs-lisp
 (use-package frame-cmds)
 #+END_SRC
-
-*** Shrink wrapped frames
-From [[https://www.emacswiki.org/emacs/FrameModes#toc1][EmacsWiki: Frame Modes]].
-
-**** Auto fit frame
-#+BEGIN_SRC emacs-lisp
-(use-package autofit-frame)
-#+END_SRC
-
-**** fit frame
-
-#+BEGIN_SRC emacs-lisp
-(use-package fit-frame)
-#+END_SRC
-
 
 *** Posframe
 **** Ivy Posframe
@@ -3466,13 +3438,13 @@ END:
 #+NAME: counsel/mode
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
-    :bind (("<f2> u" . counsel-unicode-char)
-           ("<f1> l" . counsel-find-library)
+    :bind (("<f1> l" . counsel-find-library)
            ("C-c l" . counsel-load-library)
            ("C-c g" . counsel-git)
            ("C-c G" . counsel-git-grep)
            ("C-c k" . counsel-ag)
            ("C-x l" . counsel-locate)
+           ([remap insert-char] . counsel-unicode-char)
            (:map minibuffer-local-map
                  ("C-r" . counsel-minibuffer-history))
            (:map org-mode-map
@@ -5102,16 +5074,6 @@ instead of ~outline-show-entry~.
 
 ****
 
-*** Fix lists on save
-
-#+BEGIN_SRC emacs-lisp
-(add-hook 'before-save-hook
-          (lambda ()
-            (when (and (eq major-mode 'org-mode)
-                       (eq buffer-read-only nil))
-              (org-list-repair))))
-#+END_SRC
-
 *** Org radiobutton
 :PROPERTIES:
 :ID:       EA7D1F8C-6A3E-4154-B1ED-581F8B5446C3
@@ -5343,7 +5305,8 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
           (create
            (setq id (org-id-new (concat prefix "h")))
            (org-entry-put pom "CUSTOM_ID" id)
-           (org-id-add-location id (buffer-file-name (buffer-base id))))))))
+           (org-id-add-location id (buffer-file-name
+                                    (buffer-base-buffer id))))))))
 
   (defun org-add-ids-to-headlines-in-file ()
     "Add CUSTOM_ID properties to all headlines in the current
@@ -5985,7 +5948,7 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
           org-capture-templates)))
 #+END_SRC
 
-** Org appearance
+** Org Appearance
 
 These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
@@ -5998,6 +5961,16 @@ Specify image width in org buffer on per-image basis.
 #+NAME: org-ui-fixedwidth-image
 #+BEGIN_SRC emacs-lisp
 (setq org-image-actual-width nil)
+#+END_SRC
+
+*** Org Visual
+
+#+BEGIN_SRC emacs-lisp
+(defun org/visual ()
+  (visual-fill-column-mode t)
+  (visual-line-mode t))
+
+(add-hook 'org-mode-hook #'org/visual)
 #+END_SRC
 
 *** Org Bullets
@@ -7099,7 +7072,7 @@ This disables Emacs asking questions about loading a new theme.
           dotemacs-light-theme 'base16-default-light)
 
      (require 'base16-snazzy-theme)
-     (defun dotemacs--base16-p (&optional theme)
+     (defun base16-p (&optional theme)
       (let ((theme (or theme dotemacs-theme "")))
         (string-prefix-p "base16-" (symbol-name theme))))
 
@@ -7156,13 +7129,11 @@ theme in \"quick mode\" by eliding hooks specified in
     (if (not window-system)
         (load-theme dotemacs-term-theme)
       (setq dotemacs-theme theme-symbol)
-      (if (dotemacs--base16-p dotemacs-theme)
+      (if (base16-p dotemacs-theme)
           (setq dotemacs-theme-colors
                 (symbol-value
-                 (intern
-                  (eval
-                   `(concat
-                     ,(symbol-name (symbol-value 'dotemacs-theme))
+                 (intern (eval `(concat ,(symbol-name
+                                          (symbol-value 'dotemacs-theme))
                      "-colors")))))
         (setq dotemacs-theme-colors nil))
       (load-theme dotemacs-theme))
@@ -7307,7 +7278,7 @@ theme in \"quick mode\" by eliding hooks specified in
 (use-package highlight)
 #+END_SRC
 
-*** overlay
+*** Overlay
 
 #+BEGIN_SRC emacs-lisp
 (use-package ov)
@@ -7582,8 +7553,8 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
              :type git
              :host github
              :repo "emacsmirror/org-variable-pitch")
-  :init
-  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  :custom-face
+  (org-indent-face  (((:inherit (org-hide)))))
   :hook
   (org-mode . org-variable-pitch-minor-mode))
 #+END_SRC
@@ -7772,10 +7743,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
    (+ (if (boundp 'display-line-numbers) 6 0)
       fill-column))
     :config
-    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-    :hook
-    ((visual-fill-column-mode . visual-line-mode)
-     (org-mode . visual-fill-column-mode)))
+    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
+
 #+END_SRC
 
 *** Fill Column Indicator
@@ -7854,8 +7823,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
       (eyeliner/install)))
 
 #+END_SRC
-
-
 
 * Web
 ** Libraries
@@ -8451,33 +8418,29 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+NAME: readview-epub
 #+BEGIN_SRC emacs-lisp
 (use-package nov
-  :mode (("\\.epub\\'" . nov-mode))
-  :config
-  (progn
+  :mode ("\\.epub\\'" . nov-mode)
+  :init
+  (require 'justify-kp)
 
-    (require 'justify-kp)
+  (defun nov/setup ()
+    (face-remap-add-relative 'variable-pitch :family "Bookmania")
+    (unless visual-line-mode
+      (visual-line-mode 1))
+    (unless visual-fill-column-mode
+      (visual-fill-column-mode 1))
+    (setq nov-text-width most-positive-fixnum
+          visual-fill-column-center-text t))
 
+  (defun nov/window-configuration ()
+    (nov/post-html-render)
+    (remove-hook 'window-configuration-change-hook
+                 'nov/window-configuration))
 
-    (defun nov-setup ()
-      (face-remap-add-relative 'variable-pitch
-                               :family "Bookmania")
-      (visual-line-mode 1)
-      (visual-fill-column-mode 1)
-
-      (setq nov-text-width most-positive-fixnum
-            visual-fill-column-center-text t))
-
-    (defun my-nov-window-configuration-change-hook ()
-      (my-nov-post-html-render-hook)
-      (remove-hook 'window-configuration-change-hook
-                   'my-nov-window-configuration-change-hook t))
-
-    (defun my-nov-post-html-render-hook ()
-      (if (get-buffer-window)
-          (let ((max-width (pj-line-width))
-                buffer-read-only)
-            (save-excursion
-              (goto-char (point-min))
+  (defun nov/post-html-render ()
+    (if (get-buffer-window)
+        (let ((max-width (pj-line-width)) buffer-read-only)
+          (save-excursion
+            (goto-char (point-min))
               (while (not (eobp))
                 (when (not (looking-at "^[[:space:]]*$"))
                   (goto-char (line-end-position))
@@ -8485,13 +8448,11 @@ Work account is for office portal, not a Microsoft account. I need integration o
                     (goto-char (line-beginning-position))
                     (pj-justify)))
                 (forward-line 1))))
-        (add-hook 'window-configuration-change-hook
-                  'my-nov-window-configuration-change-hook
-                  nil t)))
-
-
-    (add-hook 'nov-mode-hook 'nov-setup)
-    (add-hook 'nov-post-html-render-hook 'my-nov-post-html-render-hook)))
+      (add-hook 'window-configuration-change-hook
+                'nov/window-configuration nil t)))
+  :hook
+  (nov-mode . nov/setup)
+  (nov-post-html-render .  nov/post-html-render))
 #+END_SRC
 
 ** Variable Pitch
@@ -8824,13 +8785,7 @@ offers more meaningful semantics.
 
 *** Smartparens
 
-Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-mode for managing parens
-pairs. However, it also offers support for curly brackets in
-JavaScript objects, angle brackets in HTML, and most other major
-programming languages. I think I the "delete-on-command" behavior of
-paredit for lisp programming, but in languages where locating
-unmatched pairs is less comparable to searching for a needle in a
-haystack, =smartparens= are a great productivity tool.
+Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-mode for managing parens pairs. However, it also offers support for curly brackets in JavaScript objects, angle brackets in HTML, and most other major programming languages. I think I the "delete-on-command" behavior of paredit for lisp programming, but in languages where locating unmatched pairs is less comparable to searching for a needle in a haystack, =smartparens= are a great productivity tool.
 
 #+NAME: smartparens-config
 #+BEGIN_SRC emacs-lisp
@@ -10626,9 +10581,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
       :mode
       (("README\\.md\\'" . gfm-mode)
        ("\\.md\\'" . markdown-mode)
-       ("\\.markdown\\'" . markdown-mode))
-      :hook
-      ((markdown-mode gfm-mode) . visual-fill-column-mode))
+       ("\\.markdown\\'" . markdown-mode)))
 #+END_SRC
 
 **** markdown-mode+

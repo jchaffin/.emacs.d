@@ -132,14 +132,17 @@
         (setq outline-minor-mode-prefix "\M-#")
         :custom
         (org-startup-indented t)
+        (org-catch-invisible-edits t)
         (org-src-fontify-natively t)
         (org-src-tab-acts-natively t)
         (org-src-preserve-indentation t)
-        (org-src-window-setup 'other-window)
-        (org-confirm-babel-evaluate nil)
+        (org-src-window-setup 'reorganize-frame)
         (org-edit-src-persistent-message nil)
-        (org-catch-invisible-edits)
+        ;; Org Babel
+        (org-confirm-babel-evaluate nil)
         (org-babel-uppercase-example-markers t)
+
+
 
         :bind
         ("C-c L" . org-instert-link-global)
