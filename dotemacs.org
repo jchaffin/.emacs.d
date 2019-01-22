@@ -28,6 +28,7 @@
     - [[#network-security][Network security]]
     - [[#encryption][Encryption]]
   - [[#keybindings][Keybindings]]
+    - [[#bind-key][Bind key]]
     - [[#hydra][Hydra]]
     - [[#which-key][Which Key]]
     - [[#speed-type][Speed Type]]
@@ -76,6 +77,7 @@
     - [[#frame][Frame+]]
     - [[#frame-fns][Frame fns]]
     - [[#frame-cmds][Frame cmds]]
+    - [[#transpose-frame][Transpose frame]]
     - [[#posframe][Posframe]]
   - [[#faces][Faces]]
     - [[#faces-1][Faces+]]
@@ -100,9 +102,15 @@
     - [[#swiper][Swiper]]
     - [[#omnibox][Omnibox]]
   - [[#completion][Completion]]
+    - [[#abbrev][Abbrev]]
     - [[#prescient][Prescient]]
     - [[#company][Company]]
-    - [[#templating][Templating]]
+    - [[#autoinsert][Autoinsert]]
+    - [[#yasnippet][YASnippet]]
+    - [[#header2][header2]]
+    - [[#skeletor][Skeletor]]
+    - [[#expand-region][Expand Region]]
+    - [[#code-library][Code Library]]
   - [[#images][Images]]
     - [[#artist-mode][Artist Mode]]
     - [[#uml-diagrams][UML Diagrams]]
@@ -220,6 +228,7 @@
     - [[#request][Request]]
     - [[#oauth][OAuth]]
   - [[#browsing][Browsing]]
+    - [[#keymap][Keymap]]
     - [[#browse-url][Browse url]]
     - [[#browser-utilities-on-macos][Browser utilities on macOS]]
     - [[#google-search][Google search]]
@@ -1007,7 +1016,7 @@ the the returned file path will be formatted as a directory. "
   "Resolve PATH-SEGMENTS to straight.el repos directory.")
 (defalias #'straight-build-dir
   (apply-partially #'straight-dir "build")
-  "Resolve PATH-SEGMENTS to straight.el build directory")
+  "Resolve PATH-SEGMENTS to straight.elj build directory")
 ;; org directories
 (defalias #'org-dir
   (apply-partially #'dropbox-dir "org")
@@ -1022,14 +1031,14 @@ the the returned file path will be formatted as a directory. "
 See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 
 #+NAME: fd-read-only
-#+BEGIN_SRC emacs-Lisp
+#+BEGIN_SRC emacs-lisp
 ;; Define a read-only directory class
 (dir-locals-set-class-variables 'read-only
  '((nil . ((buffer-read-only . t)))))
 
 ;; Associate directories with the read-only class
 (dolist (dir (list
-              (expand-file-name "straight" user-emacs-directory)
+              (expand-file-name "straight/repos" user-emacs-directory)
               "/usr/local"))
   (dir-locals-set-directory-class (file-truename dir) 'read-only))
 #+END_SRC
@@ -1221,6 +1230,14 @@ killall gpg-agent
 :ID:       EB6C7429-18A6-4131-8317-19918FDA2E88
 :END:
 
+*** Bind key
+
+#+BEGIN_SRC emacs-lisp
+(bind-key* "<C-return>" 'other-window)
+(bind-keys :prefix-map my-prefix-map
+           :prefix "M-m")
+#+END_SRC
+
 *** Hydra
 
 #+NAME: kb-hydra
@@ -1277,7 +1294,16 @@ killall gpg-agent
       ("W" straight-watcher-quit)
       ("g" straight-get-recipe)
       ("n" straight-prune-build)
-      ("q" nil))))
+      ("q" nil)))
+  :bind
+  (:map my-prefix-map
+        ("s" . hydra-straight/body)
+        ("e" . hydra-reload-eval/body))
+  :config
+  (with-eval-after-load 'which-key
+    (which-key-add-key-based-replacements
+      "M-m s"  " straight"
+      "M-m e" " reload/eval")))
 #+END_SRC
 
 **** Ivy hydra
@@ -1958,10 +1984,11 @@ point reaches the beginning or end of the buffer, stop there."
    '(("*" "*" nil org-mode)
      ("~" "~" nil org-mode)
      ("/" "/" nil org-mode)
-     ("=" "=" "+" org-mode)
+     ("=" "=" nil org-mode)
+     ("+" "+" nil org-mode)
      ("_" "_" nil org-mode)
      ("$" "$" nil (org-mode latex-mode))))
-  (wrap-region-mode t))
+  (wrap-region-global-mode t))
 
 #+END_SRC
 
@@ -3028,6 +3055,12 @@ directory local variables."
 (use-package frame-cmds)
 #+END_SRC
 
+*** Transpose frame
+#+BEGIN_SRC emacs-lisp
+(use-package transpose-frame
+  :bind ("C-x M-t" . transpose-frame))
+
+#+END_SRC
 *** Posframe
 **** Ivy Posframe
 
@@ -3208,7 +3241,7 @@ different window configurations.
 *** Popwin
 
 #+NAME: popwin-config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package popwin
     :defines popwin:keymap
     :after (perspective)
@@ -3600,6 +3633,15 @@ documentation browser.
 :PROPERTIES:
 :ID:       2527EA69-7553-43C5-A1E6-5084BD977200
 :END:
+*** Abbrev
+
+#+BEGIN_SRC emacs-lisp
+(use-package abbrev
+  :straight nil
+  :custom
+  (abbrev-file-name (emacs-etc-dir "abbrev/defs.el")))
+#+END_SRC
+
 *** Prescient
 
 Filter and sort completion candidates.
@@ -3727,8 +3769,7 @@ any reason for me reconsider my choice.
     :custom (company-box-enable-icon nil))
 #+END_SRC
 
-*** Templating
-**** Autoinsert
+*** Autoinsert
 
 #+BEGIN_SRC emacs-lisp
 (use-package autoinsert
@@ -3745,7 +3786,7 @@ any reason for me reconsider my choice.
 
 #+END_SRC
 
-**** YASnippet
+*** YASnippet
 
 [[https://github.com/joaotavora/yasnippet][YASnippet]] is a template system based off the TextMate snippet syntax.
 
@@ -3773,7 +3814,7 @@ any reason for me reconsider my choice.
         "C-c &" " YASnippet")))
 #+END_SRC
 
-***** Ivy YASnippet
+**** Ivy YASnippet
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-yasnippet)
@@ -3784,20 +3825,20 @@ any reason for me reconsider my choice.
 (use-package auto-yasnippet)
 #+END_SRC
 
-***** Autoyas
+**** Autoyas
 
 #+NAME: snippets-autoyas
 #+BEGIN_SRC emacs-lisp
 (use-package auto-yasnippet)
 #+END_SRC
 
-**** header2
+*** header2
 
 #+BEGIN_SRC emacs-lisp
 (use-package header2)
 #+END_SRC
 
-**** Skeletor
+*** Skeletor
 
 #+NAME: skeletor-spec
 #+BEGIN_SRC emacs-lisp
@@ -3879,7 +3920,7 @@ any reason for me reconsider my choice.
 
 #+END_SRC
 
-**** Expand Region
+*** Expand Region
 
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
@@ -3888,17 +3929,14 @@ any reason for me reconsider my choice.
   ("s-S-'" . er/contract-region))
 #+END_SRC
 
-**** Code Library
+*** Code Library
 
-#+NAME: snippets-code-library
 #+BEGIN_SRC emacs-lisp
 (use-package code-library
     :custom
     (code-library-directory (emacs-etc-dir "codelibrary"))
     (code-library-sync-to-gist t))
 #+END_SRC
-
-
 
 ** Images
 :PROPERTIES:
@@ -4900,7 +4938,7 @@ entry types and required fields."
         ("s" .  org-ref-insert-bibliographystyle-link))
   :custom
   (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-default-bibliography (org-dir "ref/references.org"))
+  (org-ref-default-bibliography (list (org-dir "ref/references.org")))
   (org-ref-bibliography-notes (org-dir "ref/notes.org"))
   (org-ref-notes-directory (org-dir "ref/notes/"))
   (org-ref-pdf-directory (dropbox-dir "pdfs/" :slash t))
@@ -5555,11 +5593,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (define-key goto-map "a" #'goto-agenda-dir)
 
     (setq org-agenda-category-icon-alist
-     `(("global"     ,(list "")  nil nil :ascent center)
-       ("syntax"     ,(list "")  nil nil :ascent center)
+     `(("global"     ,(list "")  nil nil :ascent center)
+       ("semantics"  ,(list "𝜆")  nil nil :ascent center)
        ("phonetics"  ,(list "ə")  nil nil :ascent center)
-       ("algorithms" ,(list "𝛺") nil nil :ascent center)
-       ("languages"  ,(list "𝜆") nil nil :ascent center)))
+       ("AI"         ,(list "∞") nil nil :ascent center)
+       ("languages"  ,(list "") nil nil :ascent center)))
 
     (defvar-local org-use-level-faces nil)
     (defvar org-level-remap-face nil)
@@ -5686,8 +5724,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       ("ling165c"  . "Semantics II")
       ("ling102"   . "Phonetics")))
 
-
-  (cl-loop for (course . description) in org-course-courses do
+    (cl-loop for (course . description) in org-course-courses do
            (eval `(course-sidebar ,course ,description))))
 #+END_SRC
 
@@ -5753,17 +5790,16 @@ Calendar.
 
 #+NAME: org-taskmgr-gcal
 #+BEGIN_SRC emacs-lisp
-;; (use-package org-gcal
-;;     :init
-;;   (require 'secrets)
-;;   (require 'org-gcal)
-;;   :custom
-;;   (org-gcal-file-alist
-;;    '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/agenda/schedule.org")))
-;;   :hook
-;;   (org-agenda-mode . org-gcal-sync)
-;;   (org-capture-after-finalize . org-gcalcc-sync))
-
+(use-package org-gcal
+    :init
+  (require 'secrets)
+  (require 'org-gcal)
+  :custom
+  (org-gcal-file-alist
+   '(("jchaffin@g.ucla.edu" . "~/Dropbox/org/agenda/schedule.org")))
+  :hook
+  (org-agenda-mode . org-gcal-sync)
+  (org-capture-after-finalize . org-gcal-sync))
 #+END_SRC
 
 **** Google maps
@@ -5983,8 +6019,8 @@ Specify image width in org buffer on per-image basis.
 
 #+BEGIN_SRC emacs-lisp
 (defun org/visual ()
-  (visual-fill-column-mode t)
-  (visual-line-mode t))
+  (visual-fill-column-mode 1)
+  (visual-line-mode 1))
 
 (add-hook 'org-mode-hook #'org/visual)
 #+END_SRC
@@ -6032,7 +6068,7 @@ The default set of bullet points can be modified via the
   :hook
   (org-mode . org-fancy-priorities-mode)
   :config
-  (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕")))
+  (setq org-fancy-priorities-list '("" "⬆" "⬇" "")))
 #+END_SRC
 
 *** Org Pretty Table
@@ -6221,6 +6257,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
     (org-journal-date-format "%A, %B %d %Y")
     (org-journal-time-prefix "* ")
     (org-journal-time-format "")
+
     :config
     (with-eval-after-load 'org-capture
       (push '("j" "Journal" entry
@@ -6473,6 +6510,16 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 (if (and (executable-find "kpsewhich")
          (shell-command-to-string "kpsewhich orgling.cls"))
 
+    (add-to-list 'org-latex-classes
+                 '("uclaling"
+                   "\\documentclass{uclaling}
+                    [NO-DEFAULT-PACKAGES]
+                    [EXTRA]"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
     (add-to-list 'org-latex-classes
                  '("orgling"
                    "\\documentclass{orgling}
@@ -7460,16 +7507,16 @@ the absence of a window system. I'll check for the latter for now.
     (pretty-fonts-set-fontsets
      '(;; All-the-icons fontsets
        ("fontawesome"
-        ;;                         
-        #xf07c #xf0c9 #xf0c4 #xf0cb #xf017 #xf101)
+        ;;                      
+        #xf07c #xf0c9 #xf0cb #xf017 #xf101)
 
        ("all-the-icons"
         ;;    
         #xe907 #xe928)
 
        ("github-octicons"
-        ;;                               
-        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071)
+        ;;                                     
+        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071 #xf0c4)
 
        ("material icons"
         ;;              
@@ -7758,8 +7805,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
    ;; take Emacs 26 line numbers into account
    (+ (if (boundp 'display-line-numbers) 6 0)
       fill-column))
-    :config
-    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
+  :config
+  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 
 #+END_SRC
 
@@ -7890,6 +7937,14 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+END_SRC
 
 ** Browsing
+*** Keymap
+
+#+BEGIN_SRC emacs-lisp
+(bind-keys*
+ :prefix-map web-prefix-map
+ :prefix "M-m b")
+#+END_SRC
+
 *** Browse url
 
 - [[https://emacs.stackexchange.com/a/7332][Stack Exchange - How to make eww default browser in emacs]]
@@ -8048,6 +8103,10 @@ Interactively.
 (use-package engine-mode
   :init
   (engine-mode t)
+  :defines (engine-mode-prefixed-map)
+  :bind*
+  (:map web-prefix-map
+        ("e". engine-mode-prefixed-map))
 
   :config
   (setq web-engine-prefix nil)
@@ -8065,12 +8124,12 @@ Interactively.
 
   (defengine github
     "https://github.com/search?ref=simplesearch&q=%s"
-    :keybinding "h"
+    :keybinding "g"
     :docstring "Search Github")
 
   (defengine google
     "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
-    :keybinding "g"
+    :keybinding "Gg"
     :docstring "Search Google")
 
   (defengine google-bookmarks
@@ -8135,7 +8194,25 @@ Interactively.
   (defengine youtube
     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
     :keybinding "y"
-    :docstring "Search Youtube"))
+    :docstring "Search Youtube")
+
+  (which-key-add-key-based-replacements
+    "M-m b"     "🌍 Browse"
+    "M-m b e"   "🔎 Web Engine"
+    "M-m b e y"  " Youtube"
+    "M-m b e p"  " Proquest"
+    "M-m b e h"  " GitHub"
+    "M-m b e G g"  " Google"
+    "M-m b e a"  " Wolfram"
+    "M-m b e w"  " Wikipedia"
+    "M-m b e s"  " Stack Overflow"
+    "M-m b e W"   " Worldcat"
+    "M-m b e c"   " CTan"
+    "M-m b e G"   " Google"
+    "M-m b e G i" " Images"
+    "M-m b e G b"  " Bookmarks"
+    "M-m b e G m"  " Maps"
+    "M-m b e G s"  " Scholar"))
 #+END_SRC
 
 ** Email
@@ -8401,7 +8478,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
   (require 'secrets)
   :custom
   (org-onenote-token-file
-   (emacs-etc-dir "org-onenote-oauth2.plstore")))
+   (emacs-var-dir "org/onenote-oauth2.plstore")))
 #+END_SRC
 
 *** Lorem Ipsum
@@ -8722,11 +8799,9 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 #+BEGIN_SRC emacs-lisp
 (use-package hideshow-org
-  :bind
-  ("C-c h" . hs-org/minor-mode)
-
-  :hook
-  (org-mode . hs-org/minor-mode))
+  :bind*
+  (:map org-mode-map
+        ("C-c @" . hs-org/minor-mode)))
 #+END_SRC
 
 *** Editorconfig
