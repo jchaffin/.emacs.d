@@ -16,24 +16,15 @@
 \setlength{\topmargin}{1.5cm}
 \addtolength{\topmargin}{-2.54cm}
 
-\usepackage{fontspec}
 \usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{semantic}
+\usepackage{cabin}
+\usepackage{xpatch}
 \usepackage{unicode-math}
-
-
-\setmathfont{STIX2Math}[
-  Extension = .otf,
-]
-% Set the main font to Stix Two Text
-\setmainfont{STIX2Text}[
-  Extension      = .otf,
-  UprightFont    = *-Regular,
-  BoldFont       = *-Bold,
-  ItalicFont     = *-Italic,
-  BoldItalicFont = *-BoldItalic,
-]
-
-
+\setmainfont{STIX Two Text}
+\setmathfont{STIX Two Math}[StylisticSet=02, StylisticSet=08]
+\setmonofont[Scale=MatchUppercase]{DejaVu Sans Mono}
 
 \usepackage{gb4e}
 \noautomath

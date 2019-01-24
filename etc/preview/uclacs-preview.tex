@@ -114,21 +114,25 @@
 % with LuaLaTeX, which may cause issues with 8-bit encodings and pdflatex.
 % https://tex.stackexchange.com/questions/34814/lualatex-and-algorithm2e/34815
 \usepackage{subcaption}
-\usepackage[algoruled,linesnumbered]{algorithm2e}
-\newcommand{\nosemic}{\SetEndCharOfAlgoLine{\relax}} % Drop semi-colon ;
-\newcommand{\dosemic}{\SetEndCharOfAlgoLine{\string;}} % Reinstate
-\newcommand{\pushline}{\Indp}% Indent
-\newcommand{\popline}{\Indm\dosemic}% Remove indent
-% Default Keywords
-\SetKwInOut{Input}{Input}
-\SetKwInOut{Output}{Output}
-\SetKwProg{proc}{Procedure}{}{}
-\SetKwComment{Comment}{$\triangleright$\ }{}
-\SetKwProg{Fn}{Function}{:}{end}
+\usepackage[pseudocode]{algorithmicx}
+% \usepackage[algoruled,linesnumbered]{algorithm2e}
+% \newcommand{\nosemic}{\SetEndCharOfAlgoLine{\relax}} % Drop semi-colon ;
+% \newcommand{\dosemic}{\SetEndCharOfAlgoLine{\string;}} % Reinstate
+% \newcommand{\pushline}{\Indp}% Indent
+% \newcommand{\popline}{\Indm\dosemic}% Remove indent
+% % Default Keywords
+% \SetKwInOut{Input}{Input}
+% \SetKwInOut{Output}{Output}
+% \SetKwProg{proc}{Procedure}{}{}
+% \SetKwProg{Fn}{Function}{:}{end}
+% \SetKwComment{Comment}{$\triangleright$\ }{}
 
-\newcommand{\forcond}[3]{$#1=#2$ \KwTo $#3$}
-\newcommand{\forcondi}[2]{\forcond{i}{#1}{#2}}
-\newcommand{\forcondj}[2]{\forcond{j}{#1}{#2}}
+
+% \newcommand{\forcond}[3]{$#1=#2$ \KwTo $#3$}
+% \newcommand{\forcondi}[2]{\forcond{i}{#1}{#2}}
+% \newcommand{\forcondj}[2]{\forcond{j}{#1}{#2}}
+
+
 
 % Use 'algo_' string prefixes for vref labels.
 \usepackage{varioref}

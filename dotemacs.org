@@ -864,7 +864,6 @@ generating a new one if the initial scratch buffer has been killed."
     (seq-uniq modes)))
 #+END_SRC
 
-
 *** File utilities
 **** Unix-style =basename=
 
@@ -3336,18 +3335,6 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
   (ivy-use-selectable-prompt nil))
 #+END_SRC
 
-**** Ivy hydra
-:PROPERTIES:
-:ID:       9D78F6B7-1B19-4A0F-9025-C00EC0142B1F
-:END:
-
-#+NAME: ivy/hydra
-#+BEGIN_SRC emacs-lisp
-(use-package ivy-hydra
-  :after (hydra)
-  :demand t)
-#+END_SRC
-
 **** Ivy rtags
 :PROPERTIES:
 :ID:       D38BB737-FE4B-4DD6-8208-0F538ED777CB
@@ -4156,6 +4143,7 @@ This requires the pdf-tools package to be installed."
       (smartparens-mode +1)))
 
   :hook
+  (LaTeX-mode . latex/pdfview)
   (LaTeX-mode . latex/setup)
   (LaTeX-mode . LaTeX-math-mode)
   (LaTeX-mode . TeX-fold-mode)
@@ -4443,9 +4431,9 @@ save.
   (or (org-preview/process-keyword "LATEX_CLASS")
      org-latex-default-class))
 
-(defun org-preview/orgling-p ()
+(defun org-preview/uclaling-p ()
   (let ((latex-class (org-preview/process-class)))
-    (string= "orgling" latex-class)))
+    (string= "uclaling" latex-class)))
 
 (defun org-preview/uclacs-p ()
   (let ((latex-class (org-preview/process-class)))
@@ -4507,7 +4495,7 @@ save.
 (defun org-preview-xelatex ()
   (interactive)
   (let ((preview-file
-         (emacs-etc-dir "preview/orgling-preview.tex")))
+         (emacs-etc-dir "preview/uclaling-preview.tex")))
     (set (make-local-variable 'org-preview-latex-process-alist)
          xelatex-preview-process-alist)
 
@@ -4516,7 +4504,7 @@ save.
            preview-file))
 
     (set (make-local-variable 'org-format-latex-header)
-         (if (org-preview/orgling-p)
+         (if (org-preview/uclaling-p)
              (read-file-contents preview-file)
            xelatex-preview-header)))
   )
@@ -4967,14 +4955,111 @@ entry types and required fields."
   :config
 
   (which-key-add-major-mode-key-based-replacements 'org-mode
-     "C-c r" "Org Ref"
-     "C-c r c" "Cite"
-     "C-c r b" "Bibliography"
-     "C-c r g" "Glossary"
-     "C-c r f" "List of figures"
-     "C-c r l"  "Labels"
-     "C-c r r" "References"
-     "C-c r s" "Bibliography style")
+    "C-c r" "Org Ref"
+    "C-c r c" "Cite"
+    "C-c r b" "Bibliography"
+    "C-c r g" "Glossary"
+    "C-c r f" "List of figures"
+    "C-c r l"  "Labels"
+    "C-c r r" "References"
+    "C-c r s" "Bibliography style")
+
+  (require 'org-ref-core)
+
+  (defun org-ref-algref-key-under-cursor ()
+    "Return key under the cursor in org-mode.
+We search forward from point to get a comma, or the end of the link,
+and then backwards to get a comma, or the beginning of the link. that
+delimits the keyword we clicked on. We also strip the text
+properties."
+    (let* ((object (org-element-context))
+           (link-string (org-element-property :path object)))
+      ;; you may click on the part before the citations. here we make
+      ;; sure to move to the beginning so you get the first citation.
+      (let ((cp (point)))
+        (goto-char (org-element-property :begin object))
+        (search-forward link-string (org-element-property :end object))
+        (goto-char (match-beginning 0))
+        ;; check if we clicked before the path and move as needed.
+        (unless (< cp (point))
+          (goto-char cp)))
+
+      (if (not (org-element-property :contents-begin object))
+          ;; this means no description in the link
+          (progn
+            ;; we need the link path start and end
+            (let (link-string-beginning link-string-end)
+              (save-excursion
+                (goto-char (org-element-property :begin object))
+                (search-forward link-string nil nil 1)
+                (setq link-string-beginning (match-beginning 0))
+                (setq link-string-end (match-end 0)))
+
+              (let (key-beginning key-end)
+                ;; The key is the text between commas, or the link boundaries
+                (save-excursion
+                  (if (search-forward "," link-string-end t 1)
+                      (setq key-end (- (match-end 0) 1)) ; we found a match
+                    (setq key-end link-string-end))) ; no comma found so take the end
+                ;; and backward to previous comma from point which defines the start character
+                (save-excursion
+                  (if (search-backward "," link-string-beginning 1 1)
+                      (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
+                    (setq key-beginning link-string-beginning))) ; no match found
+                ;; save the key we clicked on.
+                (let ((ref-key
+                       (org-ref-strip-string
+                        (buffer-substring key-beginning key-end))))
+                  (set-text-properties 0 (length ref-key) nil ref-key) ref-key)))))))
+
+
+  (defun org-ref-algref-message ()
+    (let ((label (org-ref-algref-key-under-cursor)))
+      (if (= (org-ref-count-labels label) 0)
+          (message "%s Context not found ! count: 0")
+        (let ((context (org-ref-get-label-context label))
+              (count          (org-ref-count-labels label)))
+          (set-text-properties 0 (length context) nil context)
+          (message "%scount:%s" context count)))))
+
+
+  (defun org-ref-algref-help-echo (window object position)
+    "A help-echo function for ref links."
+    (save-excursion
+      (goto-char position)
+      (let ((s (org-ref-algref-message)))
+        (with-temp-buffer
+	        (insert s)
+	        (fill-paragraph)
+	        (buffer-string)))))
+
+  (defun org-ref-algref-export (keyword desc format)
+    "An export function for vref links."
+    (cond
+     ((eq format 'html)
+      (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
+     ((eq format 'latex)
+      (concat "\\algref"
+		          (mapconcat (lambda (key) (format "{%s}" key))
+			                   (org-ref-split-and-strip-string keyword) "")))))
+
+  (org-ref-link-set-parameters "algref"
+    :follow (lambda (_) (funcall #'org-ref-ref-follow (org-ref-algref-key-under-cursor)))
+    :export #'org-ref-algref-export
+    :complete #'org-ref-algref-complete
+    :face (lambda (_) (funcall #'org-ref-ref-face-fn (org-ref-algref-key-under-cursor)))
+    :help-echo #'org-ref-algref-help-echo)
+
+  ;; Vref
+
+  (defun org-ref-vref-complete-link (&optional arg)
+    "Completion function for ref links.
+Optional argument ARG Does nothing."
+    (let ((label) (line))
+      (setq label (completing-read "label:  " (org-ref-get-labels)))
+      (setq line (completing-read "line label:  " (org-ref-get-labels)))
+      (format "algref:%s,%s" label line)))
+
 
   (defun org-ref-vref-export (keyword desc format)
     "An export function for vref links."
@@ -4983,7 +5068,6 @@ entry types and required fields."
       (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
      ((eq format 'latex) (format "\\vref{%s}" keyword))))
 
-
   (org-ref-link-set-parameters "vref"
     :follow #'org-ref-ref-follow
     :export #'org-ref-vref-export
@@ -4991,10 +5075,11 @@ entry types and required fields."
     :face 'org-ref-ref-face-fn
     :help-echo #'org-ref-ref-help-echo)
 
+
   (setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
-                            "autoref" "cref" "Cref" "vref"))
+                            "autoref" "cref" "Cref" "vref" "algref"))
 
-
+  ;; Org Ref PDF
 
   (defun org-ref-open-pdf-at-point ()
     "Open the pdf for bibtex key under point if it exists."
@@ -5737,7 +5822,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+NAME: org-taskmgr-projectile
 #+BEGIN_SRC emacs-lisp
   (use-package org-projectile
-    :commands (org-projectile-files-to-agenda)
+    :commands (org-projectile-files-to-agenda org-projectile-per-project-function)
     :after (projectile)
     :bind (:map projectile-command-map
                 ("n" . org-projectile-project-todo-completing-read))
@@ -5747,11 +5832,25 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
             (sequence "|" "CANCELLED(c)")))
     (org-todo-keyword-faces
      '(("CANCELLED" . (:foreground "yellow"))))
-    (org-projectile-per-project-filepath "TODOs.org")
+
+    (org-projectile-per-project-filepath #'org-project-per-project-function)
 
     :init
+    (defun org-projectile-per-project-function (project-path)
+      (let  ((project-agenda-file
+              (--> project-path
+                 (split-string it "/" t)
+                 nreverse
+                 car
+                 (concat it ".org"))))
+        (if (file-exists-p
+             (expand-file-name project-agenda-file project-path))
+            project-agenda-file "TODOs.org")))
+
+
     (defvar-local org-default-agenda-file
       (file-truename "~/Dropbox/org/todos/TODOS.org"))
+
 
     (defun org-projectile-files-to-agenda ()
       "Add projectile project files to agenda."
@@ -5759,8 +5858,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
       (cl-flet*
           ((project-agenda-filepath (p)
                                     (expand-file-name
-                                     "TODOs.org"
-                                     p))
+                                     (funcall #'org-projectile-per-project-function p) p))
            (todo-file-p (p)
                         (file-exists-p (project-agenda-filepath p)))
            (build-agenda (ps)
@@ -5776,6 +5874,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     ((org-agenda-mode dashboard-mode) . org-projectile-files-to-agenda)
 
     :config
+
     (org-projectile-per-project))
 
 #+END_SRC
@@ -6503,26 +6602,16 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Orgling
+***** Uclaling
 
-#+NAME: ox-class/orgling
+#+NAME: ox-class/uclaling
 #+BEGIN_SRC emacs-lisp
 (if (and (executable-find "kpsewhich")
-         (shell-command-to-string "kpsewhich orgling.cls"))
+         (shell-command-to-string "kpsewhich uclaling.cls"))
 
     (add-to-list 'org-latex-classes
                  '("uclaling"
                    "\\documentclass{uclaling}
-                    [NO-DEFAULT-PACKAGES]
-                    [EXTRA]"
-                   ("\\section{%s}" . "\\section*{%s}")
-                   ("\\subsection{%s}" . "\\subsection*{%s}")
-                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-    (add-to-list 'org-latex-classes
-                 '("orgling"
-                   "\\documentclass{orgling}
                     [NO-DEFAULT-PACKAGES]
                     [EXTRA]"
                    ("\\section{%s}" . "\\section*{%s}")
@@ -7252,57 +7341,46 @@ theme in \"quick mode\" by eliding hooks specified in
                               :inherit 'org-meta-line))
 
       (set-face-attribute 'org-block-begin-line nil
-                          :height 1.0
                           :inherit 'fixed-pitch
                           :background 'org-meta-line))
 
     (set-face-attribute 'org-level-2 nil
                         :family header-font
-                        :height 1.2
                         :inherit 'outline-2)
     (set-face-attribute 'org-level-1 nil
                         :family header-font
-                        :height 1.6
                         :inherit 'outline-1)
     (set-face-attribute 'org-level-2 nil
                         :family header-font
-                        :height 1.3
                         :inherit 'outline-2)
     (set-face-attribute 'org-level-3 nil
                         :family header-font
-                        :height 1.2
                         :slant 'normal
                         :inherit 'outline-3)
     (set-face-attribute 'org-level-4 nil
                         :family header-font
-                        :height 1.1
                         :slant 'normal
                         :inherit 'outline-4)
     (set-face-attribute 'org-level-5 nil
                         :family header-font
-                        :height 1.1
                         :slant 'normal
                         :inherit 'outline-5)
     (set-face-attribute 'org-level-6 nil
                         :family header-font
-                        :height 1.1
                         :slant 'normal
                         :inherit 'outline-6)
     (set-face-attribute 'org-level-7 nil
                         :family header-font
-                        :height 1.0
                         :slant 'normal
                         :inherit 'outline-7)
 
     (set-face-attribute 'org-block nil
-                        :height 1.0
                         :slant 'normal
                         :foreground fg)
 
     (set-face-attribute 'org-document-title nil
                         :family header-font
                         :foreground fg
-                        :height 1.8
                         :underline nil
                         :inherit 'variable-pitch)
     (set-face-attribute 'org-block-end-line nil
@@ -9550,15 +9628,13 @@ Configuration for common-lisp.
 #+NAME: cl/slime
 #+BEGIN_SRC emacs-lisp
 (use-package slime
-  :ensure-system-package sbcl
-  :commands slime
   :defines
   (slime-complete-symbol*-fancy
    slime-completion-at-point-functions)
   :init
   (setq slime-contribs
-        '(slime-asdf slime-fancy slime-indentation slime-sbcl- slime-scratch)
-	      inferior-lisp-program "sbcl"
+        '(slime-fancy slime-indentation slime-scratch)
+	      inferior-lisp-program "clisp"
       	;; enable fuzzy matching in code buffer and SLIME REPL
       	slime-complete-symbol*-fancy t
       	slime-completion-at-point-functions 'slime-fuzzy-complete-symbol)
