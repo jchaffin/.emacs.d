@@ -4966,91 +4966,7 @@ entry types and required fields."
 
   (require 'org-ref-core)
 
-  (defun org-ref-algref-key-under-cursor ()
-    "Return key under the cursor in org-mode.
-We search forward from point to get a comma, or the end of the link,
-and then backwards to get a comma, or the beginning of the link. that
-delimits the keyword we clicked on. We also strip the text
-properties."
-    (let* ((object (org-element-context))
-           (link-string (org-element-property :path object)))
-      ;; you may click on the part before the citations. here we make
-      ;; sure to move to the beginning so you get the first citation.
-      (let ((cp (point)))
-        (goto-char (org-element-property :begin object))
-        (search-forward link-string (org-element-property :end object))
-        (goto-char (match-beginning 0))
-        ;; check if we clicked before the path and move as needed.
-        (unless (< cp (point))
-          (goto-char cp)))
-
-      (if (not (org-element-property :contents-begin object))
-          ;; this means no description in the link
-          (progn
-            ;; we need the link path start and end
-            (let (link-string-beginning link-string-end)
-              (save-excursion
-                (goto-char (org-element-property :begin object))
-                (search-forward link-string nil nil 1)
-                (setq link-string-beginning (match-beginning 0))
-                (setq link-string-end (match-end 0)))
-
-              (let (key-beginning key-end)
-                ;; The key is the text between commas, or the link boundaries
-                (save-excursion
-                  (if (search-forward "," link-string-end t 1)
-                      (setq key-end (- (match-end 0) 1)) ; we found a match
-                    (setq key-end link-string-end))) ; no comma found so take the end
-                ;; and backward to previous comma from point which defines the start character
-                (save-excursion
-                  (if (search-backward "," link-string-beginning 1 1)
-                      (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
-                    (setq key-beginning link-string-beginning))) ; no match found
-                ;; save the key we clicked on.
-                (let ((ref-key
-                       (org-ref-strip-string
-                        (buffer-substring key-beginning key-end))))
-                  (set-text-properties 0 (length ref-key) nil ref-key) ref-key)))))))
-
-
-  (defun org-ref-algref-message ()
-    (let ((label (org-ref-algref-key-under-cursor)))
-      (if (= (org-ref-count-labels label) 0)
-          (message "%s Context not found ! count: 0")
-        (let ((context (org-ref-get-label-context label))
-              (count          (org-ref-count-labels label)))
-          (set-text-properties 0 (length context) nil context)
-          (message "%scount:%s" context count)))))
-
-
-  (defun org-ref-algref-help-echo (window object position)
-    "A help-echo function for ref links."
-    (save-excursion
-      (goto-char position)
-      (let ((s (org-ref-algref-message)))
-        (with-temp-buffer
-	        (insert s)
-	        (fill-paragraph)
-	        (buffer-string)))))
-
-  (defun org-ref-algref-export (keyword desc format)
-    "An export function for vref links."
-    (cond
-     ((eq format 'html)
-      (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
-     ((eq format 'latex)
-      (concat "\\algref"
-		          (mapconcat (lambda (key) (format "{%s}" key))
-			                   (org-ref-split-and-strip-string keyword) "")))))
-
-  (org-ref-link-set-parameters "algref"
-    :follow (lambda (_) (funcall #'org-ref-ref-follow (org-ref-algref-key-under-cursor)))
-    :export #'org-ref-algref-export
-    :complete #'org-ref-algref-complete
-    :face (lambda (_) (funcall #'org-ref-ref-face-fn (org-ref-algref-key-under-cursor)))
-    :help-echo #'org-ref-algref-help-echo)
-
-  ;; Vref
+  ;; vref ref type
 
   (defun org-ref-vref-complete-link (&optional arg)
     "Completion function for ref links.
@@ -7343,44 +7259,53 @@ theme in \"quick mode\" by eliding hooks specified in
       (set-face-attribute 'org-block-begin-line nil
                           :inherit 'fixed-pitch
                           :background 'org-meta-line))
-
     (set-face-attribute 'org-level-2 nil
                         :family header-font
+                        :height 1.2
                         :inherit 'outline-2)
     (set-face-attribute 'org-level-1 nil
                         :family header-font
+                        :height 1.6
                         :inherit 'outline-1)
     (set-face-attribute 'org-level-2 nil
                         :family header-font
+                        :height 1.3
                         :inherit 'outline-2)
     (set-face-attribute 'org-level-3 nil
                         :family header-font
+                        :height 1.2
                         :slant 'normal
                         :inherit 'outline-3)
     (set-face-attribute 'org-level-4 nil
                         :family header-font
+                        :height 1.1
                         :slant 'normal
                         :inherit 'outline-4)
     (set-face-attribute 'org-level-5 nil
                         :family header-font
+                        :height 1.1
                         :slant 'normal
                         :inherit 'outline-5)
     (set-face-attribute 'org-level-6 nil
                         :family header-font
+                        :height 1.1
                         :slant 'normal
                         :inherit 'outline-6)
     (set-face-attribute 'org-level-7 nil
                         :family header-font
+                        :height 1.0
                         :slant 'normal
                         :inherit 'outline-7)
 
     (set-face-attribute 'org-block nil
+                        :height 1.0
                         :slant 'normal
                         :foreground fg)
 
     (set-face-attribute 'org-document-title nil
                         :family header-font
                         :foreground fg
+                        :height 1.8
                         :underline nil
                         :inherit 'variable-pitch)
     (set-face-attribute 'org-block-end-line nil
