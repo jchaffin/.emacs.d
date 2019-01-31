@@ -1031,11 +1031,12 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 
 #+NAME: fd-read-only
 #+BEGIN_SRC emacs-lisp
-(use-package auto-read-only
-  :init
-  (auto-read-only-mode 1)
-  :config
-  (add-to-list 'auto-read-only-file-regexps "/straight/"))
+(add-hook 'find-file-hook
+          (lambda ()
+            (dolist (pattern '("~/.emacs.d/straight"
+                               "/usr/local/Cellar"))
+              (if (string-match (expand-file-name pattern) buffer-file-name)
+                  (read-only-mode)))))
 #+END_Src
 
 ** Package Manager
@@ -5586,7 +5587,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     ;; http://cachestocaches.com/2016/9/my-workflow-org-agenda/
     (org-refile-targets (quote ((nil  :maxlevel . 9)
                                 (org-agenda-files :maxlevel . 9))))
-
+    (org-todo-keywords
+     '((sequence "TODO(t)" "|" "DONE(d)")
+       (sequence "|" "CANCELLED(c)")))
+    (org-todo-keyword-faces
+     '(("CANCELLED" . (:foreground "yellow"))))
     :init
 
     (defun goto-agenda-dir ()
@@ -5738,6 +5743,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+BEGIN_SRC emacs-lisp
 (use-package org-timeline
   :init
+  (require 'org-timeline)
+  :config
   (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
 #+END_SRC
 
@@ -5755,12 +5762,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :bind (:map projectile-command-map
                 ("n" . org-projectile-project-todo-completing-read))
     :custom
-    (org-todo-keywords
-          '((sequence "TODO(t)" "|" "DONE(d)")
-            (sequence "|" "CANCELLED(c)")))
-    (org-todo-keyword-faces
-     '(("CANCELLED" . (:foreground "yellow"))))
-
     (org-projectile-per-project-filepath #'org-project-per-project-function)
 
     :init
