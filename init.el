@@ -141,8 +141,9 @@
         ;; Org Babel
         (org-confirm-babel-evaluate nil)
         (org-babel-uppercase-example-markers t)
-
-
+        (org-pretty-entities t)
+        (org-hide-emphasis-markers t)
+        (org-fontify-quote-and-verse-blocks t)
 
         :bind
         ("C-c L" . org-instert-link-global)
