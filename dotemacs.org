@@ -150,6 +150,7 @@
     - [[#org-bullets][Org Bullets]]
     - [[#org-fancy-priorities][Org Fancy Priorities]]
     - [[#org-pretty-table][Org Pretty Table]]
+    - [[#org-sticky-header][Org sticky header]]
     - [[#toc-org][TOC Org]]
     - [[#column-view][Column View]]
     - [[#equation-renumbering][Equation Renumbering]]
@@ -245,10 +246,11 @@
   - [[#browse-at-remote][Browse at remote]]
 - [[#writing][Writing]]
   - [[#notetaking][Notetaking]]
+    - [[#lorem-ipsum][Lorem Ipsum]]
     - [[#deft][Deft]]
     - [[#org-onenote][Org OneNote]]
-    - [[#lorem-ipsum][Lorem Ipsum]]
     - [[#org-velocity][Org Velocity]]
+    - [[#org-annotate-file][Org annotate file]]
   - [[#nov][Nov]]
   - [[#variable-pitch-1][Variable Pitch]]
   - [[#olivetti][Olivetti]]
@@ -6102,6 +6104,14 @@ The default set of bullet points can be modified via the
              :repo "Fuco1/org-pretty-table"))
 #+END_SRC
 
+*** Org sticky header
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-sticky-header
+  :hook
+  (org-mode . org-sticky-header-mode))
+#+END_SRC
+
 *** TOC Org
 
 The [[https://github.com/snosov1/toc-org][toc-org]] package automatically generates a table of contents for
@@ -8379,6 +8389,14 @@ Interactively.
 
 * Writing
 ** Notetaking
+*** Lorem Ipsum
+
+#+NAME: notes/lorem-ipsum
+#+BEGIN_SRC emacs-lisp
+(use-package lorem-ipsum
+  :straight t)
+#+END_SRC
+
 *** Deft
 
 [[https://jblevins.org/projects/deft/][Deft]] is a notetaking application for Emacs.
@@ -8410,14 +8428,6 @@ Work account is for office portal, not a Microsoft account. I need integration o
    (emacs-var-dir "org/onenote-oauth2.plstore")))
 #+END_SRC
 
-*** Lorem Ipsum
-
-#+NAME: notes/lorem-ipsum
-#+BEGIN_SRC emacs-lisp
-(use-package lorem-ipsum
-  :straight t)
-#+END_SRC
-
 *** Org Velocity
 
 #+NAME: notes/velocity
@@ -8431,6 +8441,18 @@ Work account is for office portal, not a Microsoft account. I need integration o
     (org-velocity-bucket (expand-file-name "bucket.org" org-directory))
     :init
   (require 'org-velocity))
+#+END_SRC
+
+*** Org annotate file
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-annotate-file
+  :straight org-plus-contrib
+  :bind
+  ("C-c C-l" . org-annotate-file)
+  :custom
+  (org-annotate-file-storage-file "~/Dropbox/org/annotate.org"))
+
 #+END_SRC
 
 ** Nov
