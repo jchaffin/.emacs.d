@@ -5721,8 +5721,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                             (:name " Today" :scheduled today :deadline today)
                             (:name " Homework" :tag "homework")))
          :files ,(expand-file-name
-                  "TODOs.org"
-                  (concat "~/Dropbox/courses/" name "/")))
+                  (concat "~/Dropbox/courses/" name "/" name ".org")))
        (defun ,(intern (concat name "-sidebar")) ()
          (interactive)
          (funcall ',(intern (concat name "/sidebar"))))))
@@ -9225,7 +9224,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
     (wakatime-cli-path
     "/usr/local/lib/python3.7/site-packages/wakatime/cli.py")
     (wakatime-python-bin
-     "/usr/localCellar/python/3.7.2_1/bin/python3"))
+     "/usr/local/Cellar/python/3.7.2_1/bin/python3"))
 #+END_SRC
 
 *** Logging
