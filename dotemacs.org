@@ -8131,7 +8131,7 @@ Interactively.
     "M-m b e"   "🔎 Web Engine"
     "M-m b e y"  " Youtube"
     "M-m b e p"  " Proquest"
-    "M-m b e h"  " GitHub"
+    "M-m b e g"  " GitHub"
     "M-m b e G g"  " Google"
     "M-m b e a"  " Wolfram"
     "M-m b e w"  " Wikipedia"
@@ -9225,7 +9225,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
     (wakatime-cli-path
     "/usr/local/lib/python3.7/site-packages/wakatime/cli.py")
     (wakatime-python-bin
-      "/usr/local/Cellar/python/3.7.2/bin/python3"))
+     "/usr/localCellar/python/3.7.2_1/bin/python3"))
 #+END_SRC
 
 *** Logging

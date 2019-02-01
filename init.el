@@ -131,19 +131,21 @@
         :init
         (setq outline-minor-mode-prefix "\M-#")
         :custom
-        (org-startup-indented t)
+        ;; source code blocks
         (org-catch-invisible-edits t)
         (org-src-fontify-natively t)
         (org-src-tab-acts-natively t)
         (org-src-preserve-indentation t)
         (org-src-window-setup 'reorganize-frame)
         (org-edit-src-persistent-message nil)
-        ;; Org Babel
         (org-confirm-babel-evaluate nil)
         (org-babel-uppercase-example-markers t)
+        ;; appearance
+        (org-startup-indented t)
         (org-pretty-entities t)
         (org-hide-emphasis-markers t)
         (org-fontify-quote-and-verse-blocks t)
+        (org-use-sub-superscripts '{})
 
         :bind
         ("C-c L" . org-instert-link-global)
