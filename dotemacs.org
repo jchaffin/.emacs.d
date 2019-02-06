@@ -1,6 +1,5 @@
 #+title: Dotemacs
 #+language: en
-#+STARTUP: hideblock
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
@@ -49,7 +48,8 @@
   - [[#text-editing][Text editing]]
     - [[#editing][Editing]]
     - [[#deleting][Deleting]]
-    - [[#searching][Searching]]
+    - [[#search][Search]]
+    - [[#jump][Jump]]
     - [[#regions][Regions]]
     - [[#replace][Replace]]
     - [[#checking][Checking]]
@@ -57,7 +57,7 @@
     - [[#projectile][Projectile]]
     - [[#find-file-in-project][Find File in Project]]
     - [[#file-system][File System]]
-    - [[#search][Search]]
+    - [[#search-1][Search]]
   - [[#shell][Shell]]
     - [[#terminal-colors][Terminal Colors]]
     - [[#emacs-shell][Emacs shell]]
@@ -808,7 +808,7 @@ generating a new one if the initial scratch buffer has been killed."
 :ID:       A2492483-216E-445A-BABB-B760FF83938E
 :END:
 
-#+BEGIN_sRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package bui
   :hook
   (info-mode . bui-info-mode))
@@ -820,6 +820,20 @@ generating a new one if the initial scratch buffer has been killed."
 (use-package ibuffer
   :straight nil
   :bind ("C-x C-b" . ibuffer))
+#+END_SRC
+
+**** auto minor mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package auto-minor-mode)
+#+END_SRC
+
+**** Lentic
+:PROPERTIES:
+:ID:       94A76A4D-A77C-4D43-A4D8-C384BA571FC2
+:END:
+#+BEGIN_SRC emacs-lisp
+(use-package lentic)
 #+END_SRC
 
 *** Window utilities
@@ -1203,7 +1217,7 @@ Note that this solution requires macOS and using gpg2 for encryption.
 
 See ticket [[https://github.com/Homebrew/homebrew-core/issues/14737][#1437]] from the [[https://github.com/Homebrew/homebrew-core][Homebrew/homebrew-core]] repository.
 
-#+BEGIN_EXAMPLE sh
+#+BEGIN_EXAMPLE
 brew install pinentry-mac
 echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 killall gpg-agent
@@ -1900,7 +1914,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+END_SRC
 
-*** Searching
+*** Search
 **** ack
 
 #+NAME: search/ack
@@ -1910,6 +1924,12 @@ point reaches the beginning or end of the buffer, stop there."
   :straight t)
 #+END_SRC
 
+**** grep+
+
+#+BEGIN_SRC emacs-lisp
+(use-package grep+)
+#+END_SRC
+
 **** ag
 
 #+NAME: ag-config
@@ -1917,10 +1937,10 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package ag)
 #+END_SRC
 
-**** grep+
+**** wgrep ag
 
 #+BEGIN_SRC emacs-lisp
-(use-package grep+)
+(use-package wgrep-ag)
 #+END_SRC
 
 **** ripgrep
@@ -1964,6 +1984,20 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package projectile-codesearch)
 #+END_SRC
 
+*** Jump
+
+**** dumb jump
+
+#+BEGIN_SRC emacs-lisp
+(use-package dumb-jump)
+#+END_SRC
+
+**** smart jump
+
+#+BEGIN_SRC emacs-lisp
+(use-package smart-jump)
+#+END_SRC
+
 *** Regions
 **** Whole line or region
 
@@ -2003,7 +2037,11 @@ point reaches the beginning or end of the buffer, stop there."
 **** Visual regexp
 
 #+BEGIN_SRC emacs-lisp
-(use-package visual-regexp)
+(use-package visual-regexp
+  :bind
+  ("C-c v r" . vr/replace)
+  ("C-c v q" . vr/query-replace)
+  ("C-c v m" . vr/mc-mark))
 #+END_SRC
 
 **** Replace from region
@@ -2470,12 +2508,6 @@ Jump to arbitrary point in Buffer
   :ensure-system-package
   (rg . ripgrep))
 
-#+END_SRC
-
-**** Visual Replace
-
-#+BEGIN_SRC emacs-lisp
-(use-package visual-regexp)
 #+END_SRC
 
 **** Undo Tree
@@ -3275,21 +3307,6 @@ different window configurations.
 #+NAME: purpose
 #+BEGIN_SRC emacs-lisp
   (use-package window-purpose)
-
-  (use-package ivy-purpose
-      :custom (pop-up-frames nil)
-      :after (window-purpose)
-      :init
-      (ivy-purpose-setup)
-      :config
-      ;; give help buffers the 'popup-frame purpose
-      (add-to-list 'purpose-user-mode-purposes
-                  '(help-mode . popup-frame))
-      (add-to-list 'purpose-special-action-sequences
-                   '(popup-frame
-                     purpose-display-reuse-window-buffer
-                     purpose-display-reuse-window-purpose
-                     purpose-display-pop-up-frame)))
 #+END_SRC
 
 ** Minibuffer
@@ -3447,6 +3464,24 @@ END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-yasnippet)
+#+END_SRC
+
+**** Ivy Purpose
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-purpose
+  :custom (pop-up-frames t)
+  :after (window-purpose)
+  :init
+  (ivy-purpose-setup)
+  :config
+  ;; give help buffers the 'popup-frame purpose
+  (add-to-list 'purpose-special-action-sequences
+               '(popup-frame
+                 purpose-display-reuse-window-buffer
+                 purpose-display-reuse-window-purpose
+                 purpose-display-pop-up-frame)))
+
 #+END_SRC
 
 *** Counsel
@@ -3925,6 +3960,27 @@ any reason for me reconsider my choice.
     :custom
     (code-library-directory (emacs-etc-dir "codelibrary"))
     (code-library-sync-to-gist t))
+#+END_SRC
+
+**** Ivy Bibtex
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-bibtex
+  :custom
+  (bibtex-completion-bibliography
+   `(,(org-dir "ref/references.bib")
+     ,(dropbox-dir "courses/comsci131/comsci131.bib")
+     ,(dropbox-dir "courses/comsci161/comsci161.bib")
+     ,(dropbox-dir "courses/ling102/ling102.bib")
+     ,(dropbox-dir "courses/ling165c/ling165c.bib")))
+  (bibtex-completion-pdf-file "File")
+  (bibtex-completion-library-path
+   `(,(dropbox-dir "Documents/pdfs")
+     ,(dropbox-dir "courses/comsci131/materials/pdfs")
+     ,(dropbox-dir "courses/comsci161/materials/pdfs")
+     ,(dropbox-dir "courses/ling102/materials/pdfs")
+     ,(dropbox-dir "courses/ling165c/materials/pdfs")))
+  (bibtex-completion-notes-path (org-dir "ref/notes.org")))
 #+END_SRC
 
 ** Images
@@ -4870,6 +4926,13 @@ Generate latex fragments based on the latex compiler and class in the current bu
        ("eprinttype" nil nil)
        ("url" nil nil)
        ("urldate" nil nil)))))
+  (bibtex-autokey-year-length 4)
+  (bibtex-autokey-name-year-separator "-")
+  (bibtex-autokey-year-title-separator "-")
+  (bibtex-autokey-titleword-separator "-")
+  (bibtex-autokey-titlewords 2)
+  (bibtex-autokey-titlewords-stretch 1)
+  (bibtex-autokey-titleword-length 5)
   :config
   (defun bibtex-create-entries-buffer ()
   "Create a buffer listing the available bibtex
@@ -4905,7 +4968,9 @@ entry types and required fields."
 	                (if (>= (length field) 2)
 		                  (insert (format " :: %s\n" (nth 1 field)))
 	                  (insert "\n")))))
-    (switch-to-buffer-other-window buf))))
+    (switch-to-buffer-other-window buf)))
+  :hook
+  (bibtex-mode . hs-minor-mode))
 
 #+END_SRC
 
@@ -4934,10 +4999,10 @@ entry types and required fields."
         ("s" .  org-ref-insert-bibliographystyle-link))
   :custom
   (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-default-bibliography (list (org-dir "ref/references.org")))
+  (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
   (org-ref-bibliography-notes (org-dir "ref/notes.org"))
   (org-ref-notes-directory (org-dir "ref/notes/"))
-  (org-ref-pdf-directory (dropbox-dir "pdfs/" :slash t))
+  (org-ref-pdf-directory (dropbox-dir "Documents/pdfs/" :slash t))
   (org-ref-show-citation-on-enter t)
   (org-ref-show-broken-links t)
   (org-ref-bibtex-hydra-key-binding "\C-cj")
@@ -5134,8 +5199,6 @@ instead of ~outline-show-entry~.
       (org-outline-numbering-mode 1)))
 
 #+END_SRC
-
-****
 
 *** Org radiobutton
 :PROPERTIES:
@@ -5483,11 +5546,6 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
      (R . t)
      (shell . t)
      (org . t)))
-#+END_SRC
-
-**** Lentic
-#+BEGIN_SRC emacs-lisp
-(use-package lentic)
 #+END_SRC
 
 *** Org2elcomment
@@ -6072,15 +6130,16 @@ The default set of bullet points can be modified via the
 #+NAME: org-ui-org-bullets
 #+BEGIN_SRC emacs-lisp
 (use-package org-bullets
-    :demand t
-    :custom
-    (org-bullets-bullet-list '("‣" "•"))
-    :init
-    (defun org-bullets/enable ()
-      (org-bullets-mode +1))
-
-    :hook
-    (org-mode . org-bullets/enable))
+  :demand t
+  :preface
+  (setq inhibit-compacting-font-caches t)
+  :custom
+  (org-bullets-bullet-list '("‣" "•"))
+  :init
+  (defun org-bullets/enable ()
+    (org-bullets-mode +1))
+  :hook
+  (org-mode . org-bullets/enable))
 #+END_SRC
 
 *** Org Fancy Priorities
@@ -8445,6 +8504,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 
 *** Org annotate file
 
+Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Place Annotations]]
 #+BEGIN_SRC emacs-lisp
 (use-package org-annotate-file
   :straight org-plus-contrib
@@ -9011,7 +9071,7 @@ As a git client though, magit is awesome.
 
 To configure:
 
-#+BEGIN_EXAMPLE shell
+#+BEGIN_EXAMPLE
 git config --global --add magit.extension topgit
 #+END_EXAMPLE
 
@@ -9031,9 +9091,9 @@ git config --global --add magit.extension topgit
 
 To configure:
 
-#+BEGIN_SRC shell
+#+BEGIN_EXAMPLE
 git config --global --add magit.extension stgit
-#+END_SRC
+#+END_EXAMPLE
 
 #+NAME: magit/stgit
 #+BEGIN_SRC emacs-lisp

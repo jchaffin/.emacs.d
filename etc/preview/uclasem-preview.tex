@@ -16,12 +16,15 @@
 \setlength{\topmargin}{1.5cm}
 \addtolength{\topmargin}{-2.54cm}
 
+
 \usepackage{amsmath}
+\usepackage{stmaryrd}
 \usepackage{fontspec}
-\usepackage{semantic}
+\usepackage{bussproofs}
+\usepackage{unicode-math}
 \usepackage{cabin}
 \usepackage{xpatch}
-\usepackage{unicode-math}
+
 \setmainfont{STIX Two Text}
 \setmathfont{STIX Two Math}[StylisticSet=02, StylisticSet=08]
 \setmonofont[Scale=MatchUppercase]{DejaVu Sans Mono}
@@ -30,6 +33,7 @@
 \noautomath
 \usepackage{adjustbox}
 \usepackage{tikz}
+
 \usetikzlibrary{decorations,decorations.pathreplacing,calc,fit,positioning,shapes,arrows.meta}
 \tikzset{
   exarrows/.style={%
@@ -257,6 +261,6 @@ sep=4pt, yshift =-3pt, font=\small\itshape, text height=.7em]
 \newcommand{\denotation}[1]{\denotationbase{\text{#1}}}
 \newcommand{\denotationbase}[1]{\ensuremath{\left\lsem#1\right\rsem}}
 \newcommand{\startfn}[0]{\ensuremath{\ .\ }}
-
 \newcommand{\Agree}[0]{\textsc{Agree}\xspace}
 \newcommand{\abar}[0]{\xbar{A}}
+\def\vb{\text{ | }}

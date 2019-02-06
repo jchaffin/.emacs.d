@@ -2,6 +2,7 @@
 # name: emacs-lisp with :tangle no
 # key: <se
 # --
-#+BEGIN_SRC emacs-lisp :tangle no
+
+#+BEGIN_SRC emacs-lisp
 $0
 #+END_SRC
