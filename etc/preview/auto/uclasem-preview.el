@@ -30,7 +30,6 @@
     '("denotation" 1)
     '("xbar" 1)
     '("comp" 1)
-    '("spec" 1)
     '("head" 1)
     '("sagrf" 1)
     '("smf" 1)
@@ -59,8 +58,10 @@
     '("tkn" 2)
     "boldcheckmark"
     "nl"
+    "extraVskip"
     "vb")
    (LaTeX-add-environments
+    '("problem" LaTeX-env-args ["argument"] 0)
     "tikzbracket")
    (LaTeX-add-lengths
     "ArrowHeight"

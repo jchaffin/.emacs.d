@@ -1150,9 +1150,8 @@ interactive minibuffer completion menu using ivy.
                     (completing-read
                      "Which recipe? "
                      (straight-recipes-list straight-recipe-repositories)
-                     nil 'require-match)
-                  package))
-           (url (remote-url (intern pkg))))
+                     nil 'require-match)))
+           (url (remote-url (intern (or pkg package)))))
       (browse-url url))))
 #+END_SRC
 
@@ -1163,7 +1162,7 @@ interactive minibuffer completion menu using ivy.
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(defun straight-remote-action (pkg)
+(defun straight-browse-remote-action (pkg)
   "Ivy action to view a remote recipe in a browser."
   (straight-browse-remote pkg))
 
@@ -1978,7 +1977,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+END_SRC
 
-******* projectile ripgrep
+***** projectile ripgrep
 
 #+NAME: project-ripgrep
 #+BEGIN_SRC emacs-lisp
@@ -1996,7 +1995,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package codesearch)
 #+END_SRC
 
-****** Counsel code search
+***** Counsel code search
 #+BEGIN_SRC emacs-lisp
 (use-package counsel-codesearch
     :requires codesearch)
@@ -2092,7 +2091,7 @@ point reaches the beginning or end of the buffer, stop there."
         (setq ispell-really-hunspell t))))
 #+END_SRC
 
-****** Flyspell Correct
+***** Flyspell Correct
 
 #+NAME: flyspell-correct-config
 #+BEGIN_SRC emacs-lisp
@@ -2942,7 +2941,7 @@ over ssh."
   (ssh-mode . ssh/enable-path-completion))
 #+END_SRC
 
-***** SSH tunnels
+**** SSH tunnels
 
 #+BEGIN_SRC emacs-lisp
 (use-package ssh-tunnels)
@@ -9264,7 +9263,7 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 
 #+END_SRC
 
-***** Lispy
+**** Lispy
 
 #+NAME: lispy-config
 #+BEGIN_SRC emacs-lisp
