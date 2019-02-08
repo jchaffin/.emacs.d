@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Named emacs-lisp source block
+# key: <sen
+# --
+#+NAME: $0
+#+BEGIN_SRC emacs-lisp :tangle no
+$1
+#+END_SRC

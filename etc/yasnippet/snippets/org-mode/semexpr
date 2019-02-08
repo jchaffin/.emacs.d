@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Insert a semantic expression form
+# key: <[
+# --
+$3(<[${1:𝛼}], ${2:S}, ⟦$1⟧>)

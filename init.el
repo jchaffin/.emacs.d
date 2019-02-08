@@ -24,29 +24,14 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;; Commentary:
 ;;
-;; This Emacs configuration uses straight.el as a drop-in replacement for
-;; package.el. A thorough comparative analysis of the two libraries as
-;; well as other popular tools for package management can be found in the
-;; README of the straight.el repository [1].
 ;;
-;; This initialization process uses the tangle functionality of org-babel to
-;; extract the source code configuring package blocks
-;; For Donald Knuths seminal text on Literate Programimng, see [2]
-;; For my synopis on the subject, see [3]
-;; For writing code in org mode using babel, see [4]
-;;
-;; [1] https://github.com/raxod502/straight.el/blob/master/README.md
-;; [2] http://www.literateprogramming.com/knuthweb.pdf
-;; [3] https://github.com/jchaffin/.emacs.d/blob/master/halidom.org#literate-programming
-;; [4] http://orgmode.org/worg/org-contrib/babel/
-
 ;;; Code:
-;; Straight
+
+
 (unwind-protect
-    (let ((straight-treat-as-init t))
+    (let ((straight-treat-as-init t)
+          (toggle-debug-on-error t))
       (when (locate-library "gnutls")
         (require 'gnutls)
         ;; Prevent elpa from loading `package.el' in case loading fails.
@@ -56,9 +41,9 @@
 
       (setq straight-repository-branch "develop"
             ;; Use the macos lockfile
-            straight-profiles '((halidom . "versions.el")
+            straight-profiles '((dotemacs . "versions.el")
                                 (nil . "default.el"))
-            straight-current-profile 'halidom
+            straight-current-profile 'dotemacs
             straight-recipes-gnu-elpa-use-mirror t)
 
       (if (and (executable-find "watchexec")
@@ -67,7 +52,6 @@
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
               '(check-on-save find-when-checking)))
-
 
 
       ;; Bootstrap straight.el
@@ -96,9 +80,8 @@
       ;; Enable the `:ensure-system-package' keyword
       (straight-use-package 'use-package-ensure-system-package)
       ;; Use  the `:blackout' to clean mode lighters
-      (straight-use-package '(blackout
-                              :host github
-                              :repo "raxod502/blackout"))
+      (straight-use-package
+       '(blackout :host github :repo "raxod502/blackout"))
       (require 'blackout)
 
       ;; lazy load by default
@@ -146,29 +129,31 @@
 
       (use-package org
         :init
-        (defun halidom/resolve-org-ivy-conflict ()
-          ;; Conflicts with `ivy-resume'
-          (define-key org-mode-map (kbd "C-c C-r") nil))
-
+        (setq outline-minor-mode-prefix "\M-#")
         :custom
-        (org-startup-indented t)
+        ;; source code blocks
+        (org-catch-invisible-edits t)
         (org-src-fontify-natively t)
         (org-src-tab-acts-natively t)
         (org-src-preserve-indentation t)
-        (org-src-window-setup 'other-window)
-        (org-confirm-babel-evaluate nil)
+        (org-src-window-setup 'reorganize-frame)
         (org-edit-src-persistent-message nil)
-        (org-catch-invisible-edits t)
+        (org-confirm-babel-evaluate nil)
         (org-babel-uppercase-example-markers t)
-        (org-hide-block-startup t)
-        (org-hide-leading-stars t)
+        ;; appearance
+        (org-startup-indented t)
+        (org-pretty-entities t)
         (org-hide-emphasis-markers t)
+        (org-fontify-quote-and-verse-blocks t)
+        (org-use-sub-superscripts '{})
+
         :bind
+        ("C-c L" . org-instert-link-global)
+        ("C-c M-O" . org-open-at-point-global)
         ("C-c a" . org-agenda)
         ("C-c c" . org-capture)
         ("C-c C-s" . org-schedule)
         ("C-c M-o" . org-store-link)
-        ("C-c C-l" . org-insert-link)
         ("C-c b" . org-switchb)
 
         (:map org-mode-map
@@ -178,39 +163,148 @@
         :config
         (when (eq system-type 'darwin)
           (setq org-directory (file-truename "~/Dropbox/org/")
+                org-default-notes-file
+                (expand-file-name "notes.org" org-directory)
                 org-id-locations-file
                 (expand-file-name
-                 "var/org/id-locations.el" user-emacs-directory))))
+                 "var/org/id-locations.el" user-emacs-directory)))
+
+        (defun org-update-backends (val)
+          "Update Emacs export backends while Emacs is running.
+See `org-export-backends' variable."
+          (interactive)
+          (progn
+            (setq org-export-registered-backends
+                  (cl-remove-if-not
+                   (lambda (backend)
+                     (let ((name (org-export-backend-name backend)))
+                       (or (memq name val)
+                           (catch 'parentp
+                             (dolist (b val)
+                               (and (org-export-derived-backend-p b name)
+                                    (throw 'parentp t)))))))
+                   org-export-registered-backends))
+            (let ((new-list (mapcar #'org-export-backend-name
+                                    org-export-registered-backends)))
+              (dolist (backend val)
+                (cond
+                 ((not (load (format "ox-%s" backend) t t))
+                  (message
+                   "Problems while trying to load export back-end
+                   `%s'" backend))
+                 ((not (memq backend new-list)) (push backend new-list))))
+              (set-default 'org-export-backends new-list)))))
+
+
+      ;; Literate
+      (defcustom dotemacs-literate-config-file "dotemacs.org"
+        "The *.org file containing the source code responsible for
+      declaration and configuration of third-party packages, as well as
+      any settings and customizations defined in this GNU Emacs
+      distribution."
+        :type 'string)
+
+      (defcustom dotemacs-user-literate-init-file
+        (expand-file-name dotemacs-literate-config-file user-emacs-directory)
+        "The absolute path of `dotemacs-literate-config-file.'"
+        :type 'string)
+
+
+      (defun load-literate (&optional user-config-file)
+        "If USER-CONFIG-FILE is passed as an argument, then tangle.
+    Else use the value of `dotemacs-literate-config-file'."
+        (let ((target-file
+               (or user-config-file dotemacs-literate-config-file))
+              (target-dir
+               (or user-emacs-directory default-directory)))
+          (if target-file
+              (org-babel-load-file
+               (expand-file-name target-file target-dir))
+            (error "%s not found, cannot tangle." target-file))))
+
+
+      ;; Debug
+      (defvar literate-debug-blocks nil)
+
+      (defun literate-src-parameter-string->alist (parameters)
+        "Convert src block parameter string into a plist."
+        (let ((params-list (split-string parameters " " t)))
+          (cl-loop for x in params-list
+                   for i from 1 to (length params-list)
+                   if (cl-oddp i)
+                   collect (intern x) into odds
+                   else
+                   collect x into evens
+                   end
+                   finally (return (seq-mapn #'cons odds evens)))))
+
+
+      (defun literate-src-block-noweb-p (parameters)
+        (let ((params-alist
+               (literate-src-parameter-string->alist parameters)))
+          (string= "yes" (cdr (assoc :noweb params-alist)))))
+
+      (defun sanitize-no-web-block (code)
+        (let ((sx (split-string code "\n" t)))
+          (cl-flet ((func (s)
+                          (replace-regexp-in-string
+                           "<<\\(.*?\\)>>" "\\1" s)))
+            (mapcar #'func sx))))
+
+
+      (defun literate-tangle-src-block (name)
+        (let ((buf (find-file-noselect dotemacs-user-literate-init-file)))
+          (with-current-buffer dotemacs-literate-config-file
+            (org-element-map (org-element-parse-buffer) 'src-block
+              (lambda (block)
+                (if (string= name (org-element-property :name block))
+                    (let ((code
+                           (org-element-property :value block))
+                          (params
+                           (org-element-property :parameters block))
+                          (noweb-p
+                           (literate-src-block-noweb-p
+                            (org-element-property :parameters block))))
+
+                      (if noweb-p
+                          (mapcar #'literate-tangle-src-block
+                                  (sanitize-no-web-block code)))
+			                (let (pkg)
+			                  (with-temp-buffer
+                          (insert code)
+			                    (save-excursion
+			                      (goto-char (point-min))
+			                      (when (re-search-forward "use-package " nil t)
+				                      (setq pkg (buffer-substring-no-properties
+					                               (point) (point-at-eol))))
+			                      (if pkg
+				                        (message "%s evaluated" pkg)
+				                      (message "tangled %s" name)))
+                          (eval-buffer))))))))
+          (kill-buffer buf)))
+
+      (defun literate-debug-enabled ()
+        "Tangle only the source blocks with a name property matching an
+element in `dotemacs-literate-debug-blocks'."
+        (interactive)
+        (mapcar #'literate-tangle-src-block literate-debug-blocks))
 
       (use-package no-littering
-	      :init
-	      (setq no-littering-etc-directory
-	            (expand-file-name "etc/" user-emacs-directory))
-	      (setq no-littering-var-directory
-	            (expand-file-name "var/" user-emacs-directory))
-	      (require 'no-littering))
+        :demand t
+        :custom
+        (no-littering-etc-directory
+         (expand-file-name "etc" user-emacs-directory)
+         (no-littering-var-directory
+          (expand-file-name "var" user-emacs-directory)))
+        :init
+        (require 'no-littering)
+        (setq auto-save-file-name-transforms
+              `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
+      (if (and (boundp 'use-literate-p) (not use-literate-p))
+          (literate-debug-enabled)
+        (load-literate)))
 
-      (cl-letf (((symbol-function 'var)
-                 (symbol-function #'no-littering-expand-var-file-name)))
-        (with-no-warnings
-          (setq auto-save-file-name-transforms
-	              `((".*" ,(var "auto-save/") t)))
-          (setq srecode-map-save-file (var "srecode-map.el"))))
-
-      (require 'recentf)
-      (add-to-list 'recentf-exclude no-littering-var-directory)
-      (add-to-list 'recentf-exclude no-littering-etc-directory)
-
-      (use-package org-dotemacs
-	      :custom
-	      (org-dotemacs-default-file "~/.emacs.d/dotemacs.org")
-	      :init
-	      (require 'org-dotemacs))
-
-
-      (org-dotemacs-load-file "compile" org-dotemacs-default-file
-        (expand-file-name "dotemacs.el" user-emacs-directory)))
   (straight-finalize-transaction))
 
  ;;;; init.el ends here

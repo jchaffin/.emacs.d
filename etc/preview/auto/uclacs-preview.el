@@ -1,8 +1,10 @@
 (TeX-add-style-hook
  "uclacs-preview"
  (lambda ()
+   (setq TeX-command-extra-options
+         "-shell-escape")
    (TeX-add-to-alist 'LaTeX-provided-package-options
-                     '(("color" "usenames") ("algorithm2e" "algoruled" "linesnumbered")))
+                     '(("color" "usenames")))
    (TeX-run-style-hooks
     "latex2e"
     "article"
@@ -11,17 +13,12 @@
     "fontspec"
     "amsmath"
     "unicode-math"
-    "subcaption"
-    "algorithm2e"
-    "varioref"
-    "listings")
+    "hologo"
+    "tikz"
+    "forest")
    (TeX-add-symbols
-    '("forcondj" 2)
-    '("forcondi" 2)
-    '("forcond" 3)
-    "nosemic"
-    "dosemic"
-    "pushline"
-    "popline"))
+    "vertex")
+   (LaTeX-add-environments
+    '("problem" LaTeX-env-args ["argument"] 0)))
  :latex)
 
