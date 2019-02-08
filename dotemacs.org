@@ -500,7 +500,7 @@ Starting in Emacs 26, the =default-frame-alist= variable can be used
 create a natural title bar in the GUI. Setting the default frame
 properties to the following values has the same effect as the
 '--with-natural-title-bar' option provided by the Homebrew [[https://github.com/d12frosted/homebrew-emacs-plus/blob/master/Formula/emacs-plus.rb#L97-L100][formula]]
-recommended for Spacemacs users on macOS[fn:14].
+recommended for Spacemacs users on macOS[fn:1].
 
 #+BEGIN_SRC emacs-lisp
 (setq default-frame-alist
@@ -524,7 +524,7 @@ Show full path in the title bar.
 **** User Information
 
 These values are initialized with the ’name’ and ’email’
-environment variables, respectively[fn:3].
+environment variables, respectively[fn:2].
 
 Emacs uses these variables to fill the mail header when sending
 emails in emacs, and various third-party packages rely on them
@@ -1224,7 +1224,7 @@ By default, decrypting gpg files in Emacs will result in the pin entry
 window being launched from the terminal session.
 
 By disabling the agent info, we can force Emacs to handle this
-internally[fn:7].
+internally. [fn:3]
 
 #+BEGIN_SRC emacs-lisp
 (setenv "GPG_AGENT_INFO" nil)
@@ -1247,6 +1247,7 @@ brew install pinentry-mac
 echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 killall gpg-agent
 #+END_EXAMPLE
+
 
 **** Load Secrets
 
@@ -1385,7 +1386,7 @@ The [[https://github.com/purcell/exec-path-from-shell][exec-path-from-shell]] pa
 user environment variables from the shell.
 
 The ~exec-path-from-shell~ package only works with posix-compliant
-operating systems. This may or may not include Microsoft Windows[fn:8].
+operating systems. This may or may not include Microsoft Windows[fn:4].
 
 However, the ~exec-path-from-shell~ instructions recommends loading
 the package on linux and macOS operating system. I don't use Windows
@@ -1483,7 +1484,7 @@ external programs.
 
 ***** Modifier Keys
 
-macOS specific settings[fn:9].
+macOS specific settings[fn:5].
 
 Maps the modifier keys based on personal preferences.
 Also sets terminal coding system to "utf-8".
@@ -1790,22 +1791,31 @@ Causes a conflict with ~lsp-mode~.
 #+BEGIN_SRC emacs-lisp
 
 (defun goto-init ()
+  "Open the emacs init file.
+If multiple configurations are detected, this value is determined by the
+value of `user-emacs-directory', else go to the`user-init-file'."
   (interactive)
-  (find-file (expand-file-name "init.el" user-emacs-directory)))
+  (let ((init-file
+         (if (file-exists-p (expand-file-name ".emacs-profiles.el" "~"))
+             (expand-file-name "init.el" user-emacs-directory)
+           user-init-file))))
+  (find-file init-file))
 
 (defun goto-literate ()
+  "Open the literate Emacs config file."
   (interactive)
   (find-file dotemacs-user-literate-init-file))
 
 (defun goto-tangled-init ()
+  "Go to the tangled elisp file."
   (interactive)
-  (find-file
-    (concat (file-name-sans-extension dotemacs-user-literate-init-file) ".el")))
+  (let ((base (file-name-sans-extension dotemacs-user-literate-init-file)))
+    (find-file (concat base ".el"))))
 
-(define-key goto-map "i" #'goto-init)
-(define-key goto-map "l" #'goto-literate)
-(define-key goto-map "t" #'goto-tangled-init)
-
+(bind-keys :map goto-map
+           ("i" . goto-init)
+           ("l" . goto-literate)
+           ("t" . goto-tangled-init))
 #+END_SRC
 
 *** Auto Revert Mode
@@ -1819,7 +1829,6 @@ Causes a conflict with ~lsp-mode~.
   :straight nil
   :init
   (global-auto-revert-mode t))
-
 #+END_SRC
 
 ** Text editing
@@ -2155,7 +2164,7 @@ checking for natural language.
 
 The [[https://github.com/myrkr/dictionary-el][dictionary.el]] package provides an Emacs client which uses an open source
 dictionary server to lookup words. What it lacks in bells and
-whistles, it makes up for in compatibility and hackability [fn:18].
+whistles, it makes up for in compatibility and hackability [fn:7].
 
 #+NAME: completion/dictionary-el
 #+BEGIN_SRC emacs-lisp
@@ -2360,7 +2369,7 @@ Adds extensions and functionality to dired mode.
 
 **** Neotree
 
-[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:13] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
+[[https://github.com/jaypei/emacs-neotree][Neotree]][fn:8] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
 
 #+BEGIN_SRC emacs-lisp
 (use-package neotree
@@ -3230,7 +3239,7 @@ so happens this prefix can be extended by every key in the arrow pad
 without causing a conflict with external keymaps on my system.
 
 The suggested keybindings from the footnoted EmacsWiki page may be more
-accessible for you [fn:15].
+accessible for you [fn:9].
 
 #+NAME: window-resize-keybindings
 #+BEGIN_SRC emacs-lisp
@@ -5137,7 +5146,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 
 **** Org PDF View
 
-Now we can open pdf files with =org-pdfview= [fn:12]:
+Now we can open pdf files with =org-pdfview= [fn:10]:
 
 #+NAME: pdf/org
 #+BEGIN_SRC emacs-lisp
@@ -11058,43 +11067,38 @@ Mode for editing Homebrew formula.
 
 * Footnotes
 
-[fn:1] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Emacs Manual - D.8 Conventional Headers for Emacs Libraries]]
+[fn:1] [[https://github.com/d12frosted/homebrew-emacs-plus][d12frosted/homebrew-emacs-plus]]
 
-[fn:2]  "Next-generation, purely functional package manager for the
-Emacs hacker."
+[fn:2] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
 
-[fn:3] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/General-Variables.html#General-Variables][Emacs Manual - C.4.1 General Variables]]
+[fn:3] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
 
-[fn:4] In lisp, global variables are called /top-level defintions/. By
+[fn:4] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
+
+[fn:5] [[https://www.emacswiki.org/emacs/EmacsForMacOS][Emacs Wiki - Emacs For MacOS]]
+
+[fn:6] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
+
+[fn:7] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
+
+[fn:8] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
+
+[fn:9] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
+
+[fn:10] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
+
+[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
+
+[fn:12] https://joelkuiper.eu/spellcheck_emacs
+
+[fn:13] https://www.emacswiki.org/emacs/BookMarks#toc7
+
+[fn:14] http://www.jonathanleroux.org/bibtex-mode.html
+
+[fn:15] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
+
+[fn:16] In lisp, global variables are called /top-level defintions/. By
 convention, globals are wrapped in a pair of asterisks called
 /earmuffs/. Earmuffs are completely optional -- they have no effect on
 how the program is compiled -- its a best practice in all of the many
 dialects of Lisp.
-
-[fn:5] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
-
-[fn:9] [[https://www.emacswiki.org/emacs/EmacsForMacOS][Emacs Wiki - Emacs For MacOS]]
-
-[fn:6] [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Saving-Customizations.html][Emacs Manual - 51.1.4 Saving Customizations]]
-
-[fn:7] [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][Mastering Emacs - Keeping Secrets in Emacs GnuPG Auth Sources]]
-
-[fn:8] [[https://www.quora.com/Is-Windows-POSIX-compliant][Quora - Is Windows POSIX compliant?]]
-
-[fn:10] http://www.jonathanleroux.org/bibtex-mode.html
-
-[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
-
-[fn:12] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
-
-[fn:14] [[https://github.com/d12frosted/homebrew-emacs-plus][d12frosted/homebrew-emacs-plus]]
-
-[fn:13] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
-
-[fn:15] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
-
-[fn:16] https://www.emacswiki.org/emacs/BookMarks#toc7
-
-[fn:17] https://joelkuiper.eu/spellcheck_emacs
-
-[fn:18] [[http://ergoemacs.org/emacs/dictionary_lookup.html][Ergo Emacs - Dictionary Lookup]]
