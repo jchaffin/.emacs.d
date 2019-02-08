@@ -1127,7 +1127,7 @@ interactive minibuffer completion menu using ivy.
      pkg-keys
      :action
      (lambda (package)
-       (straight-browse-local-strategy dir package)))))
+       (straight-browse-local-strategy build-dir dir package)))))
 
 (define-key goto-map "r" #'straight-browse-local)
 #+END_SRC
@@ -10981,9 +10981,14 @@ Mode for editing Homebrew formula.
               (shell-quote-argument (buffer-file-name)))))))
     :init
     (defun md/visual ()
+      "Hook to enable visual fill column in markdown mode buffers. "
       (when (featurep 'visual-fill-column)
         (visual-fill-column-mode 1)
         (visual-line-mode 1)))
+    (defun md/font ()
+      "Hook to enable variable-pitch font in markdown mode buffers."
+      (when (functionp 'variable-pitch-mode)
+        (variable-pitch-mode 1)))
     :custom
     (markdown-command "multimarkdown")
     (markdown-open-command #'markdown-open-preview)
@@ -10992,7 +10997,10 @@ Mode for editing Homebrew formula.
      ("\\.md\\'" . markdown-mode)
      ("\\.markdown\\'" . markdown-mode))
     :hook
+    (markdown-mode . md/font)
     (markdown-mode . md/visual))
+
+
 #+END_SRC
 
 **** markdown-mode+
