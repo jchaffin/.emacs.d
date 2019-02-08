@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: prooftree
+# key: prooftree
+# --
+\begin{prooftree}
+  \rootAtTop
+  \def\extraVskip{8pt}
+  \AxiomC{$1}
+  \UnaryInfC{$2}
+\end{prooftree}
