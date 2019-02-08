@@ -35,13 +35,103 @@
 
 
 \usepackage{tikz}
-\usetikzlibrary{graphs,graphdrawing} % Requires LuaLatex
+\usetikzlibrary{graphs,graphdrawing}
 \usegdlibrary{UclacsGraph}
 \usegdlibrary{trees}
 \usegdlibrary{layered}
 
 \newcommand{\vertex}{\node[circle,draw,radius=1cm]}
 
-\usepackage{adjustbox}
 
 \usepackage{forest}
+\forestset{
+  perfectly nice empty nodes/.style={
+    for tree={
+      calign=fixed edge angles,
+      parent anchor=south
+    },
+    before typesetting nodes={
+      where content={}{
+        text width=.001pt,
+        inner sep=0pt,
+        before drawing tree={
+          shape=coordinate,
+          typeset node
+        },
+        for parent={
+          for children={
+            anchor=north
+          }
+        }
+      }{}
+    }
+  }
+}
+% \forestset{
+%   % Begin nice nodes
+%   nice nodes/.style={
+%     for tree={
+%       inner sep=1 pt,
+%       s sep=12pt,
+%       fit=band
+%     }
+%   },
+%   % Begin fairly nice empty nodes
+%   fairly nice empty nodes/.style={
+%     delay={
+%       where content={}{
+%         shape=coordinate,
+%         for parent={
+%           for children={anchor=north}
+%         }
+%       }
+%     }
+%   },
+%   % Begin pretty nice empty nodes
+%   pretty nice empty nodes/.style={
+%     for tree={
+%       calign=fixed edge angles,
+%       parent anchor=children,
+%       delay={
+%         if content={}{
+%           inner sep=0pt,
+%           edge path={
+%             \noexpand\path [\forestoption{edge}] (!u.parent anchor) --
+%             (.children)\forestoption{edge label} ;
+%           }
+%         }{}
+%       }
+%     }
+%   },
+%   % Begin perfectly nice empty nodes
+%   perfectly nice empty nodes/.style={
+%     for tree={
+%       calign=fixed edge angles,
+%       parent anchor=south
+%     },
+%     before typesetting nodes={
+%       where content={}{
+%         text width=.001pt,
+%         inner sep=0pt,
+%         before drawing tree={
+%           shape=coordinate,
+%           typeset node
+%         },
+%         for parent={
+%           for children={
+%             anchor=north
+%           }
+%         }
+%       }{}
+%     }
+%   },
+%   circle nodes/.style={
+%     for tree={circle,draw, l sep=2mm}%
+%   },
+%   default preamble = {
+%     for tree={
+%       text height=1em, inner ysep=0.5ex, s sep=1em, edge={semithick},
+%       text depth={}, l sep=1em
+%     }
+%   }
+% }

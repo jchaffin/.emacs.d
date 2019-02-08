@@ -125,11 +125,10 @@
     - [[#edit-latex][Edit Latex]]
     - [[#bibtex][BibTeX]]
     - [[#org-ref][Org Ref]]
-    - [[#viewing-pdfs][VIewing PDFs]]
+    - [[#pdfs][PDFs]]
   - [[#org-structure][Org Structure]]
     - [[#outlines][Outlines]]
-    - [[#org-outline-numbering][Org Outline Numbering]]
-    - [[#org-radiobutton][Org radiobutton]]
+    - [[#radio-buttons][Radio buttons]]
     - [[#org-links][Org Links]]
     - [[#org-id][Org ID]]
   - [[#org-coding][Org Coding]]
@@ -181,6 +180,7 @@
     - [[#org-download][Org Download]]
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
+  - [[#scimax][Scimax]]
 - [[#appearance][Appearance]]
   - [[#theme][Theme]]
     - [[#custom-theme-settings][Custom Theme Settings]]
@@ -232,10 +232,9 @@
   - [[#browsing][Browsing]]
     - [[#keymap][Keymap]]
     - [[#browse-url][Browse url]]
-    - [[#browser-utilities-on-macos][Browser utilities on macOS]]
-    - [[#google-search][Google search]]
+    - [[#google-this][Google this]]
     - [[#search-web][Search Web]]
-    - [[#xwidget-webkit][xwidget webkit]]
+    - [[#xwidget][Xwidget]]
     - [[#set-default-browser][Set default browser]]
     - [[#engine-mode][Engine Mode]]
   - [[#email][Email]]
@@ -256,15 +255,16 @@
   - [[#olivetti][Olivetti]]
   - [[#writeroom][Writeroom]]
 - [[#code][Code]]
-  - [[#lsp][LSP]]
-    - [[#lsp-mode][LSP Mode]]
-    - [[#lsp-ui-mode][LSP UI Mode]]
-    - [[#company-lsp][Company LSP]]
-    - [[#dap-mode][Dap Mode]]
+  - [[#language-server-protocol][Language server protocol]]
+    - [[#lsp-mode][lsp mode]]
+    - [[#lsp-ui][lsp ui]]
+    - [[#company-lsp][company lsp]]
+    - [[#dap-mode][dap mode]]
   - [[#flycheck][Flycheck]]
   - [[#code-style][Code Style]]
-    - [[#default][Default]]
-    - [[#code-folding][Code Folding]]
+    - [[#disable-tabs][Disable tabs]]
+    - [[#line-numbers][Line numbers]]
+    - [[#folding][Folding]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
     - [[#code-formatting][Code Formatting]]
@@ -272,7 +272,7 @@
   - [[#pair-matching][Pair Matching]]
     - [[#paredit][Paredit]]
     - [[#smartparens][Smartparens]]
-    - [[#rainbow-delimiters][Rainbow Delimiters]]
+    - [[#rainbow-delimiters][rainbow delimiters]]
     - [[#parinfer][Parinfer]]
     - [[#gtags][Gtags]]
   - [[#version-control][Version Control]]
@@ -283,7 +283,7 @@
     - [[#ecloud][ecloud]]
     - [[#docker][Docker]]
     - [[#aws][AWS]]
-  - [[#prog-utils][Prog Utils]]
+  - [[#coding-misc][Coding misc]]
     - [[#wakatime][wakatime]]
     - [[#logging][Logging]]
     - [[#floobits][floobits]]
@@ -308,8 +308,6 @@
     - [[#applescript][Applescript]]
     - [[#racket][Racket]]
     - [[#yaml][Yaml]]
-- [[#misc][Misc]]
-  - [[#scimax][Scimax]]
 - [[#footnotes][Footnotes]]
 
 * Emacs
@@ -5008,6 +5006,8 @@ entry types and required fields."
   (org-ref-bibtex-hydra-key-binding "\C-cj")
 
   :init
+  (require 'helm)
+
   ;; https://github.com/jkitchin/org-ref/issues/428
   (progn
     (require 'doi-utils)
@@ -5064,12 +5064,10 @@ Optional argument ARG Does nothing."
     :face 'org-ref-ref-face-fn
     :help-echo #'org-ref-ref-help-echo)
 
-
   (setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
                             "autoref" "cref" "Cref" "vref" "algref"))
 
   ;; Org Ref PDF
-
   (defun org-ref-open-pdf-at-point ()
     "Open the pdf for bibtex key under point if it exists."
     (interactive)
@@ -5082,15 +5080,15 @@ Optional argument ARG Does nothing."
 
   (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
 
-
   (defun goto-org-ref-manual (&optional path)
+    "Display the `org-ref' documentation."
     (interactive)
     (unless path
       (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
     (find-file path)))
 #+END_SRC
 
-*** VIewing PDFs
+*** PDFs
 **** PDF Tools
 
 [[https://github.com/politza/pdf-tools][PDF Tools]] adds several features and enhancements for interacting with
@@ -5105,6 +5103,8 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward)
+              ;; PDF View annotions
+              ("+"   . pdf-view-enlarge)
               ("h"   . pdf-annot-add-highlight-markup-annotation)
               ("t"   . pdf-annot-add-text-annotation)
               ("D"   . pdf-annot-delete))
@@ -5112,8 +5112,9 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   (pdf-tools-install)
   :config
   (setq-default pdf-view-display-size 'fit-page)
-  (setq pdf-annot-activate-created-annotations t
-        pdf-view-resize-factor 1))
+  :custom
+  (pdf-annot-activate-created-annotations t)
+  (pdf-view-resize-factor 2))
 #+END_SRC
 
 **** Org PDF View
@@ -5125,14 +5126,14 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
 (use-package org-pdfview
   :after (:all pdf-tools)
   :demand t
-  :config
-  (progn
-    (add-hook 'org-mode-hook
-              (lambda ()
-                (add-to-list 'org-file-apps
-                             '("\\.pdf\\'" .
-                               (lambda (file link)
-                                 (org-pdfview-open link))))))))
+  :init
+  (defun ofa/pdf-open ()
+    "Open Org mode links to pdf files in Emacs rather than the
+system viewer."
+    (add-to-list 'org-file-apps
+                 '("\\.pdf\\'" . (lambda (file link) (org-pdfview-open link)))))
+  :hook
+  (org-mode . ofa/pdf-open))
 #+END_SRC
 
 ** Org Structure
@@ -5161,7 +5162,7 @@ Now we can open pdf files with =org-pdfview= [fn:12]:
   :after (:all outshine))
 #+END_SRC
 
-**** foldout.el
+**** foldout
 :PROPERTIES:
 :ID:       7A037F3A-7569-44C4-858A-B298381AC21D
 :END:
@@ -5186,7 +5187,7 @@ instead of ~outline-show-entry~.
       (foldout-zoom-subtree exposure)))
 #+END_SRC
 
-*** Org Outline Numbering
+**** Numbering
 
 #+NAME: org-ui-outline-numbering
 #+BEGIN_SRC emacs-lisp
@@ -5200,7 +5201,7 @@ instead of ~outline-show-entry~.
 
 #+END_SRC
 
-*** Org radiobutton
+*** Radio buttons
 :PROPERTIES:
 :ID:       EA7D1F8C-6A3E-4154-B1ED-581F8B5446C3
 :END:
@@ -5219,7 +5220,7 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 #+END_SRC
 
 *** Org Links :structure:
-**** Add Tags Link
+**** Tag links
 
 #+NAME: org-links-tags
 #+BEGIN_SRC emacs-lisp
@@ -5236,15 +5237,14 @@ With prefix argument, also display headlines without a TODO keyword."
 
 #+NAME: org-links-elisp-help
 #+BEGIN_SRC emacs-lisp
-(use-package org-elisp-help
-  :straight t)
+(use-package org-elisp-help)
 #+END_SRC
 
-**** Org YouTube
+**** YouTube links
 
 From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
 
-Embed YouTube Links in iframe.
+Embed YouTube Links in =iframe=.
 
 #+NAME: org-links-youtube
 #+BEGIN_SRC emacs-lisp
@@ -5266,7 +5266,7 @@ Embed YouTube Links in iframe.
 
 #+END_SRC
 
-**** Org Link Minor Mode
+**** org link minor mode
 
 #+NAME: org-links-minor
 #+BEGIN_SRC emacs-lisp
@@ -5274,7 +5274,7 @@ Embed YouTube Links in iframe.
   :hook (prog-mode . org-link-minor-mode))
 #+END_SRC
 
-**** Org Latex Links
+**** Latex links
 
 #+NAME: org-links-latex
 #+BEGIN_SRC emacs-lisp
@@ -5292,15 +5292,13 @@ Embed YouTube Links in iframe.
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
 #+END_SRC
 
-**** Devonthink links
+**** Devonthink
 
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-devonthink
   :straight nil
   :load-path "etc/local/org-devonthink")
-
 #+END_SRC
-
 
 **** Org Bookmark Heading
 
@@ -5343,32 +5341,6 @@ Embed YouTube Links in iframe.
                         (buffer-name)
                         (- (point) 3)))))
             (goto-char end))))))
-#+END_SRC
-
-**** Hyperlink extraction
-:PROPERTIES:
-:ID:       D2FDF2BE-E489-4D6E-8955-F61B7E4AA487
-:END:
-
-#+NAME: org-hacks-extract-hyperlink
-#+BEGIN_SRC emacs-lisp
-
-  (defun org-extract-link ()
-    "Extract the link location at point and put it on the killring."
-    (interactive)
-    (when (org-in-regexp org-bracket-link-regexp 1)
-      (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
-
-
-(defun browse-url-extract-org-link (orig-fun &rest args)
-  "If `thing-at-point' is a org-link, then call `org-extract-link'
-  and apply ORIG-FUN with the extracted url in the car of original ARGS."
-  (when (and (eq major-mode 'org-mode)
-               (string= (car (org-thing-at-point)) "link"))
-    (setcar args (org-extract-link)))
-  (apply orig-fun args))
-
-(advice-add 'osx-browse-url :around #'browse-url-extract-org-link)
 #+END_SRC
 
 *** Org ID :structure:
@@ -6446,6 +6418,7 @@ recursively processing #+INCLUDEs."
    :type git
    :host github
    :repo "linktohack/ox-latex-subfigure")
+  :init  (setq org-latex-prefer-user-labels t)
   :config
   (require 'ox-latex-subfigure)
   (add-to-list 'org-latex-packages-alist (("" "subcaption" nil))))
@@ -7079,6 +7052,220 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-preview-html)
+#+END_SRC
+
+** Scimax
+
+#+NAME: research/scimax
+#+BEGIN_SRC emacs-lisp
+(use-package scimax
+  :straight nil
+  :if (file-directory-p (emacs-etc-dir "local" "scimax"))
+  :custom
+  (scimax-dir (emacs-etc-dir "local" "scimax"))
+  (scimax-snippet-dir (car yas-snippet-dirs))
+  :load-path "etc/local/scimax"
+  :init
+  (setq ore-user-directory (emacs-etc-dir "ore"))
+  (require 'scimax-ivy)
+  (require 'scimax-latex)
+  (require 'scimax-utils)
+  (require 'scimax-yas)
+  (require 'scimax-link-thumbnails)
+  (require 'ore)
+  (require 'ox-word))
+
+;; copied from scimax
+;; * Fragment overlays
+(defun org-latex-fragment-tooltip (beg end image imagetype)
+  "Add the fragment tooltip to the overlay and set click function to toggle it."
+  (overlay-put (ov-at) 'help-echo
+	       (concat (buffer-substring beg end)
+		       "\nmouse-1 to toggle."))
+  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
+				    (define-key map [mouse-1]
+				      `(lambda ()
+					 (interactive)
+					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
+				    map)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
+
+(defun org-latex-fragment-justify (justification)
+  "Justify the latex fragment at point with JUSTIFICATION.
+JUSTIFICATION is a symbol for 'left, 'center or 'right."
+  (interactive
+   (list (intern-soft
+          (completing-read "Justification (left): " '(left center right)
+                           nil 'require-match))))
+
+  (let* ((ov (ov-at))
+	 (beg (ov-beg ov))
+	 (end (ov-end ov))
+	 (shift (- beg (line-beginning-position)))
+	 (img (overlay-get ov 'display))
+	 (img (and (and img (consp img) (eq (car img) 'image)
+			(image-type-available-p (plist-get (cdr img) :type)))
+		   img))
+	 space-left offset)
+    (when (and img (= beg (line-beginning-position)))
+      (setq space-left (- (window-max-chars-per-line) (car (image-display-size img)))
+	    offset (floor (cond
+			   ((eq justification 'center)
+			    (- (/ space-left 2) shift))
+			   ((eq justification 'right)
+			    (- space-left shift))
+			   (t
+			    0))))
+      (when (>= offset 0)
+	(overlay-put ov 'before-string (make-string offset ?\ ))))))
+
+(defun org-latex-fragment-justify-advice (beg end image imagetype)
+  "After advice function to justify fragments."
+  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
+
+;; ** numbering latex equations
+(defun org-renumber-environment (orig-func &rest args)
+  "A function to inject numbers in LaTeX fragment previews."
+  (let ((results '())
+	(counter -1)
+	(numberp))
+
+    (setq results (loop for (begin .  env) in
+			(org-element-map (org-element-parse-buffer) 'latex-environment
+			  (lambda (env)
+			    (cons
+			     (org-element-property :begin env)
+			     (org-element-property :value env))))
+			collect
+			(cond
+			 ((and (string-match "\\\\begin{equation}" env)
+			       (not (string-match "\\\\tag{" env)))
+			  (incf counter)
+			  (cons begin counter))
+			 ((string-match "\\\\begin{align}" env)
+			  (prog2
+			      (incf counter)
+			      (cons begin counter)
+			    (with-temp-buffer
+			      (insert env)
+			      (goto-char (point-min))
+			      ;; \\ is used for a new line. Each one leads to a number
+			      (incf counter (count-matches "\\\\$"))
+			      ;; unless there are nonumbers.
+			      (goto-char (point-min))
+			      (decf counter (count-matches "\\nonumber")))))
+			 (t
+			  (cons begin nil)))))
+
+    (when (setq numberp (cdr (assoc (point) results)))
+      (setf (car args)
+	    (concat
+	     (format "\\setcounter{equation}{%s}\n" numberp)
+	     (car args)))))
+
+  (apply orig-func args))
+
+(advice-add 'org-create-formula-image :around #'org-renumber-environment)
+
+
+;; * Markup commands for org-mode
+(loop for (type beginning-marker end-marker)
+      in '((subscript "_{" "}")
+	   (superscript "^{" "}")
+	   (italics "/" "/")
+	   (bold "*" "*")
+	   (verbatim "=" "=")
+	   (code "~" "~")
+	   (underline "_" "_")
+	   (strikethrough "+" "+"))
+      do
+      (eval `(defun ,(intern (format "org-%s-region-or-point" type)) ()
+	       ,(format "%s the region, word or character at point"
+			(upcase (symbol-name type)))
+	       (interactive)
+	       (cond
+		;; We have an active region we want to apply
+		((region-active-p)
+		 (let* ((bounds (list (region-beginning) (region-end)))
+			(start (apply 'min bounds))
+			(end (apply 'max bounds))
+			(lines))
+		   (unless (memq ',type '(subscript superscript))
+		     (save-excursion
+		       (goto-char start)
+		       (unless (looking-at " \\|\\<")
+			 (backward-word)
+			 (setq start (point)))
+		       (goto-char end)
+		       (unless (looking-at " \\|\>")
+			 (forward-word)
+			 (setq end (point)))))
+		   (setq lines
+			 (s-join "\n" (mapcar
+				       (lambda (s)
+					 (if (not (string= (s-trim s) ""))
+					     (concat ,beginning-marker
+						     (s-trim s)
+						     ,end-marker)
+					   s))
+				       (split-string
+					(buffer-substring start end) "\n"))))
+		   (setf (buffer-substring start end) lines)
+		   (forward-char (length lines))))
+		;; We are on a word with no region selected
+		((thing-at-point 'word)
+		 (cond
+		  ;; beginning of a word
+		  ((looking-back " " 1)
+		   (insert ,beginning-marker)
+		   (re-search-forward "\\>")
+		   (insert ,end-marker))
+		  ;; end of a word
+		  ((looking-back "\\>" 1)
+		   (insert ,(concat beginning-marker end-marker))
+		   (backward-char ,(length end-marker)))
+		  ;; not at start or end, so we just sub/sup the character at point
+		  ((memq ',type '(subscript superscript))
+		   (insert ,beginning-marker)
+		   (forward-char ,(- (length beginning-marker) 1))
+		   (insert ,end-marker))
+		  ;; somewhere else in a word, and handled sub/sup. mark up the
+		  ;; whole word.
+		  (t
+		   (re-search-backward "\\<")
+		   (insert ,beginning-marker)
+		   (re-search-forward "\\>")
+		   (insert ,end-marker))))
+		;; not at a word or region, insert markers and put point between
+		;; them.
+		(t
+		 (insert ,(concat beginning-marker end-marker))
+		 (backward-char ,(length end-marker)))))))
+
+(defun org-latex-math-region-or-point (&optional arg)
+  "Wrap the selected region in latex math markup.
+\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
+Or insert those and put point in the middle to add an equation."
+  (interactive "P")
+  (let ((chars
+	 (cond
+	  ((null arg)
+	   '("\\(" . "\\)"))
+	  ((equal arg '(4))
+	   '("$" . "$"))
+	  ((equal arg '(16))
+	   '("@@latex:" . "@@")))))
+    (if (region-active-p)
+	(progn
+	  (goto-char (region-end))
+	  (insert (cdr chars))
+	  (goto-char (region-beginning))
+	  (insert (car chars)))
+      (insert (concat  (car chars) (cdr chars)))
+      (backward-char (length (cdr chars))))))
 #+END_SRC
 
 * Appearance
@@ -7884,7 +8071,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
       (eyeliner/install)))
 
 #+END_SRC
-
 * Web
 ** Libraries
 *** Simple httpd
@@ -7961,7 +8147,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+END_SRC
 
-*** Browser utilities on macOS
+**** osx browse url
 
 The =osx-browse= library provides several useful commands for using the
 Google Chrome, Safari, and Firefox web browsers on macOS.
@@ -7971,13 +8157,27 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 (use-package osx-browse
   :if (eq system-type 'darwin)
   :defines (osx-browse-mode osx-browse-mode-map)
-  :demand t
   :init
-  (progn
-    (osx-browse-mode 1)))
+  (osx-browse-mode 1)
+  :config
+  (defun org-extract-link ()
+    "Extract the link location at point and put it on the killring."
+    (interactive)
+    (when (org-in-regexp org-bracket-link-regexp 1)
+      (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
+
+  (defun browse-url-extract-org-link (orig-fun &rest args)
+    "If `thing-at-point' is a org-link, then call `org-extract-link'
+  and apply ORIG-FUN with the extracted url in the car of original ARGS."
+  (when (and (eq major-mode 'org-mode)
+             (string= (car (org-thing-at-point)) "link"))
+    (setcar args (org-extract-link)))
+  (apply orig-fun args))
+
+  (advice-add 'osx-browse-url :around #'browse-url-extract-org-link))
 #+END_SRC
 
-*** Google search
+*** Google this
 
 #+NAME: browser/google
 #+BEGIN_SRC emacs-lisp
@@ -7995,11 +8195,12 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 
 #+NAME: browser/search
 #+BEGIN_SRC emacs-lisp
-  (use-package search-web)
+(use-package search-web)
 #+END_SRC
 
-*** xwidget webkit
+*** Xwidget
 
+A fully-featured GUI web browser inside Emacs.
 
 #+BEGIN_SRC emacs-lisp
 (use-package xwidget
@@ -8065,14 +8266,13 @@ Interactively.
         ("eww" . eww-browse-url)
         ("xwidget-webkit" . xwidget-webkit-browse-url)))
 
-(if (eq system-type 'darwin)
-    (progn
-      (setf (cdr (assoc "chrome" browse-url-browser-alist))
+(when (eq system-type 'darwin)
+    (setf (cdr (assoc "chrome" browse-url-browser-alist))
             #'osx-browse-url-chrome)
-      (setf (cdr (assoc "firefox" browse-url-browser-alist))
-            #'osx-browse-url-firefox)
-      (add-to-list 'browse-url-browser-alist
-                   '("safari" . osx-browse-url-safari))))
+    (setf (cdr (assoc "firefox" browse-url-browser-alist))
+          #'osx-browse-url-firefox)
+    (add-to-list 'browse-url-browser-alist
+                 '("safari" . osx-browse-url-safari)))
 
 (defun set-browser-function (browser)
   "Interactively set the browser used by `browse-url'. "
@@ -8195,19 +8395,19 @@ Interactively.
     :docstring "Search Youtube")
 
   (which-key-add-key-based-replacements
-    "M-m b"     "🌍 Browse"
-    "M-m b e"   "🔎 Web Engine"
-    "M-m b e y"  " Youtube"
-    "M-m b e p"  " Proquest"
-    "M-m b e g"  " GitHub"
+    "M-m b"        "🌍 Browse"
+    "M-m b e"      "🔎 Web Engine"
+    "M-m b e y"    " Youtube"
+    "M-m b e p"    " Proquest"
+    "M-m b e g"    " GitHub"
     "M-m b e G g"  " Google"
-    "M-m b e a"  " Wolfram"
-    "M-m b e w"  " Wikipedia"
-    "M-m b e s"  " Stack Overflow"
-    "M-m b e W"   " Worldcat"
-    "M-m b e c"   " CTan"
-    "M-m b e G"   " Google"
-    "M-m b e G i" " Images"
+    "M-m b e a"    " Wolfram"
+    "M-m b e w"    " Wikipedia"
+    "M-m b e s"    " Stack Overflow"
+    "M-m b e W"    " Worldcat"
+    "M-m b e c"    " CTan"
+    "M-m b e G"    " Google"
+    "M-m b e G i"  "Images"
     "M-m b e G b"  " Bookmarks"
     "M-m b e G m"  " Maps"
     "M-m b e G s"  " Scholar"))
@@ -8641,8 +8841,8 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 #+END_SRC
 
 * Code
-** LSP
-*** LSP Mode
+** Language server protocol
+*** lsp mode
 
 #+NAME: lsp/mode
 #+BEGIN_SRC emacs-lisp
@@ -8656,7 +8856,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
   (lsp-after-open . lsp-enable-imenu))
 #+END_SRC
 
-*** LSP UI Mode
+*** lsp ui
 
 #+NAME: lsp/ui
 #+BEGIN_SRC emacs-lisp
@@ -8670,7 +8870,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
         ([remap xref-find-references]  . lsp-ui-peek-find-references)))
 #+END_SRC
 
-*** Company LSP
+*** company lsp
 
 #+NAME: lsp/company
 #+BEGIN_SRC emacs-lisp
@@ -8685,7 +8885,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
     (company-lsp-cache-candidates nil))
 #+END_SRC
 
-*** Dap Mode
+*** dap mode
 :PROPERTIES:
 :ID:       EEB674B8-A1AA-4965-834F-0550F5FBF4A7
 :END:
@@ -8705,42 +8905,41 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 #+NAME: flycheck-spec
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
-      :custom
-      (flycheck-global-modes nil)
-      (flycheck-disabled-checkers '(emacs-lisp-checkdoc))
-      (flycheck-emacs-lisp-load-path 'inherit)
-      :init
-      (defun dotemacs/flycheck-enable (mode)
-        "Use flycheck in MODE."
-        (push mode flycheck-global-modes))
+    :custom
+    (flycheck-global-modes nil)
+    (flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+    (flycheck-emacs-lisp-load-path 'inherit)
+    :init
+    (defun dotemacs/flycheck-enable (mode)
+      "Use flycheck in MODE."
+      (push mode flycheck-global-modes))
 
-      (defun dotemacs/flycheck-enable-hook ()
-        "Enable Flycheck as a hook."
-        (when (fboundp 'flycheck-mode)
-          (flycheck-mode +1)))
+    (defun dotemacs/flycheck-enable-hook ()
+      "Enable Flycheck as a hook."
+      (when (fboundp 'flycheck-mode)
+        (flycheck-mode +1)))
 
-      (defun dotemacs/toggle-flycheck-error-list ()
-        "Toggle flycheck's error list window.
-  If the error list is visible, hide the window.
-  Else display the buffer."
-        (interactive)
-        (-if-let (window (flycheck-get-error-list-window))
-            (quit-window nil window)
-          (flycheck-list-errors)))
+    (defun dotemacs/toggle-flycheck-error-list ()
+      "Toggle flycheck's error list window.
+If the error list is visible, hide the window, else
+display the buffer."
+      (interactive)
+      (-if-let (window (flycheck-get-error-list-window))
+          (quit-window nil window)
+        (flycheck-list-errors)))
 
-      (defun dotemacs/goto-flycheck-error-list ()
-        "Open and go to the error list buffer."
-        (interactive)
-        (unless (get-buffer-window
-                 (get-buffer flycheck-error-list-buffer))
-          (flycheck-list-errors)
-          (switch-to-buffer-other-window
-           flycheck-error-list-buffer))))
+    (defun dotemacs/goto-flycheck-error-list ()
+      "Open and go to the error list buffer."
+      (interactive)
+      (unless (get-buffer-window
+               (get-buffer flycheck-error-list-buffer))
+        (flycheck-list-errors)
+        (switch-to-buffer-other-window
+         flycheck-error-list-buffer))))
 #+END_SRC
 
 ** Code Style
-*** Default
-**** Disable tabs
+*** Disable tabs
 
 #+NAME: default/notabs
 #+BEGIN_SRC emacs-lisp
@@ -8748,7 +8947,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
               indent-tabs-mode nil)
 #+END_SRC
 
-**** Display Line Numbers
+*** Line numbers
 
 #+NAME: default/linenos
 #+BEGIN_SRC emacs-lisp
@@ -8758,7 +8957,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 
 #+END_SRC
 
-*** Code Folding
+*** Folding
 **** Vimish fold
 
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -8775,16 +8974,17 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
   :straight nil)
 #+END_SRC
 
-**** Hide show visual
+***** Hide show visual
 
 
 #+BEGIN_SRC emacs-lisp
 (use-package hideshowvis
   :init
+
   (defface dotemacs-folded-face
       `((((background light)) :background ,(plist-get dotemacs-theme-colors :base00))
         (((background dark)) :background ,(plist-get dotemacs-theme-colors :base03)))
-    "Face to highlight `hideshow' overlays.")
+      "Face to highlight `hideshow' overlays.")
 
   (setq hs-set-up-overlay
         (lambda (ov)
@@ -8797,16 +8997,18 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
                                  'empty-line
                                  'vimish-fold-fringe))))
             (overlay-put
-             ov 'display (propertize " [...] " 'face 'dotemacs-folded-face)))))
+             ov 'display
+             (propertize" [...] " 'face 'dotemacs-folded-face)))))
 
   (defun hideshowvis/enable ()
     (hideshowvis-minor-mode 1))
+
   :hook
   (prog-mode . hideshowvis/enable))
 
 #+END_SRC
 
-**** Org Hideshow
+***** Org Hideshow
 
 #+BEGIN_SRC emacs-lisp
 (use-package hideshow-org
@@ -8851,6 +9053,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 #+END_SRC
 
 **** Format all
+
 #+NAME: tools-code-format
 #+BEGIN_SRC emacs-lisp
 (use-package format-all)
@@ -8956,7 +9159,7 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
            '(:add (smartparens-pair-newline-and-indent "RET"))))
 #+END_SRC
 
-*** Rainbow Delimiters
+*** rainbow delimiters
 
 #+NAME: pair/rainbow
 #+BEGIN_SRC emacs-lisp
@@ -8965,9 +9168,8 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 
 *** Parinfer
 
-Disabling for now.
-
 #+BEGIN_SRC emacs-lisp
+
 (use-package parinfer
   :bind
   (("C-," . parinfer-toggle-mode))
@@ -9288,7 +9490,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
     (autoload 'ec2-get-console "aws")))
 #+END_SRC
 
-** Prog Utils
+** Coding misc
 *** wakatime
 
 Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatime]].
@@ -9310,14 +9512,14 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 #+END_SRC
 
 *** Logging
-**** Log view
+**** logview mode
 
 #+NAME: logview
 #+BEGIN_SRC emacs-lisp
 (use-package logview)
 #+END_SRC
 
-**** Log nav
+**** lognav mode
 
 #+NAME: lognav
 #+BEGIN_SRC emacs-lisp
@@ -9325,6 +9527,8 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 #+END_SRC
 
 *** floobits
+
+Pair programming.
 
 #+BEGIN_SRC emacs-lisp
 (use-package floobits
@@ -9548,6 +9752,8 @@ Configuration for common-lisp.
         (paredit-mode +1))
     (if (fboundp 'highlight-symbol-mode)
         (highlight-symbol-mode +1))
+    (when (require 'rainbow-delimiters nil t)
+      (rainbow-delimiters-mode +1))
     (if (eq system-type 'darwin)
         (setq-local dash-plugin-keywords '("lisp"))))
   :hook
@@ -9564,6 +9770,9 @@ Configuration for common-lisp.
   :defines
   (slime-complete-symbol*-fancy
    slime-completion-at-point-functions)
+  :bind
+  (:map slime-mode-map
+        ("C-c b" . slime-eval-buffer))
   :init
   (setq slime-contribs
         '(slime-fancy slime-indentation slime-scratch)
@@ -10758,226 +10967,9 @@ Mode for editing Homebrew formula.
 
 #+NAME: lang/yaml
 #+BEGIN_SRC emacs-lisp
-
 (use-package yaml-mode
     :mode (("\\.yml\\'" . yaml-mode)
            (".clang-tidy\\'" . yaml-mode)))
-
-#+END_SRC
-
-* Misc
-** Scimax
-
-#+NAME: research/scimax
-#+BEGIN_SRC emacs-lisp
-(use-package scimax
-  :straight nil
-  :if (file-directory-p (emacs-etc-dir "local" "scimax"))
-  :custom
-  (scimax-dir (emacs-etc-dir "local" "scimax"))
-  (scimax-snippet-dir (car yas-snippet-dirs))
-  :load-path "etc/local/scimax"
-  :init
-  (setq ore-user-directory (emacs-etc-dir "ore"))
-  (require 'scimax-ivy)
-  (require 'scimax-latex)
-  (require 'scimax-utils)
-  (require 'scimax-yas)
-  (require 'scimax-link-thumbnails)
-  (require 'ore)
-  (require 'ox-word))
-
-;; copied from scimax
-;; * Fragment overlays
-(defun org-latex-fragment-tooltip (beg end image imagetype)
-  "Add the fragment tooltip to the overlay and set click function to toggle it."
-  (overlay-put (ov-at) 'help-echo
-	       (concat (buffer-substring beg end)
-		       "\nmouse-1 to toggle."))
-  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
-				    (define-key map [mouse-1]
-				      `(lambda ()
-					 (interactive)
-					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
-				    map)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
-
-(defun org-latex-fragment-justify (justification)
-  "Justify the latex fragment at point with JUSTIFICATION.
-JUSTIFICATION is a symbol for 'left, 'center or 'right."
-  (interactive
-   (list (intern-soft
-          (completing-read "Justification (left): " '(left center right)
-                           nil 'require-match))))
-
-  (let* ((ov (ov-at))
-	 (beg (ov-beg ov))
-	 (end (ov-end ov))
-	 (shift (- beg (line-beginning-position)))
-	 (img (overlay-get ov 'display))
-	 (img (and (and img (consp img) (eq (car img) 'image)
-			(image-type-available-p (plist-get (cdr img) :type)))
-		   img))
-	 space-left offset)
-    (when (and img (= beg (line-beginning-position)))
-      (setq space-left (- (window-max-chars-per-line) (car (image-display-size img)))
-	    offset (floor (cond
-			   ((eq justification 'center)
-			    (- (/ space-left 2) shift))
-			   ((eq justification 'right)
-			    (- space-left shift))
-			   (t
-			    0))))
-      (when (>= offset 0)
-	(overlay-put ov 'before-string (make-string offset ?\ ))))))
-
-(defun org-latex-fragment-justify-advice (beg end image imagetype)
-  "After advice function to justify fragments."
-  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
-
-;; ** numbering latex equations
-(defun org-renumber-environment (orig-func &rest args)
-  "A function to inject numbers in LaTeX fragment previews."
-  (let ((results '())
-	(counter -1)
-	(numberp))
-
-    (setq results (loop for (begin .  env) in
-			(org-element-map (org-element-parse-buffer) 'latex-environment
-			  (lambda (env)
-			    (cons
-			     (org-element-property :begin env)
-			     (org-element-property :value env))))
-			collect
-			(cond
-			 ((and (string-match "\\\\begin{equation}" env)
-			       (not (string-match "\\\\tag{" env)))
-			  (incf counter)
-			  (cons begin counter))
-			 ((string-match "\\\\begin{align}" env)
-			  (prog2
-			      (incf counter)
-			      (cons begin counter)
-			    (with-temp-buffer
-			      (insert env)
-			      (goto-char (point-min))
-			      ;; \\ is used for a new line. Each one leads to a number
-			      (incf counter (count-matches "\\\\$"))
-			      ;; unless there are nonumbers.
-			      (goto-char (point-min))
-			      (decf counter (count-matches "\\nonumber")))))
-			 (t
-			  (cons begin nil)))))
-
-    (when (setq numberp (cdr (assoc (point) results)))
-      (setf (car args)
-	    (concat
-	     (format "\\setcounter{equation}{%s}\n" numberp)
-	     (car args)))))
-
-  (apply orig-func args))
-
-(advice-add 'org-create-formula-image :around #'org-renumber-environment)
-
-
-;; * Markup commands for org-mode
-(loop for (type beginning-marker end-marker)
-      in '((subscript "_{" "}")
-	   (superscript "^{" "}")
-	   (italics "/" "/")
-	   (bold "*" "*")
-	   (verbatim "=" "=")
-	   (code "~" "~")
-	   (underline "_" "_")
-	   (strikethrough "+" "+"))
-      do
-      (eval `(defun ,(intern (format "org-%s-region-or-point" type)) ()
-	       ,(format "%s the region, word or character at point"
-			(upcase (symbol-name type)))
-	       (interactive)
-	       (cond
-		;; We have an active region we want to apply
-		((region-active-p)
-		 (let* ((bounds (list (region-beginning) (region-end)))
-			(start (apply 'min bounds))
-			(end (apply 'max bounds))
-			(lines))
-		   (unless (memq ',type '(subscript superscript))
-		     (save-excursion
-		       (goto-char start)
-		       (unless (looking-at " \\|\\<")
-			 (backward-word)
-			 (setq start (point)))
-		       (goto-char end)
-		       (unless (looking-at " \\|\>")
-			 (forward-word)
-			 (setq end (point)))))
-		   (setq lines
-			 (s-join "\n" (mapcar
-				       (lambda (s)
-					 (if (not (string= (s-trim s) ""))
-					     (concat ,beginning-marker
-						     (s-trim s)
-						     ,end-marker)
-					   s))
-				       (split-string
-					(buffer-substring start end) "\n"))))
-		   (setf (buffer-substring start end) lines)
-		   (forward-char (length lines))))
-		;; We are on a word with no region selected
-		((thing-at-point 'word)
-		 (cond
-		  ;; beginning of a word
-		  ((looking-back " " 1)
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))
-		  ;; end of a word
-		  ((looking-back "\\>" 1)
-		   (insert ,(concat beginning-marker end-marker))
-		   (backward-char ,(length end-marker)))
-		  ;; not at start or end, so we just sub/sup the character at point
-		  ((memq ',type '(subscript superscript))
-		   (insert ,beginning-marker)
-		   (forward-char ,(- (length beginning-marker) 1))
-		   (insert ,end-marker))
-		  ;; somewhere else in a word, and handled sub/sup. mark up the
-		  ;; whole word.
-		  (t
-		   (re-search-backward "\\<")
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))))
-		;; not at a word or region, insert markers and put point between
-		;; them.
-		(t
-		 (insert ,(concat beginning-marker end-marker))
-		 (backward-char ,(length end-marker)))))))
-
-(defun org-latex-math-region-or-point (&optional arg)
-  "Wrap the selected region in latex math markup.
-\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
-Or insert those and put point in the middle to add an equation."
-  (interactive "P")
-  (let ((chars
-	 (cond
-	  ((null arg)
-	   '("\\(" . "\\)"))
-	  ((equal arg '(4))
-	   '("$" . "$"))
-	  ((equal arg '(16))
-	   '("@@latex:" . "@@")))))
-    (if (region-active-p)
-	(progn
-	  (goto-char (region-end))
-	  (insert (cdr chars))
-	  (goto-char (region-beginning))
-	  (insert (car chars)))
-      (insert (concat  (car chars) (cdr chars)))
-      (backward-char (length (cdr chars))))))
 #+END_SRC
 
 * Footnotes
