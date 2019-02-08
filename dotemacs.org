@@ -23,6 +23,7 @@
   - [[#package-manager][Package Manager]]
     - [[#goto-local-package-repository][Goto local package repository]]
     - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
+    - [[#straight-ivy-actions][straight ivy actions]]
   - [[#security][Security]]
     - [[#network-security][Network security]]
     - [[#encryption][Encryption]]
@@ -31,7 +32,6 @@
     - [[#hydra][Hydra]]
     - [[#which-key][Which Key]]
     - [[#speed-type][Speed Type]]
-    - [[#counsel-straight][Counsel straight]]
   - [[#system][System]]
     - [[#exec-path-from-shell][Exec Path From Shell]]
     - [[#system-packages][System Packages]]
@@ -204,7 +204,7 @@
     - [[#pretty-outlines][Pretty Outlines]]
   - [[#fonts][Fonts]]
     - [[#dont-use-default-font-for-symbols][Don't use default font for symbols]]
-    - [[#default-text-scale][default text scale]]
+    - [[#default-text-scale][Default Text Scale]]
     - [[#default-font][Default font]]
     - [[#variable-pitch][Variable Pitch]]
     - [[#serif][Serif]]
@@ -262,12 +262,12 @@
     - [[#dap-mode][dap mode]]
   - [[#flycheck][Flycheck]]
   - [[#code-style][Code Style]]
-    - [[#disable-tabs][Disable tabs]]
+    - [[#tabs][Tabs]]
     - [[#line-numbers][Line numbers]]
     - [[#folding][Folding]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
-    - [[#code-formatting][Code Formatting]]
+    - [[#formatting][Formatting]]
   - [[#eldoc][Eldoc]]
   - [[#pair-matching][Pair Matching]]
     - [[#paredit][Paredit]]
@@ -276,7 +276,7 @@
     - [[#parinfer][Parinfer]]
     - [[#gtags][Gtags]]
   - [[#version-control][Version Control]]
-    - [[#ediff][Ediff]]
+    - [[#diffs][Diffs]]
     - [[#git][Git]]
     - [[#mercurial][Mercurial]]
   - [[#cloud][Cloud]]
@@ -1073,6 +1073,44 @@ interactive minibuffer completion menu using ivy.
 (defun straight-installed-p (pkg)
   (member (symbol-name pkg) (straight-installed-packages)))
 
+
+(defun straight-browse-local-strategy (build-dir dir package)
+  (lexical-let (pkg-directory pkg-file)
+    (condition-case nil
+        (if (and build-dir
+                 (not (plist-get
+                       (gethash package straight--recipe-cache)
+                       :no-build)))
+            (progn
+              (setq pkg-directory (expand-file-name package dir))
+              (and (file-directory-p pkg-directory)
+                   (dired pkg-directory)))
+          (let ((repo (plist-get
+                                (gethash package straight--recipe-cache)
+                                :local-repo)))
+            (if repo
+                (setq pkg-directory
+                      (expand-file-name
+                       repo
+                       (replace-regexp-in-string "build" "repos" dir))
+                      pkg-file
+                      (car
+                       (directory-files
+                        pkg-directory t
+                        (concat "\\README.*\\'\\|" package ".el"))))
+              (setq pkg-directory
+                    (file-name-directory (locate-library package))
+                    pkg-file
+                    (car
+                     (directory-files
+                      pkg-directory t
+                      (concat package ".el\\(?:.gz\\)")))))
+            (if pkg-file
+                (and (file-exists-p pkg-file)
+                     (find-file pkg-file))
+              (and (file-directory-p pkg-directory)
+                   (dired pkg-directory))))))))
+
 (cl-defun straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
   the build directory for that repository instead."
@@ -1089,41 +1127,7 @@ interactive minibuffer completion menu using ivy.
      pkg-keys
      :action
      (lambda (package)
-       (lexical-let (pkg-directory pkg-file)
-         (condition-case nil
-             (if (and build-dir
-                    (not (plist-get
-                        (gethash package straight--recipe-cache)
-                        :no-build)))
-                 (progn
-                   (setq pkg-directory (expand-file-name package dir))
-                   (and (file-directory-p pkg-directory)
-                      (dired pkg-directory)))
-               (let ((repo (plist-get
-                            (gethash package straight--recipe-cache)
-                            :local-repo)))
-                 (if repo
-                     (setq pkg-directory
-                           (expand-file-name
-                            repo
-                            (replace-regexp-in-string "build" "repos" dir))
-                           pkg-file
-                           (car
-                            (directory-files
-                             pkg-directory t
-                             (concat "\\README.*\\'\\|" package ".el"))))
-                   (setq pkg-directory
-                         (file-name-directory (locate-library package))
-                         pkg-file
-                         (car
-                          (directory-files
-                           pkg-directory t
-                           (concat package ".el\\(?:.gz\\)")))))
-                 (if pkg-file
-                     (and (file-exists-p pkg-file)
-                        (find-file pkg-file))
-                   (and (file-directory-p pkg-directory)
-                      (dired pkg-directory)))))))))))
+       (straight-browse-local-strategy dir package)))))
 
 (define-key goto-map "r" #'straight-browse-local)
 #+END_SRC
@@ -1135,10 +1139,10 @@ interactive minibuffer completion menu using ivy.
   "View a recipe PACKAGE on GitHub."
   (interactive "P")
   (cl-flet ((remote-url (pkg)
-              (let ((recipe (cdr (straight-recipes-retrieve pkg))))
-                (destructuring-bind (repo host)
-                    `(,(plist-get recipe :repo)
-                      ,(plist-get recipe :host))
+                        (let ((recipe (cdr (straight-recipes-retrieve pkg))))
+                          (destructuring-bind (repo host)
+                              `(,(plist-get recipe :repo)
+                                ,(plist-get recipe :host))
                   (if (eq host 'github)
                       (concat "https://github.com/" repo)
                     (message "%s is not a GitHub repository." pkg))))))
@@ -1146,9 +1150,32 @@ interactive minibuffer completion menu using ivy.
                     (completing-read
                      "Which recipe? "
                      (straight-recipes-list straight-recipe-repositories)
-                     nil 'require-match)))
+                     nil 'require-match)
+                  package))
            (url (remote-url (intern pkg))))
       (browse-url url))))
+#+END_SRC
+
+
+*** straight ivy actions
+:PROPERTIES:
+:ID:       49F753CA-D547-42E1-91C6-4E3CB2B3A860
+:END:
+
+#+BEGIN_SRC emacs-lisp
+(defun straight-remote-action (pkg)
+  "Ivy action to view a remote recipe in a browser."
+  (straight-browse-remote pkg))
+
+(defun straight-browse-local-action (pkg)
+  "ivy action to browse installed recipe. "
+  (let ((repo-dir (expand-file-name "straight/repos" user-emacs-directory)))
+    (straight-browse-local-strategy nil repo-dir pkg)))
+
+(with-eval-after-load 'ivy
+  (ivy-set-actions 'straight-use-package
+                   '(("b" straight-browse-local-action "browse local")
+                     ("B" straight-browse-remote-action "browse remote"))))
 #+END_SRC
 
 ** Security
@@ -1349,15 +1376,6 @@ I got the blank-capped [[https://elitekeyboards.com/products.php?sub=pfu_keyboar
 #+NAME: kb-speed-type
 #+BEGIN_SRC emacs-lisp
 (use-package speed-type)
-#+END_SRC
-
-*** Counsel straight
-
-#+BEGIN_SRC emacs-lisp
-(with-eval-after-load 'ivy
-  (ivy-set-actions 'straight-use-package
-                   `(("d" ,(lambda (x) (straight-browse-local x)) "browse local")
-                     ("h" ,(lambda (x) (straight-browse-remote x)) "browse remote"))))
 #+END_SRC
 
 ** System
@@ -7752,7 +7770,8 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 (setq use-default-font-for-symbols nil)
 #+END_SRC
 
-*** default text scale
+*** Default Text Scale
+
 #+BEGIN_SRC emacs-lisp
 (use-package default-text-scale)
 #+END_SRC
@@ -7813,7 +7832,67 @@ From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when 
 
 
 #+BEGIN_SRC emacs-lisp
+(defvar serif-preserve-default-list nil
+  "A list holding the faces that preserve the default family and
+  height when TOGGLE-SERIF is used.")
 
+(setq serif-preserve-default-list
+      '(;; LaTeX markup
+        font-latex-math-face
+        font-latex-sedate-face
+        font-latex-warning-face
+        ;; org markup
+        org-latex-and-related
+        org-meta-line
+        org-verbatim
+        org-block-begin-line
+        ;; syntax highlighting using font-lock
+        font-lock-builtin-face
+        font-lock-comment-delimiter-face
+        font-lock-comment-face
+        font-lock-constant-face
+        font-lock-doc-face
+        font-lock-function-name-face
+        font-lock-keyword-face
+        font-lock-negation-char-face
+        font-lock-preprocessor-face
+        font-lock-regexp-grouping-backslash
+        font-lock-regexp-grouping-construct
+        font-lock-string-face
+        font-lock-type-face
+        font-lock-variable-name-face
+        font-lock-warning-face))
+
+(defun toggle-serif ()
+  "Change the default face of the current buffer to use a serif family."
+  (interactive)
+  (when (display-graphic-p)  ;; this is only for graphical emacs
+    ;; the serif font familiy and height, save the default attributes
+    (let ((serif-fam "Liberation Serif")
+          (serif-height 120)
+          (default-fam (face-attribute 'default :family))
+          (default-height (face-attribute 'default :height)))
+      (if (not (bound-and-true-p default-cookie))
+          (progn (make-local-variable 'default-cookie)
+                 (make-local-variable 'preserve-default-cookies-list)
+                 (setq preserve-default-cookies-list nil)
+                 ;; remap default face to serif
+                 (setq default-cookie
+                       (face-remap-add-relative
+                        'default :family serif-fam :height serif-height))
+                 ;; keep previously defined monospace fonts the same
+                 (dolist (face serif-preserve-default-list)
+                   (add-to-list 'preserve-default-cookies-list
+                                (face-remap-add-relative
+                                 face :family default-fam :height default-height)))
+                 (message "Turned on serif writing font."))
+        ;; undo changes
+        (progn (face-remap-remove-relative default-cookie)
+               (dolist (cookie preserve-default-cookies-list)
+                 (face-remap-remove-relative cookie))
+               (setq default-cookie nil)
+               (setq preserve-default-cookies-list nil)
+               (message "Restored default fonts."))))))
 #+END_SRC
 
 *** Ligatures
@@ -8015,8 +8094,9 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 #+NAME: readview-justify
 #+BEGIN_SRC emacs-lisp
 (use-package justify-kp
-  :straight (:host github
-                   :repo "Fuco1/justify-kp"))
+  :straight (justify-kp
+             :host github
+             :repo "Fuco1/justify-kp"))
 #+END_SRC
 
 ** Modeline
@@ -8054,9 +8134,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 
 #+END_SRC
 
-
 *** Eyeliner
-
 
 #+BEGIN_SRC emacs-lisp
 (use-package eyeliner
@@ -8071,6 +8149,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
       (eyeliner/install)))
 
 #+END_SRC
+
 * Web
 ** Libraries
 *** Simple httpd
@@ -8832,12 +8911,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 
 #+NAME: writing-writeroom
 #+BEGIN_SRC emacs-lisp
-  (use-package writeroom-mode
-    :config
-    (defun dotemacs/writeroom-mode-hook ()
-      (org-toggle-variable-pitch)
-      (auto-fill-mode -1))
-    (add-hook 'writeroom-mode #'dotemacs/writeroom-mode-hook))
+  (use-package writeroom-mode)
 #+END_SRC
 
 * Code
@@ -8939,7 +9013,9 @@ display the buffer."
 #+END_SRC
 
 ** Code Style
-*** Disable tabs
+*** Tabs
+
+🔥
 
 #+NAME: default/notabs
 #+BEGIN_SRC emacs-lisp
@@ -8974,7 +9050,7 @@ display the buffer."
   :straight nil)
 #+END_SRC
 
-***** Hide show visual
+***** hideshow visual
 
 
 #+BEGIN_SRC emacs-lisp
@@ -9008,7 +9084,7 @@ display the buffer."
 
 #+END_SRC
 
-***** Org Hideshow
+***** hideshow org
 
 #+BEGIN_SRC emacs-lisp
 (use-package hideshow-org
@@ -9045,7 +9121,7 @@ display the buffer."
   (java-mode . dotemacs/google-c-style))
 #+END_SRC
 
-*** Code Formatting
+*** Formatting
 **** Electric Operator
 
 #+BEGIN_SRC emacs-lisp
@@ -9203,14 +9279,17 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 #+END_SRC
 
 ** Version Control
-*** Ediff
+*** Diffs
 
-#+NAME: vcs/ediff
+**** ediff
+
 #+BEGIN_SRC emacs-lisp
 (use-package ediff
   :custom
+  ;; Ignore whitespace
   (ediff-diff-options "-w"))
 #+END_SRC
+
 
 *** Git
 **** git modes
@@ -10891,14 +10970,20 @@ Mode for editing Homebrew formula.
              (format
               "open -a 'Marked' %s"
               (shell-quote-argument (buffer-file-name)))))))
-
-      :custom
-      (markdown-command "multimarkdown")
-      (markdown-open-command #'markdown-open-preview)
-      :mode
-      (("README\\.md\\'" . gfm-mode)
-       ("\\.md\\'" . markdown-mode)
-       ("\\.markdown\\'" . markdown-mode)))
+    :init
+    (defun md/visual ()
+      (when (featurep 'visual-fill-column)
+        (visual-fill-column-mode 1)
+        (visual-line-mode 1)))
+    :custom
+    (markdown-command "multimarkdown")
+    (markdown-open-command #'markdown-open-preview)
+    :mode
+    (("README\\.md\\'" . gfm-mode)
+     ("\\.md\\'" . markdown-mode)
+     ("\\.markdown\\'" . markdown-mode))
+    :hook
+    (markdown-mode . md/visual))
 #+END_SRC
 
 **** markdown-mode+
@@ -10937,7 +11022,6 @@ Mode for editing Homebrew formula.
                  :repo "shime/emacs-livedown")
       :custom (livedown-open nil)
       :init
-
       (when (featurep 'xwidget-internal)
         (unless (featurep 'xwidget)
           (require 'xwidget))
