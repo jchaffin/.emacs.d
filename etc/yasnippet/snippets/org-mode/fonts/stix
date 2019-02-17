@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: stix
+# key: stix
+# --
+#+LATEX_CLASS: per-file-class
+#+LATEX_HEADER: \usepackage[utf8x]{inputenc}
+#+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{unicode-math}
+#+LATEX_HEADER_EXTRA: \setmainfont{STIX Two Text
+#+LATEX_HEADER_EXTRA: \setmathfont{STIX Two Math}[StylisticSet=02,StylisticSet=08]
+#+LATEX_HEADER_EXTRA: \setmonofont[Scale=MatchUppercase]{DejaVu Sans Mono}

@@ -1,5 +1,5 @@
 (TeX-add-style-hook
- "uclasem-preview"
+ "uclaling-preview"
  (lambda ()
    (setq TeX-command-extra-options
          "-shell-escape")
@@ -21,7 +21,9 @@
     "adjustbox"
     "tikz"
     "forest"
-    "arcs")
+    "arcs"
+    "vowel"
+    "stoneipa")
    (TeX-add-symbols
     '("objlang" ["argument"] 1)
     '("sem" ["argument"] 1)
@@ -59,6 +61,7 @@
     '("startfn" 0)
     '("denotationbase" 1)
     '("denotation" 1)
+    '("ipa" 1)
     '("tkn" 2)
     "boldcheckmark"
     "extraVskip")

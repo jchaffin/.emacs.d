@@ -117,6 +117,12 @@
     - [[#graphviz][Graphviz]]
     - [[#thesaurus][Thesaurus]]
     - [[#image][Image+]]
+  - [[#media][Media]]
+    - [[#emms][emms]]
+    - [[#org-emms][org emms]]
+    - [[#helm-emms][helm emms]]
+    - [[#bongo][bongo]]
+    - [[#org-player][org player]]
 - [[#org][Org]]
   - [[#org-latex][Org LaTeX]]
     - [[#latex][Latex]]
@@ -181,6 +187,7 @@
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
   - [[#scimax][Scimax]]
+  - [[#ess][ESS]]
 - [[#appearance][Appearance]]
   - [[#theme][Theme]]
     - [[#custom-theme-settings][Custom Theme Settings]]
@@ -221,6 +228,7 @@
   - [[#modeline][Modeline]]
     - [[#spaceline][Spaceline]]
     - [[#eyeliner][Eyeliner]]
+  - [[#scrolling][Scrolling]]
 - [[#web][Web]]
   - [[#libraries][Libraries]]
     - [[#simple-httpd][Simple httpd]]
@@ -283,11 +291,12 @@
     - [[#ecloud][ecloud]]
     - [[#docker][Docker]]
     - [[#aws][AWS]]
-  - [[#coding-misc][Coding misc]]
+  - [[#extras][Extras]]
     - [[#wakatime][wakatime]]
     - [[#logging][Logging]]
     - [[#floobits][floobits]]
     - [[#rmsbolt][rmsbolt]]
+    - [[#unpackaged][unpackaged]]
   - [[#languages][Languages]]
     - [[#assembly][Assembly]]
     - [[#cc][C/C++]]
@@ -297,6 +306,7 @@
     - [[#groovy][Groovy]]
     - [[#java][Java]]
     - [[#javascript][JavaScript]]
+    - [[#lua][Lua]]
     - [[#python][Python]]
     - [[#prolog][Prolog]]
     - [[#ruby][Ruby]]
@@ -1060,7 +1070,7 @@ Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp
-(defun straight-installed-packages ()
+(defun counsel-straight-installed-packages ()
   (--> straight--recipe-cache
        (hash-table-keys it)
        (seq-difference
@@ -1071,10 +1081,10 @@ interactive minibuffer completion menu using ivy.
        (sort it #'string-lessp)))
 
 (defun straight-installed-p (pkg)
-  (member (symbol-name pkg) (straight-installed-packages)))
+  (member (symbol-name pkg) (counsel-straight-installed-packages)))
 
 
-(defun straight-browse-local-strategy (build-dir dir package)
+(defun counsel-straight-browse-local-strategy (build-dir dir package)
   (lexical-let (pkg-directory pkg-file)
     (condition-case nil
         (if (and build-dir
@@ -1111,7 +1121,7 @@ interactive minibuffer completion menu using ivy.
               (and (file-directory-p pkg-directory)
                    (dired pkg-directory))))))))
 
-(cl-defun straight-browse-local (&optional build-dir)
+(cl-defun counsel-straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
   the build directory for that repository instead."
   (interactive "P")
@@ -1121,21 +1131,21 @@ interactive minibuffer completion menu using ivy.
 
                  (msg (format "(%s) Goto recipe: "
                               (upcase-initials (f-base dir))))
-                 (pkg-keys (straight-installed-packages)))
+                 (pkg-keys (counsel-straight-installed-packages)))
     (ivy-read
      msg
      pkg-keys
      :action
      (lambda (package)
-       (straight-browse-local-strategy build-dir dir package)))))
+       (counsel-straight-browse-local-strategy build-dir dir package)))))
 
-(define-key goto-map "r" #'straight-browse-local)
+(define-key goto-map "r" #'counsel-straight-browse-local)
 #+END_SRC
 
 *** Browse straight repository at GitHub
 
 #+BEGIN_SRC emacs-lisp
-(defun straight-browse-remote (&optional package)
+(defun counsel-straight-browse-remote (&optional package)
   "View a recipe PACKAGE on GitHub."
   (interactive "P")
   (cl-flet ((remote-url (pkg)
@@ -1164,17 +1174,18 @@ interactive minibuffer completion menu using ivy.
 #+BEGIN_SRC emacs-lisp
 (defun straight-browse-remote-action (pkg)
   "Ivy action to view a remote recipe in a browser."
-  (straight-browse-remote pkg))
+  (counsel-straight-browse-remote pkg))
 
-(defun straight-browse-local-action (pkg)
+(defun counsel-straight-browse-local-action (pkg)
   "ivy action to browse installed recipe. "
   (let ((repo-dir (expand-file-name "straight/repos" user-emacs-directory)))
-    (straight-browse-local-strategy nil repo-dir pkg)))
+    (counsel-straight-browse-local-strategy nil repo-dir pkg)))
+
 
 (with-eval-after-load 'ivy
   (ivy-set-actions 'straight-use-package
-                   '(("b" straight-browse-local-action "browse local")
-                     ("B" straight-browse-remote-action "browse remote"))))
+                   '(("b" counsel-straight-browse-local-action "browse local")
+                     ("B" counsel-straight-browse-remote-action "browse remote"))))
 #+END_SRC
 
 ** Security
@@ -1308,8 +1319,8 @@ killall gpg-agent
   _b_rowse package local
   _B_rowse package remote
   "
-      ("b" straight-browse-local)
-      ("B" straight-browse-remote)
+      ("b" counsel-straight-browse-local)
+      ("B" counsel-straight-browse-remote)
       ("c" straight-check-all)
       ("C" straight-check-package)
       ("r" straight-rebuild-all)
@@ -1800,10 +1811,13 @@ value of `user-emacs-directory', else go to the`user-init-file'."
            user-init-file))))
   (find-file init-file))
 
-(defun goto-literate ()
+(defun goto-literate (&optional arg)
   "Open the literate Emacs config file."
   (interactive)
-  (find-file dotemacs-user-literate-init-file))
+  (let ((file dotemacs-user-literate-init-file))
+    (if (equal current-prefix-arg '(4))
+        (find-file-literally file)
+      (find-file file))))
 
 (defun goto-tangled-init ()
   "Go to the tangled elisp file."
@@ -3351,13 +3365,9 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 
 *** Ivy
 
-[[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
-as helm.
+[[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein as helm.
 
-It doesn't have the same kind of ecosystem or interopability,
-but its easy to configure, offers a minimalistic interface,
-and is every bit as good of a completion tool as helm is,
-if not better.
+It doesn't have the same kind of ecosystem or interopability, but its easy to configure, offers a minimalistic interface, and is every bit as good of a completion tool as helm is, if not better.
 
 I prefer the default regex matcher, but if you want fuzzy matching as a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
 
@@ -3376,6 +3386,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
      (read-file-name-internal . ivy--regex-fuzzy)
      (t . ivy--regex-ignore-order)))
   (ivy-use-selectable-prompt nil))
+
 #+END_SRC
 
 **** Ivy rtags
@@ -4131,6 +4142,61 @@ school's WLAN.
            ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
+** Media
+*** emms
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package emms
+  :bind*
+  (:map emms-playlist-mode-map
+        ("SPC" . emms-pause))
+  :init
+  (require 'emms-setup)
+  (emms-all)
+  (emms-default-players)
+  ;; add flv and ogv
+  (define-emms-simple-player mplayer '(file url)
+    (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
+                  ".mpeg" ".wmv" ".wma" ".mov" ".avi"
+                  ".divx" ".ogm" ".asf" ".mkv" "http://"
+                  "mms://" ".rm" ".rmvb" ".mp4" ".flac"
+                  ".vob" ".m4a" ".flv" ".ogv" ".pls"))
+    "mplayer" "-slave" "-quiet" "-really-quiet" "-fullscreen"))
+
+#+END_SRC
+
+
+*** org emms
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-emms
+  :init
+  (require 'org-emms))
+#+END_SRC
+
+*** helm emms
+
+#+BEGIN_SRC emacs-lisp
+(use-package helm-emms)
+#+END_SRC
+
+*** bongo
+
+#+BEGIN_SRC emacs-lisp
+(use-package bongo)
+#+END_SRC
+
+*** org player
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-player
+  :straight nil
+  :load-path "etc/local/org-player"
+  :init
+  (require 'org-player))
+#+END_SRC
+
 * Org
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
@@ -4519,9 +4585,9 @@ save.
   (or (org-preview/process-keyword "LATEX_CLASS")
      org-latex-default-class))
 
-(defun org-preview/uclasem-p ()
+(defun org-preview/uclaling-p ()
   (let ((latex-class (org-preview/process-class)))
-    (string= "uclasem" latex-class)))
+    (string= "uclaling" latex-class)))
 
 (defun org-preview/uclacs-p ()
   (let ((latex-class (org-preview/process-class)))
@@ -4583,7 +4649,7 @@ save.
 (defun org-preview-xelatex ()
   (interactive)
   (let ((preview-file
-         (emacs-etc-dir "preview/uclasem-preview.tex")))
+         (emacs-etc-dir "preview/uclaling-preview.tex")))
     (set (make-local-variable 'org-preview-latex-process-alist)
          xelatex-preview-process-alist)
 
@@ -4592,7 +4658,7 @@ save.
            preview-file))
 
     (set (make-local-variable 'org-format-latex-header)
-         (if (org-preview/uclasem-p)
+         (if (org-preview/uclaling-p)
              (read-file-contents preview-file)
            xelatex-preview-header)))
   )
@@ -4665,43 +4731,6 @@ save.
              (concat lualatex-preview-header
                      (read-file-contents preview-file))
            lualatex-preview-header))))
-#+END_SRC
-
-***** Scrolling
-:PROPERTIES:
-:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
-:END:
-****** Scroll to first error on compilation
-
-#+NAME: scroll/compile-error
-#+BEGIN_SRC emacs-lisp
-(setq compilation-scroll-output 'first-error)
-#+END_SRC
-
-****** Smooth Scrolling
-
-#+NAME: scroll/smooth
-#+BEGIN_SRC emacs-lisp
-(use-package smooth-scrolling
-  :init
-  (smooth-scrolling-mode 1)
-  :config
-  (setq scroll-step 1
-        scroll-margin 10
-        next-line-add-newlines nil
-        scroll-preserve-screen-position 1)
-
-  (setq mouse-wheel-follow-mouse 't)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
-#+END_SRC
-
-****** Sublimity Scroll
-
-#+NAME: scroll/subliminity
-#+BEGIN_SRC emacs-lisp
-  (use-package sublimity
-      :init
-    (require 'sublimity-scroll))
 #+END_SRC
 
 **** Dynamic latex previews
@@ -5257,6 +5286,7 @@ With prefix argument, also display headlines without a TODO keyword."
 
 (org-add-link-type
  "tag" 'dotemacs/tag-link)
+
 #+END_SRC
 
 **** Org Elisp Help Links
@@ -5561,6 +5591,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
   :init
   (require 'org-drill))
 #+END_SRC
+
 *** Attach
 
 #+NAME: org-docmgr-attach
@@ -5587,7 +5618,6 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
                    (file+headline ,org-default-notes-file "Inbox")
                    "* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n\nCaptured: %U"))))
 #+END_SRC
-
 
 **** Capture popup frame
 
@@ -5647,21 +5677,19 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                                 (org-agenda-files :maxlevel . 9))))
     (org-todo-keywords
      '((sequence "TODO(t)" "|" "DONE(d)")
-       (sequence "|" "CANCELLED(c)")))
+       (sequence "INCOMPLETE(i)" "|" "CANCELLED(c)")))
     (org-todo-keyword-faces
-     '(("CANCELLED" . (:foreground "yellow"))))
+     '(("CANCELLED" . (:foreground "yellow"))
+       ("INCOMPLETE" . (:foreground "purple1"))))
     :init
-
     (defun goto-agenda-dir ()
       (interactive)
       (dired (agenda-dir)))
-
-
     (define-key goto-map "a" #'goto-agenda-dir)
 
     (setq org-agenda-category-icon-alist
      `(("global"     ,(list "")  nil nil :ascent center)
-       ("Quarter"    ,(list "")   nil nil :ascent center)
+       ("quarter"    ,(list "")   nil nil :ascent center)
        ("LING 165C"  ,(list "𝜆")  nil nil :ascent center)
        ("LING 102"   ,(list "ə")  nil nil :ascent center)
        ("COMSCI 161" ,(list "𝛺") nil nil :ascent center)
@@ -5824,27 +5852,26 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :init
     (defun org-projectile-per-project-function (project-path)
       (let  ((project-agenda-file
-              (--> project-path (split-string it "/" t) nreverse car (concat it ".org"))))
-        (if (file-exists-p
-             ;; org file matches project root name
-             (expand-file-name project-agenda-file project-path)) project-agenda-file "TODOs.org")))
+              (--> project-path (split-string it "/" t) nreverse car
+                 (concat it ".org"))))
+        (if (file-exists-p (expand-file-name project-agenda-file project-path))
+            project-agenda-file "TODOs.org")))
 
     (defvar-local org-default-agenda-file
       (file-truename "~/Dropbox/org/todos/TODOS.org"))
-
     :init
     (defun org-projectile-files-to-agenda ()
       "Add projectile project files to agenda."
       (interactive)
       (cl-flet*
           ((project-agenda-filepath (p)
-                                    (expand-file-name
-                                     (funcall #'org-projectile-per-project-function p) p))
+            (expand-file-name
+             (funcall #'org-projectile-per-project-function p) p))
            (todo-file-p (p)
-                        (file-exists-p (project-agenda-filepath p)))
+            (file-exists-p (project-agenda-filepath p)))
            (build-agenda (ps)
-                         (setq org-agenda-files
-                               (seq-uniq (append org-agenda-files ps)))))
+            (setq org-agenda-files
+                  (seq-uniq (append org-agenda-files ps)))))
 
           (->> projectile-known-projects
              (seq-filter #'todo-file-p)
@@ -5856,6 +5883,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (org-projectile-per-project))
 
 #+END_SRC
+
 
 
 *** Calendar
@@ -6444,10 +6472,11 @@ recursively processing #+INCLUDEs."
    :type git
    :host github
    :repo "linktohack/ox-latex-subfigure")
-  :init  (setq org-latex-prefer-user-labels t)
+  :init
+  (setq org-latex-prefer-user-labels t)
   :config
   (require 'ox-latex-subfigure)
-  (add-to-list 'org-latex-packages-alist (("" "subcaption" nil))))
+  (add-to-list 'org-latex-packages-alist '(("" "subcaption" nil))))
 
 #+END_SRC
 
@@ -6463,7 +6492,7 @@ Allow toggling of minted inclusion in exported header. This might be necessary w
 (setq org-latex-listings 'minted)
 
 (setq org-latex-packages-alist '(("" "booktabs" nil)))
-(setq org-latex-tables-booktabs t)
+(setq org-latex-tables-booktabs nil)
 
 (setq org-latex-minted-options
       '(("mathescape" "true")
@@ -6591,16 +6620,16 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Uclasem
+***** Uclaling
 
-#+NAME: ox-class/uclasem
+#+NAME: ox-class/uclaling
 #+BEGIN_SRC emacs-lisp
 (if (and (executable-find "kpsewhich")
-         (shell-command-to-string "kpsewhich uclasem.cls"))
+         (shell-command-to-string "kpsewhich uclaling.cls"))
 
     (add-to-list 'org-latex-classes
-                 '("uclasem"
-                   "\\documentclass{uclasem}
+                 '("uclaling"
+                   "\\documentclass{uclaling}
                     [NO-DEFAULT-PACKAGES]
                     [EXTRA]"
                    ("\\section{%s}" . "\\section*{%s}")
@@ -7294,6 +7323,14 @@ Or insert those and put point in the middle to add an equation."
       (backward-char (length (cdr chars))))))
 #+END_SRC
 
+** ESS
+
+#+BEGIN_SRC emacs-lisp
+(use-package ess
+  :init
+  (require 'ess-site))
+#+END_SRC
+
 * Appearance
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
@@ -7708,7 +7745,6 @@ the absence of a window system. I'll check for the latter for now.
     "Setup fira code ligatures and icon font sets."
     (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
     (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist)
-
     (pretty-fonts-set-fontsets-for-fira-code)
     (pretty-fonts-set-fontsets
      '(;; All-the-icons fontsets
@@ -7781,7 +7817,9 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 *** Default Text Scale
 
 #+BEGIN_SRC emacs-lisp
-(use-package default-text-scale)
+(use-package default-text-scale
+  :init
+  (default-text-scale-mode 1))
 #+END_SRC
 
 *** Default font
@@ -8156,6 +8194,43 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
       (require 'eyeliner)
       (eyeliner/install)))
 
+#+END_SRC
+
+** Scrolling
+:PROPERTIES:
+:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
+:END:
+**** Scroll to first error on compilation
+
+#+NAME: scroll/compile-error
+#+BEGIN_SRC emacs-lisp
+(setq compilation-scroll-output 'first-error)
+#+END_SRC
+
+**** Smooth Scrolling
+
+#+NAME: scroll/smooth
+#+BEGIN_SRC emacs-lisp
+(use-package smooth-scrolling
+  :init
+  (smooth-scrolling-mode 1)
+  :config
+  (setq scroll-step 1
+        scroll-margin 10
+        next-line-add-newlines nil
+        scroll-preserve-screen-position 1)
+
+  (setq mouse-wheel-follow-mouse 't)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
+#+END_SRC
+
+**** Sublimity Scroll
+
+#+NAME: scroll/subliminity
+#+BEGIN_SRC emacs-lisp
+  (use-package sublimity
+      :init
+    (require 'sublimity-scroll))
 #+END_SRC
 
 * Web
@@ -9577,7 +9652,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
     (autoload 'ec2-get-console "aws")))
 #+END_SRC
 
-** Coding misc
+** Extras
 *** wakatime
 
 Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatime]].
@@ -9627,6 +9702,14 @@ Pair programming.
 
 #+BEGIN_SRC emacs-lisp
 (use-package rmsbolt)
+#+END_SRC
+
+*** unpackaged
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package unpackaged
+  :straight (unpackaged :host github :repo "alphapapa/unpackaged.el"))
 #+END_SRC
 
 ** Languages
@@ -9877,7 +9960,6 @@ Configuration for common-lisp.
 #+END_SRC
 
 *** Clojure
-
 **** Clojure Mode
 :PROPERTIES:
 :ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
@@ -10420,6 +10502,12 @@ process outputp."
                        chromium-program "--remote-debugging-port=9222" ip)))
     :hook
     (js-mode . indium-interaction-mode))
+#+END_SRC
+
+*** Lua
+**** lua mode
+#+BEGIN_SRC emacs-lisp
+(use-package lua-mode)
 #+END_SRC
 
 *** Python
