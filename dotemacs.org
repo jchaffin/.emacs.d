@@ -1052,12 +1052,14 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 
 #+NAME: fd-read-only
 #+BEGIN_SRC emacs-lisp
-(add-hook 'find-file-hook
-          (lambda ()
-            (dolist (pattern '("~/.emacs.d/straight"
+(defun read-only-directory-hook ()
+  (dolist (pattern '("~/.emacs.d/straight"
                                "/usr/local/Cellar"))
-              (if (string-match (expand-file-name pattern) buffer-file-name)
-                  (read-only-mode)))))
+    (when (and buffer-file-name
+               (string-match (expand-file-name pattern) buffer-file-name))
+      (read-only-mode))))
+
+(add-hook #'find-file-hook 'read-only-directory-hook)
 #+END_Src
 
 ** Package Manager
@@ -1150,9 +1152,9 @@ interactive minibuffer completion menu using ivy.
                           (destructuring-bind (repo host)
                               `(,(plist-get recipe :repo)
                                 ,(plist-get recipe :host))
-                  (if (eq host 'github)
-                      (concat "https://github.com/" repo)
-                    (message "%s is not a GitHub repository." pkg))))))
+                  (cond ((eq host 'github) (concat "https://github.com/" repo))
+                        ((eq host 'gitlab) (concat "https://gitlab/com/" repo))
+                        (t (message "Cannot get remote url for %s" pkg)))))))
     (let* ((pkg (if (interactive-p)
                     (completing-read
                      "Which recipe? "
@@ -7830,35 +7832,39 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 :PROPERTIES:
 :ID:       3C550304-3F1D-4682-B4C6-527EBDFA0760
 :END:
-*** Spaceline
+** Spaceline
 **** Spaceline Mode
 
 #+NAME: sl/spaceline
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline)
+(use-package powerline)
+
+(use-package spaceline
+  :straight t)
+
+(use-package spaceline-config
+  :straight spaceline)
+
 #+END_SRC
 
 **** Spaceline All the Icons
 
 #+NAME: sl/icons
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline-all-the-icons)
+(use-package spaceline-all-the-icons
+  :straight  (spaceline-all-the-icons
+              :type git
+              :host github
+              :repo "LiuPai/spaceline-all-the-icons.el")
+  :after spaceline)
 
-  (defun ml-spaceline-setup ()
-    (interactive)
-    "Setup the modeline for spaceline."
-    (setq spaceline-all-the-icons-separator-type 'arrow)
-    (require 'spaceline)
-    (require 'spaceline-segments)
-    (require 'spaceline-config)
-    (require 'all-the-icons)
-    (require 'spaceline-all-the-icons)
-    (spaceline-all-the-icons--setup-neotree)
-    (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
-    (spaceline-toggle-all-the-icons-flycheck-status-off))
-
-  (add-hook 'after-init-hook #'ml-spaceline-setup)
-
+(use-package spaceline-all-the-icons-segments
+  :straight spaceline-all-the-icons
+  :init
+  (require 'spaceline-all-the-icons)
+  (spaceline-all-the-icons-theme)
+  (spaceline-all-the-icons--setup-git-ahead)
+  (spaceline-all-the-icons--setup-neotree))
 #+END_SRC
 
 *** Eyeliner
@@ -8798,7 +8804,7 @@ display the buffer."
 *** Folding
 **** Vimish fold
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package vimish-fold
   :init
   (vimish-fold-global-mode 1))
