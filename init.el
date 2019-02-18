@@ -222,7 +222,6 @@ See `org-export-backends' variable."
                (expand-file-name target-file target-dir))
             (error "%s not found, cannot tangle." target-file))))
 
-
       ;; Debug
       (defvar literate-debug-blocks nil)
 

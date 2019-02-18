@@ -186,7 +186,6 @@
     - [[#org-download][Org Download]]
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
-  - [[#scimax][Scimax]]
   - [[#ess][ESS]]
 - [[#appearance][Appearance]]
   - [[#theme][Theme]]
@@ -215,7 +214,6 @@
     - [[#default-font][Default font]]
     - [[#variable-pitch][Variable Pitch]]
     - [[#serif][Serif]]
-    - [[#ligatures][Ligatures]]
     - [[#unicode][Unicode]]
   - [[#cursor][Cursor]]
     - [[#disable-blink][Disable Blink]]
@@ -224,7 +222,6 @@
   - [[#visual][Visual]]
     - [[#visual-fill-column][Visual Fill Column]]
     - [[#fill-column-indicator][Fill Column Indicator]]
-    - [[#justify-kp][Justify Kp]]
   - [[#modeline][Modeline]]
     - [[#spaceline][Spaceline]]
     - [[#eyeliner][Eyeliner]]
@@ -1482,16 +1479,6 @@ settings that rely on local file paths, macOS applications, and
 external programs.
 
 **** MacOS Keys
-
-#+NAME: macos-keybindings
-#+BEGIN_SRC emacs-lisp
-;; Modifer Keys
-
-;; Mouse-2
-
-#+END_SRC
-
-
 ***** Modifier Keys
 
 macOS specific settings[fn:5].
@@ -1808,8 +1795,8 @@ value of `user-emacs-directory', else go to the`user-init-file'."
   (let ((init-file
          (if (file-exists-p (expand-file-name ".emacs-profiles.el" "~"))
              (expand-file-name "init.el" user-emacs-directory)
-           user-init-file))))
-  (find-file init-file))
+           user-init-file)))
+    (find-file init-file)))
 
 (defun goto-literate (&optional arg)
   "Open the literate Emacs config file."
@@ -2093,16 +2080,15 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+NAME: flyspell-base
 #+BEGIN_SRC emacs-lisp
-  (use-package flyspell
-    :init
-    (with-eval-after-load 'org
-      (add-hook 'org-mode-hook 'flyspell-mode))
-    :config
-    (progn
-      (when (executable-find "hunspell")
-        (setq-default ispell-program-name "hunspell")
-        (setq-default ispell-dictionary "en_US")
-        (setq ispell-really-hunspell t))))
+(use-package flyspell
+  :init
+  (with-eval-after-load 'org
+    (add-hook 'org-mode-hook 'flyspell-mode))
+  :config
+  (when (executable-find "hunspell")
+    (setq-default ispell-program-name "hunspell")
+    (setq-default ispell-dictionary "en_US")
+    (setq ispell-really-hunspell t)))
 #+END_SRC
 
 ***** Flyspell Correct
@@ -3305,8 +3291,9 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
 (use-package persp-projectile
   :after (:all projectile counsel-projectile perspective)
-  :bind ((:map projectile-mode-map
-               ("s-S" . projectile-persp-switch-project))))
+  :bind
+  (:map projectile-mode-map
+        ("s-S" . projectile-persp-switch-project)))
 #+END_SRC
 
 *** Poporg
@@ -3495,27 +3482,6 @@ END:
 #+END_SRC
 
 *** Counsel
-
-#+NAME: mb-counsel
-#+BEGIN_SRC emacs-lisp
-;; counsel mode
-
-;; Counsel Projectile
-
-;; Counsel Gtags
-
-;; Counsel iTunes
-
-;; Counsel spotify
-
-;; Counsel Dash
-
-;; Counsel Tramp
-
-;; Counsel Code Search
-
-#+END_SRC
-
 **** counsel mode
 
 #+NAME: counsel/mode
@@ -4005,8 +3971,9 @@ Artist mode is a built-in Emacs package.
 #+BEGIN_SRC emacs-lisp
 (use-package artist-mode
   :straight nil
-  :bind ((:map artist-mode-map
-               ("C-c C-a p" . artist-select-op-pen-line))))
+  :bind
+  (:map artist-mode-map
+        ("C-c C-a p" . artist-select-op-pen-line)))
 #+END_SRC
 
 *** UML Diagrams
@@ -4123,7 +4090,7 @@ school's WLAN.
 
 #+BEGIN_SRC emacs-lisp
 (use-package emms
-  :bind*
+  :bind
   (:map emms-playlist-mode-map
         ("SPC" . emms-pause))
   :init
@@ -5013,7 +4980,7 @@ entry types and required fields."
 (use-package org-ref
   :after ivy
   :demand t
-  :bind*
+  :bind
   (:map org-mode-map
         :prefix-map org-ref-prefix-map
         :prefix-docstring "Org ref citation manager."
@@ -6056,8 +6023,9 @@ org agenda files.
 (use-package org-mru-clock
   :after (:all org-agenda ivy)
   :demand t
-  :bind (("C-c C-x i" . org-mru-clock-in)
-         ("C-c C-x C-j" . org-mru-clock-select-recent-task))
+  :bind
+  (("C-c C-x i" . org-mru-clock-in)
+   ("C-c C-x C-j" . org-mru-clock-select-recent-task))
   :init
   (progn
     (setq org-mru-clock-how-many 50
@@ -6161,7 +6129,7 @@ The default set of bullet points can be modified via the
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-pretty-tags
-  :if (eq system-type 'darwin)
+  :if (equal system-type 'darwin)
   :straight (org-pretty-tags
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
@@ -6277,10 +6245,6 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
              (car args)))))
 
   (apply orig-func args))
-
-;; (advice-add 'org-create-formula-image
-;;           :around #'org-renumber-environment)
-
 #+END_SRC
 
 *** Highlight inline LaTeX fragments
@@ -6294,7 +6258,6 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+END_SRC
 
 **  Org Prose
-
 *** Insert literal entities
 
 From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
@@ -6445,21 +6408,6 @@ recursively processing #+INCLUDEs."
 :CUSTOM_ID: sec:ox-latex
 :END:
 
-#+NAME: ox/latex
-#+BEGIN_SRC emacs-lisp
-(require 'ox-latex)
-;; Prefer user labels
-
-;; Subfigure
-
-;; PDF Process Interface
-
-;; Hyperref Template
-
-;; Custom classes
-
-#+END_SRC
-
 **** Prefer user provided labeling
 
 #+NAME: oxl/labels
@@ -6482,46 +6430,6 @@ recursively processing #+INCLUDEs."
   :config
   (require 'ox-latex-subfigure)
   (add-to-list 'org-latex-packages-alist '(("" "subcaption" nil))))
-
-#+END_SRC
-
-**** Minted
-
-Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
-
-#+NAME: oxl/minted
-#+BEGIN_SRC emacs-lisp
-(eval-and-compile
-  (defvar enable-default-minted nil))
-
-(setq org-latex-listings 'minted)
-
-(setq org-latex-packages-alist '(("" "booktabs" nil)))
-(setq org-latex-tables-booktabs nil)
-
-(setq org-latex-minted-options
-      '(("mathescape" "true")
-        ("linenos" "true")
-        ("breaklines" "true")
-        ("numbersep" "5pt")
-        ("frame" "lines")
-        ("framesep" "2mm")))
-
-(defun latex-toggle-default-minted ()
-  (interactive)
-  (if (not enable-default-minted)
-      (progn
-        (setq org-latex-packages-alist
-              (append org-latex-packages-alist '(("newfloat" "minted"))))
-        (setq enable-default-minted t)
-        (message "%s" "Exporting with default minted."))
-    (progn
-      (setq enable-default-minted nil)
-      (dolist (elt org-latex-packages-alist)
-        (if (string= (cadr elt) "minted")
-            (setq org-latex-packages-alist (remove elt org-latex-packages-alist))))
-      (message "%s" "Disabled default minted."))))
-
 
 #+END_SRC
 
@@ -6591,21 +6499,6 @@ The default cross-referencing and hyperlink styles provided by
 #+END_SRC
 
 **** Export classes
-
-#+NAME: oxl/classes
-#+BEGIN_SRC emacs-lisp
-;; Org Ling
-
-;; UCLA CS
-
-;; Humanities
-
-;; Article No Default Packages
-
-;; Unicode math
-
-#+END_SRC
-
 ***** Article Standalone
 
 From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
@@ -7112,220 +7005,6 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-preview-html)
-#+END_SRC
-
-** Scimax
-
-#+NAME: research/scimax
-#+BEGIN_SRC emacs-lisp
-(use-package scimax
-  :straight nil
-  :if (file-directory-p (emacs-etc-dir "local" "scimax"))
-  :custom
-  (scimax-dir (emacs-etc-dir "local" "scimax"))
-  (scimax-snippet-dir (car yas-snippet-dirs))
-  :load-path "etc/local/scimax"
-  :init
-  (setq ore-user-directory (emacs-etc-dir "ore"))
-  (require 'scimax-ivy)
-  (require 'scimax-latex)
-  (require 'scimax-utils)
-  (require 'scimax-yas)
-  (require 'scimax-link-thumbnails)
-  (require 'ore)
-  (require 'ox-word))
-
-;; copied from scimax
-;; * Fragment overlays
-(defun org-latex-fragment-tooltip (beg end image imagetype)
-  "Add the fragment tooltip to the overlay and set click function to toggle it."
-  (overlay-put (ov-at) 'help-echo
-	       (concat (buffer-substring beg end)
-		       "\nmouse-1 to toggle."))
-  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
-				    (define-key map [mouse-1]
-				      `(lambda ()
-					 (interactive)
-					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
-				    map)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
-
-(defun org-latex-fragment-justify (justification)
-  "Justify the latex fragment at point with JUSTIFICATION.
-JUSTIFICATION is a symbol for 'left, 'center or 'right."
-  (interactive
-   (list (intern-soft
-          (completing-read "Justification (left): " '(left center right)
-                           nil 'require-match))))
-
-  (let* ((ov (ov-at))
-	 (beg (ov-beg ov))
-	 (end (ov-end ov))
-	 (shift (- beg (line-beginning-position)))
-	 (img (overlay-get ov 'display))
-	 (img (and (and img (consp img) (eq (car img) 'image)
-			(image-type-available-p (plist-get (cdr img) :type)))
-		   img))
-	 space-left offset)
-    (when (and img (= beg (line-beginning-position)))
-      (setq space-left (- (window-max-chars-per-line) (car (image-display-size img)))
-	    offset (floor (cond
-			   ((eq justification 'center)
-			    (- (/ space-left 2) shift))
-			   ((eq justification 'right)
-			    (- space-left shift))
-			   (t
-			    0))))
-      (when (>= offset 0)
-	(overlay-put ov 'before-string (make-string offset ?\ ))))))
-
-(defun org-latex-fragment-justify-advice (beg end image imagetype)
-  "After advice function to justify fragments."
-  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
-
-(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
-
-;; ** numbering latex equations
-(defun org-renumber-environment (orig-func &rest args)
-  "A function to inject numbers in LaTeX fragment previews."
-  (let ((results '())
-	(counter -1)
-	(numberp))
-
-    (setq results (loop for (begin .  env) in
-			(org-element-map (org-element-parse-buffer) 'latex-environment
-			  (lambda (env)
-			    (cons
-			     (org-element-property :begin env)
-			     (org-element-property :value env))))
-			collect
-			(cond
-			 ((and (string-match "\\\\begin{equation}" env)
-			       (not (string-match "\\\\tag{" env)))
-			  (incf counter)
-			  (cons begin counter))
-			 ((string-match "\\\\begin{align}" env)
-			  (prog2
-			      (incf counter)
-			      (cons begin counter)
-			    (with-temp-buffer
-			      (insert env)
-			      (goto-char (point-min))
-			      ;; \\ is used for a new line. Each one leads to a number
-			      (incf counter (count-matches "\\\\$"))
-			      ;; unless there are nonumbers.
-			      (goto-char (point-min))
-			      (decf counter (count-matches "\\nonumber")))))
-			 (t
-			  (cons begin nil)))))
-
-    (when (setq numberp (cdr (assoc (point) results)))
-      (setf (car args)
-	    (concat
-	     (format "\\setcounter{equation}{%s}\n" numberp)
-	     (car args)))))
-
-  (apply orig-func args))
-
-(advice-add 'org-create-formula-image :around #'org-renumber-environment)
-
-
-;; * Markup commands for org-mode
-(loop for (type beginning-marker end-marker)
-      in '((subscript "_{" "}")
-	   (superscript "^{" "}")
-	   (italics "/" "/")
-	   (bold "*" "*")
-	   (verbatim "=" "=")
-	   (code "~" "~")
-	   (underline "_" "_")
-	   (strikethrough "+" "+"))
-      do
-      (eval `(defun ,(intern (format "org-%s-region-or-point" type)) ()
-	       ,(format "%s the region, word or character at point"
-			(upcase (symbol-name type)))
-	       (interactive)
-	       (cond
-		;; We have an active region we want to apply
-		((region-active-p)
-		 (let* ((bounds (list (region-beginning) (region-end)))
-			(start (apply 'min bounds))
-			(end (apply 'max bounds))
-			(lines))
-		   (unless (memq ',type '(subscript superscript))
-		     (save-excursion
-		       (goto-char start)
-		       (unless (looking-at " \\|\\<")
-			 (backward-word)
-			 (setq start (point)))
-		       (goto-char end)
-		       (unless (looking-at " \\|\>")
-			 (forward-word)
-			 (setq end (point)))))
-		   (setq lines
-			 (s-join "\n" (mapcar
-				       (lambda (s)
-					 (if (not (string= (s-trim s) ""))
-					     (concat ,beginning-marker
-						     (s-trim s)
-						     ,end-marker)
-					   s))
-				       (split-string
-					(buffer-substring start end) "\n"))))
-		   (setf (buffer-substring start end) lines)
-		   (forward-char (length lines))))
-		;; We are on a word with no region selected
-		((thing-at-point 'word)
-		 (cond
-		  ;; beginning of a word
-		  ((looking-back " " 1)
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))
-		  ;; end of a word
-		  ((looking-back "\\>" 1)
-		   (insert ,(concat beginning-marker end-marker))
-		   (backward-char ,(length end-marker)))
-		  ;; not at start or end, so we just sub/sup the character at point
-		  ((memq ',type '(subscript superscript))
-		   (insert ,beginning-marker)
-		   (forward-char ,(- (length beginning-marker) 1))
-		   (insert ,end-marker))
-		  ;; somewhere else in a word, and handled sub/sup. mark up the
-		  ;; whole word.
-		  (t
-		   (re-search-backward "\\<")
-		   (insert ,beginning-marker)
-		   (re-search-forward "\\>")
-		   (insert ,end-marker))))
-		;; not at a word or region, insert markers and put point between
-		;; them.
-		(t
-		 (insert ,(concat beginning-marker end-marker))
-		 (backward-char ,(length end-marker)))))))
-
-(defun org-latex-math-region-or-point (&optional arg)
-  "Wrap the selected region in latex math markup.
-\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
-Or insert those and put point in the middle to add an equation."
-  (interactive "P")
-  (let ((chars
-	 (cond
-	  ((null arg)
-	   '("\\(" . "\\)"))
-	  ((equal arg '(4))
-	   '("$" . "$"))
-	  ((equal arg '(16))
-	   '("@@latex:" . "@@")))))
-    (if (region-active-p)
-	(progn
-	  (goto-char (region-end))
-	  (insert (cdr chars))
-	  (goto-char (region-beginning))
-	  (insert (car chars)))
-      (insert (concat  (car chars) (cdr chars)))
-      (backward-char (length (cdr chars))))))
 #+END_SRC
 
 ** ESS
@@ -7946,7 +7625,6 @@ From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when 
                (message "Restored default fonts."))))))
 #+END_SRC
 
-*** Ligatures
 *** Unicode
 **** Unicode Fonts
 
@@ -8104,7 +7782,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 :PROPERTIES:
 :ID:       A6A6C1C1-8DF3-45C7-8FB0-D1D1974B8C72
 :END:
-
 *** Visual Fill Column
 :PROPERTIES:
 :ID:       9343B26B-8EB3-4785-BAD0-427AE4E3DD63
@@ -8136,7 +7813,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   (setq fci-rule-use-dashes nil))
 #+END_SRC
 
-*** Justify Kp
+*n** Justify Kp
 :PROPERTIES:
 :ID:       423D21DE-4BD8-49B5-BD6B-F88E267B4008
 :END:
@@ -9021,12 +8698,10 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 
 #+NAME: lsp/ui
 #+BEGIN_SRC emacs-lisp
-(use-package lsp-ui)
-
-(use-package lsp-ui-peek
-  :straight lsp-ui
+(use-package lsp-ui
+  :after lsp
   :bind
-  (:map lsp-ui-peek-mode-map
+  (:map lsp-ui-mode-map
         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
         ([remap xref-find-references]  . lsp-ui-peek-find-references)))
 #+END_SRC
@@ -9496,14 +9171,7 @@ git config --global --add magit.extension stgit
 
 #+NAME: magit/hub
 #+BEGIN_SRC emacs-lisp
-(use-package magithub
-  :after (magit)
-  :commands magithub-dispatch-popup
-  :bind (:map magit-status-mode-map
-	      ("@" . magithub-dispatch-popup))
-  :config
-  (progn
-    (magithub-feature-autoinject t)))
+(use-package forge)
 #+END_SRC
 
 ***** Magit org todos
@@ -10096,15 +9764,6 @@ Additional syntax highlighting for ~clojure-mode~.
 #+END_SRC
 
 **** ClojureScript
-
-#+NAME: clj/cljs
-#+BEGIN_SRC emacs-lisp
-;; elein
-
-;; Cljsbuild
-
-#+END_SRC
-
 ***** elein
 
 [[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
@@ -10259,15 +9918,6 @@ Gradle is a build tool for Java. It's awesome.
 #+END_SRC
 
 **** Dap
-
-#+NAME: java/dap
-#+BEGIN_SRC emacs-lisp
-;; Dap Mode
-
-;; Dap Java
-
-#+END_SRC
-
 ***** Dap Java
 
 #+NAME: dap/java
