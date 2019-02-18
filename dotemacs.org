@@ -91,7 +91,6 @@
     - [[#winner-mode][Winner Mode]]
     - [[#ace-window][Ace Window]]
     - [[#perspective][Perspective]]
-    - [[#popwin][Popwin]]
     - [[#poporg][Poporg]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
@@ -154,6 +153,7 @@
     - [[#org-visual][Org Visual]]
     - [[#org-bullets][Org Bullets]]
     - [[#org-fancy-priorities][Org Fancy Priorities]]
+    - [[#org-pretty-tags][Org Pretty Tags]]
     - [[#org-pretty-table][Org Pretty Table]]
     - [[#org-sticky-header][Org sticky header]]
     - [[#toc-org][TOC Org]]
@@ -3309,22 +3309,6 @@ different window configurations.
                ("s-S" . projectile-persp-switch-project))))
 #+END_SRC
 
-*** Popwin
-
-#+NAME: popwin-config
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package popwin
-    :defines popwin:keymap
-    :after (perspective)
-    :bind-keymap ("C-z" . popwin:keymap)
-    :bind (:map popwin:keymap
-                ("m" . popwin:messages))
-    :init
-    (require 'popwin)
-    :config
-    (popwin-mode 1))
-#+END_SRC
-
 *** Poporg
 
 #+BEGIN_SRC emacs-lisp
@@ -3344,7 +3328,7 @@ different window configurations.
 
 #+NAME: purpose
 #+BEGIN_SRC emacs-lisp
-  (use-package window-purpose)
+(use-package window-purpose)
 #+END_SRC
 
 ** Minibuffer
@@ -3505,18 +3489,9 @@ END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-purpose
-  :custom (pop-up-frames t)
   :after (window-purpose)
   :init
-  (ivy-purpose-setup)
-  :config
-  ;; give help buffers the 'popup-frame purpose
-  (add-to-list 'purpose-special-action-sequences
-               '(popup-frame
-                 purpose-display-reuse-window-buffer
-                 purpose-display-reuse-window-purpose
-                 purpose-display-pop-up-frame)))
-
+  (ivy-purpose-setup))
 #+END_SRC
 
 *** Counsel
@@ -5676,11 +5651,14 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (org-refile-targets (quote ((nil  :maxlevel . 9)
                                 (org-agenda-files :maxlevel . 9))))
     (org-todo-keywords
-     '((sequence "TODO(t)" "|" "DONE(d)")
-       (sequence "INCOMPLETE(i)" "|" "CANCELLED(c)")))
+     '((sequence "☛ TODO(t)" "|" " DONE(d)" )
+       (sequence "|" " ✘ CANCELLED(c)")))
+
     (org-todo-keyword-faces
-     '(("CANCELLED" . (:foreground "yellow"))
-       ("INCOMPLETE" . (:foreground "purple1"))))
+     '(("✘ CANCELLED" . org-warning)
+       (" DONE" . org-done)
+       ("☛ TODO" . org-todo)))
+
     :init
     (defun goto-agenda-dir ()
       (interactive)
@@ -6174,8 +6152,35 @@ The default set of bullet points can be modified via the
 (use-package org-fancy-priorities
   :hook
   (org-mode . org-fancy-priorities-mode)
+  :blackout t
   :config
   (setq org-fancy-priorities-list '("" "⬆" "⬇" "")))
+#+END_SRC
+
+*** Org Pretty Tags
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-pretty-tags
+  :if (eq system-type 'darwin)
+  :straight (org-pretty-tags
+             :host gitlab
+             :repo "marcowahl/org-pretty-tags")
+  :custom
+  (org-pretty-tags-surrogate-strings
+  '(("homework" . "✏️")
+    ("exam" . "📜")
+    ("quiz" . "📝")
+    ("reading" . "📚")
+    ("lecture" . "📓")
+    ("attach" . "📎")
+    ("@semantics" . "λ")
+    ("@phonetics" . "🗣")
+    ("@ai" . "♛")
+    ("@shopping" . "🛒")
+    ("@languages" . "")))
+  :hook
+  (org-mode . org-pretty-tags-mode))
+
 #+END_SRC
 
 *** Org Pretty Table
@@ -8051,7 +8056,6 @@ From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when 
 
 #+END_SRC
 
-
 ***** VS Code Icons
 :PROPERTIES:
 :ID:       4196FB0F-6A8F-4476-AFBD-651C7E5ED8AD
@@ -9431,6 +9435,14 @@ As a git client though, magit is awesome.
     (magit-completing-read-function 'ivy-completing-read))
 #+END_SRC
 
+***** Magit popup
+
+Magit now uses  [[https://emacsair.me/2019/02/14/transient-0.1][transient]], but some packages still use =magit-popup= as a dependency.
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit-popup)
+#+END_SRC
+
 ***** Magit topgit
 
 To configure:
@@ -9541,10 +9553,13 @@ Travel back in time (to your last commit).
 #+NAME: git/timemachine
 #+BEGIN_SRC emacs-lisp
 (use-package git-timemachine
+  :init
+  (require 'magit-popup)
   :bind
   ("C-c v t" . git-timemachine-toggle)
+  :custom
+  (git-timemachine-abbreviation-length 7)
   :config
-  (setq git-timemachine-abbreviation-length 7)
   (which-key-add-key-based-replacements
     "C-c v t" " Timemachine"))
 #+END_SRC
