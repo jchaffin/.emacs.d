@@ -91,6 +91,7 @@
     - [[#winner-mode][Winner Mode]]
     - [[#ace-window][Ace Window]]
     - [[#perspective][Perspective]]
+    - [[#popwin][Popwin]]
     - [[#poporg][Poporg]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
@@ -116,12 +117,6 @@
     - [[#graphviz][Graphviz]]
     - [[#thesaurus][Thesaurus]]
     - [[#image][Image+]]
-  - [[#media][Media]]
-    - [[#emms][emms]]
-    - [[#org-emms][org emms]]
-    - [[#helm-emms][helm emms]]
-    - [[#bongo][bongo]]
-    - [[#org-player][org player]]
 - [[#org][Org]]
   - [[#org-latex][Org LaTeX]]
     - [[#latex][Latex]]
@@ -153,7 +148,6 @@
     - [[#org-visual][Org Visual]]
     - [[#org-bullets][Org Bullets]]
     - [[#org-fancy-priorities][Org Fancy Priorities]]
-    - [[#org-pretty-tags][Org Pretty Tags]]
     - [[#org-pretty-table][Org Pretty Table]]
     - [[#org-sticky-header][Org sticky header]]
     - [[#toc-org][TOC Org]]
@@ -186,7 +180,7 @@
     - [[#org-download][Org Download]]
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
-  - [[#ess][ESS]]
+  - [[#scimax][Scimax]]
 - [[#appearance][Appearance]]
   - [[#theme][Theme]]
     - [[#custom-theme-settings][Custom Theme Settings]]
@@ -214,6 +208,7 @@
     - [[#default-font][Default font]]
     - [[#variable-pitch][Variable Pitch]]
     - [[#serif][Serif]]
+    - [[#ligatures][Ligatures]]
     - [[#unicode][Unicode]]
   - [[#cursor][Cursor]]
     - [[#disable-blink][Disable Blink]]
@@ -222,10 +217,10 @@
   - [[#visual][Visual]]
     - [[#visual-fill-column][Visual Fill Column]]
     - [[#fill-column-indicator][Fill Column Indicator]]
+    - [[#justify-kp][Justify Kp]]
   - [[#modeline][Modeline]]
     - [[#spaceline][Spaceline]]
     - [[#eyeliner][Eyeliner]]
-  - [[#scrolling][Scrolling]]
 - [[#web][Web]]
   - [[#libraries][Libraries]]
     - [[#simple-httpd][Simple httpd]]
@@ -288,12 +283,11 @@
     - [[#ecloud][ecloud]]
     - [[#docker][Docker]]
     - [[#aws][AWS]]
-  - [[#extras][Extras]]
+  - [[#coding-misc][Coding misc]]
     - [[#wakatime][wakatime]]
     - [[#logging][Logging]]
     - [[#floobits][floobits]]
     - [[#rmsbolt][rmsbolt]]
-    - [[#unpackaged][unpackaged]]
   - [[#languages][Languages]]
     - [[#assembly][Assembly]]
     - [[#cc][C/C++]]
@@ -303,7 +297,6 @@
     - [[#groovy][Groovy]]
     - [[#java][Java]]
     - [[#javascript][JavaScript]]
-    - [[#lua][Lua]]
     - [[#python][Python]]
     - [[#prolog][Prolog]]
     - [[#ruby][Ruby]]
@@ -1052,14 +1045,12 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 
 #+NAME: fd-read-only
 #+BEGIN_SRC emacs-lisp
-(defun read-only-directory-hook ()
-  (dolist (pattern '("~/.emacs.d/straight"
+(add-hook 'find-file-hook
+          (lambda ()
+            (dolist (pattern '("~/.emacs.d/straight"
                                "/usr/local/Cellar"))
-    (when (and buffer-file-name
-               (string-match (expand-file-name pattern) buffer-file-name))
-      (read-only-mode))))
-
-(add-hook #'find-file-hook 'read-only-directory-hook)
+              (if (string-match (expand-file-name pattern) buffer-file-name)
+                  (read-only-mode)))))
 #+END_Src
 
 ** Package Manager
@@ -1069,7 +1060,7 @@ Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp
-(defun counsel-straight-installed-packages ()
+(defun straight-installed-packages ()
   (--> straight--recipe-cache
        (hash-table-keys it)
        (seq-difference
@@ -1080,10 +1071,10 @@ interactive minibuffer completion menu using ivy.
        (sort it #'string-lessp)))
 
 (defun straight-installed-p (pkg)
-  (member (symbol-name pkg) (counsel-straight-installed-packages)))
+  (member (symbol-name pkg) (straight-installed-packages)))
 
 
-(defun counsel-straight-browse-local-strategy (build-dir dir package)
+(defun straight-browse-local-strategy (build-dir dir package)
   (lexical-let (pkg-directory pkg-file)
     (condition-case nil
         (if (and build-dir
@@ -1120,7 +1111,7 @@ interactive minibuffer completion menu using ivy.
               (and (file-directory-p pkg-directory)
                    (dired pkg-directory))))))))
 
-(cl-defun counsel-straight-browse-local (&optional build-dir)
+(cl-defun straight-browse-local (&optional build-dir)
   "Go to a straight repository directory. If BUILD-DIR, then go to
   the build directory for that repository instead."
   (interactive "P")
@@ -1130,21 +1121,21 @@ interactive minibuffer completion menu using ivy.
 
                  (msg (format "(%s) Goto recipe: "
                               (upcase-initials (f-base dir))))
-                 (pkg-keys (counsel-straight-installed-packages)))
+                 (pkg-keys (straight-installed-packages)))
     (ivy-read
      msg
      pkg-keys
      :action
      (lambda (package)
-       (counsel-straight-browse-local-strategy build-dir dir package)))))
+       (straight-browse-local-strategy build-dir dir package)))))
 
-(define-key goto-map "r" #'counsel-straight-browse-local)
+(define-key goto-map "r" #'straight-browse-local)
 #+END_SRC
 
 *** Browse straight repository at GitHub
 
 #+BEGIN_SRC emacs-lisp
-(defun counsel-straight-browse-remote (&optional package)
+(defun straight-browse-remote (&optional package)
   "View a recipe PACKAGE on GitHub."
   (interactive "P")
   (cl-flet ((remote-url (pkg)
@@ -1152,15 +1143,16 @@ interactive minibuffer completion menu using ivy.
                           (destructuring-bind (repo host)
                               `(,(plist-get recipe :repo)
                                 ,(plist-get recipe :host))
-                  (cond ((eq host 'github) (concat "https://github.com/" repo))
-                        ((eq host 'gitlab) (concat "https://gitlab/com/" repo))
-                        (t (message "Cannot get remote url for %s" pkg)))))))
+                  (if (eq host 'github)
+                      (concat "https://github.com/" repo)
+                    (message "%s is not a GitHub repository." pkg))))))
     (let* ((pkg (if (interactive-p)
                     (completing-read
                      "Which recipe? "
                      (straight-recipes-list straight-recipe-repositories)
-                     nil 'require-match)))
-           (url (remote-url (intern (or pkg package)))))
+                     nil 'require-match)
+                  package))
+           (url (remote-url (intern pkg))))
       (browse-url url))))
 #+END_SRC
 
@@ -1171,20 +1163,19 @@ interactive minibuffer completion menu using ivy.
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(defun straight-browse-remote-action (pkg)
+(defun straight-remote-action (pkg)
   "Ivy action to view a remote recipe in a browser."
-  (counsel-straight-browse-remote pkg))
+  (straight-browse-remote pkg))
 
-(defun counsel-straight-browse-local-action (pkg)
+(defun straight-browse-local-action (pkg)
   "ivy action to browse installed recipe. "
   (let ((repo-dir (expand-file-name "straight/repos" user-emacs-directory)))
-    (counsel-straight-browse-local-strategy nil repo-dir pkg)))
-
+    (straight-browse-local-strategy nil repo-dir pkg)))
 
 (with-eval-after-load 'ivy
   (ivy-set-actions 'straight-use-package
-                   '(("b" counsel-straight-browse-local-action "browse local")
-                     ("B" counsel-straight-browse-remote-action "browse remote"))))
+                   '(("b" straight-browse-local-action "browse local")
+                     ("B" straight-browse-remote-action "browse remote"))))
 #+END_SRC
 
 ** Security
@@ -1318,8 +1309,8 @@ killall gpg-agent
   _b_rowse package local
   _B_rowse package remote
   "
-      ("b" counsel-straight-browse-local)
-      ("B" counsel-straight-browse-remote)
+      ("b" straight-browse-local)
+      ("B" straight-browse-remote)
       ("c" straight-check-all)
       ("C" straight-check-package)
       ("r" straight-rebuild-all)
@@ -1481,6 +1472,16 @@ settings that rely on local file paths, macOS applications, and
 external programs.
 
 **** MacOS Keys
+
+#+NAME: macos-keybindings
+#+BEGIN_SRC emacs-lisp
+;; Modifer Keys
+
+;; Mouse-2
+
+#+END_SRC
+
+
 ***** Modifier Keys
 
 macOS specific settings[fn:5].
@@ -1797,16 +1798,13 @@ value of `user-emacs-directory', else go to the`user-init-file'."
   (let ((init-file
          (if (file-exists-p (expand-file-name ".emacs-profiles.el" "~"))
              (expand-file-name "init.el" user-emacs-directory)
-           user-init-file)))
-    (find-file init-file)))
+           user-init-file))))
+  (find-file init-file))
 
-(defun goto-literate (&optional arg)
+(defun goto-literate ()
   "Open the literate Emacs config file."
   (interactive)
-  (let ((file dotemacs-user-literate-init-file))
-    (if (equal current-prefix-arg '(4))
-        (find-file-literally file)
-      (find-file file))))
+  (find-file dotemacs-user-literate-init-file))
 
 (defun goto-tangled-init ()
   "Go to the tangled elisp file."
@@ -1980,7 +1978,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+END_SRC
 
-***** projectile ripgrep
+******* projectile ripgrep
 
 #+NAME: project-ripgrep
 #+BEGIN_SRC emacs-lisp
@@ -1998,7 +1996,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package codesearch)
 #+END_SRC
 
-***** Counsel code search
+****** Counsel code search
 #+BEGIN_SRC emacs-lisp
 (use-package counsel-codesearch
     :requires codesearch)
@@ -2082,18 +2080,19 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+NAME: flyspell-base
 #+BEGIN_SRC emacs-lisp
-(use-package flyspell
-  :init
-  (with-eval-after-load 'org
-    (add-hook 'org-mode-hook 'flyspell-mode))
-  :config
-  (when (executable-find "hunspell")
-    (setq-default ispell-program-name "hunspell")
-    (setq-default ispell-dictionary "en_US")
-    (setq ispell-really-hunspell t)))
+  (use-package flyspell
+    :init
+    (with-eval-after-load 'org
+      (add-hook 'org-mode-hook 'flyspell-mode))
+    :config
+    (progn
+      (when (executable-find "hunspell")
+        (setq-default ispell-program-name "hunspell")
+        (setq-default ispell-dictionary "en_US")
+        (setq ispell-really-hunspell t))))
 #+END_SRC
 
-***** Flyspell Correct
+****** Flyspell Correct
 
 #+NAME: flyspell-correct-config
 #+BEGIN_SRC emacs-lisp
@@ -2943,7 +2942,7 @@ over ssh."
   (ssh-mode . ssh/enable-path-completion))
 #+END_SRC
 
-**** SSH tunnels
+***** SSH tunnels
 
 #+BEGIN_SRC emacs-lisp
 (use-package ssh-tunnels)
@@ -3293,9 +3292,24 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
 (use-package persp-projectile
   :after (:all projectile counsel-projectile perspective)
-  :bind
-  (:map projectile-mode-map
-        ("s-S" . projectile-persp-switch-project)))
+  :bind ((:map projectile-mode-map
+               ("s-S" . projectile-persp-switch-project))))
+#+END_SRC
+
+*** Popwin
+
+#+NAME: popwin-config
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package popwin
+    :defines popwin:keymap
+    :after (perspective)
+    :bind-keymap ("C-z" . popwin:keymap)
+    :bind (:map popwin:keymap
+                ("m" . popwin:messages))
+    :init
+    (require 'popwin)
+    :config
+    (popwin-mode 1))
 #+END_SRC
 
 *** Poporg
@@ -3317,7 +3331,7 @@ different window configurations.
 
 #+NAME: purpose
 #+BEGIN_SRC emacs-lisp
-(use-package window-purpose)
+  (use-package window-purpose)
 #+END_SRC
 
 ** Minibuffer
@@ -3338,9 +3352,13 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 
 *** Ivy
 
-[[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein as helm.
+[[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
+as helm.
 
-It doesn't have the same kind of ecosystem or interopability, but its easy to configure, offers a minimalistic interface, and is every bit as good of a completion tool as helm is, if not better.
+It doesn't have the same kind of ecosystem or interopability,
+but its easy to configure, offers a minimalistic interface,
+and is every bit as good of a completion tool as helm is,
+if not better.
 
 I prefer the default regex matcher, but if you want fuzzy matching as a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
 
@@ -3359,7 +3377,6 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
      (read-file-name-internal . ivy--regex-fuzzy)
      (t . ivy--regex-ignore-order)))
   (ivy-use-selectable-prompt nil))
-
 #+END_SRC
 
 **** Ivy rtags
@@ -3478,12 +3495,42 @@ END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-purpose
+  :custom (pop-up-frames t)
   :after (window-purpose)
   :init
-  (ivy-purpose-setup))
+  (ivy-purpose-setup)
+  :config
+  ;; give help buffers the 'popup-frame purpose
+  (add-to-list 'purpose-special-action-sequences
+               '(popup-frame
+                 purpose-display-reuse-window-buffer
+                 purpose-display-reuse-window-purpose
+                 purpose-display-pop-up-frame)))
+
 #+END_SRC
 
 *** Counsel
+
+#+NAME: mb-counsel
+#+BEGIN_SRC emacs-lisp
+;; counsel mode
+
+;; Counsel Projectile
+
+;; Counsel Gtags
+
+;; Counsel iTunes
+
+;; Counsel spotify
+
+;; Counsel Dash
+
+;; Counsel Tramp
+
+;; Counsel Code Search
+
+#+END_SRC
+
 **** counsel mode
 
 #+NAME: counsel/mode
@@ -3973,9 +4020,8 @@ Artist mode is a built-in Emacs package.
 #+BEGIN_SRC emacs-lisp
 (use-package artist-mode
   :straight nil
-  :bind
-  (:map artist-mode-map
-        ("C-c C-a p" . artist-select-op-pen-line)))
+  :bind ((:map artist-mode-map
+               ("C-c C-a p" . artist-select-op-pen-line))))
 #+END_SRC
 
 *** UML Diagrams
@@ -4084,61 +4130,6 @@ school's WLAN.
            ("S" imagex-sticky-save-image "save file")
            ("r" imagex-sticky-rotate-right "rotate right")
            ("l" imagex-sticky-rotate-left "rotate left")))))
-#+END_SRC
-
-** Media
-*** emms
-
-
-#+BEGIN_SRC emacs-lisp
-(use-package emms
-  :bind
-  (:map emms-playlist-mode-map
-        ("SPC" . emms-pause))
-  :init
-  (require 'emms-setup)
-  (emms-all)
-  (emms-default-players)
-  ;; add flv and ogv
-  (define-emms-simple-player mplayer '(file url)
-    (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
-                  ".mpeg" ".wmv" ".wma" ".mov" ".avi"
-                  ".divx" ".ogm" ".asf" ".mkv" "http://"
-                  "mms://" ".rm" ".rmvb" ".mp4" ".flac"
-                  ".vob" ".m4a" ".flv" ".ogv" ".pls"))
-    "mplayer" "-slave" "-quiet" "-really-quiet" "-fullscreen"))
-
-#+END_SRC
-
-
-*** org emms
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-emms
-  :init
-  (require 'org-emms))
-#+END_SRC
-
-*** helm emms
-
-#+BEGIN_SRC emacs-lisp
-(use-package helm-emms)
-#+END_SRC
-
-*** bongo
-
-#+BEGIN_SRC emacs-lisp
-(use-package bongo)
-#+END_SRC
-
-*** org player
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-player
-  :straight nil
-  :load-path "etc/local/org-player"
-  :init
-  (require 'org-player))
 #+END_SRC
 
 * Org
@@ -4529,9 +4520,9 @@ save.
   (or (org-preview/process-keyword "LATEX_CLASS")
      org-latex-default-class))
 
-(defun org-preview/uclaling-p ()
+(defun org-preview/uclasem-p ()
   (let ((latex-class (org-preview/process-class)))
-    (string= "uclaling" latex-class)))
+    (string= "uclasem" latex-class)))
 
 (defun org-preview/uclacs-p ()
   (let ((latex-class (org-preview/process-class)))
@@ -4593,7 +4584,7 @@ save.
 (defun org-preview-xelatex ()
   (interactive)
   (let ((preview-file
-         (emacs-etc-dir "preview/uclaling-preview.tex")))
+         (emacs-etc-dir "preview/uclasem-preview.tex")))
     (set (make-local-variable 'org-preview-latex-process-alist)
          xelatex-preview-process-alist)
 
@@ -4602,7 +4593,7 @@ save.
            preview-file))
 
     (set (make-local-variable 'org-format-latex-header)
-         (if (org-preview/uclaling-p)
+         (if (org-preview/uclasem-p)
              (read-file-contents preview-file)
            xelatex-preview-header)))
   )
@@ -4675,6 +4666,43 @@ save.
              (concat lualatex-preview-header
                      (read-file-contents preview-file))
            lualatex-preview-header))))
+#+END_SRC
+
+***** Scrolling
+:PROPERTIES:
+:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
+:END:
+****** Scroll to first error on compilation
+
+#+NAME: scroll/compile-error
+#+BEGIN_SRC emacs-lisp
+(setq compilation-scroll-output 'first-error)
+#+END_SRC
+
+****** Smooth Scrolling
+
+#+NAME: scroll/smooth
+#+BEGIN_SRC emacs-lisp
+(use-package smooth-scrolling
+  :init
+  (smooth-scrolling-mode 1)
+  :config
+  (setq scroll-step 1
+        scroll-margin 10
+        next-line-add-newlines nil
+        scroll-preserve-screen-position 1)
+
+  (setq mouse-wheel-follow-mouse 't)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
+#+END_SRC
+
+****** Sublimity Scroll
+
+#+NAME: scroll/subliminity
+#+BEGIN_SRC emacs-lisp
+  (use-package sublimity
+      :init
+    (require 'sublimity-scroll))
 #+END_SRC
 
 **** Dynamic latex previews
@@ -4982,7 +5010,7 @@ entry types and required fields."
 (use-package org-ref
   :after ivy
   :demand t
-  :bind
+  :bind*
   (:map org-mode-map
         :prefix-map org-ref-prefix-map
         :prefix-docstring "Org ref citation manager."
@@ -5230,7 +5258,6 @@ With prefix argument, also display headlines without a TODO keyword."
 
 (org-add-link-type
  "tag" 'dotemacs/tag-link)
-
 #+END_SRC
 
 **** Org Elisp Help Links
@@ -5535,7 +5562,6 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
   :init
   (require 'org-drill))
 #+END_SRC
-
 *** Attach
 
 #+NAME: org-docmgr-attach
@@ -5562,6 +5588,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
                    (file+headline ,org-default-notes-file "Inbox")
                    "* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n\nCaptured: %U"))))
 #+END_SRC
+
 
 **** Capture popup frame
 
@@ -5620,23 +5647,22 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (org-refile-targets (quote ((nil  :maxlevel . 9)
                                 (org-agenda-files :maxlevel . 9))))
     (org-todo-keywords
-     '((sequence "☛ TODO(t)" "|" " DONE(d)" )
-       (sequence "|" " ✘ CANCELLED(c)")))
-
+     '((sequence "TODO(t)" "|" "DONE(d)")
+       (sequence "|" "CANCELLED(c)")))
     (org-todo-keyword-faces
-     '(("✘ CANCELLED" . org-warning)
-       (" DONE" . org-done)
-       ("☛ TODO" . org-todo)))
-
+     '(("CANCELLED" . (:foreground "yellow"))))
     :init
+
     (defun goto-agenda-dir ()
       (interactive)
       (dired (agenda-dir)))
+
+
     (define-key goto-map "a" #'goto-agenda-dir)
 
     (setq org-agenda-category-icon-alist
      `(("global"     ,(list "")  nil nil :ascent center)
-       ("quarter"    ,(list "")   nil nil :ascent center)
+       ("Quarter"    ,(list "")   nil nil :ascent center)
        ("LING 165C"  ,(list "𝜆")  nil nil :ascent center)
        ("LING 102"   ,(list "ə")  nil nil :ascent center)
        ("COMSCI 161" ,(list "𝛺") nil nil :ascent center)
@@ -5799,26 +5825,27 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     :init
     (defun org-projectile-per-project-function (project-path)
       (let  ((project-agenda-file
-              (--> project-path (split-string it "/" t) nreverse car
-                 (concat it ".org"))))
-        (if (file-exists-p (expand-file-name project-agenda-file project-path))
-            project-agenda-file "TODOs.org")))
+              (--> project-path (split-string it "/" t) nreverse car (concat it ".org"))))
+        (if (file-exists-p
+             ;; org file matches project root name
+             (expand-file-name project-agenda-file project-path)) project-agenda-file "TODOs.org")))
 
     (defvar-local org-default-agenda-file
       (file-truename "~/Dropbox/org/todos/TODOS.org"))
+
     :init
     (defun org-projectile-files-to-agenda ()
       "Add projectile project files to agenda."
       (interactive)
       (cl-flet*
           ((project-agenda-filepath (p)
-            (expand-file-name
-             (funcall #'org-projectile-per-project-function p) p))
+                                    (expand-file-name
+                                     (funcall #'org-projectile-per-project-function p) p))
            (todo-file-p (p)
-            (file-exists-p (project-agenda-filepath p)))
+                        (file-exists-p (project-agenda-filepath p)))
            (build-agenda (ps)
-            (setq org-agenda-files
-                  (seq-uniq (append org-agenda-files ps)))))
+                         (setq org-agenda-files
+                               (seq-uniq (append org-agenda-files ps)))))
 
           (->> projectile-known-projects
              (seq-filter #'todo-file-p)
@@ -5830,7 +5857,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (org-projectile-per-project))
 
 #+END_SRC
-
 
 
 *** Calendar
@@ -6025,9 +6051,8 @@ org agenda files.
 (use-package org-mru-clock
   :after (:all org-agenda ivy)
   :demand t
-  :bind
-  (("C-c C-x i" . org-mru-clock-in)
-   ("C-c C-x C-j" . org-mru-clock-select-recent-task))
+  :bind (("C-c C-x i" . org-mru-clock-in)
+         ("C-c C-x C-j" . org-mru-clock-select-recent-task))
   :init
   (progn
     (setq org-mru-clock-how-many 50
@@ -6122,35 +6147,8 @@ The default set of bullet points can be modified via the
 (use-package org-fancy-priorities
   :hook
   (org-mode . org-fancy-priorities-mode)
-  :blackout t
   :config
   (setq org-fancy-priorities-list '("" "⬆" "⬇" "")))
-#+END_SRC
-
-*** Org Pretty Tags
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-pretty-tags
-  :if (equal system-type 'darwin)
-  :straight (org-pretty-tags
-             :host gitlab
-             :repo "marcowahl/org-pretty-tags")
-  :custom
-  (org-pretty-tags-surrogate-strings
-  '(("homework" . "✏️")
-    ("exam" . "📜")
-    ("quiz" . "📝")
-    ("reading" . "📚")
-    ("lecture" . "📓")
-    ("attach" . "📎")
-    ("@semantics" . "λ")
-    ("@phonetics" . "🗣")
-    ("@ai" . "♛")
-    ("@shopping" . "🛒")
-    ("@languages" . "")))
-  :hook
-  (org-mode . org-pretty-tags-mode))
-
 #+END_SRC
 
 *** Org Pretty Table
@@ -6247,6 +6245,10 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
              (car args)))))
 
   (apply orig-func args))
+
+;; (advice-add 'org-create-formula-image
+;;           :around #'org-renumber-environment)
+
 #+END_SRC
 
 *** Highlight inline LaTeX fragments
@@ -6260,6 +6262,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+END_SRC
 
 **  Org Prose
+
 *** Insert literal entities
 
 From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
@@ -6410,6 +6413,21 @@ recursively processing #+INCLUDEs."
 :CUSTOM_ID: sec:ox-latex
 :END:
 
+#+NAME: ox/latex
+#+BEGIN_SRC emacs-lisp
+(require 'ox-latex)
+;; Prefer user labels
+
+;; Subfigure
+
+;; PDF Process Interface
+
+;; Hyperref Template
+
+;; Custom classes
+
+#+END_SRC
+
 **** Prefer user provided labeling
 
 #+NAME: oxl/labels
@@ -6427,11 +6445,50 @@ recursively processing #+INCLUDEs."
    :type git
    :host github
    :repo "linktohack/ox-latex-subfigure")
-  :init
-  (setq org-latex-prefer-user-labels t)
+  :init  (setq org-latex-prefer-user-labels t)
   :config
   (require 'ox-latex-subfigure)
-  (add-to-list 'org-latex-packages-alist '(("" "subcaption" nil))))
+  (add-to-list 'org-latex-packages-alist (("" "subcaption" nil))))
+
+#+END_SRC
+
+**** Minted
+
+Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
+
+#+NAME: oxl/minted
+#+BEGIN_SRC emacs-lisp
+(eval-and-compile
+  (defvar enable-default-minted nil))
+
+(setq org-latex-listings 'minted)
+
+(setq org-latex-packages-alist '(("" "booktabs" nil)))
+(setq org-latex-tables-booktabs t)
+
+(setq org-latex-minted-options
+      '(("mathescape" "true")
+        ("linenos" "true")
+        ("breaklines" "true")
+        ("numbersep" "5pt")
+        ("frame" "lines")
+        ("framesep" "2mm")))
+
+(defun latex-toggle-default-minted ()
+  (interactive)
+  (if (not enable-default-minted)
+      (progn
+        (setq org-latex-packages-alist
+              (append org-latex-packages-alist '(("newfloat" "minted"))))
+        (setq enable-default-minted t)
+        (message "%s" "Exporting with default minted."))
+    (progn
+      (setq enable-default-minted nil)
+      (dolist (elt org-latex-packages-alist)
+        (if (string= (cadr elt) "minted")
+            (setq org-latex-packages-alist (remove elt org-latex-packages-alist))))
+      (message "%s" "Disabled default minted."))))
+
 
 #+END_SRC
 
@@ -6501,6 +6558,21 @@ The default cross-referencing and hyperlink styles provided by
 #+END_SRC
 
 **** Export classes
+
+#+NAME: oxl/classes
+#+BEGIN_SRC emacs-lisp
+;; Org Ling
+
+;; UCLA CS
+
+;; Humanities
+
+;; Article No Default Packages
+
+;; Unicode math
+
+#+END_SRC
+
 ***** Article Standalone
 
 From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
@@ -6520,16 +6592,16 @@ From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a st
 	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-***** Uclaling
+***** Uclasem
 
-#+NAME: ox-class/uclaling
+#+NAME: ox-class/uclasem
 #+BEGIN_SRC emacs-lisp
 (if (and (executable-find "kpsewhich")
-         (shell-command-to-string "kpsewhich uclaling.cls"))
+         (shell-command-to-string "kpsewhich uclasem.cls"))
 
     (add-to-list 'org-latex-classes
-                 '("uclaling"
-                   "\\documentclass{uclaling}
+                 '("uclasem"
+                   "\\documentclass{uclasem}
                     [NO-DEFAULT-PACKAGES]
                     [EXTRA]"
                    ("\\section{%s}" . "\\section*{%s}")
@@ -7009,12 +7081,218 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 (use-package org-preview-html)
 #+END_SRC
 
-** ESS
+** Scimax
 
+#+NAME: research/scimax
 #+BEGIN_SRC emacs-lisp
-(use-package ess
+(use-package scimax
+  :straight nil
+  :if (file-directory-p (emacs-etc-dir "local" "scimax"))
+  :custom
+  (scimax-dir (emacs-etc-dir "local" "scimax"))
+  (scimax-snippet-dir (car yas-snippet-dirs))
+  :load-path "etc/local/scimax"
   :init
-  (require 'ess-site))
+  (setq ore-user-directory (emacs-etc-dir "ore"))
+  (require 'scimax-ivy)
+  (require 'scimax-latex)
+  (require 'scimax-utils)
+  (require 'scimax-yas)
+  (require 'scimax-link-thumbnails)
+  (require 'ore)
+  (require 'ox-word))
+
+;; copied from scimax
+;; * Fragment overlays
+(defun org-latex-fragment-tooltip (beg end image imagetype)
+  "Add the fragment tooltip to the overlay and set click function to toggle it."
+  (overlay-put (ov-at) 'help-echo
+	       (concat (buffer-substring beg end)
+		       "\nmouse-1 to toggle."))
+  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
+				    (define-key map [mouse-1]
+				      `(lambda ()
+					 (interactive)
+					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
+				    map)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
+
+(defun org-latex-fragment-justify (justification)
+  "Justify the latex fragment at point with JUSTIFICATION.
+JUSTIFICATION is a symbol for 'left, 'center or 'right."
+  (interactive
+   (list (intern-soft
+          (completing-read "Justification (left): " '(left center right)
+                           nil 'require-match))))
+
+  (let* ((ov (ov-at))
+	 (beg (ov-beg ov))
+	 (end (ov-end ov))
+	 (shift (- beg (line-beginning-position)))
+	 (img (overlay-get ov 'display))
+	 (img (and (and img (consp img) (eq (car img) 'image)
+			(image-type-available-p (plist-get (cdr img) :type)))
+		   img))
+	 space-left offset)
+    (when (and img (= beg (line-beginning-position)))
+      (setq space-left (- (window-max-chars-per-line) (car (image-display-size img)))
+	    offset (floor (cond
+			   ((eq justification 'center)
+			    (- (/ space-left 2) shift))
+			   ((eq justification 'right)
+			    (- space-left shift))
+			   (t
+			    0))))
+      (when (>= offset 0)
+	(overlay-put ov 'before-string (make-string offset ?\ ))))))
+
+(defun org-latex-fragment-justify-advice (beg end image imagetype)
+  "After advice function to justify fragments."
+  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
+
+;; ** numbering latex equations
+(defun org-renumber-environment (orig-func &rest args)
+  "A function to inject numbers in LaTeX fragment previews."
+  (let ((results '())
+	(counter -1)
+	(numberp))
+
+    (setq results (loop for (begin .  env) in
+			(org-element-map (org-element-parse-buffer) 'latex-environment
+			  (lambda (env)
+			    (cons
+			     (org-element-property :begin env)
+			     (org-element-property :value env))))
+			collect
+			(cond
+			 ((and (string-match "\\\\begin{equation}" env)
+			       (not (string-match "\\\\tag{" env)))
+			  (incf counter)
+			  (cons begin counter))
+			 ((string-match "\\\\begin{align}" env)
+			  (prog2
+			      (incf counter)
+			      (cons begin counter)
+			    (with-temp-buffer
+			      (insert env)
+			      (goto-char (point-min))
+			      ;; \\ is used for a new line. Each one leads to a number
+			      (incf counter (count-matches "\\\\$"))
+			      ;; unless there are nonumbers.
+			      (goto-char (point-min))
+			      (decf counter (count-matches "\\nonumber")))))
+			 (t
+			  (cons begin nil)))))
+
+    (when (setq numberp (cdr (assoc (point) results)))
+      (setf (car args)
+	    (concat
+	     (format "\\setcounter{equation}{%s}\n" numberp)
+	     (car args)))))
+
+  (apply orig-func args))
+
+(advice-add 'org-create-formula-image :around #'org-renumber-environment)
+
+
+;; * Markup commands for org-mode
+(loop for (type beginning-marker end-marker)
+      in '((subscript "_{" "}")
+	   (superscript "^{" "}")
+	   (italics "/" "/")
+	   (bold "*" "*")
+	   (verbatim "=" "=")
+	   (code "~" "~")
+	   (underline "_" "_")
+	   (strikethrough "+" "+"))
+      do
+      (eval `(defun ,(intern (format "org-%s-region-or-point" type)) ()
+	       ,(format "%s the region, word or character at point"
+			(upcase (symbol-name type)))
+	       (interactive)
+	       (cond
+		;; We have an active region we want to apply
+		((region-active-p)
+		 (let* ((bounds (list (region-beginning) (region-end)))
+			(start (apply 'min bounds))
+			(end (apply 'max bounds))
+			(lines))
+		   (unless (memq ',type '(subscript superscript))
+		     (save-excursion
+		       (goto-char start)
+		       (unless (looking-at " \\|\\<")
+			 (backward-word)
+			 (setq start (point)))
+		       (goto-char end)
+		       (unless (looking-at " \\|\>")
+			 (forward-word)
+			 (setq end (point)))))
+		   (setq lines
+			 (s-join "\n" (mapcar
+				       (lambda (s)
+					 (if (not (string= (s-trim s) ""))
+					     (concat ,beginning-marker
+						     (s-trim s)
+						     ,end-marker)
+					   s))
+				       (split-string
+					(buffer-substring start end) "\n"))))
+		   (setf (buffer-substring start end) lines)
+		   (forward-char (length lines))))
+		;; We are on a word with no region selected
+		((thing-at-point 'word)
+		 (cond
+		  ;; beginning of a word
+		  ((looking-back " " 1)
+		   (insert ,beginning-marker)
+		   (re-search-forward "\\>")
+		   (insert ,end-marker))
+		  ;; end of a word
+		  ((looking-back "\\>" 1)
+		   (insert ,(concat beginning-marker end-marker))
+		   (backward-char ,(length end-marker)))
+		  ;; not at start or end, so we just sub/sup the character at point
+		  ((memq ',type '(subscript superscript))
+		   (insert ,beginning-marker)
+		   (forward-char ,(- (length beginning-marker) 1))
+		   (insert ,end-marker))
+		  ;; somewhere else in a word, and handled sub/sup. mark up the
+		  ;; whole word.
+		  (t
+		   (re-search-backward "\\<")
+		   (insert ,beginning-marker)
+		   (re-search-forward "\\>")
+		   (insert ,end-marker))))
+		;; not at a word or region, insert markers and put point between
+		;; them.
+		(t
+		 (insert ,(concat beginning-marker end-marker))
+		 (backward-char ,(length end-marker)))))))
+
+(defun org-latex-math-region-or-point (&optional arg)
+  "Wrap the selected region in latex math markup.
+\(\) or $$ (with prefix ARG) or @@latex:@@ with double prefix.
+Or insert those and put point in the middle to add an equation."
+  (interactive "P")
+  (let ((chars
+	 (cond
+	  ((null arg)
+	   '("\\(" . "\\)"))
+	  ((equal arg '(4))
+	   '("$" . "$"))
+	  ((equal arg '(16))
+	   '("@@latex:" . "@@")))))
+    (if (region-active-p)
+	(progn
+	  (goto-char (region-end))
+	  (insert (cdr chars))
+	  (goto-char (region-beginning))
+	  (insert (car chars)))
+      (insert (concat  (car chars) (cdr chars)))
+      (backward-char (length (cdr chars))))))
 #+END_SRC
 
 * Appearance
@@ -7431,6 +7709,7 @@ the absence of a window system. I'll check for the latter for now.
     "Setup fira code ligatures and icon font sets."
     (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
     (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist)
+
     (pretty-fonts-set-fontsets-for-fira-code)
     (pretty-fonts-set-fontsets
      '(;; All-the-icons fontsets
@@ -7503,9 +7782,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 *** Default Text Scale
 
 #+BEGIN_SRC emacs-lisp
-(use-package default-text-scale
-  :init
-  (default-text-scale-mode 1))
+(use-package default-text-scale)
 #+END_SRC
 
 *** Default font
@@ -7627,6 +7904,7 @@ From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when 
                (message "Restored default fonts."))))))
 #+END_SRC
 
+*** Ligatures
 *** Unicode
 **** Unicode Fonts
 
@@ -7736,6 +8014,7 @@ From[[https://ogbe.net/blog/toggle-serif.html][ Variable-width Serif Fonts when 
 
 #+END_SRC
 
+
 ***** VS Code Icons
 :PROPERTIES:
 :ID:       4196FB0F-6A8F-4476-AFBD-651C7E5ED8AD
@@ -7784,6 +8063,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 :PROPERTIES:
 :ID:       A6A6C1C1-8DF3-45C7-8FB0-D1D1974B8C72
 :END:
+
 *** Visual Fill Column
 :PROPERTIES:
 :ID:       9343B26B-8EB3-4785-BAD0-427AE4E3DD63
@@ -7815,7 +8095,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
   (setq fci-rule-use-dashes nil))
 #+END_SRC
 
-*n** Justify Kp
+*** Justify Kp
 :PROPERTIES:
 :ID:       423D21DE-4BD8-49B5-BD6B-F88E267B4008
 :END:
@@ -7832,39 +8112,35 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
 :PROPERTIES:
 :ID:       3C550304-3F1D-4682-B4C6-527EBDFA0760
 :END:
-** Spaceline
+*** Spaceline
 **** Spaceline Mode
 
 #+NAME: sl/spaceline
 #+BEGIN_SRC emacs-lisp
-(use-package powerline)
-
-(use-package spaceline
-  :straight t)
-
-(use-package spaceline-config
-  :straight spaceline)
-
+(use-package spaceline)
 #+END_SRC
 
 **** Spaceline All the Icons
 
 #+NAME: sl/icons
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline-all-the-icons
-  :straight  (spaceline-all-the-icons
-              :type git
-              :host github
-              :repo "LiuPai/spaceline-all-the-icons.el")
-  :after spaceline)
+(use-package spaceline-all-the-icons)
 
-(use-package spaceline-all-the-icons-segments
-  :straight spaceline-all-the-icons
-  :init
-  (require 'spaceline-all-the-icons)
-  (spaceline-all-the-icons-theme)
-  (spaceline-all-the-icons--setup-git-ahead)
-  (spaceline-all-the-icons--setup-neotree))
+  (defun ml-spaceline-setup ()
+    (interactive)
+    "Setup the modeline for spaceline."
+    (setq spaceline-all-the-icons-separator-type 'arrow)
+    (require 'spaceline)
+    (require 'spaceline-segments)
+    (require 'spaceline-config)
+    (require 'all-the-icons)
+    (require 'spaceline-all-the-icons)
+    (spaceline-all-the-icons--setup-neotree)
+    (spaceline-all-the-icons-theme 'mu4e-alert 'org-pomodoro)
+    (spaceline-toggle-all-the-icons-flycheck-status-off))
+
+  (add-hook 'after-init-hook #'ml-spaceline-setup)
+
 #+END_SRC
 
 *** Eyeliner
@@ -7881,43 +8157,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase"
       (require 'eyeliner)
       (eyeliner/install)))
 
-#+END_SRC
-
-** Scrolling
-:PROPERTIES:
-:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
-:END:
-**** Scroll to first error on compilation
-
-#+NAME: scroll/compile-error
-#+BEGIN_SRC emacs-lisp
-(setq compilation-scroll-output 'first-error)
-#+END_SRC
-
-**** Smooth Scrolling
-
-#+NAME: scroll/smooth
-#+BEGIN_SRC emacs-lisp
-(use-package smooth-scrolling
-  :init
-  (smooth-scrolling-mode 1)
-  :config
-  (setq scroll-step 1
-        scroll-margin 10
-        next-line-add-newlines nil
-        scroll-preserve-screen-position 1)
-
-  (setq mouse-wheel-follow-mouse 't)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
-#+END_SRC
-
-**** Sublimity Scroll
-
-#+NAME: scroll/subliminity
-#+BEGIN_SRC emacs-lisp
-  (use-package sublimity
-      :init
-    (require 'sublimity-scroll))
 #+END_SRC
 
 * Web
@@ -8704,10 +8943,12 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 
 #+NAME: lsp/ui
 #+BEGIN_SRC emacs-lisp
-(use-package lsp-ui
-  :after lsp
+(use-package lsp-ui)
+
+(use-package lsp-ui-peek
+  :straight lsp-ui
   :bind
-  (:map lsp-ui-mode-map
+  (:map lsp-ui-peek-mode-map
         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
         ([remap xref-find-references]  . lsp-ui-peek-find-references)))
 #+END_SRC
@@ -8804,7 +9045,7 @@ display the buffer."
 *** Folding
 **** Vimish fold
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package vimish-fold
   :init
   (vimish-fold-global-mode 1))
@@ -9023,7 +9264,7 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 
 #+END_SRC
 
-**** Lispy
+***** Lispy
 
 #+NAME: lispy-config
 #+BEGIN_SRC emacs-lisp
@@ -9116,14 +9357,6 @@ As a git client though, magit is awesome.
     (magit-completing-read-function 'ivy-completing-read))
 #+END_SRC
 
-***** Magit popup
-
-Magit now uses  [[https://emacsair.me/2019/02/14/transient-0.1][transient]], but some packages still use =magit-popup= as a dependency.
-
-#+BEGIN_SRC emacs-lisp
-(use-package magit-popup)
-#+END_SRC
-
 ***** Magit topgit
 
 To configure:
@@ -9177,7 +9410,14 @@ git config --global --add magit.extension stgit
 
 #+NAME: magit/hub
 #+BEGIN_SRC emacs-lisp
-(use-package forge)
+(use-package magithub
+  :after (magit)
+  :commands magithub-dispatch-popup
+  :bind (:map magit-status-mode-map
+	      ("@" . magithub-dispatch-popup))
+  :config
+  (progn
+    (magithub-feature-autoinject t)))
 #+END_SRC
 
 ***** Magit org todos
@@ -9227,13 +9467,10 @@ Travel back in time (to your last commit).
 #+NAME: git/timemachine
 #+BEGIN_SRC emacs-lisp
 (use-package git-timemachine
-  :init
-  (require 'magit-popup)
   :bind
   ("C-c v t" . git-timemachine-toggle)
-  :custom
-  (git-timemachine-abbreviation-length 7)
   :config
+  (setq git-timemachine-abbreviation-length 7)
   (which-key-add-key-based-replacements
     "C-c v t" " Timemachine"))
 #+END_SRC
@@ -9341,7 +9578,7 @@ essentially to ~hg~ what [[#magit][magit]] is for ~git~.
     (autoload 'ec2-get-console "aws")))
 #+END_SRC
 
-** Extras
+** Coding misc
 *** wakatime
 
 Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatime]].
@@ -9391,14 +9628,6 @@ Pair programming.
 
 #+BEGIN_SRC emacs-lisp
 (use-package rmsbolt)
-#+END_SRC
-
-*** unpackaged
-
-
-#+BEGIN_SRC emacs-lisp
-(use-package unpackaged
-  :straight (unpackaged :host github :repo "alphapapa/unpackaged.el"))
 #+END_SRC
 
 ** Languages
@@ -9649,6 +9878,7 @@ Configuration for common-lisp.
 #+END_SRC
 
 *** Clojure
+
 **** Clojure Mode
 :PROPERTIES:
 :ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
@@ -9770,6 +10000,15 @@ Additional syntax highlighting for ~clojure-mode~.
 #+END_SRC
 
 **** ClojureScript
+
+#+NAME: clj/cljs
+#+BEGIN_SRC emacs-lisp
+;; elein
+
+;; Cljsbuild
+
+#+END_SRC
+
 ***** elein
 
 [[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
@@ -9924,6 +10163,15 @@ Gradle is a build tool for Java. It's awesome.
 #+END_SRC
 
 **** Dap
+
+#+NAME: java/dap
+#+BEGIN_SRC emacs-lisp
+;; Dap Mode
+
+;; Dap Java
+
+#+END_SRC
+
 ***** Dap Java
 
 #+NAME: dap/java
@@ -10173,12 +10421,6 @@ process outputp."
                        chromium-program "--remote-debugging-port=9222" ip)))
     :hook
     (js-mode . indium-interaction-mode))
-#+END_SRC
-
-*** Lua
-**** lua mode
-#+BEGIN_SRC emacs-lisp
-(use-package lua-mode)
 #+END_SRC
 
 *** Python
