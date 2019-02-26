@@ -17,15 +17,21 @@
 \addtolength{\topmargin}{-2.54cm}
 % uclasem packages
 \usepackage{amsmath}
+\usepackage{multicol}
 \usepackage{stmaryrd}
 \usepackage{fontspec}
-\usepackage{unicode-math}
+\usepackage[math-style=literal]{unicode-math}
 \usepackage{bussproofs}
+\alwaysRootAtTop
+\newenvironment{sprooftree}[1]% https://tex.stackexchange.com/a/105748
+  {\gdef\scalefactor{#1}\begin{center}\proofSkipAmount \leavevmode}%
+  {\scalebox{\scalefactor}{\DisplayProof}\proofSkipAmount \end{center} }
 \def\extraVskip{8pt}
 \usepackage{cabin}
 \usepackage{xpatch}
 \setmainfont{STIX Two Text}
-\setmathfont{STIX Two Math}[StylisticSet=02, StylisticSet=08]
+\setmathfont{STIX Two Math}[StylisticSet=02, StylisticSet=08, StylisticSet=04]
+\setmathfont{DejaVuMathTeXGyre}[range=\symit}
 \setmonofont[Scale=MatchUppercase]{DejaVu Sans Mono}
 \usepackage{gb4e}
 \noautomath
@@ -212,7 +218,7 @@ sep=4pt, yshift =-3pt, font=\small\itshape, text height=.7em]
 \newcommand{\denotationbase}[1]{\ensuremath{\left\lsem#1\right\rsem}}
 \newcommand{\startfn}[0]{\ensuremath{\ .\ }}
 \newcommand{\sem}[2][M\!,g]{\mbox{ $[\![ #2 ]\!]^{#1}$}}
-\newcommand{\vb}[0]{\text{ | }}
+\newcommand{\vb}[0]{\text{\,|\,}}
 \newcommand{\arc}[2]{\overarc{$#1$$#2$}}
 % Syntax
 \ifpdf
