@@ -91,7 +91,6 @@
     - [[#winner-mode][Winner Mode]]
     - [[#ace-window][Ace Window]]
     - [[#perspective][Perspective]]
-    - [[#popwin][Popwin]]
     - [[#poporg][Poporg]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
@@ -135,7 +134,6 @@
     - [[#org-babel][Org Babel]]
     - [[#org2elcomment][Org2elcomment]]
   - [[#org-tasks][Org Tasks]]
-    - [[#drill][Drill]]
     - [[#attach][Attach]]
     - [[#capture][Capture]]
     - [[#habit][Habit]]
@@ -199,7 +197,6 @@
   - [[#fonts][Fonts]]
     - [[#dont-use-default-font-for-symbols][Don't use default font for symbols]]
     - [[#default-text-scale][Default Text Scale]]
-    - [[#default-font][Default font]]
     - [[#variable-pitch][Variable Pitch]]
     - [[#unicode][Unicode]]
   - [[#cursor][Cursor]]
@@ -210,9 +207,11 @@
     - [[#visual-fill-column][Visual Fill Column]]
     - [[#fill-column-indicator][Fill Column Indicator]]
     - [[#justify-kp][Justify Kp]]
+  - [[#scrolling][Scrolling]]
+    - [[#scroll-to-first-error-on-compilation][Scroll to first error on compilation]]
+    - [[#smooth-scrolling][Smooth Scrolling]]
+    - [[#sublimity-scroll][Sublimity Scroll]]
   - [[#modeline][Modeline]]
-    - [[#spaceline][Spaceline]]
-    - [[#spaceline-all-the-icons][Spaceline all the icons]]
 - [[#web][Web]]
   - [[#web-libraries][Web libraries]]
     - [[#simple-httpd][Simple httpd]]
@@ -2355,9 +2354,6 @@ Adds extensions and functionality to dired mode.
 **** Treemacs
 #+BEGIN_SRC emacs-lisp
 (use-package treemacs
-  :init
-  (with-eval-after-load 'winum
-    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
   :custom
   (treemacs-python-executable (or (executable-find "python3") (executable-find "python")))
   (treemacs-collapse-dirs
@@ -3246,22 +3242,6 @@ different window configurations.
                ("s-S" . projectile-persp-switch-project))))
 #+END_SRC
 
-*** Popwin
-
-#+NAME: popwin-config
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package popwin
-    :defines popwin:keymap
-    :after (perspective)
-    :bind-keymap ("C-z" . popwin:keymap)
-    :bind (:map popwin:keymap
-                ("m" . popwin:messages))
-    :init
-    (require 'popwin)
-    :config
-    (popwin-mode 1))
-#+END_SRC
-
 *** Poporg
 
 #+BEGIN_SRC emacs-lisp
@@ -3933,6 +3913,7 @@ any reason for me reconsider my choice.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-bibtex
+  :after bibtex
   :custom
   (bibtex-completion-bibliography
    `(,(org-dir "ref/references.bib")
@@ -4733,43 +4714,6 @@ save.
            lualatex-preview-header))))
 #+END_SRC
 
-***** Scrolling
-:PROPERTIES:
-:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
-:END:
-****** Scroll to first error on compilation
-
-#+NAME: scroll/compile-error
-#+BEGIN_SRC emacs-lisp
-(setq compilation-scroll-output 'first-error)
-#+END_SRC
-
-****** Smooth Scrolling
-
-#+NAME: scroll/smooth
-#+BEGIN_SRC emacs-lisp
-(use-package smooth-scrolling
-  :init
-  (smooth-scrolling-mode 1)
-  :config
-  (setq scroll-step 1
-        scroll-margin 10
-        next-line-add-newlines nil
-        scroll-preserve-screen-position 1)
-
-  (setq mouse-wheel-follow-mouse 't)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
-#+END_SRC
-
-****** Sublimity Scroll
-
-#+NAME: scroll/subliminity
-#+BEGIN_SRC emacs-lisp
-  (use-package sublimity
-      :init
-    (require 'sublimity-scroll))
-#+END_SRC
-
 **** Dynamic latex previews
 
 Generate latex fragments based on the latex compiler and class in the current buffer.
@@ -5073,20 +5017,6 @@ entry types and required fields."
 #+BEGIN_SRC emacs-lisp
 
 (use-package org-ref
-  :after ivy
-  :demand t
-  :bind*
-  (:map org-mode-map
-        :prefix-map org-ref-prefix-map
-        :prefix-docstring "Org ref citation manager."
-        :prefix "C-c r"
-        ("b" . org-ref-insert-bibliography-link)
-        ("c" . org-ref-insert-cite-link)
-        ("f" . org-ref-list-of-figures)
-        ("g" . org-ref-insert-glossary-link)
-        ("l" . org-ref-insert-label-link)
-        ("r" . org-ref-insert-ref-link)
-        ("s" .  org-ref-insert-bibliographystyle-link))
   :custom
   (org-ref-completion-library 'org-ref-ivy-cite)
   (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
@@ -5098,7 +5028,6 @@ entry types and required fields."
   (org-ref-bibtex-hydra-key-binding "\C-cj")
 
   :init
-  (require 'helm)
 
   ;; https://github.com/jkitchin/org-ref/issues/428
   (progn
@@ -5118,17 +5047,7 @@ entry types and required fields."
     (require 'x2bib))
 
   :config
-
-  (which-key-add-major-mode-key-based-replacements 'org-mode
-    "C-c r" "Org Ref"
-    "C-c r c" "Cite"
-    "C-c r b" "Bibliography"
-    "C-c r g" "Glossary"
-    "C-c r f" "List of figures"
-    "C-c r l"  "Labels"
-    "C-c r r" "References"
-    "C-c r s" "Bibliography style")
-
+  (require 'helm)
   (require 'org-ref-core)
 
   ;; vref ref type
@@ -5136,11 +5055,9 @@ entry types and required fields."
   (defun org-ref-vref-complete-link (&optional arg)
     "Completion function for ref links.
 Optional argument ARG Does nothing."
-    (let ((label) (line))
+    (let (label)
       (setq label (completing-read "label:  " (org-ref-get-labels)))
-      (setq line (completing-read "line label:  " (org-ref-get-labels)))
-      (format "algref:%s,%s" label line)))
-
+      (format "vref:" label line)))
 
   (defun org-ref-vref-export (keyword desc format)
     "An export function for vref links."
@@ -5239,10 +5156,11 @@ system viewer."
 **** Outshine
 
 #+BEGIN_SRC emacs-lisp
+(defvar outline-minor-mode-prefix "\M-#")
+
 (use-package outshine
   :init
   (setq outshine-minor-mode-prefix "\M-#")
-  (bind-keys* :map org-mode-map ("C-c M-o" . org-store-link))
   :hook ((outline-minor-mode . outshine-mode)))
 #+END_SRC
 
@@ -5277,17 +5195,6 @@ instead of ~outline-show-entry~.
     (cl-letf
         (((symbol-function #'outline-show-entry) (lambda () (org-show-entry))))
       (foldout-zoom-subtree exposure)))
-#+END_SRC
-
-**** Numbering
-
-#+NAME: org-ui-outline-numbering
-#+BEGIN_SRC emacs-lisp
-  (use-package org-outline-numbering
-    :init
-    (defun org/outline-numbering ()
-      (org-outline-numbering-mode 1)))
-
 #+END_SRC
 
 *** Radio buttons
@@ -5408,28 +5315,28 @@ Embed YouTube Links in =iframe=.
 :END:
 
 #+BEGIN_SRC emacs-lisp
-  (defun org-check-percent-escapes ()
-    "*Check buffer for possibly problematic old link escapes."
-    (interactive)
-    (when (eq major-mode 'org-mode)
-      (let ((old-escapes '("%20" "%5B" "%5D" "%E0" "%E2" "%E7" "%E8" "%E9"
-                           "%EA" "%EE" "%F4" "%F9" "%FB" "%3B" "%3D" "%2B")))
-        (unless (boundp 'warning-suppress-types)
-          (setq warning-suppress-types nil))
-        (widen)
-        (show-all)
-        (goto-char (point-min))
-        (while (re-search-forward org-any-link-re nil t)
-          (let ((end (match-end 0)))
-            (goto-char (match-beginning 0))
-            (while (re-search-forward "%[0-9a-zA-Z]\\{2\\}" end t)
-              (let ((escape (match-string-no-properties 0)))
-                (unless (member (upcase escape) old-escapes)
-                  (warn "Found unknown percent escape sequence %s at buffer %s, position %d"
-                        escape
-                        (buffer-name)
-                        (- (point) 3)))))
-            (goto-char end))))))
+(defun org-check-percent-escapes ()
+  "*Check buffer for possibly problematic old link escapes."
+  (interactive)
+  (when (eq major-mode 'org-mode)
+    (let ((old-escapes '("%20" "%5B" "%5D" "%E0" "%E2" "%E7" "%E8" "%E9"
+                         "%EA" "%EE" "%F4" "%F9" "%FB" "%3B" "%3D" "%2B")))
+      (unless (boundp 'warning-suppress-types)
+        (setq warning-suppress-types nil))
+      (widen)
+      (show-all)
+      (goto-char (point-min))
+      (while (re-search-forward org-any-link-re nil t)
+        (let ((end (match-end 0)))
+          (goto-char (match-beginning 0))
+          (while (re-search-forward "%[0-9a-zA-Z]\\{2\\}" end t)
+            (let ((escape (match-string-no-properties 0)))
+              (unless (member (upcase escape) old-escapes)
+                (warn "Found unknown percent escape sequence %s at buffer %s, position %d"
+                      escape
+                      (buffer-name)
+                      (- (point) 3)))))
+          (goto-char end))))))
 #+END_SRC
 
 *** Org ID :structure:
@@ -5439,7 +5346,7 @@ Embed YouTube Links in =iframe=.
   :straight org-plus-contrib
   :custom
   (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-  :init/el-patch
+  :init
   ;; Custom id utilities
   ;; See [[https://writequit.org/articles/emacs-org-mode-generate-ids.html][Emacs Org Mode Generate Ids]]
   (with-eval-after-load 'org-id
@@ -5462,20 +5369,20 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 	           unique)
         (if (equal prefix (el-patch-swap ":" "-")) (setq prefix ""))
         (cond
-          ((memq org-id-method '(uuidgen uuid))
-           (setq unique (org-trim (shell-command-to-string org-id-uuid-program)))
-           (unless (org-uuidgen-p unique)
-	           (setq unique (org-id-uuid))))
-          ((eq org-id-method 'org)
-           (let* ((etime (org-reverse-string (org-id-time-to-b36)))
-	                (postfix (if org-id-include-domain
-			                         (progn
-			                           (require 'message)
-			                           (concat "@" (message-make-fqdn))))))
-	           (setq unique (concat etime postfix))))
-          (t (error "Invalid `org-id-method'")))
+         ((memq org-id-method '(uuidgen uuid))
+          (setq unique (org-trim (shell-command-to-string org-id-uuid-program)))
+          (unless (org-uuidgen-p unique)
+	          (setq unique (org-id-uuid))))
+         ((eq org-id-method 'org)
+          (let* ((etime (org-reverse-string (org-id-time-to-b36)))
+	               (postfix (if org-id-include-domain
+			                        (progn
+			                          (require 'message)
+			                          (concat "@" (message-make-fqdn))))))
+	          (setq unique (concat etime postfix))))
+         (t (error "Invalid `org-id-method'")))
         (concat prefix unique))))
-  :init
+
   (defun org-custom-id-get (&optional pom create prefix)
     "Get the CUSTOM_ID property of the entry at point-or-marker POM.
     If POM is nil, refer to the entry at point. If the entry does
@@ -5487,13 +5394,13 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
     (org-with-point-at pom
       (let ((id (org-entry-get nil "CUSTOM_ID")))
         (cond
-          ((and id (stringp id) (string-match "\\S-" id))
-           id)
-          (create
-           (setq id (org-id-new (concat prefix "h")))
-           (org-entry-put pom "CUSTOM_ID" id)
-           (org-id-add-location id (buffer-file-name
-                                    (buffer-base-buffer id))))))))
+         ((and id (stringp id) (string-match "\\S-" id))
+          id)
+         (create
+          (setq id (org-id-new (concat prefix "h")))
+          (org-entry-put pom "CUSTOM_ID" id)
+          (org-id-add-location id (buffer-file-name
+                                   (buffer-base-buffer id))))))))
 
   (defun org-add-ids-to-headlines-in-file ()
     "Add CUSTOM_ID properties to all headlines in the current
@@ -5512,7 +5419,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
     (add-hook 'before-save-hook
               (lambda ()
                 (when (and (eq major-mode 'org-mode)
-                         (eq buffer-read-only nil))
+                           (eq buffer-read-only nil))
                   (org-add-ids-to-headlines-in-file)))))
 
   (defun org-capture-add-custom-id ()
@@ -5521,7 +5428,6 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 
   :hook
   (org-mode . org-add-ids-to-headlines-in-file))
-
 #+END_SRC
 
 ** Org Coding
@@ -5581,14 +5487,6 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 #+END_SRC
 
 ** Org Tasks
-*** Drill
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-drill
-  :straight org-plus-contrib
-  :init
-  (require 'org-drill))
-#+END_SRC
 *** Attach
 
 #+NAME: org-docmgr-attach
@@ -5616,7 +5514,6 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
                    "* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n\nCaptured: %U"))))
 #+END_SRC
 
-
 **** Capture popup frame
 
 #+BEGIN_SRC emacs-lisp
@@ -5635,13 +5532,14 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(use-package alfred-org-capture
-    :straight (alfred-org-capture
-               :type git
-               :host github
-               :repo "jjasghar/alfred-org-capture"
-               :files ("el/alfred-org-capture.el")))
-
+(defun make-orgcapture-frame ()
+  (interactive)
+  (make-frame '((name . "rememeber")
+                (width . 80) (height . 16)
+                (top . 400) (left . 300)
+                (font . "-apple-Monaco-medium-normal-normal-*-13-*-*-*-m-0-iso10646-1")
+                (select-frame-by-name "remember")
+                (org-capture))))
 #+END_SRC
 
 *** Habit
@@ -5674,10 +5572,9 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                               (org-agenda-files :maxlevel . 9))))
   (org-todo-keywords
    '((sequence "☛ TODO(t)" "|" " DONE(d)" )
-     (sequence "✘ CANCELLED(c)" "|" "😢 INCOMPLETE(i)")))
+     (sequence "|" "✘ CANCELLED(c)")))
   (org-todo-keyword-faces
    '(("✘ CANCELLED" . (:foreground "yellow"))
-     ("😢 INCOMPLETE(i)" . (:foreground "snow"))
      (" DONE" . org-done)
      ("☛ TODO" . org-todo)))
   :init
@@ -7004,8 +6901,6 @@ This disables Emacs asking questions about loading a new theme.
 (defvar load-theme-hook nil
   "List of functions to run when `dotemacs/load-theme' is invoked.")
 
-
-
 (defun dotemacs--default-theme ()
   (cl-flet ((default-theme-symbol ()
               (symbol-value
@@ -7113,7 +7008,7 @@ theme in \"quick mode\" by eliding hooks specified in
     (set-face-attribute 'org-block nil :inherit 'default)
     (set-face-attribute 'org-document-title nil
                         :family "EtBembo" :foreground fg :height 1.8
-                        :underline nil :inherit 'variable-pitch)
+                        :underline nil)
     (set-face-attribute 'org-block-end-line nil :inherit 'org-block-begin-line)))
 
 ;; https://github.com/syl20bnr/spacemacs/pull/7667
@@ -7383,41 +7278,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
   (default-text-scale-mode 1))
 #+END_SRC
 
-*** Default font
-
-#+BEGIN_SRC emacs-lisp
-(defcustom user-fonts-list
-  '(("Fira Code" . nil)
-    ("Fira Mono for Powerline" . nil)
-    ("Operator Mono" . extralight)
-    ("SF Mono" . normal)
-    ("Ubuntu Mono" . nil)
-    ("Monaco" . nil)
-    ("Inconsolota" . nil))
-
-  "The default font stack to use for setting the font
-  on startup and new frame."
-  :type '(string))
-
-(defun font/setup ()
-  (interactive)
-  (let* ((font-family (or (car (seq-intersection
-                               (mapcar #'car user-fonts-list) (font-family-list)))
-                         (face-attribute 'fixed-pitch :family)))
-         (weight (or (cdr (assoc font-family user-fonts-list)) 'normal)))
-    (run-at-time "0.2 sec" nil
-                 `(lambda ()
-                    (when (not (eq (face-attribute 'default :family)
-                                 ,font-family))
-                      (set-face-attribute
-                       'default nil
-                       :family ,font-family
-                       :weight (quote ,weight)
-                       :height 120))))))
-
-(add-hook 'after-init-hook 'font/setup)
-#+END_SRC
-
 *** Variable Pitch
 
 
@@ -7427,8 +7287,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
              :type git
              :host github
              :repo "emacsmirror/org-variable-pitch")
-  :custom-face
-  (org-indent-face  ((t (:inherit (org-hide)))))
   :hook
   (org-mode . org-variable-pitch-minor-mode))
 #+END_SRC
@@ -7730,30 +7588,61 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
              :repo "Fuco1/justify-kp"))
 #+END_SRC
 
-** Modeline
+** Scrolling
 :PROPERTIES:
-:ID:       3C550304-3F1D-4682-B4C6-527EBDFA0760
+:ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
 :END:
-*** Spaceline
-**** Spaceline mode
-#+BEGIN_SRC emacs-lisp
-(use-package powerline)
+*** Scroll to first error on compilation
 
+#+NAME: scroll/compile-error
+#+BEGIN_SRC emacs-lisp
+(setq compilation-scroll-output 'first-error)
+#+END_SRC
+
+*** Smooth Scrolling
+
+#+NAME: scroll/smooth
+#+BEGIN_SRC emacs-lisp
+(use-package smooth-scrolling
+  :init
+  (smooth-scrolling-mode 1)
+  :config
+  (setq scroll-step 1
+        scroll-margin 10
+        next-line-add-newlines nil
+        scroll-preserve-screen-position 1)
+
+  (setq mouse-wheel-follow-mouse 't)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))))
+#+END_SRC
+
+*** Sublimity Scroll
+
+#+NAME: scroll/subliminity
+#+BEGIN_SRC emacs-lisp
+  (use-package sublimity
+      :init
+    (require 'sublimity-scroll))
+#+END_SRC
+
+** Modeline
+#+BEGIN_SRC emacs-lisp
 (use-package spaceline)
 
 (use-package spaceline-config
-  :straight spaceline
-  :init
-  (require 'spaceline-segments))
+  :straight spaceline)
 
-#+END_SRC
-
-*** Spaceline all the icons
-#+BEGIN_SRC emacs-lisp
 (use-package spaceline-all-the-icons
-  :after spaceline
-  :demand t
-  :config
+  :straight  (spaceline-all-the-icons
+              :type git
+              :host github
+              :repo "LiuPai/spaceline-all-the-icons.el")
+  :after spaceline)
+
+(use-package spaceline-all-the-icons-segments
+  :straight spaceline-all-the-icons
+  :init
+  (require 'spaceline-all-the-icons)
   (spaceline-all-the-icons-theme 'org-pomodoro))
 #+END_SRC
 
@@ -8637,7 +8526,7 @@ display the buffer."
 
 #+BEGIN_SRC emacs-lisp
 (use-package hideshow-org
-  :bind*
+  :bind
   (:map org-mode-map
         ("C-c @" . hs-org/minor-mode)))
 #+END_SRC

@@ -31,7 +31,7 @@
 
 (unwind-protect
     (let ((straight-treat-as-init t)
-          (debug-on-error t))
+          (toggle-debug-on-error t))
       (when (locate-library "gnutls")
         (require 'gnutls)
         ;; Prevent elpa from loading `package.el' in case loading fails.
@@ -91,15 +91,24 @@
       (setq straight-use-package-version 'straight
             ;; And enable by default.
             straight-use-package-by-default t)
+
+      (use-package no-littering
+        :demand t
+        :custom
+        (no-littering-etc-directory (expand-file-name "etc" user-emacs-directory))
+        (no-littering-var-directory (expand-file-name "var" user-emacs-directory)))
+
       ;; https://github.com/raxod502/el-patch#lazy-loading-packages
       (straight-use-package 'el-patch)
+
       (straight-use-package 'git)
 
       ;; Install org
       ;; See the [[https://github.com/raxod502/straight.el/tree/develop#installing-org-with-straightel][Known Issue FAQ]]
       (defun org-git-version ()
         (require 'git)
-        (let ((git-repo (expand-file-name "straight/repos/org/" user-emacs-directory)))
+        (let ((git-repo (expand-file-name
+                         "straight/repos/org/" user-emacs-directory)))
           (string-trim
            (git-run "describe"
                     "--match=release\*"
@@ -122,29 +131,20 @@
 
       (provide 'org-version)
 
+
       (straight-use-package 'org-plus-contrib)
+
       ;; [[id:C2106106-C5F8-4B9B-815D-058678CB9242][Org Mode]]
 
       (use-package org
-        :init
-        (defvar outline-minor-mode-prefix "\M-#")
+        :straight org-plus-contrib
         :custom
         ;; source code blocks
         (org-catch-invisible-edits t)
         (org-src-fontify-natively t)
-        (org-src-preserve-indentation t)
-        (org-edit-src-persistent-message nil)
-        (org-confirm-babel-evaluate nil)
-        (org-babel-uppercase-example-markers t)
-        ;; appearance
-        (org-startup-indented t)
-        (org-pretty-entities t)
-        (org-hide-emphasis-markers t)
-        (org-fontify-quote-and-verse-blocks t)
-        (org-use-sub-superscripts '{})
-
+        (org-src-tab-acts-natively t)
         :bind
-        ("C-c L" . org-insert-link-global)
+        ("C-c L" . org-instert-link-global)
         ("C-c M-O" . org-open-at-point-global)
         ("C-c a" . org-agenda)
         ("C-c c" . org-capture)
@@ -164,8 +164,6 @@
                 org-id-locations-file
                 (expand-file-name
                  "var/org/id-locations.el" user-emacs-directory)))
-
-        (org-babel-lob-ingest "~/.emacs.d/etc/org/library-of-babel.org")
 
         (defun org-update-backends (val)
           "Update Emacs export backends while Emacs is running.
@@ -194,6 +192,7 @@ See `org-export-backends' variable."
               (set-default 'org-export-backends new-list)))))
 
 
+
       ;; Literate
       (defcustom dotemacs-literate-config-file "dotemacs.org"
         "The *.org file containing the source code responsible for
@@ -220,80 +219,7 @@ See `org-export-backends' variable."
                (expand-file-name target-file target-dir))
             (error "%s not found, cannot tangle." target-file))))
 
-      ;; Debug
-      (defvar literate-debug-blocks nil)
-
-      (defun literate-src-parameter-string->alist (parameters)
-        "Convert src block parameter string into a plist."
-        (let ((params-list (split-string parameters " " t)))
-          (cl-loop for x in params-list
-                   for i from 1 to (length params-list)
-                   if (cl-oddp i)
-                   collect (intern x) into odds
-                   else
-                   collect x into evens
-                   end
-                   finally (return (seq-mapn #'cons odds evens)))))
-
-
-      (defun literate-src-block-noweb-p (parameters)
-        (let ((params-alist
-               (literate-src-parameter-string->alist parameters)))
-          (string= "yes" (cdr (assoc :noweb params-alist)))))
-
-      (defun sanitize-no-web-block (code)
-        (let ((sx (split-string code "\n" t)))
-          (cl-flet ((func (s)
-                          (replace-regexp-in-string
-                           "<<\\(.*?\\)>>" "\\1" s)))
-            (mapcar #'func sx))))
-
-
-      (defun literate-tangle-src-block (name)
-        (let ((buf (find-file-noselect dotemacs-user-literate-init-file)))
-          (with-current-buffer dotemacs-literate-config-file
-            (org-element-map (org-element-parse-buffer) 'src-block
-              (lambda (block)
-                (if (string= name (org-element-property :name block))
-                    (let ((code
-                           (org-element-property :value block))
-                          (params
-                           (org-element-property :parameters block))
-                          (noweb-p
-                           (literate-src-block-noweb-p
-                            (org-element-property :parameters block))))
-
-                      (if noweb-p
-                          (mapcar #'literate-tangle-src-block
-                                  (sanitize-no-web-block code)))
-			                (let (pkg)
-			                  (with-temp-buffer
-                          (insert code)
-			                    (save-excursion
-			                      (goto-char (point-min))
-			                      (when (re-search-forward "use-package " nil t)
-				                      (setq pkg (buffer-substring-no-properties
-					                               (point) (point-at-eol))))
-			                      (if pkg
-				                        (message "%s evaluated" pkg)
-				                      (message "tangled %s" name)))
-                          (eval-buffer))))))))
-          (kill-buffer buf)))
-
-
-      (use-package no-littering
-        :demand t
-        :custom
-        (no-littering-etc-directory
-         (expand-file-name "etc" user-emacs-directory)
-         (no-littering-var-directory
-          (expand-file-name "var" user-emacs-directory)))
-        :init
-        (require 'no-littering)
-        (setq auto-save-file-name-transforms
-              `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
-      (add-hook 'prog-mode-hook 'goto-address-mode)
-      (load-literate))
+        (load-literate))
 
   (straight-finalize-transaction))
 
