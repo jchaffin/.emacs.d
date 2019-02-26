@@ -31,7 +31,7 @@
 
 (unwind-protect
     (let ((straight-treat-as-init t)
-          (toggle-debug-on-error t))
+          (debug-on-error t))
       (when (locate-library "gnutls")
         (require 'gnutls)
         ;; Prevent elpa from loading `package.el' in case loading fails.
@@ -57,7 +57,7 @@
       ;; Bootstrap straight.el
       (let ((bootstrap-file
              (concat user-emacs-directory "straight/bootstrap.el"))
-            (bootstrap-version 2)
+            (bootstrap-version 5)
             (domain "https://raw.githubusercontent.com")
             (repo "raxod502/straight.el")
             (branch straight-repository-branch)
@@ -93,15 +93,13 @@
             straight-use-package-by-default t)
       ;; https://github.com/raxod502/el-patch#lazy-loading-packages
       (straight-use-package 'el-patch)
-
       (straight-use-package 'git)
 
       ;; Install org
       ;; See the [[https://github.com/raxod502/straight.el/tree/develop#installing-org-with-straightel][Known Issue FAQ]]
       (defun org-git-version ()
         (require 'git)
-        (let ((git-repo (expand-file-name
-                         "straight/repos/org/" user-emacs-directory)))
+        (let ((git-repo (expand-file-name "straight/repos/org/" user-emacs-directory)))
           (string-trim
            (git-run "describe"
                     "--match=release\*"
@@ -129,14 +127,12 @@
 
       (use-package org
         :init
-        (setq outline-minor-mode-prefix "\M-#")
+        (defvar outline-minor-mode-prefix "\M-#")
         :custom
         ;; source code blocks
         (org-catch-invisible-edits t)
         (org-src-fontify-natively t)
-        (org-src-tab-acts-natively t)
         (org-src-preserve-indentation t)
-        (org-src-window-setup 'reorganize-frame)
         (org-edit-src-persistent-message nil)
         (org-confirm-babel-evaluate nil)
         (org-babel-uppercase-example-markers t)
@@ -148,7 +144,7 @@
         (org-use-sub-superscripts '{})
 
         :bind
-        ("C-c L" . org-instert-link-global)
+        ("C-c L" . org-insert-link-global)
         ("C-c M-O" . org-open-at-point-global)
         ("C-c a" . org-agenda)
         ("C-c c" . org-capture)
@@ -168,6 +164,8 @@
                 org-id-locations-file
                 (expand-file-name
                  "var/org/id-locations.el" user-emacs-directory)))
+
+        (org-babel-lob-ingest "~/.emacs.d/etc/org/library-of-babel.org")
 
         (defun org-update-backends (val)
           "Update Emacs export backends while Emacs is running.
@@ -282,11 +280,6 @@ See `org-export-backends' variable."
                           (eval-buffer))))))))
           (kill-buffer buf)))
 
-      (defun literate-debug-enabled ()
-        "Tangle only the source blocks with a name property matching an
-element in `dotemacs-literate-debug-blocks'."
-        (interactive)
-        (mapcar #'literate-tangle-src-block literate-debug-blocks))
 
       (use-package no-littering
         :demand t
@@ -299,10 +292,8 @@ element in `dotemacs-literate-debug-blocks'."
         (require 'no-littering)
         (setq auto-save-file-name-transforms
               `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
-
-      (if (and (boundp 'use-literate-p) (not use-literate-p))
-          (literate-debug-enabled)
-        (load-literate)))
+      (add-hook 'prog-mode-hook 'goto-address-mode)
+      (load-literate))
 
   (straight-finalize-transaction))
 
