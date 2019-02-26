@@ -3348,8 +3348,7 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 #+NAME: ivy/rich
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-rich
-  :after (:all ivy counsel)
-  :demand t
+  :after ivy
   :init
   (defun ivy-rich-switch-buffer-icon (candidate)
     "Use `all-the-icons' icons in buffer list."
@@ -3360,6 +3359,8 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
 	          (all-the-icons-icon-for-mode 'fundamental-mode)
 	        icon))))
   :init
+  (setq ivy-format-function #'ivy-format-function-line)
+
   (setq ivy-rich-display-transformers-list
    '(ivy-switch-buffer
      (:columns
@@ -7500,8 +7501,8 @@ bullets as UTF-8 characters.
              :host github
              :type git
              :repo "Fuco1/org-pretty-table")
-  :init
-  (global-org-pretty-table-mode 1))
+  :hook
+  (org-mode . org-pretty-table-mode))
 #+END_SRC
 
 ** Cursor
@@ -8775,7 +8776,7 @@ As a git client though, magit is awesome.
     :init
     (which-key-add-key-based-replacements "C-c v" " Magit")
 
-    (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
+    (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
           which-key-replacement-alist)
     :custom
     (magit-save-repository-buffers 'dontask)
