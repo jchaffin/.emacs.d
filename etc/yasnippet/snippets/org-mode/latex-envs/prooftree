@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: prooftree
-# key: prooftree
-# --
-\begin{prooftree}
-  \AxiomC{$1}
-  \UnaryInfC{$2}
-\end{prooftree}

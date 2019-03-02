@@ -140,13 +140,14 @@
         (org-src-tab-acts-natively t)
         (org-src-preserve-indentation t)
         (org-src-persistent-message nil)
+        (org-src-window-setup 'current-window)
         (org-hide-emphasis-markers t)
         (org-insert-heading-respect-content t)
         (org-ctrl-k-protect-subtree 'error)
         (org-blank-before-new-entry
          '((heading . auto)
            (plain-list-item . auto)))
-        (org-catch-invisible-edits t)
+        (org-catch-invisible-edits 'show)
         (org-yank-adjusted-subtrees t)
         (org-yank-folded-subtrees t)
         (org-modules '(org-bbdb
@@ -170,9 +171,9 @@
                        org-man
                        org-registry
                        org-velocity))
-        :bind
+        :bind*
         (("C-c L" . org-insert-link-global)
-         ("C-c M-o" . org-open-at-point-global)
+         ("C-c M-O" . org-open-at-point-global)
          ("C-c a" . org-agenda)
          ("C-c c" . org-capture)
          ("C-c C-s" . org-schedule)

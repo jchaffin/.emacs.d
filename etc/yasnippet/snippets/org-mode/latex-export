@@ -2,7 +2,6 @@
 # name: latex-export
 # key: <le
 # --
-
 #+BEGIN_EXPORT latex
 $1
 #+END_EXPORT

@@ -126,7 +126,12 @@
     - [[#bibtex][BibTeX]]
     - [[#org-ref][Org Ref]]
     - [[#pdfs][PDFs]]
-- [[#outlines][Outlines]]
+  - [[#outlines][Outlines]]
+    - [[#outline][Outline]]
+    - [[#navi][Navi]]
+    - [[#outshine][Outshine]]
+    - [[#outorg][Outorg]]
+    - [[#foldout][foldout]]
     - [[#radio-buttons][Radio buttons]]
     - [[#org-links][Org Links]]
   - [[#org-coding][Org Coding]]
@@ -157,7 +162,6 @@
     - [[#ox-publish][Ox Publish]]
     - [[#ox-org][Ox Org]]
     - [[#ox-latex][Ox Latex]]
-    - [[#ox-linguistics][Ox Linguistics]]
     - [[#ox-bibtex][Ox Bibtex]]
     - [[#ox-pandoc][Ox Pandoc]]
     - [[#ox-gfm][Ox GFM]]
@@ -170,7 +174,7 @@
   - [[#org-web][Org Web]]
     - [[#org-protocol][Org Protocol]]
     - [[#org-contacts][Org Contacts]]
-    - [[#org-download][Org Download]]
+  - [[#org-download][Org Download]]
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
 - [[#appearance][Appearance]]
@@ -181,7 +185,7 @@
   - [[#org-faces][Org faces]]
   - [[#overlays][Overlays]]
     - [[#highlight][Highlight]]
-    -  [[#emacs-command-tooltip-mode][Emacs Command tooltip mode]]
+    - [[#emacs-command-tooltip-mode][Emacs Command tooltip mode]]
     - [[#overlay][Overlay]]
     - [[#overlay-highlight][Overlay Highlight]]
     - [[#rainbow-mode][Rainbow Mode]]
@@ -196,6 +200,7 @@
     - [[#pretty-code][Pretty Code]]
     - [[#pretty-outlines][Pretty Outlines]]
   - [[#fonts][Fonts]]
+    - [[#fontutils][Fontutils]]
     - [[#dont-use-default-font-for-symbols][Don't use default font for symbols]]
     - [[#default-text-scale][Default Text Scale]]
     - [[#variable-pitch][Variable Pitch]]
@@ -335,14 +340,12 @@ Functional bindings i.e thread =->= macro.
 #+END_SRC
 
 **** cl-lib
-***** ~cl-lib~
-
 
 #+BEGIN_SRC emacs-lisp
 (use-package cl-lib)
 #+END_SRC
 
-***** cl-highlight
+**** cl/highlight
 
 #+NAME: cl/highlight
 #+BEGIN_SRC emacs-lisp
@@ -1139,6 +1142,7 @@ interactive minibuffer completion menu using ivy.
                    '(("b" straight-browse-local-action "browse local")
                      ("B" straight-browse-remote-action "browse remote"))))
 #+END_SRC
+
 
 ** Security
 *** Network security
@@ -2422,17 +2426,6 @@ Adds extensions and functionality to dired mode.
 (use-package projectile-speedbar
   :after (:all speedbar projectile)
   :bind ("M-<f2>" . projectile-speedbar-open-current-buffer-in-tree))
-#+END_SRC
-
-**** Open With
-:PROPERTIES:
-:ID:       8D3D83D3-552F-40DC-91B4-AD9D60315748
-:END:
-
-#+NAME: open-with-spec
-#+BEGIN_SRC emacs-lisp
-(use-package openwith
-  )
 #+END_SRC
 
 *** Search
@@ -3785,7 +3778,6 @@ any reason for me reconsider my choice.
     :init
     (yas-global-mode 1)
     :config
-
     (when (featurep 'which-key)
       (which-key-add-key-based-replacements
         "C-c &" " YASnippet")))
@@ -5156,27 +5148,30 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
     (org-mode . ofa/pdf-open))
 #+END_SRC
 
-* Outlines
-**** Navi
+** Outlines
+*** Outline
+
+#+BEGIN_SRC emacs-lisp
+(use-package outline
+    :straight nil
+    :init
+    (defvar outline-minor-mode-prefix "\M-#"))
+#+END_SRC
+
+*** Navi
 
 #+BEGIN_SRC emacs-lisp
 (use-package navi)
 #+END_SRC
 
-**** Outshine
+*** Outshine
 
 #+BEGIN_SRC emacs-lisp
-  (use-package outline
-    :straight nil
-    :init
-    (defvar outline-minor-mode-prefix "\M-#"))
-
-
-  (use-package outshine
-    :hook (outline-minor-mode . outshine-mode))
+(use-package outshine
+  :hook (outline-minor-mode . outshine-mode))
 #+END_SRC
 
-**** Outorg
+*** Outorg
 
 
 #+BEGIN_SRC emacs-lisp
@@ -5185,7 +5180,7 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
     :demand t)
 #+END_SRC
 
-**** foldout
+*** foldout
 :PROPERTIES:
 :ID:       7A037F3A-7569-44C4-858A-B298381AC21D
 :END:
@@ -5353,11 +5348,20 @@ Embed YouTube Links in =iframe=.
 :PROPERTIES:
 :ID:       8209391F-1D45-46CC-8184-78F393D467CA
 :END:
+
 #+BEGIN_SRC emacs-lisp
-  (use-package ob
-    :straight org-plus-contrib
-    :custom
-    (org-babel-uppercase-example-markers t))
+(use-package ob
+  :straight org-plus-contrib
+  :custom
+  (org-babel-uppercase-example-markers t)
+  :config
+  (defun org-babel-remove-result-buffer ()
+    "Remove results from every code block in buffer."
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward org-babel-src-block-regexp nil t)
+        (org-babel-remove-result)))))
 #+END_SRC
 
 **** Ob Http
@@ -5433,12 +5437,13 @@ Embed YouTube Links in =iframe=.
 #+BEGIN_SRC emacs-lisp
 (defun make-orgcapture-frame ()
   (interactive)
-  (make-frame '((name . "rememeber")
-                (width . 80) (height . 16)
-                (top . 400) (left . 300)
-                (font . " -*-DejaVu Sans Mono-normal-normal-normal-*-12-*-*-*-m-0-fontset-auto1")
-                (select-frame-by-name "remember")
-                (org-capture))))
+  (make-frame
+   '((name . " *alfred capture*")
+     (width . 80) (height . 16)
+     (top . 400) (left . 300)
+     (font . "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1" )
+     (select-frame-by-name " *alfred capture*")
+     (org-capture))))
 #+END_SRC
 
 *** Habit
@@ -5456,93 +5461,86 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+NAME: agenda/org-agenda
 #+BEGIN_SRC emacs-lisp
-  (use-package org-agenda
-    :straight org-plus-contrib
-    :demand t
-    :custom-face
-    (org-agenda-date
-     ((t (:underline nil :foreground "#57c7ff" :inherit (variable-pitch)))))
-    (org-agenda-calendar-event ((t (:foreground "#cc9393" :inherit (default)))))
-    :custom
-    ;; Agenda Files
-    (org-agenda-diary-file (expand-file-name "diary.org" org-directory))
-    (org-agenda-category-icon-alist
-     `(("global"     ,(list "")  nil nil :ascent center)
-       ("schedule"   ,(list "📅")   nil nil :ascent center)
-       ("LING 165C"  ,(list "⟦ ⟧")  nil nil :ascent center)
-       ("LING 102"   ,(list "🗣")  nil nil :ascent center)
-       ("COMSCI 161" ,(list "♟") nil nil :ascent center)
-       ("COMSCI 131" ,(list "💻") nil nil :ascent center)))
-    ;; Agenda startup
-    (org-agenda-inhibit-startup t)
-    ;; Org TODO
-    (org-todo-keywords
-     '((sequence "☛ TODO(t)" "|" " DONE(d)" )
-       (sequence "|" "✘ CANCELLED(c)")))
-    (org-todo-keyword-faces
-     '(("✘ CANCELLED" . (:foreground "yellow"))
-       (" DONE" . org-done)
-       ("☛ TODO" . org-todo)))
-    ;; Org Tags
-    (org-tags-column 0)
-    (org-complete-tags-always-offer-all-agenda-tags t)
-    ;; Agenda sort
-    (org-sort-agenda-notime-is-late nil)
-    ;; Agenda view
-    (org-agenda-block-separator "─")
-    (org-agenda-remove-tags t)
-    (org-agenda-time-leading-zero t)
-    (org-agenda-columns-add-appointments-to-effort-sum t)
-    ;; Agenda skip
-    (org-agenda-skip-deadline-if-done t)
-    (org-agenda-skip-deadline-prewarning-if-scheduled t)
-    (org-agenda-skip-scheduled-delay-if-deadline 21) ;; ignore if 21 days after scheduled
-    (org-agenda-skip-unavailable-files t)
-    (org-agenda-skip-scheduled-if-done t)
-    (org-agenda-skip-scheduled-if-deadline-is-shown t)
-    (org-agenda-mouse-1-follows-link t)
-    ;; http://cachestocaches.com/2016/9/my-workflow-org-agenda/
-    ;; Org Refile
-    (org-refile-targets (quote ((nil  :maxlevel . 9)
-                                (org-agenda-files :maxlevel . 9))))
-
-    :init
-    (defun agenda-skip-cancelled ()
-      (org-agenda-skip-entry-if 'todo '("✘ CANCELLED")))
-
-    (setq org-agenda-skip-function-global #'agenda-skip-cancelled)
-    ;; Agenda File Faces
-
-    (defvar-local org-use-level-faces nil)
-    (defvar org-level-remap-face nil)
-
-    (defun halidom/remap-org-level-faces ()
-      "Use minimal foreground face in `org-agenda-files' buffers."
-      (let ((foreground (face-foreground 'default nil 'default)))
-        (unless org-use-level-faces
-          (mapcar
-           (lambda (face)
-             (add-to-list 'org-level-remap-face
-                          (face-remap-add-relative
-                           face
-                           :foreground foreground)))
-           org-level-faces)
-          (setq-local org-use-level-faces t))))
-
-    (defun org-agenda-file-face ()
-      (cond ((org-agenda-file-p) (halidom/remap-org-level-faces))
-            (org-use-level-faces
-             (mapcar
-              (lambda (f)
-                (setq face-remapping-alist (delq f face-remapping-alist)))
-              org-level-remap-face))))
-
-    (add-hook 'org-mode-hook #'org-agenda-file-face)
-    (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
-      "The file path of the default agenda file.")
-
-    (when (file-exists-p halidom/default-agenda-file)
-      (add-to-list 'org-agenda-files halidom/default-agenda-file)))
+(use-package org-agenda
+  :straight org-plus-contrib
+  :demand t
+  :custom-face
+  (org-agenda-date
+   ((t (:underline nil :foreground "#57c7ff" :inherit (variable-pitch)))))
+  (org-agenda-calendar-event ((t (:foreground "#cc9393" :inherit (default)))))
+  :custom
+  ;; Agenda Files
+  (org-agenda-diary-file (expand-file-name "diary.org" org-directory))
+  (org-agenda-category-icon-alist
+   `(("global"     ,(list "")  nil nil :ascent center)
+     ("schedule"   ,(list "📅")   nil nil :ascent center)
+     ("LING 165C"  ,(list "⟦ ⟧")  nil nil :ascent center)
+     ("LING 102"   ,(list "🗣")  nil nil :ascent center)
+     ("COMSCI 161" ,(list "♟") nil nil :ascent center)
+     ("COMSCI 131" ,(list "💻") nil nil :ascent center)))
+  ;; Agenda startup
+  (org-agenda-inhibit-startup t)
+  ;; Org TODO
+  (org-todo-keywords
+   '((sequence "☛ TODO(t)" "|" " DONE(d)" )
+     (sequence "|" "✘ CANCELLED(c)")))
+  (org-todo-keyword-faces
+   '(("✘ CANCELLED" . (:foreground "yellow"))
+     (" DONE" . org-done)
+     ("☛ TODO" . org-todo)))
+  ;; Org Tags
+  (org-tags-column 0)
+  (org-complete-tags-always-offer-all-agenda-tags t)
+  ;; Agenda sort
+  (org-sort-agenda-notime-is-late nil)
+  ;; Agenda view
+  (org-agenda-block-separator "─")
+  (org-agenda-remove-tags t)
+  (org-agenda-time-leading-zero t)
+  (org-agenda-columns-add-appointments-to-effort-sum t)
+  ;; Agenda skip
+  (org-agenda-skip-deadline-if-done t)
+  (org-agenda-skip-deadline-prewarning-if-scheduled t)
+  (org-agenda-skip-scheduled-delay-if-deadline 21) ;; ignore if 21 days after scheduled
+  (org-agenda-skip-unavailable-files t)
+  (org-agenda-skip-scheduled-if-done t)
+  (org-agenda-skip-scheduled-if-deadline-is-shown t)
+  (org-agenda-mouse-1-follows-link t)
+  ;; http://cachestocaches.com/2016/9/my-workflow-org-agenda/
+  ;; Org Refile
+  (org-refile-targets (quote ((nil  :maxlevel . 9)
+                              (org-agenda-files :maxlevel . 9))))
+  :init
+  (defun agenda-skip-cancelled ()
+    (org-agenda-skip-entry-if 'todo '("✘ CANCELLED")))
+  (setq org-agenda-skip-function-global #'agenda-skip-cancelled)
+  ;; Agenda File Faces
+  (defvar-local org-use-level-faces nil)
+  (defvar org-level-remap-face nil)
+  (defun halidom/remap-org-level-faces ()
+    "Use minimal foreground face in `org-agenda-files' buffers."
+    (let ((foreground (face-foreground 'default nil 'default)))
+      (unless org-use-level-faces
+        (mapcar
+         (lambda (face)
+           (add-to-list 'org-level-remap-face
+                        (face-remap-add-relative
+                         face
+                         :foreground foreground)))
+         org-level-faces)
+        (setq-local org-use-level-faces t))))
+  (defun org-agenda-file-face ()
+    (cond ((org-agenda-file-p) (halidom/remap-org-level-faces))
+          (org-use-level-faces
+           (mapcar
+            (lambda (f)
+              (setq face-remapping-alist (delq f face-remapping-alist)))
+            org-level-remap-face))))
+  (add-hook 'org-mode-hook #'org-agenda-file-face)
+  (defvar halidom/default-agenda-file "~/Dropbox/org/todos/TODOs.org"
+    "The file path of the default agenda file.")
+  (when (file-exists-p halidom/default-agenda-file)
+    (add-to-list 'org-agenda-files halidom/default-agenda-file)))
 #+END_SRC
 
 **** Super agenda
@@ -5664,47 +5662,45 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+NAME: org-taskmgr-projectile
 #+BEGIN_SRC emacs-lisp
-  (use-package org-projectile
-    :commands (org-projectile-files-to-agenda org-projectile-per-project-function)
-    :after (:all projectile org-agenda)
-    :bind (:map projectile-command-map
-                ("n" . org-projectile-project-todo-completing-read))
-    :custom
-    (org-projectile-per-project-filepath #'org-project-per-project-function)
+(use-package org-projectile
+  :commands (org-projectile-files-to-agenda org-projectile-per-project-function)
+  :after (:all projectile org-agenda)
+  :bind (:map projectile-command-map
+              ("n" . org-projectile-project-todo-completing-read))
+  :custom
+  (org-projectile-per-project-filepath #'org-project-per-project-function)
+  :init
+  (defun org-projectile-per-project-function (project-path)
+    (let  ((project-agenda-file
+            (--> project-path (split-string it "/" t) nreverse car (concat it ".org"))))
+      (if (file-exists-p (expand-file-name project-agenda-file project-path))
+          project-agenda-file
+        "TODOs.org")))
 
-    :init
-    (defun org-projectile-per-project-function (project-path)
-      (let  ((project-agenda-file
-              (--> project-path (split-string it "/" t) nreverse car (concat it ".org"))))
-        (if (file-exists-p
-             ;; org file matches project root name
-             (expand-file-name project-agenda-file project-path)) project-agenda-file "TODOs.org")))
+  (defvar-local org-default-agenda-file
+    (file-truename "~/Dropbox/org/todos/TODOS.org"))
 
-    (defvar-local org-default-agenda-file
-      (file-truename "~/Dropbox/org/todos/TODOS.org"))
-
-    :init
-    (defun org-projectile-files-to-agenda ()
-      "Add projectile project files to agenda."
-      (interactive)
-      (cl-flet*
-          ((project-agenda-filepath (p)
-                                    (expand-file-name
-                                     (funcall #'org-projectile-per-project-function p) p))
-           (todo-file-p (p)
-                        (file-exists-p (project-agenda-filepath p)))
-           (build-agenda (ps)
-                         (setq org-agenda-files
-                               (seq-uniq (append org-agenda-files ps)))))
-
-          (->> projectile-known-projects
-             (seq-filter #'todo-file-p)
-             (mapcar #'project-agenda-filepath)
-             build-agenda)))
-    :hook
-    ((org-agenda-mode dashboard-mode) . org-projectile-files-to-agenda)
-    :config
-    (org-projectile-per-project))
+  :init
+  (defun org-projectile-files-to-agenda ()
+    "Add projectile project files to agenda."
+    (interactive)
+    (cl-flet*
+        ((project-agenda-filepath (p)
+                                  (expand-file-name
+                                   (funcall #'org-projectile-per-project-function p) p))
+         (todo-file-p (p)
+                      (file-exists-p (project-agenda-filepath p)))
+         (build-agenda (ps)
+                       (setq org-agenda-files
+                             (seq-uniq (append org-agenda-files ps)))))
+      (->> projectile-known-projects
+         (seq-filter #'todo-file-p)
+         (mapcar #'project-agenda-filepath)
+         build-agenda)))
+  :hook
+  ((org-agenda-mode dashboard-mode) . org-projectile-files-to-agenda)
+  :config
+  (org-projectile-per-project))
 
 #+END_SRC
 
@@ -5968,6 +5964,8 @@ Specify image width in org buffer on per-image basis.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-sticky-header
+  :custom
+  (org-sticky-header-heading-star "•")
   :hook
   (org-mode . org-sticky-header-mode))
 #+END_SRC
@@ -6140,7 +6138,6 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 #+NAME: org-docmgr-journal
 #+BEGIN_SRC emacs-lisp
   (use-package org-journal
-    :straight org-plus-contrib
     :custom
     (org-journal-enable-agenda-integration nil)
     (org-journal-dir (org-dir "journal"))
@@ -6164,13 +6161,13 @@ and subtrees of the ignored headlines will be retained.
 
 #+NAME: ox/extra
 #+BEGIN_SRC emacs-lisp
-  (use-package ox-extra
-    :straight org-plus-contrib
-    :demand t
-    :config
-    (ox-extras-activate
-     '(ignore-headlines
-       org-export-filter-parse-tree-functions)))
+(use-package ox-extra
+  :straight org-plus-contrib
+  :demand t
+  :config
+  (ox-extras-activate
+   '(ignore-headlines
+     org-export-filter-parse-tree-functions)))
 #+END_SRC
 
 *** Ox Publish
@@ -6229,7 +6226,8 @@ and subtrees of the ignored headlines will be retained.
    :type git
    :host github
    :repo "linktohack/ox-latex-subfigure")
-  :init  (setq org-latex-prefer-user-labels t)
+  :init
+  (setq org-latex-prefer-user-labels t)
   :config
   (require 'ox-latex-subfigure)
   (add-to-list 'org-latex-packages-alist (("" "subcaption" nil))))
@@ -6287,6 +6285,7 @@ From [[https://lists.gnu.org/archive/html/emacs-orgmode/2016-11/msg00086.html][{
     (add-to-list 'org-export-filter-table-row-functions
                  'org-export-multicolumn-filter))
 #+END_SRC
+
 **** Minted
 
 Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
@@ -6512,17 +6511,16 @@ My custom mla-style LaTeX class.
       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-*** Ox Linguistics
+*** COMMENT Ox Linguistics
 
 #+NAME: ox/linguistics
 #+BEGIN_SRC emacs-lisp
 (use-package ox-linguistics
-    :straight (ox-linguistics
-               :host github
-               :repo "jchaffin/ox-linguistics"
-               :files ("lisp/*.el"))
-    :after (:all ox ox-latex)
-    :demand t)
+  :straight (ox-linguistics :host github
+                            :repo "jchaffin/ox-linguistics"
+                            :files ("lisp/*.el"))
+  :after (:all ox ox-latex)
+  :demand t)
 #+END_SRC
 
 **** gb4e
@@ -6556,46 +6554,40 @@ for exporting org-mode documents to various formats.
 #+NAME: ox/pandoc
 #+BEGIN_SRC emacs-lisp
 (use-package ox-pandoc
-  :if (executable-find "pandoc")
+  :ensure-system-package (pandoc)
   :after (:all ox org-ref)
   :custom
-
   (org-pandoc-options '((standalone . t)))
-
   :demand t
   :config
-  (progn
+  (defun ox-pandoc--pdf-engine ()
+    "Set the default latex pdf engine to the one set by `org-latex-pdf-process'. "
+    (let ((syms (mapcar (lambda (x) (cdr x)) dotemacs-latex-pdf-engines))
+          (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
+          (sep "latex-process-"))
+      (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
 
-    ;; LaTeX-Beamer-PDF
-    (defun ox-pandoc--pdf-engine ()
-      "Set the default latex pdf engine to the one set by `org-latex-pdf-process'. "
-      (let ((syms (mapcar (lambda (x) (cdr x)) dotemacs-latex-pdf-engines))
-            (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
-            (sep "latex-process-"))
-        (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
+  (setq org-pandoc-options-for-beamer-pdf
+        `((pdf-engine . ,(ox-pandoc--pdf-engine)))
+        org-pandoc-options-for-latex-pdf
+        `((pdf-engine . ,(ox-pandoc--pdf-engine))))
 
-    (setq org-pandoc-options-for-beamer-pdf
-          `((pdf-engine . ,(ox-pandoc--pdf-engine)))
-          org-pandoc-options-for-latex-pdf
-          `((pdf-engine . ,(ox-pandoc--pdf-engine))))
-
-    (defun org-pandoc-pdf-engine-set (&optional process)
-      "Set the latex pdf engine for `org-pandoc-export-to-latex-pdf'."
-      (interactive)
-      (let* ((process (or process
-                          (assoc
-                           (completing-read "Pandoc Process: "
-                                            dotemacs-latex-pdf-engines nil nil)
-                           dotemacs-latex-pdf-engines)))
-             (sym (substring-no-properties (car process))))
-        (setq org-pandoc-options-for-beamer-pdf
-              `((pdf-engine . ,sym))
-              org-pandoc-options-for-latex-pdf
-              `((pdf-engine . ,sym)))))
-
-    ;; Open MS .doc?x files with system viewer.
-    (when (symbolp 'org-file-apps)
-      (add-to-list 'org-file-apps '("\\.docx?\\'" . system)))))
+  (defun org-pandoc-pdf-engine-set (&optional process)
+    "Set the latex pdf engine for `org-pandoc-export-to-latex-pdf'."
+    (interactive)
+    (let* ((process
+            (or process
+                (assoc
+                 (completing-read "Pandoc Process: " dotemacs-latex-pdf-engines nil nil)
+                 dotemacs-latex-pdf-engines)))
+           (sym (substring-no-properties (car process))))
+      (setq org-pandoc-options-for-beamer-pdf
+            `((pdf-engine . ,sym))
+            org-pandoc-options-for-latex-pdf
+            `((pdf-engine . ,sym)))))
+  ;; Open MS .doc?x files with system viewer.
+  (when (symbolp 'org-file-apps)
+    (add-to-list 'org-file-apps '("\\.docx?\\'" . system))))
 #+END_SRC
 
 *** Ox GFM
@@ -6640,13 +6632,13 @@ From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks
 *** Org occur open
 
 #+BEGIN_SRC emacs-lisp
-  (defun org-occur-open (uri)
-    "Visit the file specified by URI, and run `occur' on the fragment
-    (anything after the first '#') in the uri."
-    (let ((list (split-string uri "#")))
-      (org-open-file (car list) t)
-      (occur (mapconcat 'identity (cdr list) "#"))))
-  (org-add-link-type "occur" 'org-occur-open)
+(defun org-occur-open (uri)
+  "Visit the file specified by URI, and run `occur' on the fragment
+  (anything after the first '#') in the uri."
+  (let ((list (split-string uri "#")))
+    (org-open-file (car list) t)
+    (occur (mapconcat 'identity (cdr list) "#"))))
+(org-add-link-type "occur" 'org-occur-open)
 #+END_SRC
 
 *** Reveal cursor in folded subtree.
@@ -6673,12 +6665,14 @@ Neil Smithline posted this snippet to let you browse org files with
 =ibuffer=:
 
 #+BEGIN_SRC emacs-lisp
-  (require 'ibuffer)
-
+(use-package ibuffer
+  :straight nil
+  :init
   (defun org-ibuffer ()
     "Open an `ibuffer' window showing only `org-mode' buffers."
     (interactive)
-    (ibuffer nil "*Org Buffers*" '((used-mode . org-mode))))
+    (ibuffer nil "*Org Buffers*" '((used-mode . org-mode)))))
+
 #+END_SRC
 
 ** Org Web
@@ -6692,22 +6686,17 @@ Neil Smithline posted this snippet to let you browse org files with
     (setq org-protocol-default-template-key "l")
     :config
     (require 'org-capture)
-     (add-to-list 'org-capture-templates
-                  '("p" "Protocol" entry (file "")
+    (add-to-list 'org-capture-templates
+                 '("p" "Protocol" entry (file "")
                    "* TODO %?[[%:link][%:description]] %U\n%i\n" :prepend t))
     (add-to-list 'org-capture-templates
                  '("l" "Protocol Link" entry (file "")
                    "* TODO %?[[%:link][%:description]] %U\n" :prepend t))
-    (require 'server)
-    (unless (server-running-p)
-      (setq server-socket-dir (format "/tmp/emacs%d" (user-uid)))
-      (server-start))
     (require 'org-protocol))
 #+END_SRC
 
 *** Org Contacts
 
-#+NAME: org-capture-contacts
 #+BEGIN_SRC emacs-lisp
   (use-package org-contacts
     :straight org-plus-contrib
@@ -6716,7 +6705,7 @@ Neil Smithline posted this snippet to let you browse org files with
     :demand t)
 #+END_SRC
 
-*** Org Download :web:
+** Org Download :web:
 
 Drag and Drop images directly from a web browser to an org-mode buffer.
 
@@ -6851,18 +6840,31 @@ This disables Emacs asking questions about loading a new theme.
 
 (defvar load-theme-hook nil
   "List of functions to run when `dotemacs/load-theme' is invoked.")
+(defvar theme-change-hook nil
+  "List of function to run before `dotemacs/load-theme' changes the theme.")
+
+(defun dotemacs--require-theme (theme)
+  (require
+   `,(intern (concat (symbol-name theme) "-theme"))))
+
+(defun dotemacs--theme-from-style ()
+  (symbol-value
+   `,(intern (concat "dotemacs-"
+                     (format "%s" (symbol-value 'dotemacs--theme-style))
+                     "-theme"))))
+
+(defun dotemacs--set-theme-colors (theme)
+  (and (base16-p theme)
+       (symbol-value `,(intern (concat (symbol-name theme) "-colors")))))
+
+(defun dotemacs--setup-theme (theme)
+  (dotemacs--require-theme theme)
+  (setq dotemacs-theme-colors (dotemacs--set-theme-colors theme))
+  theme)
 
 (defun dotemacs--default-theme ()
-  (cl-flet ((default-theme-symbol ()
-              (symbol-value
-               `,(intern (concat "dotemacs-"
-                                 (format "%s" (symbol-value 'dotemacs--theme-style))
-                                 "-theme"))))
-            (req-theme (theme)
-                       (require
-                        `,(intern (concat (symbol-name theme) "-theme")))))
-    (let ((theme (default-theme-symbol)))
-      (and  (req-theme theme) theme))))
+  (let ((theme (dotemacs--theme-from-style)))
+    (dotemacs--setup-theme theme)))
 
 (cl-defun dotemacs/load-theme (&optional (theme (dotemacs--default-theme)))
   "Opionated theme loading. If invoked without arguments, this
@@ -6870,27 +6872,20 @@ function will load the theme associated with `dotemacs--theme-style'.
 
 Calling this function with the universal-argument `C-u' loads the new
 theme in \"quick mode\" by eliding hooks specified in
- `load-theme-hook'."
+ `change-theme-hook' and `load-theme-hook'."
 
   (interactive
    (let ((themes (mapcar 'symbol-name (custom-available-themes))))
-     (list
-      (completing-read "Theme: " themes))))
+     (list (completing-read "Theme: " themes))))
   (interactive "p")
-
   (let ((theme-symbol (if (symbolp theme) theme (intern theme))))
     (remove-themes)
-    (if (not window-system)
-        (load-theme dotemacs-term-theme)
+    (unless (equal current-prefix-arg '(4))
+      (run-hooks 'change-theme-hook))
+    (if (not window-system) (load-theme dotemacs-term-theme)
       (setq dotemacs-theme theme-symbol)
-      (if (base16-p dotemacs-theme)
-          (setq dotemacs-theme-colors
-                (symbol-value
-                 (intern (eval `(concat ,(symbol-name
-                                          (symbol-value 'dotemacs-theme))
-                     "-colors")))))
-        (setq dotemacs-theme-colors nil))
-      (load-theme dotemacs-theme))
+      (and (dotemacs--setup-theme dotemacs-theme)
+           (load-theme dotemacs-theme)))
     (unless (equal current-prefix-arg '(4))
       (run-hooks 'load-theme-hook))))
 
@@ -6970,8 +6965,7 @@ theme in \"quick mode\" by eliding hooks specified in
     (let ((org-buffers (org-buffer-list)))
       (dolist (buf org-buffers)
         (with-current-buffer buf
-          (org-mode-restart)
-          (org-theme-faces)))))
+          (org-mode-restart)))))
 
   (defun org-modified-theme ()
     (org-theme-faces)
@@ -6997,7 +6991,8 @@ theme in \"quick mode\" by eliding hooks specified in
 (use-package highlight)
 #+END_SRC
 
-***  Emacs Command tooltip mode
+*** Emacs Command tooltip mode
+
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-keybinding-command-tooltip-mode
   :straight nil
@@ -7051,14 +7046,15 @@ Highlight =TODO= keywords:
 #+BEGIN_SRC emacs-lisp
 (use-package hl-todo
   :commands (hl-todo-mode)
-  :config
-  (add-hook 'prog-mode-hook #'hl-todo-mode))
+  :hook
+  (prog-mode . hl-todo-mode))
 #+END_SRC
 
 *** Symbol Highlighting
 :PROPERTIES:
 :ID:       37242456-1957-470E-885B-099A5D42A191
 :END:
+
 **** Symbol Overlay
 
 #+BEGIN_SRC emacs-lisp
@@ -7090,7 +7086,9 @@ Minor mode to highlight sexp.
 
 #+NAME: hli/guides
 #+BEGIN_SRC emacs-lisp
-(use-package highlight-indent-guides)
+(use-package highlight-indent-guides
+  :hook
+  (prog-mode . highlight-indent-guides-mode))
 #+END_SRC
 
 **** Highlight indentation
@@ -7160,33 +7158,43 @@ the absence of a window system. I'll check for the latter for now.
   :load-path "etc/local/pretty-fonts"
   :straight nil
   :init
-  (defun pretty-fonts/setup ()
+
+  (defun pretty-fonts-before-theme ()
+    (set-face-font
+     'default "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
+
+  (defun pretty-fonts-after-theme ()
     (require 'pretty-fonts)
     "Setup fira code ligatures and icon font sets."
-    ;; (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
-    ;; (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist)
+    (when (and (require 'font-utils nil t)
+               (font-utils-exists-p "Fira Code Symbol"))
+      (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
+      (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist))
 
-    (pretty-fonts-set-fontsets
-     '(;; All-the-icons fontsets
-       ("fontawesome"
-        ;;                      
-        #xf07c #xf0c9 #xf0cb #xf017 #xf101)
+    (when (require 'all-the-icons nil t)
+      (pretty-fonts-set-fontsets
+       '(;; All-the-icons fontsets
+         ("fontawesome"
+          ;;                      
+          #xf07c #xf0c9 #xf0cb #xf017 #xf101)
 
-       ("all-the-icons"
-        ;;    
-        #xe907 #xe928)
+         ("all-the-icons"
+          ;;    
+          #xe907 #xe928)
 
-       ("github-octicons"
-        ;;                                     
-        #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071 #xf0c4)
+         ("github-octicons"
+          ;;                                     
+          #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071 #xf0c4)
 
-       ("material icons"
-        ;;              
-        #xe871 #xe918 #xe3e7  #xe5da
-        ;;              
-        #xe3d0 #xe3d1 #xe3d2 #xe3d4))))
+         ("material icons"
+          ;;              
+          #xe871 #xe918 #xe3e7  #xe5da
+          ;;              
+          #xe3d0 #xe3d1 #xe3d2 #xe3d4)))))
   :hook
-  (load-theme . pretty-fonts/setup))
+  (change-theme . pretty-fonts-before-theme)
+  (load-theme . pretty-fonts-after-theme))
+
 #+END_SRC
 
 *** Pretty Code
@@ -7224,6 +7232,13 @@ the absence of a window system. I'll check for the latter for now.
 :PROPERTIES:
 :ID:       98543582-0772-4025-917B-38DF6542DD6F
 :END:
+
+*** Fontutils
+#+BEGIN_SRC emacs-lisp
+(use-package font-utils
+  :demand t)
+#+END_SRC
+
 *** Don't use default font for symbols
 
 See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_blocks/][defining unicode character blocks : emacs]]
@@ -7241,7 +7256,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 #+END_SRC
 
 *** Variable Pitch
-
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-variable-pitch
@@ -7516,7 +7530,9 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 #+BEGIN_SRC emacs-lisp
 (use-package fill-column-indicator
   :init
-  (setq fci-rule-use-dashes nil))
+  (setq fci-rule-use-dashes nil)
+  :hook
+  (prog-mode . fci-mode))
 #+END_SRC
 
 *** Justify Kp
@@ -9820,14 +9836,12 @@ Real jsx support.
 (use-package pydoc)
 #+END_SRC
 
-#+RESULTS: py/doc
-
 **** EIN
 
 The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook]] client.
 
 #+NAME: py/notebook
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ein
   :config
   (setq ein:use-smartrep t))
