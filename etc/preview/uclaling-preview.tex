@@ -23,6 +23,7 @@
 \usepackage[math-style=literal]{unicode-math}
 \usepackage{bussproofs}
 \alwaysRootAtTop
+\newcommand{\Rule}[1]{\RightLabel{$\mathbf{#1}$}}
 \newenvironment{sprooftree}[1]% https://tex.stackexchange.com/a/105748
   {\gdef\scalefactor{#1}\begin{center}\proofSkipAmount \leavevmode}%
   {\scalebox{\scalefactor}{\DisplayProof}\proofSkipAmount \end{center} }

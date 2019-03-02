@@ -64,6 +64,7 @@
     '("denotation" 1)
     '("ipa" 1)
     '("tkn" 2)
+    '("Rule" 1)
     "boldcheckmark"
     "extraVskip")
    (LaTeX-add-environments

@@ -1,3 +1,17 @@
+;;; custom-macos.el --
+;;
+;; Author: Jacob Chaffin <jchaffin@ucla.edu>
+;; Copyright © 2019, Jacob Chaffin, all rights reserved.
+;; Created:  1 March 2019
+;;
+;;; Commentary:
+;;
+;;
+;;
+;;; Code:
+
+
+;;; custom-macos.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -6,7 +20,6 @@
  '(LaTeX-fill-break-at-separators nil)
  '(LaTeX-item-indent nil)
  '(TeX-auto-save t)
- '(TeX-command-extra-options "-shell-escape")
  '(TeX-error-overview-open-after-TeX-run t)
  '(TeX-interactive-mode nil t)
  '(TeX-parse-self t)
@@ -17,6 +30,7 @@
    [default bold shadow italic underline bold bold-italic bold])
  '(ansi-term-color-vector
    [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white] t)
+ '(auctex-latexmk-inherit-TeX-PDF-mode t)
  '(aw-background nil)
  '(aw-keys '(97 115 100 102 103 104 106 107 108))
  '(bibtex-BibTeX-entry-alist
@@ -225,7 +239,6 @@
    '("/Users/jacobchaffin/Dropbox/Documents/pdfs" "/Users/jacobchaffin/Dropbox/courses/comsci131/materials/pdfs" "/Users/jacobchaffin/Dropbox/courses/comsci161/materials/pdfs" "/Users/jacobchaffin/Dropbox/courses/ling102/materials/pdfs" "/Users/jacobchaffin/Dropbox/courses/ling165c/materials/pdfs"))
  '(bibtex-completion-notes-path "/Users/jacobchaffin/Dropbox/org/ref/notes.org")
  '(bibtex-completion-pdf-file "File" t)
- '(bmkp-last-as-first-bookmark-file "/Users/jacobchaffin/.emacs.d/var/bmkp/current-bookmark.el")
  '(browse-url-chromium-program "/Applications/Chromium.app/Contents/MacOS/Chromium")
  '(cdlatex-insert-auto-labels-in-env-templates t)
  '(cfw:display-calendar-holidays nil)
@@ -254,8 +267,11 @@
  '(code-library-sync-to-gist t t)
  '(company-box-enable-icon nil t)
  '(company-idle-delay 0.2)
+ '(company-lsp-async t)
+ '(company-lsp-cache-candidates nil)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
+ '(company-transformers nil)
  '(counsel-gtags-auto-update t t)
  '(counsel-gtags-ignore-case t t)
  '(counsel-osx-app-location '("/Applications" "/Applications/Setapp") t)
@@ -266,19 +282,19 @@
      :cacheFormat "msgpack" :completion
      (:detailedLabel t)) t)
  '(css-indent-offset 2 t)
- '(deft-auto-save-interval 0)
+ '(deft-auto-save-interval 0 t)
  '(deft-default-extension "org" t)
- '(deft-directory "~/Dropbox/org/notes/")
- '(deft-extensions '("org"))
- '(deft-use-filename-as-title t)
+ '(deft-directory "~/Dropbox/org/notes/" t)
+ '(deft-extensions '("org") t)
+ '(deft-use-filename-as-title t t)
  '(diary-file "/Users/jacobchaffin/Dropbox/org/diary.org")
  '(dired-dwim-target t)
  '(dired-sidebar-should-follow-file nil t)
  '(dired-sidebar-theme 'none t)
- '(ediff-diff-options "-w" t)
+ '(ediff-diff-options "-w")
  '(elisp-format-column 80 t)
  '(enable-recursive-minibuffers t)
- '(eshell-buffer-maximum-lines 20000 t)
+ '(eshell-buffer-maximum-lines 20000)
  '(eshell-buffer-shorthand t t)
  '(eshell-cmpl-cycle-completions nil t)
  '(eshell-highlight-prompt t t)
@@ -309,7 +325,6 @@
  '(langtool-mother-tongue "en")
  '(latex/no-fill-environments
    '("align" "align*" "forest" "forest*" "equation" "equation*" "exe" "tabular" "tikzpicture"))
- '(lisp-extra-font-lock-global-mode t)
  '(livedown-open nil t)
  '(lsp-eldoc-render-all nil)
  '(lsp-highlight-symbol-at-point nil t)
@@ -330,7 +345,10 @@
  '(merlin-command 'opam)
  '(merlin-error-after-save nil)
  '(monky-process-type 'cmdserver t)
+ '(neo-smart-open t)
+ '(neo-theme 'icons)
  '(no-littering-etc-directory "/Users/jacobchaffin/.emacs.d/etc" t)
+ '(no-littering-var-directory "/Users/jacobchaffin/.emacs.d/var" t)
  '(nrepl-hide-special-buffers t t)
  '(org-agenda-files
    '("~/Dropbox/courses/comsci131/homework/hw2/hw2.org" "/Users/jacobchaffin/Dropbox/org/agenda/schedule.org" "/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling165b/TODOs.org" "/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling103/TODOs.org" "/Users/jacobchaffin/Dropbox/courses/comsci161/comsci161.org" "/Users/jacobchaffin/Dropbox/Documents/2018/fall/cs131/TODOs.org" "/Users/jacobchaffin/Dropbox/courses/comsci131/comsci131.org" "/Users/jacobchaffin/Dropbox/courses/ling102/ling102.org" "/Users/jacobchaffin/Dropbox/courses/ling165c/ling165c.org"))
@@ -338,12 +356,15 @@
  '(org-agenda-skip-deadline-prewarning-if-scheduled t)
  '(org-agenda-time-leading-zero t)
  '(org-annotate-file-storage-file "~/Dropbox/org/annotate.org")
- '(org-attach-auto-tag "attach")
+ '(org-attach-auto-tag "attach" t)
  '(org-babel-uppercase-example-markers t nil nil "Customized with use-package org")
  '(org-bullets-bullet-list '("‣" "•"))
+ '(org-capture-before-finalize-hook nil)
  '(org-catch-invisible-edits t)
  '(org-confirm-babel-evaluate nil nil nil "Customized with use-package org")
+ '(org-contacts-files '("~/Dropbox/org/contacts.org"))
  '(org-default-notes-file "/Users/jacobchaffin/Dropbox/org/notes.org")
+ '(org-directory "~/Dropbox/org")
  '(org-edit-src-persistent-message nil)
  '(org-entities-user
    '(("vdots" "\\vdots{}" t "&x2999" "..." "..." "⁞")
@@ -362,6 +383,8 @@
      ("mathslash" "\\mathslash" t "" "" "" "/")
      ("subseteq" "\\subseteq" t "" "" "" "⊆")
      ("lbrace" "\\lbrace" t "" "" "" "{")
+     ("rbrack" "\\rbrack" t "" "" "" "]")
+     ("lbrack" "\\lbrack" t "" "" "" "[")
      ("rbrace" "\\rbrace" t "" "" "" "}")
      ("xsol" "\\xsol" t "" "" "" "⧸")))
  '(org-fontify-quote-and-verse-blocks t)
@@ -369,12 +392,15 @@
    '(("jchaffin@g.ucla.edu" . "/Users/jacobchaffin/Dropbox/org/agenda/schedule.org")))
  '(org-hide-emphasis-markers t)
  '(org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
- '(org-journal-date-format "%A, %B %d %Y")
- '(org-journal-date-prefix "#+TITLE: ")
- '(org-journal-dir "/Users/jacobchaffin/Dropbox/org/journal")
- '(org-journal-enable-agenda-integration t)
- '(org-journal-time-format "")
- '(org-journal-time-prefix "* ")
+ '(org-id-locations-file "/Users/jacobchaffin/.emacs.d/var/org/id-locations.el")
+ '(org-id-locations-file-name "/Users/jacobchaffin/.emacs.d/var/org/id-locations.el" t)
+ '(org-insert-heading-respect-content t)
+ '(org-journal-date-format "%A, %B %d %Y" t)
+ '(org-journal-date-prefix "#+TITLE: " t)
+ '(org-journal-dir "/Users/jacobchaffin/Dropbox/org/journal" t)
+ '(org-journal-enable-agenda-integration t t)
+ '(org-journal-time-format "" t)
+ '(org-journal-time-prefix "* " t)
  '(org-latex-listings-langs
    '((emacs-lisp "Lisp")
      (lisp "Lisp")
@@ -399,6 +425,8 @@
      (makefile "make")
      (R "r")))
  '(org-list-allow-alphabetical t)
+ '(org-modules
+   '(org-bbdb org-bibtex org-docview org-eww org-gnus org-habit org-id org-info org-inlinetask org-irc org-mhe org-protocol org-rmail org-tempo org-w3m org-eshell org-annotate-file org-bookmark org-checklist org-collector org-mac-iCal org-mac-link org-velocity))
  '(org-onenote-token-file
    "/Users/jacobchaffin/.emacs.d/var/org/onenote-oauth2.plstore" t)
  '(org-pandoc-options '((standalone . t)))
@@ -421,10 +449,8 @@
      ("TOC_3_gh" . "")
      ("web" . "🔗")
      ("@shopping" . "🛒")))
- '(org-protocol-default-template-key "l")
+ '(org-projectile-per-project-filepath 'org-project-per-project-function t)
  '(org-ref-bibliography-notes "/Users/jacobchaffin/Dropbox/org/ref/notes.org")
- '(org-ref-bibtex-hydra-key-binding "j")
- '(org-ref-completion-library 'org-ref-ivy-cite)
  '(org-ref-default-bibliography '("/Users/jacobchaffin/Dropbox/org/ref/references.bib"))
  '(org-ref-notes-directory "/Users/jacobchaffin/Dropbox/org/ref/notes")
  '(org-ref-pdf-directory "/Users/jacobchaffin/Dropbox/Documents/pdfs/")
@@ -432,10 +458,7 @@
  '(org-ref-show-citation-on-enter t)
  '(org-refile-targets '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
  '(org-src-fontify-natively t)
- '(org-src-preserve-indentation t)
  '(org-src-tab-acts-natively t)
- '(org-src-window-setup 'reorganize-frame)
- '(org-startup-indented t)
  '(org-tags-column 0)
  '(org-todo-keyword-faces
    '(("✘ CANCELLED" :foreground "yellow")
@@ -444,19 +467,17 @@
  '(org-todo-keywords
    '((sequence "☛ TODO(t)" "|" " DONE(d)")
      (sequence "|" "✘ CANCELLED(c)")))
- '(org-use-sub-superscripts '{})
  '(org-velocity-bucket "/Users/jacobchaffin/Dropbox/org/bucket.org")
  '(parinfer-extensions '(defaults smart-yank pretty-parens paredit) t)
  '(pcomplete-cycle-completions nil)
- '(pdf-annot-activate-created-annotations t t)
+ '(pdf-annot-activate-created-annotations t)
  '(pdf-view-resize-factor 2)
+ '(pop-up-frames nil)
  '(pretty-outlines-ellipsis "" t)
  '(projectile-completion-system 'ivy)
  '(projectile-enable-caching t)
  '(projectile-find-dir-includes-top-level t)
  '(projectile-switch-project-action 'projectile-dired)
- '(scimax-dir "/Users/jacobchaffin/.emacs.d/etc/local/scimax" t)
- '(scimax-snippet-dir "/Users/jacobchaffin/.emacs.d/etc/yasnippet/snippets/")
  '(sh-basic-offset 2)
  '(sh-indentation 2)
  '(shell-pop-full-span t t)
@@ -506,12 +527,9 @@
  '(undo-tree-auto-save-history t)
  '(undo-tree-visualizer-diff t)
  '(undo-tree-visualizer-timestamps t)
- '(unicode-fonts-skip-font-groups
-   '(chinese-simplified chinese-traditional microsoft microsoft-only))
- '(unicode-fonts-use-prepend t)
  '(visual-fill-column-width 86)
  '(wakatime-cli-path "/usr/local/lib/python3.7/site-packages/wakatime/cli.py")
- '(wakatime-python-bin "/usr/local/Cellar/python/3.7.2_1/bin/python3")
+ '(wakatime-python-bin "/usr/local/bin/python3")
  '(web-mode-block-padding 0 t)
  '(web-mode-code-indent-offset 2 t)
  '(web-mode-comment-style 2 t)
@@ -536,6 +554,4 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(eshell-prompt ((t (:foreground "gray83"))))
- '(org-indent-face ((t (:inherit (org-hide)))))
- '(sp-show-pair-match-face ((t (:underline (:color foreground-color :style line) :inherit (show-paren-match))))))
+ '(variable-pitch ((((type w32)) (:foundry "outline" :family "Arial")) (t (:family "Fira Sans")))))
