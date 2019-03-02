@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: lualatex compiler
+# key: lCl
+# --
+#+LATEX_COMPILER: lualatex
+$1

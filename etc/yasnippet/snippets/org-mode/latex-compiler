@@ -1,0 +1,5 @@
+# -*- mode: org-mode -*-
+# name: latex-compiler
+# key: lC
+# --
+#+LATEX_COMPILER: $1

@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: forest
+# key: forest
+# --
+\begin{forest}
+[
+  [$1]
+  [$2]
+]
+\end{forest}
