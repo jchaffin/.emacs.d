@@ -15,28 +15,32 @@
 \addtolength{\textheight}{-3cm}
 \setlength{\topmargin}{1.5cm}
 \addtolength{\topmargin}{-2.54cm}
-
-
+% uclasem packages
 \usepackage{amsmath}
+\usepackage{multicol}
 \usepackage{stmaryrd}
 \usepackage{fontspec}
+\usepackage[math-style=literal]{unicode-math}
 \usepackage{bussproofs}
-\usepackage{unicode-math}
+\alwaysRootAtTop
+\newcommand{\Rule}[1]{\RightLabel{$\mathbf{#1}$}}
+\newenvironment{sprooftree}[1]% https://tex.stackexchange.com/a/105748
+  {\gdef\scalefactor{#1}\begin{center}\proofSkipAmount \leavevmode}%
+  {\scalebox{\scalefactor}{\DisplayProof}\proofSkipAmount \end{center} }
+\def\extraVskip{8pt}
 \usepackage{cabin}
 \usepackage{xpatch}
-
 \setmainfont{STIX Two Text}
-\setmathfont{STIX Two Math}[StylisticSet=02, StylisticSet=08]
+\setmathfont{STIX Two Math}[StylisticSet=02, StylisticSet=08, StylisticSet=04]
+\setmathfont{DejaVuMathTeXGyre}[range=\symit}
 \setmonofont[Scale=MatchUppercase]{DejaVu Sans Mono}
-
 \usepackage{gb4e}
 \noautomath
 \usepackage{adjustbox}
 \usepackage{tikz}
-
 \usetikzlibrary{decorations,decorations.pathreplacing,calc,fit,positioning,shapes,arrows.meta}
 \tikzset{
-  exarrows/.style={%
+exarrows/.style={%
     semithick,
     arrows={%
       -Stealth[
@@ -198,69 +202,68 @@ sep=4pt, yshift =-3pt, font=\small\itshape, text height=.7em]
     }
   }
 }
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Commands
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% https://tex.stackexchange.com/questions/132783/how-to-write-checkmark-in-latex
+\usepackage{arcs}
+\makeatletter
+\providecommand\@gobblethree[3]{}
+\patchcmd{\over@under@arc}
+ {\@gobbletwo}
+ {\@gobblethree}
+ {}{}
+\makeatother
+% Phonetics
+\usepackage{vowel}
+\usepackage{stoneipa}
+\newcommand\ipa[1]{{\sipafont #1}}
+% Semantics
+\newcommand{\denotation}[1]{\denotationbase{\text{#1}}}
+\newcommand{\denotationbase}[1]{\ensuremath{\left\lsem#1\right\rsem}}
+\newcommand{\startfn}[0]{\ensuremath{\ .\ }}
+\newcommand{\sem}[2][M\!,g]{\mbox{ $[\![ #2 ]\!]^{#1}$}}
+\newcommand{\vb}[0]{\text{\,|\,}}
+\newcommand{\arc}[2]{\overarc{$#1$$#2$}}
+% Syntax
 \ifpdf
-  \newcommand*{\boldcheckmark}{%
-    \textpdfrender{
-      TextRenderingMode=FillStroke,
-      LineWidth=.5pt, % half of the line width is outside the normal glyph
-    }{\checkmark}%
-  }
+\newcommand*{\boldcheckmark}{%
+  \textpdfrender{
+    TextRenderingMode=FillStroke,
+    LineWidth=.5pt, % half of the line width is outside the normal glyph
+  }{\checkmark}%
+}
 \else
- \newcommand*{\boldcheckmark}{\textbf{$🗸$}}
+\newcommand*{\boldcheckmark}{\textbf{$🗸$}}
 \fi
-
-
-\newcommand{\nl}{$\varnothing$}
-\newcommand{\ml}[1]{\textsc{#1}}
-% Features
-\newcommand{\self}[1]{\feature{$\bullet$#1$\bullet$}}
-\newcommand{\plusf}[1]{\feature{$+$#1$+$}}
-\newcommand{\selfc}[1]{\self{#1} $🗸$}
-\newcommand{\plusfc}[1]{\sout{\plusf{#1}}}
-\newcommand{\selfs}[1]{\sout{\self{#1}}}
-\newcommand{\plusfs}[1]{$[$\sout{\plusfeat{#1}}$[$}
-
-\newcommand{\pagree}[1]{$[\star\pi$: #1 $*]$}
-\newcommand{\ppagree}[1]{$[\pi$: #1$]$}
-\newcommand{\nagree}[1]{$[\star\#$: #1 $*]$}
-\newcommand{\nnagree}[1]{$[\#$: #1$]$}
-\newcommand{\tns}[1]{Tns$_{\text{#1}}$}
-\newcommand{\vP}[0]{\textit{v}P\xspace}
-\newcommand{\littlev}[0]{\textit{v}\xspace}
-
 % Data macros.
 \newcommand{\objlang}[2][]{\textit{#2}\ifx&#1&\else\ `#1'\fi}
 \newcommand{\ja}[0]{\ding{51}}
 \newcommand{\gap}[0]{\rule[-1.25pt]{1.5em}{0.75pt}\,}
 \newcommand{\ind}[1]{\ensuremath{_{#1}}}
-
 % Features.
 \newcommand{\feature}[1]{{\scshape [#1]}}
 \newcommand{\mf}[1]{\feature{$\bullet$#1$\bullet$}}
 \newcommand{\hf}[1]{\feature{$+$#1$+$}}
 \newcommand{\agrf}[1]{\feature{$\star$#1$\star$}}
-
+\newcommand{\self}[1]{\feature{$\bullet$#1$\bullet$}}
+\newcommand{\selfs}[1]{\sout{\self{#1}}}
+\newcommand{\selfc}[1]{\self{#1} $🗸$}
+\newcommand{\plusf}[1]{\feature{$+$#1$+$}}
+\newcommand{\plusfc}[1]{\sout{\plusf{#1}}}
+\newcommand{\plusfs}[1]{$[$\sout{\plusfeat{#1}}$[$}
+% Agreement features
+\newcommand{\pagree}[1]{$[\star\pi$: #1 $*]$}
+\newcommand{\ppagree}[1]{$[\pi$: #1$]$}
+\newcommand{\nagree}[1]{$[\star\#$: #1 $*]$}
+\newcommand{\nnagree}[1]{$[\#$: #1$]$}
 % Satisfied features.
 \newcommand{\shf}[1]{\hf{#1}{\scriptsize\,\ja}}
 \newcommand{\smf}[1]{\mf{#1}{\scriptsize\,\ja}}
 \newcommand{\sagrf}[1]{\agrf{#1}{\scriptsize\,\ja}}
-
 % Phrase structure.
+\newcommand{\tns}[1]{Tns$_{\text{#1}}$}
+\newcommand{\vP}[0]{\textit{v}P\xspace}
+\newcommand{\littlev}[0]{\textit{v}\xspace}
 \newcommand{\head}[1]{#1$^0$}
 \newcommand{\spec}[1]{\mbox{[Spec, #1]}}
 \newcommand{\comp}[1]{\mbox{[Comp, #1]}}
 \newcommand{\xbar}[1]{$\overline{\textrm{#1}}$}
-
-% Semantics.
-\newcommand{\denotation}[1]{\denotationbase{\text{#1}}}
-\newcommand{\denotationbase}[1]{\ensuremath{\left\lsem#1\right\rsem}}
-\newcommand{\startfn}[0]{\ensuremath{\ .\ }}
 \newcommand{\Agree}[0]{\textsc{Agree}\xspace}
 \newcommand{\abar}[0]{\xbar{A}}
-\def\vb{\text{ | }}

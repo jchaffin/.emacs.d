@@ -1,16 +1,17 @@
 (TeX-add-style-hook
- "uclasem-preview"
+ "uclaling-preview"
  (lambda ()
    (setq TeX-command-extra-options
          "-shell-escape")
    (TeX-add-to-alist 'LaTeX-provided-package-options
-                     '(("color" "usenames") ("forest" "linguistics" "edges")))
+                     '(("color" "usenames") ("unicode-math" "math-style=literal") ("forest" "linguistics" "edges")))
    (TeX-run-style-hooks
     "latex2e"
     "article"
     "art10"
     "color"
     "amsmath"
+    "multicol"
     "stmaryrd"
     "fontspec"
     "unicode-math"
@@ -21,7 +22,9 @@
     "adjustbox"
     "tikz"
     "forest"
-    "arcs")
+    "arcs"
+    "vowel"
+    "stoneipa")
    (TeX-add-symbols
     '("objlang" ["argument"] 1)
     '("sem" ["argument"] 1)
@@ -59,11 +62,14 @@
     '("startfn" 0)
     '("denotationbase" 1)
     '("denotation" 1)
+    '("ipa" 1)
     '("tkn" 2)
+    '("Rule" 1)
     "boldcheckmark"
     "extraVskip")
    (LaTeX-add-environments
     '("problem" LaTeX-env-args ["argument"] 0)
+    '("sprooftree" 1)
     "tikzbracket")
    (LaTeX-add-lengths
     "ArrowHeight"

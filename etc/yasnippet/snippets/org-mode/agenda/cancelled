@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: cancelled
+# key: CANCELLED
+# --
+✘ CANCELLED $1

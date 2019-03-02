@@ -4,21 +4,30 @@
    (setq TeX-command-extra-options
          "-shell-escape")
    (TeX-add-to-alist 'LaTeX-provided-package-options
-                     '(("color" "usenames")))
+                     '(("color" "usenames") ("mathtools" "fleqn" "tbtags") ("algorithm2e" "algoruled" "linesnumbered")))
    (TeX-run-style-hooks
     "latex2e"
     "article"
     "art10"
     "color"
+    "mathtools"
     "fontspec"
-    "amsmath"
     "unicode-math"
-    "hologo"
+    "cabin"
+    "soul"
+    "marvosym"
     "tikz"
-    "forest")
+    "forest"
+    "clrscode3e"
+    "algorithm2e")
    (TeX-add-symbols
-    "vertex")
-   (LaTeX-add-environments
-    '("problem" LaTeX-env-args ["argument"] 0)))
+    '("forcondj" 2)
+    '("forcondi" 2)
+    '("forcond" 3)
+    "vertex"
+    "nosemic"
+    "dosemic"
+    "pushline"
+    "popline"))
  :latex)
 
