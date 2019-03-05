@@ -2,7 +2,7 @@
 #+language: en
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes
-#+STARTUP: hideblock
+#+STARTUP: showeverything
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 
 * Table Of Contents :TOC_3_gh:noexport:
@@ -46,6 +46,7 @@
     - [[#lockfiles][Lockfiles]]
     - [[#shortcuts][Shortcuts]]
     - [[#auto-revert-mode][Auto Revert Mode]]
+  - [[#apps][Apps]]
   - [[#text-editing][Text editing]]
     - [[#editing][Editing]]
     - [[#deleting][Deleting]]
@@ -88,7 +89,6 @@
     - [[#font-lock][Font lock]]
     - [[#button-lock][Button Lock]]
   - [[#window][Window]]
-    - [[#window-resize][Window Resize]]
     - [[#winner-mode][Winner Mode]]
     - [[#ace-window][Ace Window]]
     - [[#perspective][Perspective]]
@@ -136,7 +136,10 @@
     - [[#org-links][Org Links]]
   - [[#org-coding][Org Coding]]
     - [[#org-babel][Org Babel]]
+    - [[#library-of-babel][Library of Babel]]
+    - [[#org-speed-commands][Org speed commands]]
   - [[#org-tasks][Org Tasks]]
+    - [[#id][ID]]
     - [[#attach][Attach]]
     - [[#capture][Capture]]
     - [[#habit][Habit]]
@@ -147,22 +150,26 @@
   - [[#org-appearance][Org Appearance]]
     - [[#org-indent][Org indent]]
     - [[#per-image-display-width][Per-image display width]]
+    - [[#inline-images][Inline images]]
     - [[#org-sticky-header][Org sticky header]]
     - [[#toc-org][TOC Org]]
     - [[#column-view][Column View]]
     - [[#equation-renumbering][Equation Renumbering]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
+    - [[#org-outline-numbering][Org outline numbering]]
   - [[#org-prose][Org Prose]]
     - [[#insert-literal-entities][Insert literal entities]]
     - [[#org-index][Org Index]]
     - [[#org-interleave][Org Interleave]]
     - [[#org-journal][Org Journal]]
   - [[#org-export][Org Export]]
+    - [[#ox][Ox]]
     - [[#ox-extra][Ox Extra]]
     - [[#ox-publish][Ox Publish]]
     - [[#ox-org][Ox Org]]
     - [[#ox-latex][Ox Latex]]
-    - [[#ox-bibtex][Ox Bibtex]]
+    - [[#ox-latex-subfigure][Ox Latex subfigure]]
+    - [[#ox-linguistics][Ox Linguistics]]
     - [[#ox-pandoc][Ox Pandoc]]
     - [[#ox-gfm][Ox GFM]]
     - [[#ox-hugo][Ox Hugo]]
@@ -247,6 +254,7 @@
     - [[#org-velocity][Org Velocity]]
     - [[#org-annotate-file][Org annotate file]]
   - [[#nov][Nov]]
+  - [[#readspec--mode][Readspec  Mode]]
   - [[#writeroom][Writeroom]]
 - [[#code][Code]]
   - [[#flycheck][Flycheck]]
@@ -526,20 +534,6 @@ for correct behavior.
       user-mail-address "jchaffin@ucla.edu")
 #+END_SRC
 
-**** Customization
-
-#+NAME: dotemacs/customization
-#+BEGIN_SRC emacs-lisp
-;; Customization Group
-(defgroup dotemacs nil
-  "Customization group for the `dotemacs' Emacs configuration."
-  :group 'applications
-  :prefix "dotemacs-")
-
-(defcustom dotemacs-prefix "\M-m"
-  "The prefix map leader key.")
-#+END_SRC
-
 **** Garbage Collection
 
 Consider the following from the documentation:
@@ -780,6 +774,7 @@ generating a new one if the initial scratch buffer has been killed."
 
 #+BEGIN_SRC emacs-lisp
 (use-package bui
+  :demand t
   :hook
   (info-mode . bui-info-mode))
 #+END_SRC
@@ -1143,7 +1138,6 @@ interactive minibuffer completion menu using ivy.
                      ("B" straight-browse-remote-action "browse remote"))))
 #+END_SRC
 
-
 ** Security
 *** Network security
 **** GnuTLS
@@ -1213,7 +1207,6 @@ brew install pinentry-mac
 echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 killall gpg-agent
 #+END_EXAMPLE
-
 
 **** Load Secrets
 
@@ -1511,7 +1504,24 @@ editors and various other applications on macOS.
   :straight
   (macos-dev-utils
    :host github
-   :repo "jchaffin/macos-dev-utils"))
+   :repo "jchaffin/macos-dev-utils")
+  :bind-keymap
+  (("M-m t" . macos-iterm-command-map)
+   ("M-m o" . macos-open-with-command-map))
+  :config
+  (which-key-add-key-based-replacements
+    "M-m t" " iTerm"
+    "M-m t g" " File or Directory"
+    "M-m t f" " Bring to Front"
+    "M-m t s" " Shell Command"
+    "M-m o" " Open With"
+    "M-m o o" " Default"
+    "M-m o s" " ST3"
+    "M-m o a" " Atom"
+    "M-m o v" " VSCode "
+    "M-m o b" "𝐁 BBEdit"
+    "M-m o c" " Coda"
+    "M-m o t" " GitTower") )
 
 #+END_SRC
 
@@ -1521,23 +1531,13 @@ editors and various other applications on macOS.
 :CUSTOM_ID: macos-dash
 :END:
 
-Dash.app is an application for quickly searching and navigating API
-docsets for programming tools and languages.
-There are already two Emacs plugins that utilize Dash docsets,
-helm-dash and counsel-dash, which is a simple wrapper around helm
-dash.
+Dash.app is an application for quickly searching and navigating API docsets for programming tools and languages. There are already two Emacs plugins that utilize Dash docsets, helm-dash and counsel-dash, which is a simple wrapper around helm dash.
 
-For whatever reason, I can't figure out how to open the docset in an
-=eww= frame or in an external browser using =browse-url=.
+For whatever reason, I can't figure out how to open the docset in at =eww= frame or in an external browser using =browse-url=.
 
-Because of the OS/licensing restrictions of Dash.app, both these
-packages try to solve the problem of creating an interface for users
-to navigate, query, and switch between docsets.
+Because of the OS/licensing restrictions of Dash.app, both these packages try to solve the problem of creating an interface for users to navigate, query, and switch between docsets.
 
-Because I've purchased a license and run macOS locally, I'm going to
-bypass that problem and define a function that uses the
-=dash-plugin://= protocol to launch/switch to the application and
-query it with the marked region or symbol at point.
+Because I've purchased a license and run macOS locally, I'm going to bypass that problem and define a function that uses the =dash-plugin://= protocol to launch/switch to the application and query it with the marked region or symbol at point.
 
 #+NAME: macos-dash-config
 #+BEGIN_SRC emacs-lisp
@@ -1578,12 +1578,7 @@ query it with the marked region or symbol at point.
 
 **** OSX Dictionary
 
-Provides an interface to /Dictionary.app/ in Emacs. I am using this
-package in conjunction with [[#dictionary-el][dictionary.el]] right now. The latter
-package uses an open-source dictionary server to access
-dictionaries. I haven't tested it on a different OS yet, but it should
-provide comparable functionality to [[https://github.com/xuchunyang/osx-dictionary.el][osx-dictionary.el]] on machines not
-running macOS.
+Provides an interface to /Dictionary.app/ in Emacs. I am using this package in conjunction with [[#dictionary-el][dictionary.el]] right now. The latter package uses an open-source dictionary server to access dictionaries. I haven't tested it on a different OS yet, but it should provide comparable functionality to [[https://github.com/xuchunyang/osx-dictionary.el][osx-dictionary.el]] on machines not running macOS.
 
 #+NAME: macos-dictionary
 #+BEGIN_SRC emacs-lisp
@@ -1608,11 +1603,9 @@ running macOS.
 (use-package osx-trash
   :if (and (eq system-type 'darwin) (not (boundp 'mac-system-move-file-to-trash-use-finder)))
   :init
-  (progn
-    (osx-trash-setup))
-  :config
-  (progn
-    (setq delete-by-moving-to-trash t)))
+  (osx-trash-setup)
+  :custom
+  (delete-by-moving-to-trash t))
 #+END_SRC
 
 **** OSX Clipboard
@@ -1782,6 +1775,94 @@ value of `user-emacs-directory', else go to the`user-init-file'."
   :straight nil
   :init
   (global-auto-revert-mode t))
+#+END_SRC
+
+** Apps
+
+#+BEGIN_SRC emacs-lisp
+;;;###autoload
+(defun explorer (&optional path)
+  "Open Finder or Windows Explorer in the current directory."
+  (interactive (list (if (buffer-file-name)
+			 (file-name-directory (buffer-file-name))
+		       (expand-file-name  "~/"))))
+  (cond
+   ((string= system-type "gnu/linux")
+    (shell-command "nautilus"))
+   ((string= system-type "darwin")
+    (shell-command (format "open -b com.apple.finder%s"
+			   (if path (format " \"%s\""
+					    (file-name-directory
+					     (expand-file-name path))) ""))))
+   ((string= system-type "windows-nt")
+    (shell-command (format "explorer %s"
+			   (replace-regexp-in-string
+			    "/" "\\\\"
+			    path))))))
+
+(defalias 'finder 'explorer "Alias for `explorer'.")
+
+
+(defun bash (&optional path)
+  "Open a bash window.
+PATH is optional, and defaults to the current directory."
+  (interactive (list (if (buffer-file-name)
+			 (file-name-directory (buffer-file-name))
+		       (expand-file-name default-directory))))
+  (cond
+   ((string= system-type "gnu/linux")
+    (shell-command "gnome-terminal"))
+   ((string= system-type "darwin")
+    (shell-command
+     (format "open -b com.apple.terminal%s"
+	     (if path (format " \"%s\"" path) ""))))
+   ((string= system-type "windows-nt")
+    (shell-command "start \"\" \"%SYSTEMDRIVE%\\Program Files\\Git\\bin\\bash.exe\" --login &"))))
+
+
+(defun excel ()
+  "Open Microsoft Excel."
+  (interactive)
+  (cond
+   ((string= system-type "gnu/linux")
+    (error "Excel is not on Linux."))
+   ((string= system-type "darwin")
+    (shell-command
+     (shell-command "open -b com.microsoft.Excel")))
+   ((string= system-type "windows-nt")
+    (shell-command "start excel"))))
+
+
+(defun word ()
+  "Open Microsoft Word."
+  (interactive)
+  (cond
+   ((string= system-type "gnu/linux")
+    (error "Word is not on Linux."))
+   ((string= system-type "darwin")
+    (shell-command
+     (shell-command "open -b com.microsoft.Word")))
+   ((string= system-type "windows-nt")
+    (shell-command "start winword"))))
+
+
+(defun powerpoint ()
+  "Open Microsoft Powerpoint."
+  (interactive)
+  (cond
+   ((string= system-type "gnu/linux")
+    (error "Powerpoint is not on Linux."))
+   ((string= system-type "darwin")
+    (shell-command
+     (shell-command "open -b com.microsoft.Powerpoint")))
+   ((string= system-type "windows-nt")
+    (shell-command "start powerpnt"))))
+
+
+(defun google ()
+  "Open default browser to google.com."
+  (interactive)
+  (browse-url "http://google.com"))
 #+END_SRC
 
 ** Text editing
@@ -2498,6 +2579,7 @@ interactive tree .
     (global-set-key (kbd "s-Z") 'undo-tree-redo)))
 #+END_SRC
 
+
 ** Shell
 :PROPERTIES:
 :ID:       055F15AE-FAFA-416A-ABC5-8DBB9D9D7CBF
@@ -2933,7 +3015,7 @@ directory local variables."
   :custom
   ;; use ssh by default
   (tramp-default-method "ssh")
-  (tramp-default-user user-login-name))
+  (tramp-default-user "classbin"))
 #+END_SRC
 
 **** Docker Tramp
@@ -3112,7 +3194,7 @@ directory local variables."
 
 #+NAME: theme-italicize-for-modes
 #+BEGIN_SRC emacs-lisp
-  (defcustom dotemacs-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
+(defcustom dotemacs-italicize-keyword-modes '(emacs-lisp-mode js2-mode)
     "Major modes for which an italicized font lock keyword
   face shall be used."
     :type '(symbol))
@@ -3131,8 +3213,7 @@ directory local variables."
          do
            (add-hook hooksym 'dotemacs/italicize-keyword-fn))))
 
-
-
+(add-hook 'load-theme-hook #'dotemacs/italicize-keyword-faces)
 #+END_SRC
 
 ****** Per buffer Themes
@@ -3162,30 +3243,6 @@ directory local variables."
 :PROPERTIES:
 :ID:       39D49D11-3663-4F0F-A2CE-2CE4FE8CB2CB
 :END:
-*** Window Resize
-
-Default keybindings for window resize:
-
-- =C-x ^= :: makes current window taller [[help:enlarge-window][`enlarge-window']]
-- =C-x }= :: make it larger [[help:enlarge-window-horizontally][`enlarge-window-horizontally']]
-- =C-x {= :: make it narrower [[help:shrink-window-horizontally][`shrin-window-horizontally']]
-
-This following block modifies the keybindings for these commands to
-use the arrow keys instead. I use the "C-s" modifier because it just
-so happens this prefix can be extended by every key in the arrow pad
-without causing a conflict with external keymaps on my system.
-
-The suggested keybindings from the footnoted EmacsWiki page may be more
-accessible for you [fn:9].
-
-#+NAME: window-resize-keybindings
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-s-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "C-s-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "C-s-<down>") 'shrink-window)
-(global-set-key (kbd "C-s-<up>") 'enlarge-window)
-#+END_SRC
-
 *** Winner Mode
 
 [[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
@@ -3195,9 +3252,12 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
   (use-package winner
     :straight nil
-    :demand t
     :init
-    (winner-mode 1))
+    (winner-mode 1)
+    (add-hook 'org-shiftup-final-hook 'windmove-up)
+    (add-hook 'org-shiftleft-final-hook 'windmove-left)
+    (add-hook 'org-shiftdown-final-hook 'windmove-down)
+    (add-hook 'org-shiftright-final-hook 'windmove-right))
 #+END_SRC
 
 *** Ace Window
@@ -3297,7 +3357,174 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
    '((swiper . ivy--regex-plus)
      (read-file-name-internal . ivy--regex-fuzzy)
      (t . ivy--regex-ignore-order)))
-  (ivy-use-selectable-prompt nil))
+  (ivy-use-selectable-prompt nil)
+  :config
+  (defun ivy-insert-org-entity ()
+  "Insert an org-entity using ivy."
+  (interactive)
+  (ivy-read "Entity: " (cl-loop for element in (append org-entities org-entities-user)
+				when (not (stringp element))
+				collect
+				(cons
+				 (format "%20s | %20s | %20s | %s"
+					 (cl-first element) ;name
+					 (cl-second element) ; latex
+					 (cl-fourth element) ; html
+					 (cl-seventh element)) ;utf-8
+				 element))
+	    :require-match t
+	    :action '(1
+		      ("u" (lambda (candidate)
+			     (insert (cl-seventh (cdr candidate)))) "utf-8")
+		      ("o" (lambda (candidate)
+			     (insert "\\" (cl-first (cdr candidate)))) "org-entity")
+		      ("l" (lambda (candidate)
+			     (insert (cl-second (cdr candidate)))) "latex")
+		      ("h" (lambda (candidate)
+			     (insert (cl-fourth (cdr candidate)))) "html")
+		      ("a" (lambda (candidate)
+			     (insert (cl-fifth (cdr candidate)))) "ascii")
+		      ("L" (lambda (candidate)
+			     (insert (cl-sixth (cdr candidate))) "Latin-1")))))
+;; * ivy navigation
+(defun ivy-org-jump-to-visible-headline ()
+  "Jump to visible headline in the buffer."
+  (interactive)
+  (org-mark-ring-push)
+  (avy-with avy-goto-line (avy--generic-jump "^\\*+" nil avy-style)))
+
+
+(defun ivy-jump-to-visible-sentence ()
+  "Jump to visible sentence in the buffer."
+  (interactive)
+  (org-mark-ring-push)
+  (avy-with avy-goto-line (avy--generic-jump (sentence-end) nil avy-style))
+  (forward-sentence))
+
+
+(defun ivy-org-jump-to-heading ()
+  "Jump to heading in the current buffer."
+  (interactive)
+  (let ((headlines '()))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward
+	      ;; this matches org headings in elisp too.
+	      "^\\(;; \\)?\\(\\*+\\)\\(?: +\\(.*?\\)\\)?[ 	]*$"  nil t)
+	(cl-pushnew (list
+		     (format "%-80s"
+			     (match-string 0))
+		     (cons 'position (match-beginning 0)))
+		    headlines)))
+    (ivy-read "Headline: "
+	      (reverse headlines)
+	      :action (lambda (candidate)
+			(org-mark-ring-push)
+			(goto-char (cdr (assoc 'position candidate)))
+			(outline-show-entry)))))
+
+
+(defun ivy-org-jump-to-agenda-heading ()
+  "Jump to a heading in an agenda file."
+  (interactive)
+  (let ((headlines '()))
+    ;; these files should be open already since they are agenda files.
+    (loop for file in (org-agenda-files) do
+	  (with-current-buffer (find-file-noselect file)
+	    (save-excursion
+	      (goto-char (point-min))
+	      (while (re-search-forward org-heading-regexp nil t)
+		(cl-pushnew (list
+			     (format "%-80s (%s)"
+				     (match-string 0)
+				     (file-name-nondirectory file))
+			     :file file
+			     :position (match-beginning 0))
+			    headlines)))))
+    (ivy-read "Headline: "
+	      (reverse headlines)
+	      :action (lambda (candidate)
+			(org-mark-ring-push)
+			(find-file (plist-get (cdr candidate) :file))
+			(goto-char (plist-get (cdr candidate) :position))
+			(outline-show-entry)))))
+
+
+(defun ivy-org-jump-to-heading-in-files (files &optional fontify)
+  "Jump to org heading in FILES.
+Optional FONTIFY colors the headlines. It might slow things down
+a lot with large numbers of org-files or long org-files. This
+function does not open the files."
+  (let ((headlines '()))
+    (loop for file in files do
+	  (with-temp-buffer
+	    (insert-file-contents file)
+	    (when fontify
+	      (org-mode)
+	      (font-lock-fontify-buffer))
+	    (goto-char (point-min))
+	    (while (re-search-forward org-heading-regexp nil t)
+	      (cl-pushnew (list
+			   (format "%-80s (%s)"
+				   (match-string 0)
+				   (file-name-nondirectory file))
+			   :file file
+			   :position (match-beginning 0))
+			  headlines))))
+    (ivy-read "Headline: "
+	      (reverse headlines)
+	      :action (lambda (candidate)
+			(org-mark-ring-push)
+			(find-file (plist-get (cdr candidate) :file))
+			(goto-char (plist-get (cdr candidate) :position))
+			(outline-show-entry)))))
+
+
+(defun ivy-org-jump-to-heading-in-directory (&optional recursive)
+  "Jump to heading in an org file in the current directory.
+Use a prefix arg to make it RECURSIVE.
+Use a double prefix to make it recursive and fontified."
+  (interactive "P")
+  (let ((fontify nil))
+    (when (equal recursive '(16))
+      (setq fontify t))
+    (ivy-org-jump-to-heading-in-files
+     (f-entries "."
+		(lambda (f)
+		  (and
+		   (f-ext? f "org")
+		   (not (s-contains? "#" f))))
+		recursive)
+     fontify)))
+
+
+(defun ivy-org-jump-to-project-headline (&optional fontify)
+  "Jump to a headline in an org-file in the current project.
+The project is defined by projectile. Use a prefix arg FONTIFY
+for colored headlines."
+  (interactive "P")
+  (ivy-org-jump-to-heading-in-files
+   (mapcar
+    (lambda (f) (expand-file-name f (projectile-project-root)))
+    (-filter (lambda (f)
+	       (and
+		(f-ext? f "org")
+		(not (s-contains? "#" f))))
+	     (projectile-current-project-files)))
+   fontify))
+
+
+(defun ivy-org-jump-to-open-headline (&optional fontify)
+  "Jump to a headline in an open org-file.
+Use a prefix arg FONTIFY for colored headlines."
+  (interactive "P")
+  (ivy-org-jump-to-heading-in-files
+   (mapcar 'buffer-file-name
+	   (-filter (lambda (b)
+		      (-when-let (f (buffer-file-name b))
+			(f-ext? f "org")))
+		    (buffer-list)))
+   fontify)))
 #+END_SRC
 
 **** Ivy rtags
@@ -3778,6 +4005,17 @@ any reason for me reconsider my choice.
     :init
     (yas-global-mode 1)
     :config
+    (defun yas/org-very-safe-expand ()
+      (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
+
+
+    (add-hook 'org-mode-hook
+              (lambda ()
+                (make-variable-buffer-local 'yas/trigger-key)
+                (setq yas/trigger-key [tab])
+                (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
+                (define-key yas/keymap [tab] 'yas/next-field)))
+
     (when (featurep 'which-key)
       (which-key-add-key-based-replacements
         "C-c &" " YASnippet")))
@@ -3909,7 +4147,7 @@ any reason for me reconsider my choice.
 
 **** Ivy Bibtex
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ivy-bibtex
   :after (:all ivy bibtex)
   :demand t
@@ -3920,7 +4158,6 @@ any reason for me reconsider my choice.
      ,(dropbox-dir "courses/comsci161/comsci161.bib")
      ,(dropbox-dir "courses/ling102/ling102.bib")
      ,(dropbox-dir "courses/ling165c/ling165c.bib")))
-  (bibtex-completion-pdf-file "File")
   (bibtex-completion-library-path
    `(,(dropbox-dir "Documents/pdfs")
      ,(dropbox-dir "courses/comsci131/materials/pdfs")
@@ -3929,6 +4166,9 @@ any reason for me reconsider my choice.
      ,(dropbox-dir "courses/ling165c/materials/pdfs")))
   (bibtex-completion-notes-path (org-dir "ref/notes.org"))
   :config
+(setq bibtex-completion-pdf-open-function
+      (lambda (fpath)
+        (start-process "open" "*open*" "open" fpath)))
   (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
 #+END_SRC
 
@@ -4405,7 +4645,7 @@ Entered on [2018-06-13 Wed 11:42]
   (latex/no-fill-environments
    '("align" "align*" "forest" "forest*"
      "equation" "equation*" "exe"
-     "tabular" "tikzpicture"))
+     "tabular" "tikzpicture" "prooftree"))
 
     :bind (:map LaTeX-mode-map
                 ("C-c C-a" . latex/compile-commands-until-done)
@@ -4542,6 +4782,79 @@ save.
 #+BEGIN_SRC emacs-lisp
  (when (boundp 'org-format-latex-options)
   (plist-put org-format-latex-options :scale 1.2))
+#+END_SRC
+
+**** Justify Fragments
+
+#+BEGIN_SRC emacs-lisp
+;; * Fragment overlays
+
+(defun org-latex-fragment-tooltip (beg end image imagetype)
+  "Add the fragment tooltip to the overlay and set click function to toggle it."
+  (overlay-put (ov-at) 'help-echo
+	       (concat (buffer-substring beg end)
+		       "\nmouse-1 to toggle."))
+  (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
+				    (define-key map (kbd "C-c C-x C-l") 'org-toggle-latex-fragment)
+				    (define-key map [mouse-1]
+				      `(lambda ()
+					 (interactive)
+					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
+				    map)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-tooltip)
+
+(defun org-latex-fragment-justify (justification)
+  "Justify the latex fragment at point with JUSTIFICATION.
+JUSTIFICATION is a symbol for 'left, 'center or 'right."
+  (interactive
+   (list (intern-soft
+          (completing-read "Justification (left): " '(left center right)
+                           nil t nil nil 'left))))
+
+  (let* ((ov (ov-at))
+	 (beg (ov-beg ov))
+	 (end (ov-end ov))
+	 (shift (- beg (line-beginning-position)))
+	 (img (overlay-get ov 'display))
+	 (img (and (and img (consp img) (eq (car img) 'image)
+			(image-type-available-p (plist-get (cdr img) :type)))
+		   img))
+	 space-left offset)
+    (when (and img
+	       ;; This means the equation is at the start of the line
+	       (= beg (line-beginning-position))
+	       (or
+		(string= "" (s-trim (buffer-substring end (line-end-position))))
+		(eq 'latex-environment (car (org-element-context)))))
+      (setq space-left (- (window-max-chars-per-line) (car (image-size img)))
+	    offset (floor (cond
+			   ((eq justification 'center)
+			    (- (/ space-left 2) shift))
+			   ((eq justification 'right)
+			    (- space-left shift))
+			   (t
+			    0))))
+      (when (>= offset 0)
+	(overlay-put ov 'before-string (make-string offset ?\ ))))))
+
+(defun org-latex-fragment-justify-advice (beg end image imagetype)
+  "After advice function to justify fragments."
+  (org-latex-fragment-justify (or (plist-get org-format-latex-options :justify) 'left)))
+
+(advice-add 'org--format-latex-make-overlay :after 'org-latex-fragment-justify-advice)
+
+(defun org-inject-latex-fragment (orig-func &rest args)
+  "Advice function to inject latex code before and/or after the equation in a latex fragment.
+You can use this to set \\mathversion{bold} for example to make it bolder."
+  (setf (car args)
+	(concat
+	 (or (plist-get org-format-latex-options :latex-fragment-pre-body) "")
+	 (car args)
+	 (or (plist-get org-format-latex-options :latex-fragment-post-body) "")))
+  (apply orig-func args))
+
+(advice-add 'org-create-formula-image :around #'org-inject-latex-fragment)
 #+END_SRC
 
 **** Parsing keywords
@@ -4722,20 +5035,17 @@ Generate latex fragments based on the latex compiler and class in the current bu
 #+NAME: org-preview-dynamic
 #+BEGIN_SRC emacs-lisp
 (defun org-preview-with-compiler ()
-  (interactive)
   (let ((latex-compiler (org-preview/process-compiler)))
     (when-let (preview-process (org-preview/set-process))
       (set (make-local-variable 'org-preview-latex-default-process)
            preview-process))
-
     (when (or (string= latex-compiler "xelatex")
-             (string= latex-compiler "xetex"))
-      (org-preview-xelatex))
-
+              (string= latex-compiler "xetex"))
+      (call-interactively #'org-preview-xelatex))
     (when (string= latex-compiler "lualatex")
-      (org-preview-lualatex))))
+      (call-interactively #'org-preview-lualatex))))
 
-(add-hook 'org-mode-hook 'org-preview-with-compiler)
+(add-hook 'org-mode-hook #'org-preview-with-compiler)
 #+END_SRC
 
 *** cdlatex
@@ -4982,23 +5292,20 @@ entry types and required fields."
             do
             (insert (format "\n** %s (%s)\n" type doc))
             (insert "\n*** Required fields\n\n")
-            (loop for field in required
-	                do
+            (loop for field in required do
 	                (insert (format "- %s" (car field)))
 	                (message "%s" field)
 	                (if (>= (length field) 2)
 		                  (insert (format " :: %s\n" (nth 1 field)))
 	                  (insert "\n")))
             (insert "\n*** Optional if Crossref present but otherwise required fields\n\n")
-            (loop for field in crossref
-	                do
+            (loop for field in crossref do
 	                (insert (format "- %s" (car field)))
 	                (if (>= (length field) 2)
 		                  (insert (format " :: %s\n" (nth 1 field)))
 	                  (insert "\n")))
             (insert "\n*** Optional fields\n\n")
-            (loop for field in optional
-	                do
+            (loop for field in optional do
 	                (insert (format "- %s" (car field)))
 	                (if (>= (length field) 2)
 		                  (insert (format " :: %s\n" (nth 1 field)))
@@ -5012,14 +5319,11 @@ entry types and required fields."
 *** Org Ref
 :PROPERTIES:
 :ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
-:CUSTOM_ID: org-ref
 :END:
 
 #+BEGIN_SRC emacs-lisp
 
   (use-package org-ref
-    :after (:all bibtex ivy)
-    :demand t
     :custom
     (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
     (org-ref-bibliography-notes (org-dir "ref/notes.org"))
@@ -5028,7 +5332,7 @@ entry types and required fields."
     (org-ref-show-citation-on-enter t)
     (org-ref-show-broken-links t)
     :init
-
+    (setq org-latex-prefer-user-labels t)
     ;; https://github.com/jkitchin/org-ref/issues/428
     (progn
       (require 'doi-utils)
@@ -5047,39 +5351,12 @@ entry types and required fields."
       (require 'x2bib)
       (require 'helm)
       (require 'helm-bibtex))
-
-    :config
     (require 'org-ref)
+    :config
     (with-eval-after-load 'ivy
       (setq org-ref-completion-library 'org-ref-ivy-cite))
+    (require 'org-ref-core)
 
-    ;; vref ref type
-    (with-eval-after-load 'org-ref-core
-      (defun org-ref-vref-complete-link (&optional arg)
-      "Completion function for ref links.
-  Optional argument ARG Does nothing."
-      (let ((label (completing-read "label:  " (org-ref-get-labels))))
-        (format "vref:" label)))
-
-    (defun org-ref-vref-export (keyword desc format)
-      "An export function for vref links."
-      (cond
-       ((eq format 'html)
-        (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
-       ((eq format 'latex) (format "\\vref{%s}" keyword))))
-
-    (org-ref-link-set-parameters "vref"
-      :follow #'org-ref-ref-follow
-      :export #'org-ref-vref-export
-      :complete #'org-ref-vref-complete-link
-      :face 'org-ref-ref-face-fn
-      :help-echo #'org-ref-ref-help-echo)
-
-    (setq org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
-                              "autoref" "cref" "Cref" "vref")))
-
-
-    ;; Org Ref PDF
     (defun org-ref-open-pdf-at-point ()
       "Open the pdf for bibtex key under point if it exists."
       (interactive)
@@ -5164,22 +5441,6 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
 (use-package navi)
 #+END_SRC
 
-*** Outshine
-
-#+BEGIN_SRC emacs-lisp
-(use-package outshine
-  :hook (outline-minor-mode . outshine-mode))
-#+END_SRC
-
-*** Outorg
-
-
-#+BEGIN_SRC emacs-lisp
-  (use-package outorg
-    :after outshine
-    :demand t)
-#+END_SRC
-
 *** foldout
 :PROPERTIES:
 :ID:       7A037F3A-7569-44C4-858A-B298381AC21D
@@ -5217,11 +5478,11 @@ See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-o
 
 #+NAME: org-ui-radiobutton
 #+BEGIN_SRC emacs-lisp
-  (use-package org-radiobutton
-    :straight org-plus-contrib
-    :init
-    (when (fboundp 'global-org-radiobutton-mode)
-      (global-org-radiobutton-mode)))
+(use-package org-radiobutton
+  :straight org-plus-contrib
+  :init
+  (when (fboundp 'global-org-radiobutton-mode)
+    (global-org-radiobutton-mode)))
 #+END_SRC
 
 *** Org Links :structure:
@@ -5342,7 +5603,6 @@ Embed YouTube Links in =iframe=.
           (goto-char end))))))
 #+END_SRC
 
-
 ** Org Coding
 *** Org Babel
 :PROPERTIES:
@@ -5408,7 +5668,116 @@ Embed YouTube Links in =iframe=.
        (org . t))))
 #+END_SRC
 
+*** Library of Babel
+#+BEGIN_SRC emacs-lisp
+(defvar lob-directory (directory-file-name (no-littering-expand-etc-file-name "lob"))
+  "Directory where library of babel org files reside.")
+
+(unless (file-directory-p lob-directory)
+  (make-directory lob-directory t))
+
+(defun load-lob ()
+  "Load the library of babel files."
+  (interactive)
+  (cl-loop for org-file in (f-entries lob-directory (lambda (f) (f-ext? f "org")) t)
+	   do
+	   (message "ingesting %s" org-file)
+	   (org-babel-lob-ingest org-file)))
+
+(load-lob)
+#+END_SRC
+*** Org speed commands
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'org-speed-commands-user (cons "P" 'org-set-property))
+(add-to-list 'org-speed-commands-user (cons "d" 'org-deadline))
+
+;; Mark a subtree
+(add-to-list 'org-speed-commands-user (cons "m" 'org-mark-subtree))
+
+;; Widen
+(add-to-list 'org-speed-commands-user (cons "S" 'widen))
+
+;; kill a subtree
+(add-to-list 'org-speed-commands-user (cons "k" (lambda ()
+						  (org-mark-subtree)
+						  (kill-region
+						   (region-beginning)
+						   (region-end)))))
+
+;; Jump to headline
+(add-to-list 'org-speed-commands-user
+	     (cons "q" (lambda ()
+			 (avy-with avy-goto-line
+			   (avy--generic-jump "^\\*+" nil avy-style)))))
+
+(defun org-teleport (&optional arg)
+  "Teleport the current heading to after a headline selected with avy.
+With a prefix ARG move the headline to before the selected
+headline. With a numeric prefix, set the headline level. If ARG
+is positive, move after, and if negative, move before."
+  (interactive "P")
+  ;; Kill current headline
+  (org-mark-subtree)
+  (kill-region (region-beginning) (region-end))
+  ;; Jump to a visible headline
+  (avy-with avy-goto-line (avy--generic-jump "^\\*+" nil avy-style))
+  (cond
+   ;; Move before  and change headline level
+   ((and (numberp arg) (> 0 arg))
+    (save-excursion
+      (yank))
+    ;; arg is what we want, second is what we have
+    ;; if n is positive, we need to demote (increase level)
+    (let ((n (- (abs arg) (car (org-heading-components)))))
+      (cl-loop for i from 1 to (abs n)
+	       do
+	       (if (> 0 n)
+		   (org-promote-subtree)
+		 (org-demote-subtree)))))
+   ;; Move after and change level
+   ((and (numberp arg) (< 0 arg))
+    (org-mark-subtree)
+    (goto-char (region-end))
+    (when (eobp) (insert "\n"))
+    (save-excursion
+      (yank))
+    ;; n is what we want and second is what we have
+    ;; if n is positive, we need to demote
+    (let ((n (- (abs arg) (car (org-heading-components)))))
+      (cl-loop for i from 1 to (abs n)
+	       do
+	       (if (> 0 n) (org-promote-subtree)
+		 (org-demote-subtree)))))
+
+   ;; move to before selection
+   ((equal arg '(4))
+    (save-excursion
+      (yank)))
+   ;; move to after selection
+   (t
+    (org-mark-subtree)
+    (goto-char (region-end))
+    (when (eobp) (insert "\n"))
+    (save-excursion
+      (yank))))
+  (outline-hide-leaves))
+
+(add-to-list 'org-speed-commands-user (cons "T" 'org-teleport))
+#+END_SRC
+
 ** Org Tasks
+*** ID
+#+BEGIN_SRC emacs-lisp
+(use-package org-id
+  :straight org-plus-contrib
+  :custom
+  (org-id-link-to-org-use-id 'create-if-interactive)
+  (org-link-search-must-match-exact-headline 'query-to-create)
+  (org-id-locations-file-name
+   (expand-file-name "var/org/id-locations.el" user-emacs-directory))
+  :demand t)
+
+#+END_SRC
 *** Attach
 
 #+NAME: org-docmgr-attach
@@ -5422,11 +5791,32 @@ Embed YouTube Links in =iframe=.
 *** Capture :tasks:
 
 #+BEGIN_SRC emacs-lisp
-  (use-package org-capture
-    :straight org-plus-contrib
-    :init
-    (setq org-default-notes-file "~/Dropbox/org/notes.org")
-    :demand t)
+(use-package org-capture
+  :straight org-plus-contrib
+  :custom
+  (org-default-notes-file "~/Dropbox/org/notes.org")
+  :preface
+  (defvar org-contacts-template "* %(org-contacts-template-name)
+:PROPERTIES:
+:ADDRESS:
+:BIRTHDAY: %^{yyyy-mm-dd}
+:EMAIL: %(org-contacts-template-email)
+:NOTE: %^{NOTE}
+:END:" "Template for org-contacts.")
+  :init
+  (with-eval-after-load ' org-capture
+
+    (setq org-capture-templates
+          `(("l" "Protocol Link" entry
+             (file+headline ,org-default-notes-file "Inbox")
+             "* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n")
+            ("t" "Todo" entry (file+headline "~/Dropbox/org/gtd.org" "Tasks")
+             "* TODO %?\n  %i\n  %a")
+            ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("c" "Contact" entry (file "~/Dropbox/org/contacts.org")
+             ,org-contacts-template
+             :empty-lines 1)))))
 #+END_SRC
 
 **** Alfred capture
@@ -5449,8 +5839,8 @@ Embed YouTube Links in =iframe=.
 *** Habit
 
 #+BEGIN_SRC emacs-lisp
-  (use-package org-habit
-    :straight org-plus-contrib)
+(use-package org-habit
+  :straight org-plus-contrib)
 #+END_SRC
 
 *** Agenda
@@ -5467,7 +5857,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   :custom-face
   (org-agenda-date
    ((t (:underline nil :foreground "#57c7ff" :inherit (variable-pitch)))))
-  (org-agenda-calendar-event ((t (:foreground "#cc9393" :inherit (default)))))
+  (org-agenda-calendar-event
+   ((t (:foreground "#cc9393" :inherit (default)))))
   :custom
   ;; Agenda Files
   (org-agenda-diary-file (expand-file-name "diary.org" org-directory))
@@ -5480,7 +5871,19 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
      ("COMSCI 131" ,(list "💻") nil nil :ascent center)))
   ;; Agenda startup
   (org-agenda-inhibit-startup t)
-  ;; Org TODO
+  ;; Org skip
+  (org-agenda-skip-unavailable-files t)
+  (org-agenda-skip-scheduled-if-deadline-is-shown t)
+  (org-agenda-skip-scheduled-if-done t)
+  (org-agenda-skip-deadline-if-done t)
+  (org-agenda-skip-timestamp-if-done t)
+  (org-agenda-skip-scheduled-delay-if-deadline 21) ;; ignore if 21 days after scheduled
+  ;; Ignore
+  (org-agenda-todo-ignore-scheduled t)
+  (org-agenda-todo-ignore-deadlines t)
+  (org-agenda-todo-ignore-timestamp t)
+  (org-agenda-todo-ignore-with-date t)
+;; TODO keywords
   (org-todo-keywords
    '((sequence "☛ TODO(t)" "|" " DONE(d)" )
      (sequence "|" "✘ CANCELLED(c)")))
@@ -5493,18 +5896,12 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (org-complete-tags-always-offer-all-agenda-tags t)
   ;; Agenda sort
   (org-sort-agenda-notime-is-late nil)
-  ;; Agenda view
+  ;; Agenda View
   (org-agenda-block-separator "─")
   (org-agenda-remove-tags t)
   (org-agenda-time-leading-zero t)
+
   (org-agenda-columns-add-appointments-to-effort-sum t)
-  ;; Agenda skip
-  (org-agenda-skip-deadline-if-done t)
-  (org-agenda-skip-deadline-prewarning-if-scheduled t)
-  (org-agenda-skip-scheduled-delay-if-deadline 21) ;; ignore if 21 days after scheduled
-  (org-agenda-skip-unavailable-files t)
-  (org-agenda-skip-scheduled-if-done t)
-  (org-agenda-skip-scheduled-if-deadline-is-shown t)
   (org-agenda-mouse-1-follows-link t)
   ;; http://cachestocaches.com/2016/9/my-workflow-org-agenda/
   ;; Org Refile
@@ -5614,7 +6011,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
          :super-groups
          ',(append
             '((:name "❗️Overdue" :scheduled past :deadline past)
-              (:name " Today" :scheduled today :deadline today)))
+              (:name " Today" :scheduled today :deadline today)))
          :files ,(expand-file-name
                   (concat "~/Dropbox/courses/" name "/" name ".org")))
        (defun ,(intern (concat name "-sidebar")) ()
@@ -5753,8 +6150,6 @@ Calendar.
   (cfw:face-toolbar-button-off ((t (:weight bold :background "Gray10"))))
   (cfw:face-toolbar-button-on  ((t (:background "red"))))
   :custom
-  (cfw:org-capture-template
-   '("c" "calfw2org" entry (file "agenda/schedule.org")  "* %?n %(cfw:org-capture-day)"))
   (cfw:render-line-breaker 'cfw:render-line-breaker-wordwrap)
   (cfw:display-calendar-holidays nil)
   (cfw:fchar-junction ?╋)
@@ -5771,11 +6166,6 @@ Calendar.
 
 (use-package calfw-org
   :demand t
-  :custom
-  (cfw:org-capture-template
-   '("c" "calfw2org" entry
-     (file "agenda/schedule.org")
-     "*  %?\n %(cfw:org-capture-day)"))
   :init
   (require 'calfw)
   (defun cfw:open-calendar ()
@@ -5860,31 +6250,34 @@ the result as a time value."
   :bind (:map org-mode-map
               ("C-c M-RET p" . org-pomodoro))
   :config
-  (progn
-    (defalias #'org-pomodoro-path
-      (apply-partially #'emacs-etc-dir "org/pomodoro"))
+  (defalias #'org-pomodoro-path
+    (apply-partially #'emacs-etc-dir "org/pomodoro"))
 
-    (setq org-pomodoro-audio-player "/usr/bin/afplay"
-          org-pomodoro-tick-sound
-          (org-pomodoro-path "clock-ticking-2.wav")
-          ;; Start Settings
-          org-pomodoro-start-sound-p t ;; enable starting sound
-          org-pomodoro-start-sound-args "--volume 0.08"
-          org-pomodoro-start-sound
-          (org-pomodoro-path "Victory.wav")
+  (setq org-pomodoro-audio-player "/usr/bin/afplay"
+        org-pomodoro-tick-sound
+        (org-pomodoro-path "clock-ticking-2.wav")
+        ;; Start Settings
+        org-pomodoro-start-sound-p t ;; enable starting sound
+        org-pomodoro-start-sound-args "--volume 0.08"
+        org-pomodoro-start-sound
+        (org-pomodoro-path "Victory.wav")
         ;; Finished Settings
-          org-pomodoro-finished-sound-args "--volume 0.2"
-          org-pomodoro-finished-sound
-          (org-pomodoro-path "Waves.wav")
-          ;; Short Break Settings
-          org-pomodoro-short-break-length 5
-          org-pomodoro-short-break-sound-args "--volume 0.2"
-          org-pomodoro-short-break-sound org-pomodoro-finished-sound
-          ;; Long Break Settings
-          org-pomodoro-long-break-length 15
-          org-pomodoro-long-break-sound-args "--volume 0.2"
-          org-pomodoro-long-break-sound
-          (org-pomodoro-path "Complete.wav"))))
+        org-pomodoro-finished-sound-args "--volume 0.2"
+        org-pomodoro-finished-sound
+        (org-pomodoro-path "Waves.wav")
+        ;; Short Break Settings
+        org-pomodoro-short-break-length 5
+        org-pomodoro-short-break-sound-args "--volume 0.2"
+        org-pomodoro-short-break-sound org-pomodoro-finished-sound
+        ;; Long Break Settings
+        org-pomodoro-long-break-length 15
+        org-pomodoro-long-break-sound-args "--volume 0.2"
+        org-pomodoro-long-break-sound
+        (org-pomodoro-path "Complete.wav"))
+  (add-hook 'org-pomodoro-break-finished-hook
+            (lambda ()
+              (interactive)
+              (org-pomodoro '(16)))))
 #+END_SRC
 
 **** counsel org clock
@@ -5894,7 +6287,8 @@ the result as a time value."
 (use-package counsel-org-clock
   :straight (:host github
                    :repo "akirak/counsel-org-clock")
-  :after (:all org-agenda ivy))
+  :after (:all org ivy)
+  :demand t)
 #+END_SRC
 
 **** org mru clock
@@ -5945,19 +6339,65 @@ These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
 
 *** Org indent
+
 #+BEGIN_SRC emacs-lisp
-  (use-package org-indent-mode
-    :straight org-plus-contrib
-    :hook (org-mode . org-indent-mode))
+(use-package org-indent
+  :straight org-plus-contrib
+  :hook (org-mode . org-indent-mode))
 #+END_SRC
 
 *** Per-image display width
 
-Specify image width in org buffer on per-image basis.
-
 #+NAME: org-ui-fixedwidth-image
 #+BEGIN_SRC emacs-lisp
-(setq org-image-actual-width nil)
+(setq org-startup-with-inline-images "inlineimages") ;; default with images open
+(setq org-image-actual-width nil) ;; default width
+(add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
+#+END_SRC
+
+*** Inline images
+
+#+BEGIN_SRC emacs-lisp
+(defvar org-inline-image-resize-function
+  #'org-inline-image-resize
+  "Function that takes a filename and resize argument and returns
+ a new filename pointing to the resized image.")
+
+
+(defun org-inline-image-resize (fname resize-options)
+  "Resize FNAME with RESIZE-OPTIONS.
+RESIZE-OPTIONS are passed to \"mogrify resized-fname -resize resize-options\".
+RESIZE-OPTIONS could be:
+
+N% to scale the image by a percentage.
+N to set the width, keeping the aspect ratio constant.
+xN to set the height, keeping the aspect ratio constant.
+NxM! to set the width and height, ignoring the aspect ratio.
+
+See http://www.imagemagick.org/Usage/resize/#resize for more options."
+  (let* ((md5-hash (with-temp-buffer (insert-file-contents fname)
+				                             (insert (format "%s" resize-options))
+				                             (md5 (buffer-string))))
+	       (resized-fname (concat (expand-file-name
+				                         md5-hash
+				                         temporary-file-directory)
+				                        "."
+				                        (file-name-extension fname)))
+	       (cmd (format "mogrify -resize %s %s"
+		                  resize-options
+		                  resized-fname)))
+    (if (not (executable-find "mogrify"))
+	      (progn
+	        (message
+           (concat "No mogrify executable found. To eliminate this message, "
+                   "set `org-inline-image-resize-function' to nil or "
+                   "install imagemagick from "
+                   "http://www.imagemagick.org/script/binary-releases.php"))
+	        fname)
+      (unless (file-exists-p resized-fname)
+	      (copy-file fname resized-fname)
+	      (shell-command cmd))
+      resized-fname)))
 #+END_SRC
 
 *** Org sticky header
@@ -5965,9 +6405,8 @@ Specify image width in org buffer on per-image basis.
 #+BEGIN_SRC emacs-lisp
 (use-package org-sticky-header
   :custom
-  (org-sticky-header-heading-star "•")
-  :hook
-  (org-mode . org-sticky-header-mode))
+  (org-sticky-header-heading-star "•"))
+
 #+END_SRC
 
 *** TOC Org
@@ -5987,8 +6426,8 @@ time of install.
 #+NAME: org-ui-toc-org
 #+BEGIN_SRC emacs-lisp
 (use-package toc-org
-  :init
-  (add-hook 'org-mode-hook 'toc-org-enable))
+  :hook
+ (org-mode . toc-org-enable))
 #+END_SRC
 
 *** Column View
@@ -6059,6 +6498,22 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+NAME: org-latex-highlight-tex
 #+BEGIN_SRC emacs-lisp
 (setq org-highlight-latex-and-related '(latex))
+#+END_SRC
+
+*** Org Ellipsis
+
+#+BEGIN_SRC emacs-lisp
+(defun org-set-ellipsis ()
+      (and (featurep 'all-the-icons)
+           (setq org-ellpsis "")))
+
+(add-hook 'org-mode-hook #'org-set-ellipsis)
+#+END_SRC
+
+*** Org outline numbering
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-outline-numbering)
 #+END_SRC
 
 ** Org Prose
@@ -6145,7 +6600,6 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
     (org-journal-date-format "%A, %B %d %Y")
     (org-journal-time-prefix "* ")
     (org-journal-time-format ""))
-
 #+END_SRC
 
 ** Org Export
@@ -6153,6 +6607,85 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 :ID:       46A0BACE-34F1-4547-8EC4-367FD085E1B5
 :CUSTOM_ID: sec:ox
 :END:
+*** Ox
+
+#+BEGIN_SRC emacs-lisp
+(use-package ox
+  :straight org-plus-contrib
+  :custom
+  (org-export-with-sub-superscripts '{})
+  :init
+  (defun org-update-backends (val)
+    "Update Emacs export backends while Emacs is running.
+See `org-export-backends' variable."
+    (interactive)
+    (progn
+      (setq org-export-registered-backends
+            (cl-remove-if-not
+             (lambda (backend)
+               (let ((name (org-export-backend-name backend)))
+                 (or (memq name val)
+                     (catch 'parentp
+                       (dolist (b val)
+                         (and (org-export-derived-backend-p b name)
+                              (throw 'parentp t)))))))
+             org-export-registered-backends))
+      (let ((new-list (mapcar #'org-export-backend-name
+                              org-export-registered-backends)))
+        (dolist (backend val)
+          (cond
+           ((not (load (format "ox-%s" backend) t t))
+            (message
+             "Problems while trying to load export back-end
+                   `%s'" backend))
+           ((not (memq backend new-list)) (push backend new-list))))
+        (set-default 'org-export-backends new-list))))
+  :config
+  ;; From [[https://lists.gnu.org/archive/html/emacs-orgmode/2016-11/msg00086.html][{O} multicolumn cells in latex export]]
+
+  (defun org-export-multicolumn-filter (row backend info)
+    (cond
+     ((org-export-derived-backend-p backend 'latex)
+      (org-export-multicolumn-filter-latex row backend info))
+     ((org-export-derived-backend-p backend 'html)
+      (org-export-multicolumn-filter-html row backend info))))
+
+  (defun org-export-multicolumn-filter-latex (row backend info)
+    (while (string-match
+            "\\(<\\([0-9]+\\)col\\([lrc]\\)?>[[:blank:]]*\\([^&]+\\)\\)" row)
+      (let ((columns (string-to-number (match-string 2 row)))
+            (start (match-end 0))
+            (contents (replace-regexp-in-string
+                       "\\\\" "\\\\\\\\"
+                       (replace-regexp-in-string "[[:blank:]]*$" ""
+                                                 (match-string 4 row))))
+            (algn (or (match-string 3 row) "l")))
+        (setq row (replace-match
+                   (format "\\\\multicolumn{%d}{%s}{%s}" columns algn contents)
+                   nil nil row 1))
+        (while (and (> columns 1) (string-match "&" row start))
+          (setq row (replace-match "" nil nil row))
+          (decf columns))))
+    row)
+  (defun org-export-multicolumn-filter-html (row backend info)
+    (while (string-match "class=\".*\" *>&lt;\\([0-9]+\\)col\\([lrc]\\)?&gt;" row)
+      (let ((columns (string-to-number (match-string 1 row)))
+            (start (match-end 0))
+            (algn (case (intern (or (match-string 2 row) "l"))
+                    (c "center")
+                    (r "right")
+                    (l "left"))))
+        (setq row (replace-match
+                   (format " class=\"%s\" colspan=\"%s\">" algn columns)
+                   nil nil row))
+        (while (and (> columns 1)
+                    (string-match "<th .*>&#xa0;</th>" row start))
+          (setq row (replace-match "" nil nil row))
+          (decf columns))))
+    row)
+  (add-to-list 'org-export-filter-table-row-functions
+               'org-export-multicolumn-filter))
+#+END_SRC
 
 *** Ox Extra
 
@@ -6209,311 +6742,165 @@ and subtrees of the ignored headlines will be retained.
 :CUSTOM_ID: sec:ox-latex
 :END:
 
-**** Prefer user provided labeling
-
-#+NAME: oxl/labels
 #+BEGIN_SRC emacs-lisp
-(setq org-latex-prefer-user-labels t)
+(use-package ox-latex
+  :custom
+  (org-latex-hyperref-template nil)
+  (org-latex-packages-alist '(("" "booktabs" nil)))
+  (org-latex-listings 'minted)
+  (org-latex-minted-options
+   '(("mathescape" "true")
+     ("linenos" "true")
+     ("frame" "lines")
+     ("framesep" "2mm")))
+  (org-latex-compiler "xelatex")
+  :straight org-plus-contrib
+  :after (ox)
+  :demand t
+  :init
+  ;; minted
+  (defcustom org-latex-minted-from-org-p nil
+    "If non-nil, then included minted in `org-latex-packages-alist'
+and get options from `org-latex-minted-options'."
+    :type 'boolean
+    :group 'org-export-latex
+    :version "26.1"
+    :package-version '(Org . "9.0"))
+
+  (defun org-latex-toggle-minted-from-org ()
+    "Toggle `org-latex-minted-from-org-p'."
+    (interactive)
+    (cl-flet ((nominted (pkg) (not (string= (cadr pkg) "minted"))))
+      (if (not org-latex-minted-from-org-p)
+          (setq org-latex-packages-alist
+                (append org-latex-packages-alist '(("newfloat" "minted"))))
+        (setq org-latex-packages-alist (seq-filter #'nominted org-latex-packages-alist)))
+      (setq org-latex-minted-from-org-p (not org-latex-minted-from-org-p))
+      (message "org minted %s" (if org-latex-minted-from-org-p
+                                   "enabled" "disabled"))))
+  ;; Latex process
+  (setq oxl-process-pdflatex
+        '("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+
+  (setq oxl-process-xelatex
+        '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
+
+  (setq oxl-process-lualatex
+        '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
+
+  (defcustom org-latex-pdf-engines
+    '(("lualatex" . oxl-process-lualatex)
+      ("xelatex" . oxl-process-xelatex)
+      ("pdflatex" . oxl-process-pdflatex))
+    "A list of LaTeX commands available to run when
+`org-latex-export-to-pdf' is invoked."
+    :type '(cons string symbol)
+    :group 'org-export-latex
+    :version "26.1")
+
+  (defvar org-latex-pdf-process-hook nil
+    "Hook to run after setting pdf process.")
+
+  (defun org-latex-pdf-process-set (compiler)
+    (interactive
+     (list (completing-read "Compiler: " org-latex-pdf-engines)))
+    (if (member compiler org-latex-compilers)
+        (let ((process (symbol-value (cdr (assoc compiler org-latex-pdf-engines)))))
+          (setq org-latex-pdf-process process
+                org-latex-compiler compiler)
+          (run-hooks org-latex-pdf-process-hook))
+      (error "%s not in `org-latex-compilers'" compiler)))
+
+  :config
+  (with-eval-after-load 'ox
+    (org-latex-pdf-process-set org-latex-compiler))
+  ;; From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
+  (setq org-latex-classes
+        '(("article-standalone"
+	         "\\documentclass{article}
+          [NO-DEFAULT-PACKAGES]
+          [PACKAGES]
+          [EXTRA]" ;; header-string
+	         ("\\section{%s}" . "\\section*{%s}")
+	         ("\\subsection{%s}" . "\\subsection*a{%s}")
+	         ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	         ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	         ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+          ("uclaling"
+           "\\documentclass{uclaling}
+           [NO-DEFAULT-PACKAGES]
+           [EXTRA]"
+           ("\\section{%s}" . "\\section*{%s}")
+           ("\\subsection{%s}" . "\\subsection*{%s}")
+           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+           ("\\paragraph{%s}" . "\\paragraph*{%s}")
+           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+          ("uclacs"
+           "\\documentclass{uclacs}
+          [NO-DEFAULT-PACKAGES]
+          [EXTRA]"
+           ("\\section{%s}" . "\\section*{%s}")
+           ("\\subsection{%s}" . "\\subsection*{%s}")
+           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+           ("\\paragraph{%s}" . "\\paragraph*{%s}")
+           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+          ("humanities"
+           "\\documentclass{humanities}
+          [NO-DEFAULT-PACKAGES]
+          [EXTRA]"
+           ("\\section{%s}" . "\\section*{%s}")
+           ("\\subsection{%s}" . "\\subsection*{%s}")
+           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+           ("\\paragraph{%s}" . "\\paragraph*{%s}")
+           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+          ("unicode-math"
+           "\\documentclass{article}
+         [PACKAGES]
+         [NO-DEFAULT-PACKAGES]
+         [EXTRA]
+         \\usepackage{fontspec}
+         \\usepackage{amsmath}
+         \\usepackage{xltxtra}
+         \\usepackage{unicode-math}
+         \\setmathfont{STIX2Math}[
+           Path/Users/jacobchaffin/Library/Fonts/,
+           Extension={.otf},
+           Scale=1]
+         \\setmainfont{STIX2Text}[
+           Path/Users/jacobchaffin/Library/Fonts/,
+           Extension={.otf},
+           UprightFont={*-Regular},
+           BoldFont={*-Bold},
+           ItalicFont={*-Italic},
+           BoldItalicFont={*-BoldItalic}]"
+           ("\\section{%s}" . "\\section*{%s}")
+           ("\\subsection{%s}" . "\\subsection*{%s}")
+           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+           ("\\paragraph{%s}" . "\\paragraph*{%s}")
+           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+  :bind
+  (:map org-mode-map
+        ("M-s l" . org-latex-pdf-process-set)))
 #+END_SRC
 
-**** Subfigure Export
+*** Ox Latex subfigure
 
 #+NAME: oxl/subfigure
 #+BEGIN_SRC emacs-lisp
 (use-package ox-latex-subfigure
+  :after (ox-latex)
+  :demand t
   :straight
-  (ox-latex-subfigure
-   :type git
-   :host github
-   :repo "linktohack/ox-latex-subfigure")
-  :init
-  (setq org-latex-prefer-user-labels t)
+  (ox-latex-subfigure :type git
+                      :host github
+                      :repo "linktohack/ox-latex-subfigure")
   :config
-  (require 'ox-latex-subfigure)
-  (add-to-list 'org-latex-packages-alist (("" "subcaption" nil))))
+  (add-to-list 'org-latex-packages-alist '(("" "subcaption" nil))))
 
 #+END_SRC
 
-**** Multicolumn tables
+*** Ox Linguistics
 
-From [[https://lists.gnu.org/archive/html/emacs-orgmode/2016-11/msg00086.html][{O} multicolumn cells in latex export]]
-
-#+BEGIN_SRC emacs-lisp
-  (with-eval-after-load 'ox
-    (defun org-export-multicolumn-filter (row backend info)
-      (cond
-       ((org-export-derived-backend-p backend 'latex)
-        (org-export-multicolumn-filter-latex row backend info))
-       ((org-export-derived-backend-p backend 'html)
-        (org-export-multicolumn-filter-html row backend info))))
-
-    (defun org-export-multicolumn-filter-latex (row backend info)
-      (while (string-match
-              "\\(<\\([0-9]+\\)col\\([lrc]\\)?>[[:blank:]]*\\([^&]+\\)\\)" row)
-        (let ((columns (string-to-number (match-string 2 row)))
-              (start (match-end 0))
-              (contents (replace-regexp-in-string
-                         "\\\\" "\\\\\\\\"
-                         (replace-regexp-in-string "[[:blank:]]*$" ""
-                                                   (match-string 4 row))))
-              (algn (or (match-string 3 row) "l")))
-          (setq row (replace-match
-                     (format "\\\\multicolumn{%d}{%s}{%s}" columns algn contents)
-                     nil nil row 1))
-          (while (and (> columns 1) (string-match "&" row start))
-            (setq row (replace-match "" nil nil row))
-            (decf columns))))
-      row)
-
-    (defun org-export-multicolumn-filter-html (row backend info)
-      (while (string-match "class=\".*\" *>&lt;\\([0-9]+\\)col\\([lrc]\\)?&gt;" row)
-        (let ((columns (string-to-number (match-string 1 row)))
-              (start (match-end 0))
-              (algn (case (intern (or (match-string 2 row) "l"))
-                      (c "center")
-                      (r "right")
-                      (l "left"))))
-          (setq row (replace-match
-                     (format " class=\"%s\" colspan=\"%s\">" algn columns)
-                     nil nil row))
-          (while (and (> columns 1)
-                      (string-match "<th .*>&#xa0;</th>" row start))
-            (setq row (replace-match "" nil nil row))
-            (decf columns))))
-      row)
-                                          ;
-    (add-to-list 'org-export-filter-table-row-functions
-                 'org-export-multicolumn-filter))
-#+END_SRC
-
-**** Minted
-
-Allow toggling of minted inclusion in exported header. This might be necessary when using a custom latex class or loading minted manually.
-
-#+NAME: oxl/minted
-#+BEGIN_SRC emacs-lisp
-(eval-and-compile
-  (defvar enable-default-minted nil))
-
-(setq org-latex-listings 'minted)
-
-(setq org-latex-packages-alist '(("" "booktabs" nil)))
-(setq org-latex-tables-booktabs t)
-
-(setq org-latex-minted-options
-      '(("mathescape" "true")
-        ("linenos" "true")
-        ("breaklines" "true")
-        ("numbersep" "5pt")
-        ("frame" "lines")
-        ("framesep" "2mm")))
-
-(defun latex-toggle-default-minted ()
-  (interactive)
-  (if (not enable-default-minted)
-      (progn
-        (setq org-latex-packages-alist
-              (append org-latex-packages-alist '(("newfloat" "minted"))))
-        (setq enable-default-minted t)
-        (message "%s" "Exporting with default minted."))
-    (progn
-      (setq enable-default-minted nil)
-      (dolist (elt org-latex-packages-alist)
-        (if (string= (cadr elt) "minted")
-            (setq org-latex-packages-alist (remove elt org-latex-packages-alist))))
-      (message "%s" "Disabled default minted."))))
-
-
-#+END_SRC
-
-**** Set latex pdf process
-
-[[https://ctan.org/pkg/latexmk?lang=en][Latexmk]] automates the proces of building LaTeX documents to pdf.
-
-It can be done through the =org-mode= latex export dispatcher in a single command:
-
-#+NAME: oxl/pdf
-#+BEGIN_SRC emacs-lisp
-(setq latex-process-latex
-  '("%latex -interaction nonstopmode -output-directory %o %f"
-    "%latex -interaction nonstopmode -output-directory %o %f"
-    "%latex -interaction nonstopmode -output-directory %o %f"))
-
-(setq latex-process-pdflatex
-  '("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
-
-(setq latex-process-xelatex
-  '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
-
-(setq latex-process-lualatex
-  '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
-
-(defcustom dotemacs-latex-pdf-engines
-  '(("latex" . latex-process-latex)
-    ("lualatex" . latex-process-lualatex)
-    ("xelatex" . latex-process-xelatex)
-    ("pdflatex" . latex-process-pdflatex))
-  "A list of LaTeX commands available to run when
-`org-latex-export-to-pdf' is invoked."
-  :type '(cons string symbol))
-
-(setq org-latex-pdf-process latex-process-xelatex)
-
-(defvar org-latex-pdf-process-set-hook nil)
-
-(defun org-latex-pdf-process-set (&optional process)
-  (interactive)
-  (let* ((process (or
-                   process
-                   (assoc (completing-read "Process: " dotemacs-latex-pdf-engines nil nil)
-                          dotemacs-latex-pdf-engines)))
-         (cmd-string (cdr process)))
-    (setq org-latex-pdf-process (symbol-value cmd-string))
-    (setq org-latex-compiler (car process))
-    (run-hooks 'org-latex-pdf-process-set-hook)))
-
-
-(add-hook 'org-mode-hook
-          (lambda () (local-set-key (kbd "M-s l") 'org-latex-pdf-process-set)))
-
-
-#+END_SRC
-
-**** Hyperref Template
-
-The default cross-referencing and hyperlink styles provided by
-=hyperref= are awful. This makes them less awful.
-
-#+NAME: oxl/hyperref
-#+BEGIN_SRC emacs-lisp
-;; TODO: Dynamically set to a sensible default if using 'article class
-;; or a class in `org-latex-classes' that includes hyperref.
-(setq org-latex-hyperref-template nil)
-#+END_SRC
-
-**** Export classes
-
-#+NAME: oxl/classes
-#+BEGIN_SRC emacs-lisp
-;; Org Ling
-
-;; UCLA CS
-
-;; Humanities
-
-;; Article No Default Packages
-
-;; Unicode math
-
-#+END_SRC
-
-***** Article Standalone
-
-From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
-
-#+NAME: ox-class/article-standalone
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-latex-classes
-	     '("article-standalone"
-	       "\\documentclass{article}
-          [NO-DEFAULT-PACKAGES]
-          [PACKAGES]
-          [EXTRA]" ;; header-string
-	       ("\\section{%s}" . "\\section*{%s}")
-	       ("\\subsection{%s}" . "\\subsection*a{%s}")
-	       ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	       ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	       ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-***** Uclasem
-
-#+NAME: ox-class/uclasem
-#+BEGIN_SRC emacs-lisp
-(if (and (executable-find "kpsewhich")
-         (shell-command-to-string "kpsewhich uclaling.cls"))
-
-    (add-to-list 'org-latex-classes
-                 '("uclaling"
-                   "\\documentclass{uclaling}
-                    [NO-DEFAULT-PACKAGES]
-                    [EXTRA]"
-                   ("\\section{%s}" . "\\section*{%s}")
-                   ("\\subsection{%s}" . "\\subsection*{%s}")
-                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
-#+END_SRC
-
-***** UCLA CS
-
-#+NAME: ox-class/uclacs
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-latex-classes
-             '("uclacs"
-               "\\documentclass{uclacs}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-***** Humanities
-
-My custom mla-style LaTeX class.
-
-#+NAME: ox-class/humanities
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-latex-classes
-             '("humanities"
-               "\\documentclass{humanities}
-                [NO-DEFAULT-PACKAGES]
-                [EXTRA]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-***** Unicode Math
-
-#+NAME: ox-class/unicode-math
-#+BEGIN_SRC emacs-lisp
-  (add-to-list 'org-latex-classes
-    '("unicode-math"
-      "\\documentclass{article}
-       [PACKAGES]
-       [NO-DEFAULT-PACKAGES]
-       [EXTRA]
-       \\usepackage{fontspec}
-       \\usepackage{amsmath}
-       \\usepackage{xltxtra}
-       \\usepackage{unicode-math}
-       \\setmathfont{STIX2Math}[
-         Path/Users/jacobchaffin/Library/Fonts/,
-         Extension={.otf},
-         Scale=1]
-       \\setmainfont{STIX2Text}[
-         Path/Users/jacobchaffin/Library/Fonts/,
-         Extension={.otf},
-         UprightFont={*-Regular},
-         BoldFont={*-Bold},
-         ItalicFont={*-Italic},
-         BoldItalicFont={*-BoldItalic}]"
-      ("\\section{%s}" . "\\section*{%s}")
-      ("\\subsection{%s}" . "\\subsection*{%s}")
-      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-      ("\\paragraph{%s}" . "\\paragraph*{%s}")
-      ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-*** COMMENT Ox Linguistics
-
-#+NAME: ox/linguistics
 #+BEGIN_SRC emacs-lisp
 (use-package ox-linguistics
   :straight (ox-linguistics :host github
@@ -6527,22 +6914,6 @@ My custom mla-style LaTeX class.
 
 #+BEGIN_SRC emacs-lisp
 (use-package gb4e)
-#+END_SRC
-
-*** Ox Bibtex
-
-#+NAME: ox/bibtex
-#+BEGIN_SRC emacs-lisp
-(use-package ox-bibtex
-  :straight org-plus-contrib
-  :mode
-  (("\\.org.bib\\'" . org-mode))
-  :after (ox)
-  :demand t
-  :config
-  (progn
-    (require 'org-bibtex)
-    (setq org-bibtex-file "references.org")))
 #+END_SRC
 
 *** Ox Pandoc
@@ -6562,29 +6933,24 @@ for exporting org-mode documents to various formats.
   :config
   (defun ox-pandoc--pdf-engine ()
     "Set the default latex pdf engine to the one set by `org-latex-pdf-process'. "
-    (let ((syms (mapcar (lambda (x) (cdr x)) dotemacs-latex-pdf-engines))
+    (let ((syms (mapcar (lambda (x) (cdr x)) org-latex-pdf-engines))
           (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
-          (sep "latex-process-"))
-      (cadr (split-string (symbol-name (car (seq-filter pred syms))) sep))))
+          (prefix "oxl-process-"))
+      (cadr (split-string (symbol-name (car (seq-filter pred syms))) prefix))))
 
   (setq org-pandoc-options-for-beamer-pdf
         `((pdf-engine . ,(ox-pandoc--pdf-engine)))
         org-pandoc-options-for-latex-pdf
         `((pdf-engine . ,(ox-pandoc--pdf-engine))))
 
-  (defun org-pandoc-pdf-engine-set (&optional process)
+  (defun org-pandoc-pdf-engine-set (compiler)
     "Set the latex pdf engine for `org-pandoc-export-to-latex-pdf'."
-    (interactive)
-    (let* ((process
-            (or process
-                (assoc
-                 (completing-read "Pandoc Process: " dotemacs-latex-pdf-engines nil nil)
-                 dotemacs-latex-pdf-engines)))
-           (sym (substring-no-properties (car process))))
-      (setq org-pandoc-options-for-beamer-pdf
-            `((pdf-engine . ,sym))
-            org-pandoc-options-for-latex-pdf
-            `((pdf-engine . ,sym)))))
+    (interactive
+     (list (completing-read "Compiler: " org-latex-compilers)))
+    (setq org-pandoc-options-for-beamer-pdf
+          `((pdf-engine . ,compiler))
+          org-pandoc-options-for-latex-pdf
+          `((pdf-engine . ,compiler))))
   ;; Open MS .doc?x files with system viewer.
   (when (symbolp 'org-file-apps)
     (add-to-list 'org-file-apps '("\\.docx?\\'" . system))))
@@ -6615,11 +6981,11 @@ for exporting org-mode documents to various formats.
 #+BEGIN_SRC emacs-lisp
 (use-package org-html-themes
     :straight
-    (org-html-themes
-      :host github
-      :repo "fniessen/org-html-themes"
-      :local-repo-name org-html-themes
-      :files ("setup/*" "styles/*")))
+    (org-html-themes :type git
+                     :host github
+                     :repo "fniessen/org-html-themes"
+                     :local-repo-name org-html-themes
+                     :files ("setup/*" "styles/*")))
 #+END_SRC
 
 ** Org Hacks
@@ -6681,18 +7047,12 @@ Neil Smithline posted this snippet to let you browse org files with
 #+BEGIN_SRC emacs-lisp
   (use-package org-protocol
     :straight org-plus-contrib
-    :demand t
     :init
     (setq org-protocol-default-template-key "l")
-    :config
-    (require 'org-capture)
-    (add-to-list 'org-capture-templates
-                 '("p" "Protocol" entry (file "")
-                   "* TODO %?[[%:link][%:description]] %U\n%i\n" :prepend t))
-    (add-to-list 'org-capture-templates
-                 '("l" "Protocol Link" entry (file "")
-                   "* TODO %?[[%:link][%:description]] %U\n" :prepend t))
-    (require 'org-protocol))
+    (require 'server)
+    (unless (server-running-p)
+      (setq server-socket-dir (format "/tmp/emacs%d" (user-uid))))
+    (server-start))
 #+END_SRC
 
 *** Org Contacts
@@ -7215,17 +7575,13 @@ the absence of a window system. I'll check for the latter for now.
 
 *** Pretty Outlines
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 
 (use-package pretty-outlines
   :straight nil
   :load-path "etc/local/pretty-outlines"
   :custom
-  (pretty-outlines-ellipsis "")
-  :hook ((outline-mode       . pretty-outlines-set-display-table)
-         (outline-minor-mode . pretty-outlines-set-display-table)
-         (emacs-lisp-mode . pretty-outlines-add-bullets)
-         (python-mode     . pretty-outlines-add-bullets)))
+  (pretty-outlines-ellipsis ""))
 #+END_SRC
 
 ** Fonts
@@ -7258,21 +7614,23 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 *** Variable Pitch
 
 #+BEGIN_SRC emacs-lisp
-  (use-package org-variable-pitch
-    :straight (org-variable-pitch
-               :type git
-               :host github
-               :repo "emacsmirror/org-variable-pitch")
-    :custom-face
-    (variable-pitch
-     ((((type w32))
-       (:foundry "outline" :family "Arial"))
-      (t (:family "Fira Sans"))))
-    :custom
-    (org-variable-pitch-face "Fira Sans")
-    (org-variable-pitch-fixed-font "Fira Code")
-    :hook
-    (org-mode . org-variable-pitch-minor-mode))
+(use-package org-variable-pitch
+  :defines (org-variable-pitch-fixed-faces)
+  :straight (org-variable-pitch
+             :type git :host github :repo "emacsmirror/org-variable-pitch")
+  :custom-face
+  (variable-pitch
+   ((((type w32))
+     (:foundry "outline" :family "Arial"))
+    (t (:family "Fira Sans"))))
+  (fixed-pitch ((t (:family "Fira Code"))))
+  :custom
+  (org-variable-pitch-fixed-font "Fira Code")
+  :config
+  (setq org-variable-pitch-fixed-faces
+        (append org-variable-pitch-fixed-faces '(org-latex-and-related)))
+  :hook
+  (org-mode . org-variable-pitch-minor-mode))
 #+END_SRC
 
 *** Unicode
@@ -7280,7 +7638,8 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 ***** Apple Color Emoji
 
 #+BEGIN_SRC emacs-lisp
-  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
+(set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
+(set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend)
 #+END_SRC
 
 ***** Unicode Emoticons
@@ -7318,7 +7677,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 #+END_SRC
 
 **** Icons
-*****  All the  Icons
+***** All the Icons
 
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
@@ -7337,7 +7696,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
-****** all the icons ivy
+****** All the icons ivy
 
 #+BEGIN_SRC emacs-lisp
   (use-package all-the-icons-ivy
@@ -7352,10 +7711,10 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 :END:
 
 #+BEGIN_SRC emacs-lisp
-  (defun fonts/setup-glyphs ()
+  (defun font/setup-glyphs ()
     "Modify the default fontset to choose the right icons."
     (let ((font-glyphs-alist '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
-                               ("file-icons" . (#xE917  #xE600 #xE601))
+                               ("file-icons" . (#xE917 #xE600 #xE601 #xE91A))
                                ("Material Icons" . (#xE80C #xE8CE))
                                ("FontAwesome" . (#xF167))))
           (font-families (font-family-list)))
@@ -7403,7 +7762,8 @@ bullets as UTF-8 characters.
   :preface
   (setq inhibit-compacting-font-caches t)
   :custom
-  (org-bullets-bullet-list '("‣" "•"))
+  (org-bullets-bullet-list '("▸" "●"))
+
   :init
   (defun org-bullets/enable ()
     (org-bullets-mode +1))
@@ -7418,6 +7778,7 @@ bullets as UTF-8 characters.
   :straight (org-pretty-tags
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
+  :preface (set-fontset-font "fontset-default" '#xE91A "file-icons")
   :after (org)
   :custom
   (org-pretty-tags-surrogate-strings
@@ -7432,6 +7793,10 @@ bullets as UTF-8 characters.
     ("@phonetics" . "🗣")
     ("@ai" . "♠")
     ("@comsci" . "💻")
+    ("java" . "")
+    ("prolog" . "")
+    ("scheme" . "λ")
+    ("ocaml" . "")
     ("noexport" . "❌")
     ("ignore" . "🚫")
     ("bib" . "")
@@ -7453,10 +7818,13 @@ bullets as UTF-8 characters.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-fancy-priorities
-  :hook
-  (org-mode . org-fancy-priorities-mode)
   :config
-  (setq org-fancy-priorities-list '("‼️" "❗️" "❕️️" "⬆️")))
+  (setq org-fancy-priorities-list '((?A . "❗")
+                                    (?B . "⏫")
+                                    (?C . "⬆️")))
+  :hook
+  (org-mode . org-fancy-priorities-mode))
+
 #+END_SRC
 
 **** Org Pretty Table
@@ -7489,7 +7857,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 (setq-default cursor-in-non-selected-windows nil
               x-stretch-cursor nil)
 #+END_SRC
-
 
 ** Visual
 :PROPERTIES:
@@ -7552,6 +7919,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 :PROPERTIES:
 :ID:       57C52822-10CA-4C35-AB6F-4E6C62F4B53D
 :END:
+
 *** Scroll to first error on compilation
 
 #+NAME: scroll/compile-error
@@ -7961,8 +8329,6 @@ Interactively.
         '(:section-numbers nil
           :with-author nil
           :with-toc nil))
-
-
   (defun org-mime/style ()
     (org-mime-change-element-style
      "pre" (format "color: %s; background-color: %s; padding: 0.5em;"
@@ -7970,15 +8336,10 @@ Interactively.
     (org-mime-change-element-style
      "blockquote" "border-left: 2px solid gray; padding-left: 4px;"))
 
-  (defun org-mime/message-mode-hook ()
-    (local-set-key (kbd "C-c M-h") 'org-mime-htmlize))
-
-  (defun org-mime/org-mode-hook ()
-      (local-set-key (kbd  "C-c M-h") 'org-mime-org-buffer-htmlize))
 
   :hook
-  (message-mode . org-mime/message-mode-hook)
-  (org-mime-html . org-mime/style))
+  (message-mode . org-mime/message-mode-hook))
+
 
 #+END_SRC
 
@@ -8236,7 +8597,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
   (use-package org-velocity
     :straight org-plus-contrib
     :custom
-    (org-velocity-bucket (expand-file-name "bucket.org" org-directory)))
+    (org-velocity-bucket (expand-file-name "notes.org" org-directory)))
 #+END_SRC
 
 *** Org annotate file
@@ -8295,6 +8656,32 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
   (nov-post-html-render .  nov/post-html-render))
 #+END_SRC
 
+** Readspec  Mode
+
+Based off [[http://ergoemacs.org/emacs/emacs_novel_reading_mode.html][Emacs: Novel Reading Mode]]
+
+#+BEGIN_SRC emacs-lisp
+(defun toggle-read-spec-mode ()
+  "Setup current frame to be suitable for specifcation/text
+
+• Set frame width to 70
+• Line wrap at word boundaries.
+• Line spacing is increased.
+• Proportional width font is used."
+  (interactive)
+   (if (eq (frame-parameter (selected-frame) 'width) 70)
+        (progn
+          (set-frame-parameter (selected-frame) 'width 106)
+          (org-variable-pitch-minor-mode 0)
+          (setq line-spacing nil)
+          (setq word-wrap nil))
+      (progn
+        (set-frame-parameter (selected-frame) 'width 70)
+        (org-variable-pitch-minor-mode 1)
+        (setq line-spacing 0.4)
+        (setq word-wrap t))))
+#+END_SRC
+
 ** Writeroom
 
 #+NAME: writing-writeroom
@@ -8347,11 +8734,9 @@ display the buffer."
 #+NAME: lsp/mode
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
+  :commands (lsp)
   :custom
   (lsp-prefer-flymake nil)
-  :init
-  (require 'lsp)
-  (require 'lsp-clients)
   :hook
   (lsp-after-open . lsp-enable-imenu))
 #+END_SRC
@@ -8361,6 +8746,7 @@ display the buffer."
 #+NAME: lsp/ui
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-ui
+  :commands (lsp-ui-mode)
   :bind
   (:map lsp-ui-mode-map
         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
@@ -8385,14 +8771,11 @@ display the buffer."
 #+NAME: lsp/company
 #+BEGIN_SRC emacs-lisp
 (use-package company-lsp
-    :after company
-    :demand t
-    :init
-    (push 'company-lsp company-backends)
-    :custom
-    (company-transformers nil)
-    (company-lsp-async t)
-    (company-lsp-cache-candidates nil))
+  :commands (company-lsp)
+  :custom
+  (company-transformers nil)
+  (company-lsp-async t)
+  (company-lsp-cache-candidates nil))
 #+END_SRC
 
 *** dap mode
@@ -8413,9 +8796,7 @@ display the buffer."
 ** Code Style
 *** Tabs
 
-🔥
 
-#+NAME: default/notabs
 #+BEGIN_SRC emacs-lisp
 (setq-default tab-width 2
               indent-tabs-mode nil)
@@ -8423,7 +8804,6 @@ display the buffer."
 
 *** Line numbers
 
-#+NAME: default/linenos
 #+BEGIN_SRC emacs-lisp
   ; Line Numbering
   (when (>= emacs-major-version 26)
@@ -8744,6 +9124,17 @@ As a git client though, magit is awesome.
 (use-package forge
   :after (magit emacsql-sqlite))
 
+#+END_SRC
+
+***** magithub
+
+#+BEGIN_SRC emacs-lisp
+(use-package magithub
+  :straight (:host github :repo "mgcyung/magithub" :branch "transient")
+  :after magit
+  :config
+  (magithub-feature-autoinject t)
+  (setq magithub-clone-default-directory "~/Developer/github"))
 #+END_SRC
 
 ***** Magit popup
@@ -9068,7 +9459,6 @@ Pair programming.
     ((c-mode c++-mode) . dotemacs/flycheck-enable-hook)
 
     :config
-
     ;; Alternatively, use lsp-ui-peek interface
     ;; (setq cquery-sem-highlight-method 'font-lock)
     ;; alternatively

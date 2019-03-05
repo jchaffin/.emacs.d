@@ -4,20 +4,19 @@
    (setq TeX-command-extra-options
          "-shell-escape")
    (TeX-add-to-alist 'LaTeX-provided-package-options
-                     '(("color" "usenames") ("unicode-math" "math-style=literal") ("forest" "linguistics" "edges")))
+                     '(("color" "usenames") ("mathtools" "fleqn" "tbtags") ("unicode-math" "math-style=literal") ("forest" "linguistics" "edges")))
    (TeX-run-style-hooks
     "latex2e"
     "article"
     "art10"
     "color"
-    "amsmath"
-    "multicol"
-    "stmaryrd"
+    "mathtools"
     "fontspec"
     "unicode-math"
+    "fixmath"
+    "soul"
+    "marvosym"
     "bussproofs"
-    "cabin"
-    "xpatch"
     "gb4e"
     "adjustbox"
     "tikz"
@@ -59,6 +58,8 @@
     '("ja" 0)
     '("arc" 2)
     '("vb" 0)
+    '("Rangle" 0)
+    '("Langle" 0)
     '("startfn" 0)
     '("denotationbase" 1)
     '("denotation" 1)

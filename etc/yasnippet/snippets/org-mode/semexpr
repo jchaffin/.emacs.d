@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
 # name: Insert a semantic expression form
-# key: <[
+# key: $<
 # --
-$3(<[${1:𝛼}], ${2:S}, ⟦$1⟧>)
+$\langle{}${1:𝛼}, ${2:S}, ${3:⟦$1⟧}\rangle{}$
