@@ -6273,11 +6273,7 @@ the result as a time value."
         org-pomodoro-long-break-length 15
         org-pomodoro-long-break-sound-args "--volume 0.2"
         org-pomodoro-long-break-sound
-        (org-pomodoro-path "Complete.wav"))
-  (add-hook 'org-pomodoro-break-finished-hook
-            (lambda ()
-              (interactive)
-              (org-pomodoro '(16)))))
+        (org-pomodoro-path "Complete.wav")))
 #+END_SRC
 
 **** counsel org clock
