@@ -1,16 +1,3 @@
-;;; custom-macos.el --
-;;
-;; Author: Jacob Chaffin <jchaffin@ucla.edu>
-;; Copyright © 2019, Jacob Chaffin, all rights reserved.
-;; Created:  1 March 2019
-;;
-;;; Commentary:
-;;
-;;
-;;
-;;; Code:
-
-
 ;;; custom-macos.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -33,6 +20,9 @@
  '(ansi-term-color-vector
    [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white] t)
  '(auctex-latexmk-inherit-TeX-PDF-mode t)
+ '(aw-background nil t)
+ '(aw-char-position 'top-left t)
+ '(aw-keys '(97 115 100 102 103 104 106 107 108) t)
  '(bibtex-BibTeX-entry-alist
    '(("Article" "Article in Journal"
       (("author")
@@ -239,6 +229,7 @@
    '("/Users/jacobchaffin/Dropbox/Documents/pdfs" "/Users/jacobchaffin/Dropbox/courses/comsci131/materials/pdfs" "/Users/jacobchaffin/Dropbox/courses/comsci161/materials/pdfs" "/Users/jacobchaffin/Dropbox/courses/ling102/materials/pdfs" "/Users/jacobchaffin/Dropbox/courses/ling165c/materials/pdfs"))
  '(bibtex-completion-notes-path "/Users/jacobchaffin/Dropbox/org/ref/notes.org")
  '(bibtex-completion-pdf-file "File" t)
+ '(bmkp-last-as-first-bookmark-file "~/.emacs.d/var/bmkp/current-bookmark.el")
  '(browse-url-chromium-program "/Applications/Chromium.app/Contents/MacOS/Chromium")
  '(cdlatex-insert-auto-labels-in-env-templates t)
  '(cfw:display-calendar-holidays nil)
@@ -305,6 +296,7 @@
  '(flycheck-global-modes nil t)
  '(ggtags-highlight-tag nil t)
  '(git-gutter+-disabled-modes '(image-mode org-mode))
+ '(inferior-lisp-program "clisp" t)
  '(ivy-initial-inputs-alist nil)
  '(ivy-re-builders-alist
    '((swiper . ivy--regex-plus)
@@ -314,7 +306,7 @@
  '(ivy-todo-file "/Users/jacobchaffin/Dropbox/org/agenda/ivy-todo.org" t)
  '(ivy-use-selectable-prompt nil)
  '(ivy-use-virtual-buffers t)
- '(javadoc-lookup-completing-read-function 'ivy-completing-read)
+ '(javadoc-lookup-completing-read-function 'ivy-completing-read t)
  '(js-indent-level 2 t)
  '(langtool-disabled-rules '("DASH_RULE"))
  '(langtool-language-tool-jar
@@ -337,8 +329,8 @@
  '(magic-latex-enable-suscript nil t)
  '(magit-completing-read-function 'ivy-completing-read)
  '(magit-save-repository-buffers 'dontask)
- '(markdown-command "multimarkdown")
- '(markdown-open-command 'markdown-open-preview)
+ '(markdown-command "multimarkdown" t)
+ '(markdown-open-command 'markdown-open-preview t)
  '(mc/always-run-for-all t t)
  '(merlin-command 'opam)
  '(merlin-error-after-save nil)
@@ -502,9 +494,12 @@
      ("@shopping" . "🛒")))
  '(org-projectile-per-project-filepath 'org-project-per-project-function t)
  '(org-ref-bibliography-notes "/Users/jacobchaffin/Dropbox/org/ref/notes.org")
+ '(org-ref-completion-library 'org-ref-ivy-cite)
  '(org-ref-default-bibliography '("/Users/jacobchaffin/Dropbox/org/ref/references.bib"))
  '(org-ref-notes-directory "/Users/jacobchaffin/Dropbox/org/ref/notes")
  '(org-ref-pdf-directory "/Users/jacobchaffin/Dropbox/Documents/pdfs/")
+ '(org-ref-ref-types
+   '("ref" "eqref" "pageref" "nameref" "autoref" "cref" "Cref" "vref"))
  '(org-ref-show-broken-links t)
  '(org-ref-show-citation-on-enter t)
  '(org-refile-targets '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
@@ -554,6 +549,7 @@
  '(skeletor-user-directory
    "/Users/jacobchaffin/.emacs.d/etc/skeletor/project-skeletons")
  '(sly-contribs '(sly-fancy) t)
+ '(sly-swithc-to-existing-lisp 'always t)
  '(sp-highlight-pair-overlay nil t)
  '(sp-highlight-wrap-overlay nil t)
  '(sp-highlight-wrap-tag-overlay nil t)
@@ -561,33 +557,33 @@
  '(sp-show-pair-from-inside t t)
  '(tramp-default-method "ssh")
  '(tramp-default-user "classbin" nil nil "Customized with use-package tramp")
- '(treemacs-collapse-dirs 3)
- '(treemacs-deferred-git-apply-delay 0.5)
- '(treemacs-display-in-side-window t)
- '(treemacs-file-event-delay 5000)
- '(treemacs-file-follow-delay 0.2)
- '(treemacs-follow-after-init t)
- '(treemacs-follow-recenter-distance 0.1)
- '(treemacs-goto-tag-strategy 'refetch-index)
- '(treemacs-indentation 2)
- '(treemacs-indentation-string " ")
- '(treemacs-is-never-other-window nil)
- '(treemacs-max-git-entries 5000)
- '(treemacs-no-png-images nil)
- '(treemacs-persist-file "/Users/jacobchaffin/.emacs.d/var/treemacs-persist")
- '(treemacs-project-follow-cleanup nil)
- '(treemacs-python-executable "/usr/local/bin/python3")
- '(treemacs-recenter-after-file-follow nil)
- '(treemacs-recenter-after-tag-follow nil)
- '(treemacs-show-cursor nil)
- '(treemacs-show-hidden-files t)
- '(treemacs-silent-filewatch nil)
- '(treemacs-silent-refresh nil)
- '(treemacs-sorting 'alphabetic-desc)
- '(treemacs-space-between-root-nodes t)
- '(treemacs-tag-follow-cleanup t)
- '(treemacs-tag-follow-delay 1.5)
- '(treemacs-width 35)
+ '(treemacs-collapse-dirs 3 t)
+ '(treemacs-deferred-git-apply-delay 0.5 t)
+ '(treemacs-display-in-side-window t t)
+ '(treemacs-file-event-delay 5000 t)
+ '(treemacs-file-follow-delay 0.2 t)
+ '(treemacs-follow-after-init t t)
+ '(treemacs-follow-recenter-distance 0.1 t)
+ '(treemacs-goto-tag-strategy 'refetch-index t)
+ '(treemacs-indentation 2 t)
+ '(treemacs-indentation-string " " t)
+ '(treemacs-is-never-other-window nil t)
+ '(treemacs-max-git-entries 5000 t)
+ '(treemacs-no-png-images nil t)
+ '(treemacs-persist-file "/Users/jacobchaffin/.emacs.d/var/treemacs-persist" t)
+ '(treemacs-project-follow-cleanup nil t)
+ '(treemacs-python-executable "/usr/local/bin/python3" t)
+ '(treemacs-recenter-after-file-follow nil t)
+ '(treemacs-recenter-after-tag-follow nil t)
+ '(treemacs-show-cursor nil t)
+ '(treemacs-show-hidden-files t t)
+ '(treemacs-silent-filewatch nil t)
+ '(treemacs-silent-refresh nil t)
+ '(treemacs-sorting 'alphabetic-desc t)
+ '(treemacs-space-between-root-nodes t t)
+ '(treemacs-tag-follow-cleanup t t)
+ '(treemacs-tag-follow-delay 1.5 t)
+ '(treemacs-width 35 t)
  '(typescript-indent-level 2 t)
  '(undo-tree-auto-save-history t)
  '(undo-tree-visualizer-diff t)
@@ -619,6 +615,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(aw-leading-char-face ((t (:inverse-video t :inherit avy-lead-face :height 3.0))))
  '(cfw:face-day-title ((t (:weight bold))))
  '(cfw:face-grid ((t (:foreground "DarkGrey"))))
  '(cfw:face-header ((t (:weight bold :foreground "red"))))
