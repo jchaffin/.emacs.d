@@ -35,22 +35,17 @@
         ;; Use LibreSSL certificates to bootstrap dependencies.
         ;; https://github.com/raxod502/straight.el/commit/7e77328b
         (add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem"))
-
       (setq straight-repository-branch "develop"
             ;; Use the macos lockfile
             straight-profiles '((dotemacs . "versions.el")
                                 (nil . "default.el"))
-            straight-current-profile 'dotemacs
-            straight-recipes-gnu-elpa-use-mirror t)
-
+            straight-current-profile 'dotemacs)
       (if (and (executable-find "watchexec")
                (executable-find "python3"))
           (setq straight-check-for-modifications
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
               '(check-on-save find-when-checking)))
-
-
       ;; Bootstrap straight.el
       (let ((bootstrap-file
              (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -69,31 +64,37 @@
             (eval-print-last-sexp)))
         (load bootstrap-file nil 'nomessage))
 
-      ;; Clone use-package dependencies
+      ;; Enable the `:bind-key' keyword
       (straight-use-package 'bind-key)
       ;; Now clone the `use-package' library
       (straight-use-package 'use-package)
       ;; Enable the `:ensure-system-package' keyword
       (straight-use-package 'use-package-ensure-system-package)
+      ;; lazy load by default
+      (setq use-package-always-defer t)
+      ;; use the straight.el version of `use-package'
+      (setq straight-use-package-version 'straight
+            straight-use-package-by-default t)
       ;; Use  the `:blackout' to clean mode lighters
       (straight-use-package
        '(blackout :host github :repo "raxod502/blackout"))
       (require 'blackout)
-      ;; lazy load by default
-      (setq use-package-always-defer t)
-      ;; Straight integration of `use-package'.
-      ;; Allow built-in packages to be configured by `use-package'.
-      (setq straight-use-package-version 'straight
-            ;; And enable by default.
-            straight-use-package-by-default t)
       (use-package no-littering
         :demand t
         :custom
         (no-littering-etc-directory (expand-file-name "etc" user-emacs-directory))
         (no-littering-var-directory (expand-file-name "var" user-emacs-directory)))
       ;; https://github.com/raxod502/el-patch#lazy-loading-packages
+      (customize-set-variable 'load-prefer-newer t)
+
+      (use-package auto-compile
+        :demand t
+        :init
+        (auto-compile-on-load-mode))
+
       (straight-use-package 'el-patch)
       (straight-use-package 'git)
+
       ;; Install org
       ;; See the [[https://github.com/raxod502/straight.el/tree/develop#installing-org-with-straightel][Known Issue FAQ]]
       (defun org-git-version ()
@@ -114,6 +115,7 @@
             "release_"
             (git-run "describe" "--match=release\*" "--abbrev=0" "HEAD")))))
       (provide 'org-version)
+
       (straight-use-package 'org-plus-contrib)
 
       ;; [[id:C2106106-C5F8-4B9B-815D-058678CB9242][Org Mode]]
@@ -180,23 +182,25 @@
         :group 'applications
         :prefix "dotemacs-")
 
+      (defvar literate-config-file-path nil
+        "The absolute path of `dotemacs-literate-config-file.'")
+
       (defcustom dotemacs-literate-config-file "dotemacs.org"
         "The *.org file containing the source code responsible for
       declaration and configuration of third-party packages, as well as
       any settings and customizations defined in this GNU Emacs
       distribution."
-        :type 'string
+        :type '(choice (const nil)
+		       (file))
+	:set (lambda (symbol value)
+	       (set symbol value)
+	       (setq literate-config-file-path
+		     (if (not (file-name-absolute-p value))
+			 (expand-file-name value)
+		       value)))
         :group 'dotemacs)
 
-      (defcustom dotemacs-user-literate-init-file
-        (expand-file-name dotemacs-literate-config-file user-emacs-directory)
-        "The absolute path of `dotemacs-literate-config-file.'"
-        :type 'string
-        :group 'dotemacs)
-
-      (org-babel-load-file
-       (expand-file-name "dotemacs.org" user-emacs-directory)))
-
+      ;; Tangle and load init code
+      (org-babel-load-file literate-config-file-path))
   (straight-finalize-transaction))
-
  ;;;; init.el ends here

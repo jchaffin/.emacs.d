@@ -71,6 +71,7 @@
     - [[#ssh][SSH]]
     - [[#scp][SCP]]
     - [[#tramp][Tramp]]
+    - [[#sh-script-mode][sh-script mode]]
   - [[#documentation][Documentation]]
     - [[#help][Help]]
     - [[#elisp-refs][Elisp refs]]
@@ -81,13 +82,6 @@
     - [[#frame-cmds][Frame cmds]]
     - [[#transpose-frame][Transpose frame]]
     - [[#posframe][Posframe]]
-  - [[#faces][Faces]]
-    - [[#faces-1][Faces+]]
-    - [[#face-functions][Face functions]]
-    - [[#face-remap][Face remap+]]
-    - [[#face-explorer][Face Explorer]]
-    - [[#font-lock][Font lock]]
-    - [[#button-lock][Button Lock]]
   - [[#window][Window]]
     - [[#winner-mode][Winner Mode]]
     - [[#ace-window][Ace Window]]
@@ -95,6 +89,13 @@
     - [[#poporg][Poporg]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
+  - [[#faces][Faces]]
+    - [[#faces-1][Faces+]]
+    - [[#face-functions][Face functions]]
+    - [[#face-remap][Face remap+]]
+    - [[#face-explorer][Face Explorer]]
+    - [[#font-lock][Font lock]]
+    - [[#button-lock][Button Lock]]
   - [[#minibuffer][Minibuffer]]
     - [[#prompt-properties][Prompt Properties]]
     - [[#ivy][Ivy]]
@@ -127,12 +128,8 @@
     - [[#org-ref][Org Ref]]
     - [[#pdfs][PDFs]]
   - [[#outlines][Outlines]]
-    - [[#outline][Outline]]
     - [[#navi][Navi]]
-    - [[#outshine][Outshine]]
-    - [[#outorg][Outorg]]
     - [[#foldout][foldout]]
-    - [[#radio-buttons][Radio buttons]]
     - [[#org-links][Org Links]]
   - [[#org-coding][Org Coding]]
     - [[#org-babel][Org Babel]]
@@ -156,6 +153,7 @@
     - [[#column-view][Column View]]
     - [[#equation-renumbering][Equation Renumbering]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
+    - [[#org-ellipsis][Org Ellipsis]]
     - [[#org-outline-numbering][Org outline numbering]]
   - [[#org-prose][Org Prose]]
     - [[#insert-literal-entities][Insert literal entities]]
@@ -267,6 +265,7 @@
     - [[#tabs][Tabs]]
     - [[#line-numbers][Line numbers]]
     - [[#folding][Folding]]
+    - [[#comments][Comments]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
     - [[#formatting][Formatting]]
@@ -276,7 +275,9 @@
     - [[#smartparens][Smartparens]]
     - [[#rainbow-delimiters][Rainbow Delimiters]]
     - [[#parinfer][Parinfer]]
+  - [[#tags][Tags]]
     - [[#gtags][Gtags]]
+    - [[#ctags][Ctags]]
   - [[#version-control][Version Control]]
     - [[#diffs][Diffs]]
     - [[#git][Git]]
@@ -304,7 +305,6 @@
     - [[#ruby][Ruby]]
     - [[#ocaml][Ocaml]]
     - [[#scala][Scala]]
-    - [[#shell-script-mode][Shell script mode]]
     - [[#web-1][Web]]
     - [[#markdown][Markdown]]
     - [[#applescript][Applescript]]
@@ -574,7 +574,7 @@ contributing to the solution.
 (add-hook 'minibuffer-exit-hook #'rev-down-gc)
 #+END_SRC
 
-***** ignore certain extensions
+***** ignore certain extensions and case
 
 #+BEGIN_SRC emacs-lisp
 
@@ -582,13 +582,13 @@ contributing to the solution.
       (append completion-ignored-extensions
               '("o" "~" ".lbin" ".so" ".a"
                 ".git/" ".hg/" ".svn" ".svn-base")))
+
+(setq completion-ignore-case t)
+(customize-set-variable 'read-file-name-completion-ignore-case t)
+(customize-set-variable 'read-buffer-completion-ignore-case t)
+
 #+END_SRC
 
-**** Prefer new bytecode
-
-#+BEGIN_SRC emacs-lisp
-(setq load-prefer-newer t)
-#+END_SRC
 
 **** Alias Yes Or No
 
@@ -765,6 +765,15 @@ generating a new one if the initial scratch buffer has been killed."
   (switch-to-buffer-other-window "*scratch*"))
 
 
+#+END_SRC
+
+**** Midnight mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package midnight
+  :config
+  (setq midnight-period 7200)
+  (midnight-mode 1))
 #+END_SRC
 
 **** bui
@@ -1231,7 +1240,16 @@ killall gpg-agent
 #+BEGIN_SRC emacs-lisp
 (bind-keys :prefix-map my-prefix-map
            :prefix "M-m")
+(bind-keys :prefix-map shell-command-map
+           :prefix "M-m t")
+
+(with-eval-after-load 'which-key
+(which-key-add-key-based-replacements
+  "M-m" "Emacs Commander"
+  "M-m t" " Shell"))
+
 #+END_SRC
+
 
 *** Hydra
 
@@ -1506,14 +1524,14 @@ editors and various other applications on macOS.
    :host github
    :repo "jchaffin/macos-dev-utils")
   :bind-keymap
-  (("M-m t" . macos-iterm-command-map)
-   ("M-m o" . macos-open-with-command-map))
+  (("M-m o" . macos-open-with-command-map)
+   ("M-m t i" . macos-iterm-command-map))
   :config
   (which-key-add-key-based-replacements
-    "M-m t" " iTerm"
-    "M-m t g" " File or Directory"
-    "M-m t f" " Bring to Front"
-    "M-m t s" " Shell Command"
+    "M-m t i" " iTerm"
+    "M-m t i g" " File or Directory"
+    "M-m t i f" " Bring to Front"
+    "M-m t i s" " Shell Command"
     "M-m o" " Open With"
     "M-m o o" " Default"
     "M-m o s" " ST3"
@@ -1521,14 +1539,14 @@ editors and various other applications on macOS.
     "M-m o v" " VSCode "
     "M-m o b" "𝐁 BBEdit"
     "M-m o c" " Coda"
-    "M-m o t" " GitTower") )
+    "M-m o t" " GitTower"))
 
 #+END_SRC
 
 **** MacOS Dash
 :PROPERTIES:
 :ID:       64240356-D983-4422-A359-4F773DD2E946
-:CUSTOM_ID: macos-dash
+:CUSTOM_ID: sec: macos-dash
 :END:
 
 Dash.app is an application for quickly searching and navigating API docsets for programming tools and languages. There are already two Emacs plugins that utilize Dash docsets, helm-dash and counsel-dash, which is a simple wrapper around helm dash.
@@ -1626,6 +1644,7 @@ Provides an interface to /Dictionary.app/ in Emacs. I am using this package in c
 (use-package simpleclip)
 #+END_SRC
 
+**** OSX Lib
 **** Counsel OSX App
 
 #+NAME: macos-counsel-osx-app
@@ -1750,12 +1769,12 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 (defun goto-literate ()
   "Open the literate Emacs config file."
   (interactive)
-  (find-file dotemacs-user-literate-init-file))
+  (find-file literate-config-file-path))
 
 (defun goto-tangled-init ()
   "Go to the tangled elisp file."
   (interactive)
-  (let ((base (file-name-sans-extension dotemacs-user-literate-init-file)))
+  (let ((base (file-name-sans-extension literate-config-file-path)))
     (find-file (concat base ".el"))))
 
 (bind-keys :map goto-map
@@ -2092,6 +2111,11 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-c v r" . vr/replace)
   ("C-c v q" . vr/query-replace)
   ("C-c v m" . vr/mc-mark))
+
+
+(use-package visual-regexp-steroids
+  :after visual-regexp
+  :demand t)
 #+END_SRC
 
 **** Replace from region
@@ -2379,11 +2403,28 @@ Adds extensions and functionality to dired mode.
 
 
 
-
 ***** Dired toggle sudo
 
 #+BEGIN_SRC emacs-lisp
 (use-package dired-toggle-sudo)
+#+END_SRC
+
+***** Find Dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package find-dired
+  :demand t
+  :init (setq find-ls-option '("-print0 | xargs -0 ls -od" . "-od")))
+#+END_SRC
+
+***** Peep dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package peep-dired
+  :after dired
+  :bind (:map dired-mode-map
+              ("P" . peep-dired)))
+
 #+END_SRC
 
 ***** Image dired
@@ -2578,7 +2619,6 @@ interactive tree .
     (global-set-key (kbd "s-z") 'undo-tree-undo)
     (global-set-key (kbd "s-Z") 'undo-tree-redo)))
 #+END_SRC
-
 
 ** Shell
 :PROPERTIES:
@@ -3034,6 +3074,28 @@ directory local variables."
 (use-package kubernetes-tramp)
 #+END_SRC
 
+*** sh-script mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package sh-script
+  :straight nil
+  :custom
+  (sh-indentation 2)
+  :init
+  (defun sh-script-mode/disable-org-link ()
+    (org-link-minor-mode -1))
+  :hook
+  (sh-script-mode  . sh-script-mode/disable-org-link))
+
+#+END_SRC
+
+**** LAMMPS
+#+BEGIN_SRC emacs-lisp
+(use-package lammps-mode
+  :mode (("in\\." . lammps-mode)
+         ("\\.lmp\\'" . lammps-mode)))
+
+#+END_SRC
 ** Documentation
 :PROPERTIES:
 :ID:       67707BA1-09DE-4175-BD74-4BA869BFBAA9
@@ -3149,6 +3211,91 @@ directory local variables."
   (use-package posframe)
 #+END_SRC
 
+** Window
+:PROPERTIES:
+:ID:       39D49D11-3663-4F0F-A2CE-2CE4FE8CB2CB
+:END:
+*** Winner Mode
+
+[[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
+different window configurations.
+
+#+NAME: winner-mode-config
+#+BEGIN_SRC emacs-lisp
+  (use-package winner
+    :straight nil
+    :init
+    (winner-mode 1)
+    :hook
+    ((org-shiftup-final . windmove-up)
+     (org-shiftleft-final . windmove-left)
+     (org-shiftdown-final . windmove-down)
+     (org-shiftright-final . windmove-right)))
+#+END_SRC
+
+*** Ace Window
+
+#+NAME: window/ace
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :custom-face
+    (aw-leading-char-face
+     ((t (:inverse-video t :inherit avy-lead-face :height 3.0))))
+    :custom
+    (aw-char-position 'top-left)
+    (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+    (aw-background nil)
+    :init
+    (defun aw-set-face ()
+      (set-face-foreground 'aw-leading-char-face (face-background 'default)))
+    :hook
+    (load-theme . aw-set-face))
+
+#+END_SRC
+
+*** Perspective
+
+
+#+NAME: persp/perspective
+#+BEGIN_SRC emacs-lisp
+  (use-package perspective
+    :demand t
+    :init
+    (persp-mode 1))
+#+END_SRC
+
+**** Persp Projectile
+
+#+NAME: persp/projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package persp-projectile
+    :after (:all projectile counsel-projectile perspective)
+    :bind (:map projectile-mode-map
+                 ("s-S" . projectile-persp-switch-project)))
+#+END_SRC
+
+*** Poporg
+
+#+BEGIN_SRC emacs-lisp
+(use-package poporg
+  :bind ("C-c \"" . 'poporg-dwim))
+#+END_SRC
+
+*** Golden Ratio
+
+#+BEGIN_SRC emacs-lisp
+  (use-package golden-ratio
+    :init
+    (setq golden-ratio-auto-scale t))
+#+END_SRC
+
+*** Purpose
+
+#+NAME: purpose
+#+BEGIN_SRC emacs-lisp
+(use-package window-purpose)
+#+END_SRC
+
 ** Faces
 :PROPERTIES:
 :ID:       DB2AF151-88E9-4976-8E1D-EA289AFA9630
@@ -3237,82 +3384,6 @@ directory local variables."
 #+NAME: button/lock
 #+BEGIN_SRC emacs-lisp
 (use-package button-lock)
-#+END_SRC
-
-** Window
-:PROPERTIES:
-:ID:       39D49D11-3663-4F0F-A2CE-2CE4FE8CB2CB
-:END:
-*** Winner Mode
-
-[[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
-different window configurations.
-
-#+NAME: winner-mode-config
-#+BEGIN_SRC emacs-lisp
-  (use-package winner
-    :straight nil
-    :init
-    (winner-mode 1)
-    (add-hook 'org-shiftup-final-hook 'windmove-up)
-    (add-hook 'org-shiftleft-final-hook 'windmove-left)
-    (add-hook 'org-shiftdown-final-hook 'windmove-down)
-    (add-hook 'org-shiftright-final-hook 'windmove-right))
-#+END_SRC
-
-*** Ace Window
-
-#+NAME: window/ace
-#+BEGIN_SRC emacs-lisp
-  (use-package ace-window
-      :bind
-      ("M-o" . ace-window)
-      :custom
-      (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-      (aw-background nil))
-#+END_SRC
-
-*** Perspective
-
-
-#+NAME: persp/perspective
-#+BEGIN_SRC emacs-lisp
-  (use-package perspective
-    :demand t
-    :init
-    (persp-mode 1))
-#+END_SRC
-
-**** Persp Projectile
-
-#+NAME: persp/projectile
-#+BEGIN_SRC emacs-lisp
-  (use-package persp-projectile
-    :after (:all projectile counsel-projectile perspective)
-    :bind (:map projectile-mode-map
-                 ("s-S" . projectile-persp-switch-project)))
-#+END_SRC
-
-*** Poporg
-
-#+BEGIN_SRC emacs-lisp
-(use-package poporg
-  :bind ("C-c \"" . 'poporg-dwim))
-#+END_SRC
-
-*** Golden Ratio
-
-#+BEGIN_SRC emacs-lisp
-  (use-package golden-ratio
-    :init
-    (setq golden-ratio-auto-scale t))
-#+END_SRC
-
-*** Purpose
-
-#+NAME: purpose
-#+BEGIN_SRC emacs-lisp
-  (use-package window-purpose)
 #+END_SRC
 
 ** Minibuffer
@@ -4027,11 +4098,6 @@ any reason for me reconsider my choice.
 (use-package ivy-yasnippet)
 #+END_SRC
 
-#+NAME: snippets-autoyas
-#+BEGIN_SRC emacs-lisp
-(use-package auto-yasnippet)
-#+END_SRC
-
 **** Autoyas
 
 #+NAME: snippets-autoyas
@@ -4525,6 +4591,14 @@ Latex style path: [[${sty-path}]]
   (goto-char (point-min)))
 #+END_SRC
 
+**** TeX Site
+
+#+BEGIN_SRC emacs-lisp
+(use-package tex-site
+  :straight auctex)
+
+#+END_SRC
+
 **** Math
 :PROPERTIES:
 :ID:       1DCF30B4-5549-4415-B588-FE9C5056F0A3
@@ -4733,6 +4807,13 @@ Prettify dedicated org-mode latex buffers.
 #+END_SRC
 
 *** Preview
+**** Tex Preview
+
+#+BEGIN_SRC emacs-lisp
+(use-package preview
+  :straight auctex)
+#+END_SRC
+
 **** LaTeX Preview Pane
 
 Not tangling right now because it's creating a new buffer after every
@@ -5322,7 +5403,6 @@ entry types and required fields."
 :END:
 
 #+BEGIN_SRC emacs-lisp
-
   (use-package org-ref
     :custom
     (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
@@ -5356,7 +5436,7 @@ entry types and required fields."
     (with-eval-after-load 'ivy
       (setq org-ref-completion-library 'org-ref-ivy-cite))
     (require 'org-ref-core)
-
+    (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
     (defun org-ref-open-pdf-at-point ()
       "Open the pdf for bibtex key under point if it exists."
       (interactive)
@@ -5366,9 +5446,7 @@ entry types and required fields."
         (if (file-exists-p pdf-file)
             (find-file pdf-file)
           (message "No PDF found for %s" key))))
-
     (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
-
     (defun goto-org-ref-manual (&optional path)
       "Display the `org-ref' documentation."
       (interactive)
@@ -5426,15 +5504,6 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
 #+END_SRC
 
 ** Outlines
-*** Outline
-
-#+BEGIN_SRC emacs-lisp
-(use-package outline
-    :straight nil
-    :init
-    (defvar outline-minor-mode-prefix "\M-#"))
-#+END_SRC
-
 *** Navi
 
 #+BEGIN_SRC emacs-lisp
@@ -5466,27 +5535,9 @@ instead of ~outline-show-entry~.
       (foldout-zoom-subtree exposure)))
 #+END_SRC
 
-*** Radio buttons
-:PROPERTIES:
-:ID:       EA7D1F8C-6A3E-4154-B1ED-581F8B5446C3
-:END:
-
-The [[https://github.com/Fuco1/org-radiobutton][org-radiobutton]] package a minor mode which automates the property
-requirements for radiobutton lists.
-
-See this [[https://fuco1.github.io/2018-03-11-Use-org-radiobutton-to-select-an-option-from-a-list.html][blogpost]] for more information.
-
-#+NAME: org-ui-radiobutton
-#+BEGIN_SRC emacs-lisp
-(use-package org-radiobutton
-  :straight org-plus-contrib
-  :init
-  (when (fboundp 'global-org-radiobutton-mode)
-    (global-org-radiobutton-mode)))
-#+END_SRC
-
 *** Org Links :structure:
 **** Tag links
+
 
 #+NAME: org-links-tags
 #+BEGIN_SRC emacs-lisp
@@ -5497,6 +5548,22 @@ With prefix argument, also display headlines without a TODO keyword."
 
 (org-add-link-type
  "tag" 'dotemacs/tag-link)
+#+END_SRC
+
+**** Replace link by link description
+
+#+BEGIN_SRC emacs-lisp
+(defun afs/org-replace-link-by-link-description ()
+    "Replace an org link by its description or if empty its address"
+  (interactive)
+  (if (org-in-regexp org-bracket-link-regexp 1)
+      (let ((remove (list (match-beginning 0) (match-end 0)))
+        (description (if (match-end 3)
+                 (org-match-string-no-properties 3)
+                 (org-match-string-no-properties 1))))
+    (apply 'delete-region remove)
+    (insert description))))
+(bind-key "C-c C-M-u" 'afs/org-replace-link-by-link-description)
 #+END_SRC
 
 **** Org Elisp Help Links
@@ -5631,7 +5698,6 @@ Embed YouTube Links in =iframe=.
   (use-package ob-http
     :after (ob)
     :demand t)
-
 #+END_SRC
 
 **** Ob async
@@ -5669,6 +5735,7 @@ Embed YouTube Links in =iframe=.
 #+END_SRC
 
 *** Library of Babel
+
 #+BEGIN_SRC emacs-lisp
 (defvar lob-directory (directory-file-name (no-littering-expand-etc-file-name "lob"))
   "Directory where library of babel org files reside.")
@@ -5686,7 +5753,9 @@ Embed YouTube Links in =iframe=.
 
 (load-lob)
 #+END_SRC
+
 *** Org speed commands
+
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'org-speed-commands-user (cons "P" 'org-set-property))
 (add-to-list 'org-speed-commands-user (cons "d" 'org-deadline))
@@ -5767,17 +5836,18 @@ is positive, move after, and if negative, move before."
 
 ** Org Tasks
 *** ID
+
 #+BEGIN_SRC emacs-lisp
 (use-package org-id
   :straight org-plus-contrib
   :custom
   (org-id-link-to-org-use-id 'create-if-interactive)
   (org-link-search-must-match-exact-headline 'query-to-create)
-  (org-id-locations-file-name
+  (org-id-locations-file
    (expand-file-name "var/org/id-locations.el" user-emacs-directory))
   :demand t)
-
 #+END_SRC
+
 *** Attach
 
 #+NAME: org-docmgr-attach
@@ -5805,7 +5875,6 @@ is positive, move after, and if negative, move before."
 :END:" "Template for org-contacts.")
   :init
   (with-eval-after-load ' org-capture
-
     (setq org-capture-templates
           `(("l" "Protocol Link" entry
              (file+headline ,org-default-notes-file "Inbox")
@@ -7018,7 +7087,7 @@ Fix problem with  which puts point back in a folded position.
       (outline-previous-visible-heading 1)
       (org-show-subtree))))
 
-(add-hook 'org-mode-hook 'org-mode-save-place-fix)
+(remove-hook 'org-mode-hook 'org-mode-save-place-fix)
 #+END_SRC
 
 *** ibuffer and org files
@@ -7361,7 +7430,8 @@ theme in \"quick mode\" by eliding hooks specified in
 *** Overlay
 
 #+BEGIN_SRC emacs-lisp
-(use-package ov)
+(use-package ov
+   :demand t)
 #+END_SRC
 
 *** Overlay Highlight
@@ -7372,12 +7442,15 @@ theme in \"quick mode\" by eliding hooks specified in
   :straight (ov-highlight
              :host github
              :repo "jkitchin/ov-highlight")
+  :after ov
+  :demand t
   :bind
-  (:map org-mode-map
+  (:map my-prefix-map
         ("C-c h" . ov-highlight/body))
-  :init
-  (require 'ov)
-  (require 'ov-highlight))
+  :config
+  (when (featurep 'which-key)
+    (which-key-add-key-based-replacements
+        "C-c h" "_ Highlight")))
 #+END_SRC
 
 *** Rainbow Mode
@@ -8820,15 +8893,13 @@ display the buffer."
 
 #+NAME: fold/hs
 #+BEGIN_SRC emacs-lisp
-(use-package hideshow
-  :straight nil)
+(use-package hideshow)
 #+END_SRC
 
 ***** hideshow visual
 
-
 #+BEGIN_SRC emacs-lisp
-  (use-package hideshowvis
+(use-package hideshowvis
     :preface
     (defface dotemacs-folded-face
         '((((background light)) (:background "#282a36"))
@@ -8852,7 +8923,6 @@ display the buffer."
 
     :hook
     (prog-mode . hideshowvis-enable))
-
 #+END_SRC
 
 ***** hideshow org
@@ -8862,6 +8932,13 @@ display the buffer."
     :bind
     (:map org-mode-map
           ("C-c @" . hs-org/minor-mode)))
+#+END_SRC
+
+*** Comments
+
+#+BEGIN_SRC emacs-lisp
+(use-package smart-comment
+  :bind ("M-;" . smart-comment))
 #+END_SRC
 
 *** Editorconfig
@@ -9031,6 +9108,7 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 
 #+END_SRC
 
+** Tags
 *** Gtags
 :PROPERTIES:
 :ID:       0E4B8051-2EB4-454F-BBB0-BD57A5AEAFA6
@@ -9041,6 +9119,28 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 (use-package ggtags
   :if (and (getenv "GTAGSLABEL") (executable-find "global"))
   :custom (ggtags-highlight-tag nil))
+#+END_SRC
+*** Ctags
+
+#+BEGIN_EXAMPLE shell
+--langdef=org
+--langmap=org:.org
+--regex-org=/^\*+[ \t]+([a-zA-Z0-9_ ]+)/\1/d,definition/
+
+--exclude=vendor
+--exclude=.git
+#+END_EXAMPLE
+
+#+begin_example shell
+ctags -e -R .
+#+end_example
+
+**** ctags update
+#+BEGIN_SRC emacs-lisp
+(use-package ctags-update
+  :demand t
+  :hook
+  (prog-mode . turn-on-ctags-auto-update-mode))
 #+END_SRC
 
 ** Version Control
@@ -9436,7 +9536,6 @@ Pair programming.
 #+NAME: cc/cquery
 #+BEGIN_SRC emacs-lisp
 (use-package cquery
-    :commands lsp-cquery-enable
     :if (executable-find "cquery")
     :custom
     (cquery-executable (executable-find "cquery"))
@@ -9558,7 +9657,7 @@ Configuration for common-lisp.
 [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
 
 #+NAME: cl/slime
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package slime
   :defines
   (slime-complete-symbol*-fancy
@@ -9580,6 +9679,18 @@ Configuration for common-lisp.
       (turn-off-smartparens-mode)))
   :hook
   (slime-repl-mode . slime/disable-smartparens))
+#+END_SRC
+
+**** Sly
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package sly
+  :custom
+  (inferior-lisp-program "clisp")
+  (sly-swithc-to-existing-lisp 'always)
+  (sly-contribs '(sly-fancy)))
+
 #+END_SRC
 
 *** Clojure
@@ -10000,7 +10111,6 @@ Gradle is a build tool for Java. It's awesome.
                                    'append)
         (setq flycheck-check-syntax-automatically '(save mode-enabled)))
       (eldoc-mode +1))
-
 
     :hook
     (before-save . tide-format-before-save)
@@ -10439,21 +10549,6 @@ Mode for editing Homebrew formula.
 (use-package sbt-mode)
 #+END_SRC
 
-*** Shell script mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package sh-mode
-  :straight nil
-  :custom
-  (sh-indentation 2)
-  :init
-  (defun sh-mode/disable-org-link ()
-    (org-link-minor-mode -1))
-  :hook
-  (sh-mode  . sh-mode/disable-org-link))
-
-#+END_SRC
-
 *** Web
 **** web mode
 
@@ -10627,6 +10722,7 @@ Mode for editing Homebrew formula.
 #+NAME: md/mode
 #+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
+    :mode ("\\.\\(m\\(ark\\)?down\\|md\\)$" . markdown-mode)
     :preface
     (defun markdown-open-preview ()
       "Use Marked 2 to preview the current file"
@@ -10655,10 +10751,7 @@ Mode for editing Homebrew formula.
      ("\\.md\\'" . markdown-mode)
      ("\\.markdown\\'" . markdown-mode))
     :hook
-    (markdown-mode . md/font)
-    (markdown-mode . md/visual))
-
-
+    (markdown-mode . md/font))
 #+END_SRC
 
 **** markdown-mode+
@@ -10754,17 +10847,3 @@ Mode for editing Homebrew formula.
 [fn:10] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
 [fn:11] http://mbork.pl/2018-04-28_org-mru-clock
-
-[fn:12] https://joelkuiper.eu/spellcheck_emacs
-
-[fn:13] https://www.emacswiki.org/emacs/BookMarks#toc7
-
-[fn:14] http://www.jonathanleroux.org/bibtex-mode.html
-
-[fn:15] [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Conditionals.html][Emacs Manual - 10.2 Conditionals]]
-
-[fn:16] In lisp, global variables are called /top-level defintions/. By
-convention, globals are wrapped in a pair of asterisks called
-/earmuffs/. Earmuffs are completely optional -- they have no effect on
-how the program is compiled -- its a best practice in all of the many
-dialects of Lisp.
