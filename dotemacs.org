@@ -40,12 +40,12 @@
     - [[#macos][macOS]]
   - [[#files][Files]]
     - [[#save-place-mode][save place mode]]
-    - [[#custom-file][Custom File]]
     - [[#backup-files][Backup Files]]
     - [[#autosave][Autosave]]
     - [[#lockfiles][Lockfiles]]
     - [[#shortcuts][Shortcuts]]
     - [[#auto-revert-mode][Auto Revert Mode]]
+    - [[#bookmark][Bookmark+]]
   - [[#apps][Apps]]
   - [[#text-editing][Text editing]]
     - [[#editing][Editing]]
@@ -58,7 +58,12 @@
   - [[#projects][Projects]]
     - [[#projectile][Projectile]]
     - [[#find-file-in-project][Find File in Project]]
-    - [[#file-system][File System]]
+  - [[#file-system][File System]]
+    - [[#dired][Dired]]
+    - [[#pack][Pack]]
+    - [[#neotree][Neotree]]
+    - [[#treemacs][Treemacs]]
+    - [[#speedbar][Speedbar]]
     - [[#search-1][Search]]
   - [[#shell][Shell]]
     - [[#terminal-colors][Terminal Colors]]
@@ -1701,7 +1706,7 @@ UTF-8 is the recommanded coding system on macOS.
 (save-place-mode 1)
 #+END_SRC
 
-*** Custom File
+*** Custom File :noexport:
 
 By default, Emacs customizations[fn:6] done through the =customize=
 interface write to =user-init-file=.
@@ -1769,12 +1774,12 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 (defun goto-literate ()
   "Open the literate Emacs config file."
   (interactive)
-  (find-file literate-config-file-path))
+  (find-file dotemacs-literate-config-file))
 
 (defun goto-tangled-init ()
   "Go to the tangled elisp file."
   (interactive)
-  (let ((base (file-name-sans-extension literate-config-file-path)))
+  (let ((base (file-name-sans-extension dotemacs-literate-config-file)))
     (find-file (concat base ".el"))))
 
 (bind-keys :map goto-map
@@ -1794,6 +1799,11 @@ value of `user-emacs-directory', else go to the`user-init-file'."
   :straight nil
   :init
   (global-auto-revert-mode t))
+#+END_SRC
+
+*** Bookmark+
+#+BEGIN_SRC emacs-lisp
+(use-package bookmark+)
 #+END_SRC
 
 ** Apps
@@ -2335,22 +2345,17 @@ whistles, it makes up for in compatibility and hackability [fn:7].
   (add-to-list 'ffip-prune-patterns "*/straight"))
 #+END_SRC
 
-*** File System
-**** Dired
+** File System
+*** Dired
 
 #+BEGIN_SRC emacs-lisp
 (use-package dired
+  :demand t
   :straight nil
   :custom
   ;; When split frames with two dired buffers,
   ;; use other buffer as the current directory.
   (dired-dwim-target t)
-  :bind (:map dired-mode-map
-              ;; When moving to parent directory by `^´, Dired by default
-              ;; creates a new buffer for each movement up. This rebinds
-              ;; `^´ to use the same buffer.
-              ("^" . dired/reuse-buffer)
-              ("z" . dired-do-open-with))
   :init
   ;; from [[https://jblevins.org/log/dired-open][Integrating OS X and Emacs Dired]]:
   (defun dired-do-open-with (&optional arg)
@@ -2366,24 +2371,30 @@ whistles, it makes up for in compatibility and hackability [fn:7].
 parent directory."
 	  (interactive)
     (find-alternate-file ".."))
+  :bind* (:map dired-mode-map
+              ;; When moving to parent directory by `^´, Dired by default
+              ;; creates a new buffer for each movement up. This rebinds
+              ;; `^´ to use the same buffer.
+              ("^" . dired/reuse-buffer)
+              ("z" . dired-do-open-with))
   :config
   (when (symbolp 'org-file-apps)
     (add-to-list 'org-file-apps '(directory . emacs))))
 #+END_SRC
 
-***** Dired+
-
+**** Dired+
 
 Adds extensions and functionality to dired mode.
 
 #+NAME: dired-plus-config
 #+BEGIN_SRC emacs-lisp
 (use-package dired+
-  :init
-  (add-hook #'dired-mode-hook #'dired-hide-details-mode))
+  :demand t
+  :hook
+  (dired-mode . dired-hide-details-mode))
 #+END_SRC
 
-***** Dired Sidebar
+**** COMMENT Dired Sidebar
 :PROPERTIES:
 :ID:       2ABE4F83-BA00-441E-8F77-857B455834AC
 :END:
@@ -2401,15 +2412,13 @@ Adds extensions and functionality to dired mode.
      (dired-sidebar-mode . dired-sidebar-refresh-buffer))
 #+END_SRC
 
-
-
-***** Dired toggle sudo
+**** Dired toggle sudo
 
 #+BEGIN_SRC emacs-lisp
 (use-package dired-toggle-sudo)
 #+END_SRC
 
-***** Find Dired
+**** Find Dired
 
 #+BEGIN_SRC emacs-lisp
 (use-package find-dired
@@ -2417,7 +2426,7 @@ Adds extensions and functionality to dired mode.
   :init (setq find-ls-option '("-print0 | xargs -0 ls -od" . "-od")))
 #+END_SRC
 
-***** Peep dired
+**** Peep dired
 
 #+BEGIN_SRC emacs-lisp
 (use-package peep-dired
@@ -2427,7 +2436,7 @@ Adds extensions and functionality to dired mode.
 
 #+END_SRC
 
-***** Image dired
+**** Image dired
 
 #+BEGIN_SRC emacs-lisp
 (use-package image-dired)
@@ -2437,7 +2446,7 @@ Adds extensions and functionality to dired mode.
 
 #+END_SRC
 
-**** Pack
+*** Pack
 
 #+BEGIN_SRC emacs-lisp
 (use-package pack
@@ -2446,7 +2455,7 @@ Adds extensions and functionality to dired mode.
         ("P" .  pack-dired-dwim)))
 #+END_SRC
 
-**** Neotree
+*** Neotree
 
 [[https://github.com/jaypei/emacs-neotree][Neotree]][fn:8] is a [[https://github.com/scrooloose/nerdtree][Nerdtree]]-like file explorer for managing projects in Emacs.
 
@@ -2477,7 +2486,7 @@ Adds extensions and functionality to dired mode.
           (message "Project root not found."))))))
 #+END_SRC
 
-**** Treemacs
+*** Treemacs
 #+BEGIN_SRC emacs-lisp
   (use-package treemacs
     :custom
@@ -2534,15 +2543,15 @@ Adds extensions and functionality to dired mode.
           ("C-x t M-t" . treemacs-find-tag)))
 #+END_SRC
 
-**** Speedbar
+*** Speedbar
 
-***** same frame
+**** same frame
 #+NAME: speed-sr
 #+BEGIN_SRC emacs-lisp
 (use-package sr-speedbar)
 #+END_SRC
 
-***** Projectile Speedbar
+**** Projectile Speedbar
 #+NAME: projectile-speedbar
 #+BEGIN_SRC emacs-lisp
 (use-package projectile-speedbar
@@ -3241,6 +3250,8 @@ different window configurations.
     :custom-face
     (aw-leading-char-face
      ((t (:inverse-video t :inherit avy-lead-face :height 3.0))))
+    :bind
+    ("M-o" . ace-window)
     :custom
     (aw-char-position 'top-left)
     (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
@@ -3249,7 +3260,7 @@ different window configurations.
     (defun aw-set-face ()
       (set-face-foreground 'aw-leading-char-face (face-background 'default)))
     :hook
-    (load-theme . aw-set-face))
+    (ace-window-display-mode . aw-set-face))
 
 #+END_SRC
 
@@ -4213,7 +4224,7 @@ any reason for me reconsider my choice.
 
 **** Ivy Bibtex
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package ivy-bibtex
   :after (:all ivy bibtex)
   :demand t
@@ -5403,56 +5414,86 @@ entry types and required fields."
 :END:
 
 #+BEGIN_SRC emacs-lisp
-  (use-package org-ref
-    :custom
-    (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
-    (org-ref-bibliography-notes (org-dir "ref/notes.org"))
-    (org-ref-notes-directory (org-dir "ref/notes/"))
-    (org-ref-pdf-directory (dropbox-dir "Documents/pdfs/" :slash t))
-    (org-ref-show-citation-on-enter t)
-    (org-ref-show-broken-links t)
-    :init
-    (setq org-latex-prefer-user-labels t)
-    ;; https://github.com/jkitchin/org-ref/issues/428
-    (progn
-      (require 'doi-utils)
-      (require 'org-ref-url-utils)
-      (require 'org-id)
-      (require 'org-ref-latex)
-      (require 'org-ref-bibtex)
-      (require 'org-ref-pdf)
-      (require 'org-ref-scopus)
-      (require 'org-ref-isbn)
-      (require 'org-ref-pubmed)
-      (require 'org-ref-arxiv)
-      (require 'org-ref-sci-id)
-      (require 'org-ref-wos)
-      (require 'org-ref-worldcat)
-      (require 'x2bib)
-      (require 'helm)
-      (require 'helm-bibtex))
-    (require 'org-ref)
-    :config
-    (with-eval-after-load 'ivy
-      (setq org-ref-completion-library 'org-ref-ivy-cite))
-    (require 'org-ref-core)
-    (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
-    (defun org-ref-open-pdf-at-point ()
-      "Open the pdf for bibtex key under point if it exists."
-      (interactive)
-      (let* ((results (org-ref-get-bibtex-key-and-file))
-             (key (car results))
-             (pdf-file (funcall org-ref-get-pdf-filename-function key)))
-        (if (file-exists-p pdf-file)
-            (find-file pdf-file)
-          (message "No PDF found for %s" key))))
-    (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point)
-    (defun goto-org-ref-manual (&optional path)
-      "Display the `org-ref' documentation."
-      (interactive)
-      (unless path
-        (setq path (emacs-dir "straight" "repos" "org-ref" "org-ref.org")))
-      (find-file path)))
+(use-package org-ref
+  :straight (org-ref :type git
+                     :files (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
+                     :host github
+                     :repo "jkitchin/org-ref"
+                     :fork (:host github :repo "jchaffin/org-ref"))
+  :after ivy
+  :custom
+  (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
+  (org-ref-bibliography-notes (org-dir "ref/notes.org"))
+  (org-ref-notes-directory (org-dir "ref/notes/"))
+  (org-ref-pdf-directory (dropbox-dir "Documents/pdfs/" :slash t))
+  (org-ref-show-citation-on-enter t)
+  (org-ref-show-broken-links t)
+  (org-ref-completion-library 'org-ref-ivy-cite)
+  (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+                       "autoref" "cref" "Cref" "vref"))
+  :init
+  (setq org-latex-prefer-user-labels t)
+  ;; https://github.com/jkitchin/org-ref/issues/428
+  (progn
+    (require 'doi-utils)
+    (require 'org-ref-url-utils)
+    (require 'org-id)
+    (require 'org-ref-latex)
+    (require 'org-ref-bibtex)
+    (require 'org-ref-pdf)
+    (require 'org-ref-scopus)
+    (require 'org-ref-isbn)
+    (require 'org-ref-pubmed)
+    (require 'org-ref-arxiv)
+    (require 'org-ref-sci-id)
+    (require 'org-ref-wos)
+    (require 'org-ref-worldcat)
+    (require 'x2bib)
+    (require 'ivy-bibtex))
+  (require 'org-ref)
+  :config
+  (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
+
+  (require 'org-ref-core)
+
+  (defun org-ref-vref-export (keyword desc format)
+    "An export function for vref links."
+    (cond
+     ((eq format 'html)
+      (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
+     ((eq format 'latex) (format "\\vref{%s}" keyword))
+     (eq format 'md) (format "[%s](#%s)" keyword keyword)))
+
+  (defface org-ref-vref-face
+    `((t (:inherit org-link :foreground "dark khaki")))
+  "Face for ref links in org-ref.")
+
+  (defun org-ref-vref-face-fn (label)
+    "Return a face for a ref link."
+    (save-match-data
+      (cond ((or (not org-ref-show-broken-links)
+	               (member label (org-ref-get-labels)))
+             'org-ref-vref-face)
+            (t 'font-lock-warning-face))))
+
+  (org-ref-link-set-parameters "vref"
+    :follow #'org-ref-ref-follow
+    :export #'org-ref-vref-export
+    :complete #'org-ref-complete-link
+    :face 'org-ref-vref-face-fn
+    :help-echo #'org-ref-ref-help-echo)
+
+  (defun org-ref-open-pdf-at-point ()
+    "Open the pdf for bibtex key under point if it exists."
+    (interactive)
+    (let* ((results (org-ref-get-bibtex-key-and-file))
+           (key (car results))
+           (pdf-file (funcall org-ref-get-pdf-filename-function key)))
+      (if (file-exists-p pdf-file)
+          (find-file pdf-file)
+        (message "No PDF found for %s" key))))
+
+  (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point))
 #+END_SRC
 
 *** PDFs
@@ -5564,6 +5605,27 @@ With prefix argument, also display headlines without a TODO keyword."
     (apply 'delete-region remove)
     (insert description))))
 (bind-key "C-c C-M-u" 'afs/org-replace-link-by-link-description)
+#+END_SRC
+
+**** Browse url links
+
+#+BEGIN_SRC emacs-lisp
+(defun org-extract-link ()
+  "Extract the link location at point and put it on the killring."
+  (interactive)
+  (when (org-in-regexp org-bracket-link-regexp 1)
+    (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
+
+(defun browse-url-extract-org-link (orig-fun &rest args)
+  "If `thing-at-point' is a org-link, then call `org-extract-link'
+  and apply ORIG-FUN with the extracted url in the car of original ARGS."
+  (when (and (eq major-mode 'org-mode)
+             (string= (car (org-thing-at-point)) "link"))
+    (setcar args (org-extract-link)))
+  (apply orig-fun args))
+
+(advice-add 'browse-url :around #'browse-url-extract-org-link)
+
 #+END_SRC
 
 **** Org Elisp Help Links
@@ -5875,6 +5937,16 @@ is positive, move after, and if negative, move before."
 :END:" "Template for org-contacts.")
   :init
   (with-eval-after-load ' org-capture
+
+    (defadvice org-capture (before org-capture-before activate)
+      (remove-hook 'org-mode-hook 'org-pretty-tags-mode))
+
+    (defun org-capture-restore-tag-overlays ()
+      (dolist (buf (org-buffer-list))
+        (with-current-buffer buf
+          (org-pretty-tags-mode 1)))
+      (add-hook 'org-mode-hook 'org-pretty-tags-mode))
+
     (setq org-capture-templates
           `(("l" "Protocol Link" entry
              (file+headline ,org-default-notes-file "Inbox")
@@ -5885,7 +5957,9 @@ is positive, move after, and if negative, move before."
              "* %?\nEntered on %U\n  %i\n  %a")
             ("c" "Contact" entry (file "~/Dropbox/org/contacts.org")
              ,org-contacts-template
-             :empty-lines 1)))))
+             :empty-lines 1))))
+  :hook
+  (org-capture-after-finalize . org-capture-restore-tag-overlays))
 #+END_SRC
 
 **** Alfred capture
@@ -7848,7 +7922,6 @@ bullets as UTF-8 characters.
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
   :preface (set-fontset-font "fontset-default" '#xE91A "file-icons")
-  :after (org)
   :custom
   (org-pretty-tags-surrogate-strings
    '(("homework" . "📕️")
@@ -7873,14 +7946,10 @@ bullets as UTF-8 characters.
     ("web" . "🔗")
     ("@shopping" . "🛒")))
   :init
-  (require 'org-pretty-tags)
-
-  (defun pretty-tags-hook ()
-    (add-hook 'org-mode-hook
-              (lambda () (org-pretty-tags-mode +1))))
-
+  (defun org-pretty-tags-enable ()
+    (add-hook 'org-mode-hook #'org-pretty-tags-mode))
   :hook
-  (after-init . pretty-tags-hook))
+  (after-init . org-pretty-tags-enable))
 #+END_SRC
 
 **** Org Fancy Priorities
@@ -8132,23 +8201,7 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
   :if (eq system-type 'darwin)
   :defines (osx-browse-mode osx-browse-mode-map)
   :init
-  (osx-browse-mode 1)
-  :config
-  (defun org-extract-link ()
-    "Extract the link location at point and put it on the killring."
-    (interactive)
-    (when (org-in-regexp org-bracket-link-regexp 1)
-      (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
-
-  (defun browse-url-extract-org-link (orig-fun &rest args)
-    "If `thing-at-point' is a org-link, then call `org-extract-link'
-  and apply ORIG-FUN with the extracted url in the car of original ARGS."
-  (when (and (eq major-mode 'org-mode)
-             (string= (car (org-thing-at-point)) "link"))
-    (setcar args (org-extract-link)))
-  (apply orig-fun args))
-
-  (advice-add 'osx-browse-url :around #'browse-url-extract-org-link))
+  (osx-browse-mode 1))
 #+END_SRC
 
 *** Google this
@@ -8319,10 +8372,15 @@ Interactively.
       :keybinding "Gm"
       :docstring "Mappin' it up.")
 
-    (defengine google-schoolar
+    (defengine google-scholar
       "http://scholar.google.com/scholar?q=%s"
       :keybinding "Gs"
       :docstring "Schoolin'it up.")
+
+    (defengine lib-genesis
+      "http://gen.lib.rus.ec/?req=%s"
+      :keybinding "l"
+      :docstring "I need all the books.")
 
     (defengine project-gutenberg
       "http://www.gutenberg.org/ebooks/search/?query=%s"
@@ -8375,6 +8433,7 @@ Interactively.
       "M-m b e p"    " Proquest"
       "M-m b e g"    " GitHub"
       "M-m b e G g"  " Google"
+      "M-m b e l "   " LibGen"
       "M-m b e a"    " Wolfram"
       "M-m b e w"    " Wikipedia"
       "M-m b e s"    " Stack Overflow"
@@ -9136,7 +9195,7 @@ ctags -e -R .
 #+end_example
 
 **** ctags update
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ctags-update
   :demand t
   :hook
@@ -9239,6 +9298,7 @@ As a git client though, magit is awesome.
   :after (magit)
   :demand t)
 #+END_SRC
+
 
 **** gist.el
 

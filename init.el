@@ -27,6 +27,7 @@
 ;;
 ;;
 ;;; Code:
+
 (unwind-protect
     (let ((straight-treat-as-init t))
       (when (locate-library "gnutls")
@@ -46,9 +47,10 @@
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
               '(check-on-save find-when-checking)))
+
       ;; Bootstrap straight.el
       (let ((bootstrap-file
-             (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+             (expand-file-name "straight/repos/straight.el/bootstrap.el"))
             (bootstrap-version 5)
             (domain "https://raw.githubusercontent.com")
             (repo "raxod502/straight.el")
@@ -79,12 +81,14 @@
       (straight-use-package
        '(blackout :host github :repo "raxod502/blackout"))
       (require 'blackout)
+
       (use-package no-littering
         :demand t
         :custom
         (no-littering-etc-directory (expand-file-name "etc" user-emacs-directory))
         (no-littering-var-directory (expand-file-name "var" user-emacs-directory)))
       ;; https://github.com/raxod502/el-patch#lazy-loading-packages
+
       (customize-set-variable 'load-prefer-newer t)
 
       (use-package auto-compile
@@ -99,8 +103,7 @@
       ;; See the [[https://github.com/raxod502/straight.el/tree/develop#installing-org-with-straightel][Known Issue FAQ]]
       (defun org-git-version ()
         (require 'git)
-        (let ((git-repo (expand-file-name
-                         "straight/repos/org/" user-emacs-directory)))
+        (let ((git-repo (expand-file-name "straight/repos/org/" user-emacs-directory)))
           (string-trim
            (git-run "describe" "--match=release\*" "--abbrev=6" "HEAD"))))
 
@@ -108,8 +111,7 @@
         "The release version of org-mode.
       Inserted by installing org-mode or when a release is made."
         (require 'git)
-        (let ((git-repo (expand-file-name
-                         "straight/repos/org/" user-emacs-directory)))
+        (let ((git-repo (expand-file-name "straight/repos/org/" user-emacs-directory)))
           (string-trim
            (string-remove-prefix
             "release_"
@@ -176,31 +178,26 @@
          (:map org-mode-map
                ("C-c C-x h" . org-toggle-link-display)
                ("C-c C-s" . org-schedule))))
+
       ;; Literate
       (defgroup dotemacs nil
         "Customization group for the `dotemacs' Emacs configuration."
         :group 'applications
         :prefix "dotemacs-")
 
-      (defvar literate-config-file-path nil
-        "The absolute path of `dotemacs-literate-config-file.'")
 
-      (defcustom dotemacs-literate-config-file "dotemacs.org"
+      (defcustom dotemacs-literate-config-file
+        (expand-file-name "dotemacs.org" user-emacs-directory)
         "The *.org file containing the source code responsible for
       declaration and configuration of third-party packages, as well as
       any settings and customizations defined in this GNU Emacs
       distribution."
-        :type '(choice (const nil)
-		       (file))
-	:set (lambda (symbol value)
-	       (set symbol value)
-	       (setq literate-config-file-path
-		     (if (not (file-name-absolute-p value))
-			 (expand-file-name value)
-		       value)))
+        :type 'file
         :group 'dotemacs)
 
       ;; Tangle and load init code
-      (org-babel-load-file literate-config-file-path))
+      (if (file-exists-p dotemacs-literate-config-file)
+          (org-babel-load-file dotemacs-literate-config-file)))
   (straight-finalize-transaction))
- ;;;; init.el ends here
+
+;;;; init.el ends here

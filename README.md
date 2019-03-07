@@ -1,5 +1,4 @@
 # Dotemacs
-
 A modern, literate, sane-ish emacs configuration.
 
 95% of the source-code and documentation is in
