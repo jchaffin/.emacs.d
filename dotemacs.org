@@ -278,6 +278,7 @@
     - [[#line-numbers][Line numbers]]
     - [[#folding][Folding]]
     - [[#comments][Comments]]
+    - [[#comments-1][Comments]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
     - [[#formatting][Formatting]]
@@ -6041,7 +6042,7 @@ is positive, move after, and if negative, move before."
              "* TODO %?\n  %i\n  %a")
             ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
              "* %?\nEntered on %U\n  %i\n  %a")
-            ("c" "Contact" entry (file+headline "contacts.org")
+            ("c" "Contact" entry (file "contacts.org")
              ,org-contacts-template
              :empty-lines 1))))
   :hook
