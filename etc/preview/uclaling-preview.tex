@@ -15,12 +15,15 @@
 \addtolength{\textheight}{-3cm}
 \setlength{\topmargin}{1.5cm}
 \addtolength{\topmargin}{-2.54cm}
-% uclasem packages
-\usepackage{amsmath}
-\usepackage{multicol}
-\usepackage{stmaryrd}
-\usepackage{fontspec}
-\usepackage[math-style=literal]{unicode-math}
+\usepackage[fleqn,tbtags]{mathtools}
+\usepackage{fontspec} % Open type fonts
+\usepackage[math-style=literal]{unicode-math} % Support unicode input
+\setmainfont{STIX Two Text} % Default Font
+\setmathfont{STIX Two Math}[StylisticSet=02,StylisticSet=08] % Math font
+\setmonofont[Scale=MatchUppercase]{DejaVu Sans Mono} % Monospace Font
+\usepackage{fixmath}
+\usepackage{soul} % strike through and underline
+\usepackage{marvosym}
 \usepackage{bussproofs}
 \alwaysRootAtTop
 \newcommand{\Rule}[1]{\RightLabel{$\mathbf{#1}$}}
@@ -28,12 +31,6 @@
   {\gdef\scalefactor{#1}\begin{center}\proofSkipAmount \leavevmode}%
   {\scalebox{\scalefactor}{\DisplayProof}\proofSkipAmount \end{center} }
 \def\extraVskip{8pt}
-\usepackage{cabin}
-\usepackage{xpatch}
-\setmainfont{STIX Two Text}
-\setmathfont{STIX Two Math}[StylisticSet=02, StylisticSet=08, StylisticSet=04]
-\setmathfont{DejaVuMathTeXGyre}[range=\symit}
-\setmonofont[Scale=MatchUppercase]{DejaVu Sans Mono}
 \usepackage{gb4e}
 \noautomath
 \usepackage{adjustbox}
@@ -218,8 +215,11 @@ sep=4pt, yshift =-3pt, font=\small\itshape, text height=.7em]
 \newcommand{\denotation}[1]{\denotationbase{\text{#1}}}
 \newcommand{\denotationbase}[1]{\ensuremath{\left\lsem#1\right\rsem}}
 \newcommand{\startfn}[0]{\ensuremath{\ .\ }}
+\newcommand{\Langle}[0]{\Big\langle}
+\newcommand{\Rangle}[0]{\Big\rangle}
+\newcommand{\cat}[1]{\ensuremath{\mathop{\mathslash{}}\limits_{#1}}}
 \newcommand{\sem}[2][M\!,g]{\mbox{ $[\![ #2 ]\!]^{#1}$}}
-\newcommand{\vb}[0]{\text{\,|\,}}
+\newcommand{\vb}[0]{\text{\,|\, }}
 \newcommand{\arc}[2]{\overarc{$#1$$#2$}}
 % Syntax
 \ifpdf

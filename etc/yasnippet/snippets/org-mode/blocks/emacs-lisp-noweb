@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: emacs-lisp source block with noweb enabled and tangle disabled.
-# key: <sew
-# --
-#+NAME: $0
-#+BEGIN_SRC emacs-lisp :noweb yes
-$1
-#+END_SRC

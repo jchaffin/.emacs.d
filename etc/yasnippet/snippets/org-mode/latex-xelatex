@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: xelatex compiler
+# key: lCx
+# --
+#+LATEX_COMPILER: xelatex
+$1
