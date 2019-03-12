@@ -45,7 +45,7 @@
               '(check-on-save find-when-checking)))
       ;; install straight.el
       (let ((bootstrap-file
-             (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+             (expand-file-name "straight/repos/straight.el/bootstrap.el"))
             (bootstrap-version 5)
             (domain "https://raw.githubusercontent.com")
             (repo "raxod502/straight.el")

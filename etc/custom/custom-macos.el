@@ -13,7 +13,7 @@
  '(TeX-command-extra-options "-shell-escape")
  '(TeX-error-overview-open-after-TeX-run t)
  '(TeX-interactive-mode nil t)
- '(TeX-parse-self t)
+ '(TeX-parse-self t t)
  '(TeX-syntactic-comment t t)
  '(abbrev-file-name "/Users/jacobchaffin/.emacs.d/etc/abbrev/defs.el")
  '(add-to-list 'ffip-prune-patterns t)
@@ -315,7 +315,7 @@
    "/usr/local/opt/languagetool/libexec/languagetool-commandline.jar")
  '(langtool-mother-tongue "en")
  '(latex/no-fill-environments
-   '("align" "align*" "forest" "forest*" "equation" "equation*" "exe" "tabular" "tikzpicture" "prooftree"))
+   '("align" "align*" "forest" "forest*" "equation" "equation*" "exe" "tabular" "tikzpicture" "prooftree") t)
  '(livedown-open nil t)
  '(load-prefer-newer t)
  '(lsp-java-compilation-guess-arguments t t)

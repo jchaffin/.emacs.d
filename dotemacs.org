@@ -4676,6 +4676,14 @@ Latex style path: [[${sty-path}]]
   (goto-char (point-min)))
 #+END_SRC
 
+**** TeX Site
+
+#+BEGIN_SRC emacs-lisp
+(use-package tex-site
+  :straight auctex)
+
+#+END_SRC
+
 **** Math
 :PROPERTIES:
 :ID:       1DCF30B4-5549-4415-B588-FE9C5056F0A3
@@ -9089,6 +9097,13 @@ display the buffer."
     :bind
     (:map org-mode-map
           ("C-c H" . hs-org/minor-mode)))
+#+END_SRC
+
+*** Comments
+
+#+BEGIN_SRC emacs-lisp
+(use-package smart-comment
+  :bind ("M-;" . smart-comment))
 #+END_SRC
 
 *** Comments
