@@ -21,7 +21,7 @@
     - [[#window-utilities][Window utilities]]
     - [[#file-utilities][File utilities]]
   - [[#package-manager][Package Manager]]
-    - [[#goto-local-package-repository][Goto local package repository]]
+  -  [[#goto-local-package-repository][Goto local package repository]]
     - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
     - [[#straight-ivy-actions][straight ivy actions]]
   - [[#security][Security]]
@@ -90,7 +90,7 @@
   - [[#window][Window]]
     - [[#winner-mode][Winner Mode]]
     - [[#ace-window][Ace Window]]
-    - [[#perspective][Perspective]]
+    - [[#persp-mode][Persp mode]]
     - [[#poporg][Poporg]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
@@ -123,6 +123,11 @@
     - [[#graphviz][Graphviz]]
     - [[#thesaurus][Thesaurus]]
     - [[#image][Image+]]
+  - [[#media][Media]]
+    - [[#emms][emms]]
+    - [[#org-emms][org emms]]
+    - [[#bongo][bongo]]
+    - [[#org-player][org player]]
 - [[#org][Org]]
   - [[#org-latex][Org LaTeX]]
     - [[#latex][Latex]]
@@ -150,6 +155,7 @@
     - [[#clock][Clock]]
     - [[#org-brain][Org Brain]]
   - [[#org-appearance][Org Appearance]]
+    - [[#toggle-hooks][Toggle Hooks]]
     - [[#org-indent][Org indent]]
     - [[#per-image-display-width][Per-image display width]]
     - [[#inline-images][Inline images]]
@@ -247,6 +253,7 @@
     - [[#org-mime][Org Mime]]
     - [[#offlineimap][Offlineimap]]
     - [[#mu][Mu]]
+    - [[#google-contacts][google contacts]]
   - [[#bug-tracking][Bug Tracking]]
   - [[#browse-at-remote][Browse at remote]]
 - [[#writing][Writing]]
@@ -801,11 +808,20 @@ generating a new one if the initial scratch buffer has been killed."
   :bind ("C-x C-b" . ibuffer))
 #+END_SRC
 
+**** Crosshairs
+
+Interactively get =point=
+
+#+BEGIN_SRC emacs-lisp
+(use-package crosshairs)
+#+END_SRC
+
 **** auto minor mode
 
 #+BEGIN_SRC emacs-lisp
 (use-package auto-minor-mode)
 #+END_SRC
+
 
 *** Window utilities
 **** Window Count
@@ -1018,16 +1034,19 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 
 #+NAME: fd-read-only
 #+BEGIN_SRC emacs-lisp
+(defvar protected-directory-list '("~/.emacs.d/straight"
+                                   "/usr/local/Cellar"
+                                   "~/Developer/git/CS161"
+                                   "~/Developer/git/CS131"))
 (add-hook 'find-file-hook
           (lambda ()
-            (dolist (pattern '("~/.emacs.d/straight"
-                               "/usr/local/Cellar"))
+            (dolist (pattern protected-directory-list)
               (if (string-match (expand-file-name pattern) buffer-file-name)
                   (read-only-mode)))))
 #+END_Src
 
 ** Package Manager
-*** Goto local package repository
+**  Goto local package repository
 
 Function to jump to a repository installed by [[#straight][straight]]. An
 interactive minibuffer completion menu using ivy.
@@ -1128,7 +1147,6 @@ interactive minibuffer completion menu using ivy.
            (url (remote-url (intern pkg))))
       (browse-url url))))
 #+END_SRC
-
 
 *** straight ivy actions
 :PROPERTIES:
@@ -1534,17 +1552,17 @@ editors and various other applications on macOS.
   :config
   (which-key-add-key-based-replacements
     "M-m t i" " iTerm"
-    "M-m t i g" " File or Directory"
-    "M-m t i f" " Bring to Front"
-    "M-m t i s" " Shell Command"
+    "M-m t i g" "open at cwd"
+    "M-m t i f" " window to front"
+    "M-m t i s" " shell command"
     "M-m o" " Open With"
-    "M-m o o" " Default"
+    "M-m o o" " Default"
     "M-m o s" " ST3"
     "M-m o a" " Atom"
-    "M-m o v" " VSCode "
-    "M-m o b" "𝐁 BBEdit"
+    "M-m o v" " VSCode "
+    "M-m o b" " BBEdit"
     "M-m o c" " Coda"
-    "M-m o t" " GitTower"))
+    "M-m o t" " GitTower"))
 
 #+END_SRC
 
@@ -1650,6 +1668,11 @@ Provides an interface to /Dictionary.app/ in Emacs. I am using this package in c
 #+END_SRC
 
 **** OSX Lib
+
+#+BEGIN_SRC emacs-lisp
+(use-package osx-lib)
+#+END_SRC
+
 **** Counsel OSX App
 
 #+NAME: macos-counsel-osx-app
@@ -1941,7 +1964,6 @@ point reaches the beginning or end of the buffer, stop there."
   (when (/= arg 1)
     (let ((line-move-visual nil))
       (forward-line (1- arg))))
-
   (let ((orig-point (point)))
     (back-to-indentation)
     (when (= orig-point (point))
@@ -1973,6 +1995,8 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+BEGIN_SRC emacs-lisp
 (use-package fix-word
+  :commands (fix-word-upcase fix-word-capitalize fix-word-downcase)
+  :demand t
   :bind
   (("M-u" . fix-word-upcase)
    ("M-l" . fix-word-downcase)
@@ -2263,7 +2287,7 @@ whistles, it makes up for in compatibility and hackability [fn:7].
   (projectile-find-dir-includes-top-level t)
   (projectile-enable-caching t)
   :init
-    (el-patch-feature projectile)
+  (el-patch-feature projectile)
 
   (el-patch-defun projectile-run-compilation (cmd)
     "Run external or Elisp compilation command CMD."
@@ -2356,6 +2380,19 @@ whistles, it makes up for in compatibility and hackability [fn:7].
   ;; When split frames with two dired buffers,
   ;; use other buffer as the current directory.
   (dired-dwim-target t)
+  :config
+  (when (symbolp 'org-file-apps)
+    (add-to-list 'org-file-apps '(directory . emacs))))
+#+END_SRC
+
+**** Dired+
+
+Adds extensions and functionality to dired mode.
+
+#+NAME: dired-plus-config
+#+BEGIN_SRC emacs-lisp
+(use-package dired+
+  :demand t
   :init
   ;; from [[https://jblevins.org/log/dired-open][Integrating OS X and Emacs Dired]]:
   (defun dired-do-open-with (&optional arg)
@@ -2371,30 +2408,19 @@ whistles, it makes up for in compatibility and hackability [fn:7].
 parent directory."
 	  (interactive)
     (find-alternate-file ".."))
-  :bind* (:map dired-mode-map
+
+  :bind (:map dired-mode-map
               ;; When moving to parent directory by `^´, Dired by default
               ;; creates a new buffer for each movement up. This rebinds
               ;; `^´ to use the same buffer.
               ("^" . dired/reuse-buffer)
               ("z" . dired-do-open-with))
-  :config
-  (when (symbolp 'org-file-apps)
-    (add-to-list 'org-file-apps '(directory . emacs))))
-#+END_SRC
 
-**** Dired+
-
-Adds extensions and functionality to dired mode.
-
-#+NAME: dired-plus-config
-#+BEGIN_SRC emacs-lisp
-(use-package dired+
-  :demand t
   :hook
   (dired-mode . dired-hide-details-mode))
 #+END_SRC
 
-**** COMMENT Dired Sidebar
+**** Dired Sidebar
 :PROPERTIES:
 :ID:       2ABE4F83-BA00-441E-8F77-857B455834AC
 :END:
@@ -2567,11 +2593,13 @@ Adds extensions and functionality to dired mode.
 #+END_SRC
 
 **** Avy
+
 Jump to arbitrary point in Buffer
 
 #+NAME: search/avy
 #+BEGIN_SRC emacs-lisp
   (use-package avy
+    :demand t
     :bind
     ("C-:" . avy-goto-char))
 #+END_SRC
@@ -2581,8 +2609,7 @@ Jump to arbitrary point in Buffer
 #+NAME: search/ack
 #+BEGIN_SRC emacs-lisp
 (use-package ack
-  :if (executable-find "ack")
-  )
+  :ensure-system-package (ack . ack))
 #+END_SRC
 
 **** ag
@@ -3086,15 +3113,15 @@ directory local variables."
 *** sh-script mode
 
 #+BEGIN_SRC emacs-lisp
-(use-package sh-script
+(use-package sh-mode
   :straight nil
   :custom
   (sh-indentation 2)
   :init
-  (defun sh-script-mode/disable-org-link ()
+  (defun sh-mode/disable-org-link ()
     (org-link-minor-mode -1))
   :hook
-  (sh-script-mode  . sh-script-mode/disable-org-link))
+  (sh-mode  . sh-mode/disable-org-link))
 
 #+END_SRC
 
@@ -3247,6 +3274,8 @@ different window configurations.
 #+NAME: window/ace
 #+BEGIN_SRC emacs-lisp
   (use-package ace-window
+    :after avy
+    :demand t
     :custom-face
     (aw-leading-char-face
      ((t (:inverse-video t :inherit avy-lead-face :height 3.0))))
@@ -3257,47 +3286,37 @@ different window configurations.
     (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
     (aw-background nil)
     :init
-    (defun aw-set-face ()
-      (set-face-foreground 'aw-leading-char-face (face-background 'default)))
-    :hook
-    (ace-window-display-mode . aw-set-face))
+    (when (custom-facep 'aw-leading-char-face)
+      (set-face-foreground 'aw-leading-char-face (face-background 'default))))
 
 #+END_SRC
 
-*** Perspective
+*** Persp mode
 
-
-#+NAME: persp/perspective
-#+BEGIN_SRC emacs-lisp
-  (use-package perspective
-    :demand t
-    :init
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package persp-mode
+  :custom
+  (persp-autokill-buffer-on-remove 'kill-weak)
+  :init
+  (defun persp/enable ()
     (persp-mode 1))
-#+END_SRC
-
-**** Persp Projectile
-
-#+NAME: persp/projectile
-#+BEGIN_SRC emacs-lisp
-  (use-package persp-projectile
-    :after (:all projectile counsel-projectile perspective)
-    :bind (:map projectile-mode-map
-                 ("s-S" . projectile-persp-switch-project)))
+  :hook
+  (after-init . persp/enable))
 #+END_SRC
 
 *** Poporg
 
 #+BEGIN_SRC emacs-lisp
 (use-package poporg
-  :bind ("C-c \"" . 'poporg-dwim))
+  :bind ("C-c \"" . poporg-dwim))
 #+END_SRC
 
 *** Golden Ratio
 
 #+BEGIN_SRC emacs-lisp
   (use-package golden-ratio
-    :init
-    (setq golden-ratio-auto-scale t))
+    :custom
+    (golden-ratio-auto-scale t))
 #+END_SRC
 
 *** Purpose
@@ -3678,7 +3697,7 @@ Use a prefix arg FONTIFY for colored headlines."
 	    (lambda (cand) (get-buffer cand)))
      counsel-M-x
      (:columns
-	    ((counsel-M-x-transformer (:width 40))
+	    ((counsel-M-x-transformer (:width 100))
 	     (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))
      counsel-describe-function
      (:columns
@@ -3723,11 +3742,9 @@ END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-purpose
-  :custom (pop-up-frames nil)
   :after (window-purpose)
   :init
   (ivy-purpose-setup))
-
 #+END_SRC
 
 **** Ivy Posframe
@@ -4373,6 +4390,63 @@ school's WLAN.
            ("l" imagex-sticky-rotate-left "rotate left")))))
 #+END_SRC
 
+** Media
+*** emms
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package emms
+  :custom
+  (emmms-info-asynchronously nil)
+  (emms-playlist-buffer-name "*Music*")
+  :bind
+  (:map emms-playlist-mode-map
+        ("SPC" . emms-pause))
+  :init
+  (require 'emms-setup)
+  (emms-all)
+  (emms-default-players)
+  :config
+  (require 'emms-player-simple)
+  (require 'emms-source-file)
+  (require 'emms-mark)
+  (setq emms-playlist-default-major-mode 'emms-mark-mode)
+  (require 'emms-source-playlist)
+  (require 'emms-browser)
+  ;; add flv and ogv
+  (define-emms-sim ple-player mplayer '(file url)
+    (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
+                  ".mpeg" ".wmv" ".wma" ".mov" ".avi"
+                  ".divx" ".ogm" ".asf" ".mkv" "http://"
+                  "mms://" ".rm" ".rmvb" ".mp4" ".flac"
+                  ".vob" ".m4a" ".flv" ".ogv" ".pls"))
+    "mplayer" "-slave" "-quiet" "-really-quiet" "-fullscreen"))
+
+#+END_SRC
+
+*** org emms
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-emms
+  :after (emms)
+  :demand t)
+#+END_SRC
+
+*** bongo
+
+#+BEGIN_SRC emacs-lisp
+(use-package bongo)
+#+END_SRC
+
+*** org player
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-player
+  :straight nil
+  :after (bongo)
+  :load-path "etc/local/org-player")
+#+END_SRC
+
 * Org
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
@@ -4427,8 +4501,9 @@ school's WLAN.
 (use-package tex
   :straight auctex
   :custom
-  ;; (TeX-command-default
-  ;;  (if (executable-find "latexmk") "LatexMk" "LaTeX"))
+  (TeX-command-default
+   (if (executable-find "latexmk") "LatexMk" "LaTeX"))
+  (TeX-command-extra-options "-shell-escape")
   (TeX-error-overview-open-after-TeX-run t)
   (TeX-auto-save t)
   (TeX-parse-self t)
@@ -4452,7 +4527,6 @@ This requires the pdf-tools package to be installed."
 
   (defun latex/setup ()
     ;; Use the shell escape flag with `TeX-command'.
-    (setq TeX-command-extra-options "-shell-escape")
     (when (fboundp 'flyspell-mode)
       (flyspell-mode +1))
     (when (fboundp 'doc-view-mode)
@@ -4600,14 +4674,6 @@ Latex style path: [[${sty-path}]]
 
   (switch-to-buffer "*latex-setup*")
   (goto-char (point-min)))
-#+END_SRC
-
-**** TeX Site
-
-#+BEGIN_SRC emacs-lisp
-(use-package tex-site
-  :straight auctex)
-
 #+END_SRC
 
 **** Math
@@ -4874,7 +4940,8 @@ save.
 #+BEGIN_SRC emacs-lisp
  (when (boundp 'org-format-latex-options)
   (plist-put org-format-latex-options :scale 1.2))
-#+END_SRC
+
+ #+END_SRC
 
 **** Justify Fragments
 
@@ -5418,18 +5485,18 @@ entry types and required fields."
   :straight (org-ref :type git
                      :files (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
                      :host github
-                     :repo "jkitchin/org-ref"
-                     :fork (:host github :repo "jchaffin/org-ref"))
+                     :repo "jkitchin/org-ref")
   :after ivy
+  :commands (org-ref-org-menu)
   :custom
+  (org-ref-completion-library 'org-ref-ivy-cite)
   (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
   (org-ref-bibliography-notes (org-dir "ref/notes.org"))
   (org-ref-notes-directory (org-dir "ref/notes/"))
   (org-ref-pdf-directory (dropbox-dir "Documents/pdfs/" :slash t))
   (org-ref-show-citation-on-enter t)
   (org-ref-show-broken-links t)
-  (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+    (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
                        "autoref" "cref" "Cref" "vref"))
   :init
   (setq org-latex-prefer-user-labels t)
@@ -5454,34 +5521,35 @@ entry types and required fields."
   :config
   (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
 
-  (require 'org-ref-core)
+  (with-eval-after-load 'org-ref
+    (defun org-ref-vref-export (keyword desc format)
+     "An export function for vref links."
+     (cond
+      ((eq format 'html)
+       (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
+      ((eq format 'latex) (format "\\vref{%s}" keyword))
+      (eq format 'md) (format "[%s](#%s)" keyword keyword)))
 
-  (defun org-ref-vref-export (keyword desc format)
-    "An export function for vref links."
-    (cond
-     ((eq format 'html)
-      (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
-     ((eq format 'latex) (format "\\vref{%s}" keyword))
-     (eq format 'md) (format "[%s](#%s)" keyword keyword)))
+    (defface org-ref-vref-face
+      `((t (:inherit org-link :foreground "dark khaki")))
+      "Face for ref links in org-ref.")
 
-  (defface org-ref-vref-face
-    `((t (:inherit org-link :foreground "dark khaki")))
-  "Face for ref links in org-ref.")
+    (defun org-ref-vref-face-fn (label)
+      "Return a face for a ref link."
+      (save-match-data
+        (cond ((or (not org-ref-show-broken-links)
+	                 (member label (org-ref-get-labels)))
+               'org-ref-vref-face)
+              (t 'font-lock-warning-face))))
 
-  (defun org-ref-vref-face-fn (label)
-    "Return a face for a ref link."
-    (save-match-data
-      (cond ((or (not org-ref-show-broken-links)
-	               (member label (org-ref-get-labels)))
-             'org-ref-vref-face)
-            (t 'font-lock-warning-face))))
+    (org-ref-link-set-parameters "vref"
+      :follow #'org-ref-ref-follow
+      :export #'org-ref-vref-export
+      :complete #'org-ref-complete-link
+      :face 'org-ref-vref-face-fn
+      :help-echo #'org-ref-ref-help-echo)
 
-  (org-ref-link-set-parameters "vref"
-    :follow #'org-ref-ref-follow
-    :export #'org-ref-vref-export
-    :complete #'org-ref-complete-link
-    :face 'org-ref-vref-face-fn
-    :help-echo #'org-ref-ref-help-echo)
+    (remove-hook 'org-ref-clean-bibtex-entry-hook 'orcb-check-journal))
 
   (defun org-ref-open-pdf-at-point ()
     "Open the pdf for bibtex key under point if it exists."
@@ -5926,15 +5994,23 @@ is positive, move after, and if negative, move before."
 (use-package org-capture
   :straight org-plus-contrib
   :custom
-  (org-default-notes-file "~/Dropbox/org/notes.org")
+  (org-default-notes-file (expand-file-name "notes.org" org-directory))
   :preface
-  (defvar org-contacts-template "* %(org-contacts-template-name)
-:PROPERTIES:
-:ADDRESS:
-:BIRTHDAY: %^{yyyy-mm-dd}
-:EMAIL: %(org-contacts-template-email)
-:NOTE: %^{NOTE}
-:END:" "Template for org-contacts.")
+  (defvar org-contacts-template
+    (mapconcat #'identity
+               '("* %(org-contacts-template-name)"
+                ":PROPERTIES:"
+                ":EMAIL: %(org-contacts-template-email)"
+                ":PHONE:"
+                ":ALIAS:"
+                ":NICKNAME:"
+                ":IGNORE:"
+                ":ICON:"
+                ":NOTE: %^{NOTE}"
+                ":ALIAS:"
+                ":BIRTHDAY:"
+                ":END:") "\n")
+    "Template for org-contacts.")
   :init
   (with-eval-after-load ' org-capture
 
@@ -5942,9 +6018,11 @@ is positive, move after, and if negative, move before."
       (remove-hook 'org-mode-hook 'org-pretty-tags-mode))
 
     (defun org-capture-restore-tag-overlays ()
+      "Restore `org-pretty-tags-surrogate-strings'."
       (dolist (buf (org-buffer-list))
         (with-current-buffer buf
           (org-pretty-tags-mode 1)))
+
       (add-hook 'org-mode-hook 'org-pretty-tags-mode))
 
     (setq org-capture-templates
@@ -5955,7 +6033,7 @@ is positive, move after, and if negative, move before."
              "* TODO %?\n  %i\n  %a")
             ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
              "* %?\nEntered on %U\n  %i\n  %a")
-            ("c" "Contact" entry (file "~/Dropbox/org/contacts.org")
+            ("c" "Contact" entry (file+headline "contacts.org")
              ,org-contacts-template
              :empty-lines 1))))
   :hook
@@ -6476,6 +6554,24 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 
 These settings subjectively improve the overall viewable-ness of
 org-mode buffers.
+*** Toggle Hooks
+
+Some of the UI features I'm using are highly experimental and cause certain derived modes such as [[elisp-function:bind-key-autoloads:org-capture][org-capture]] to break.
+
+#+BEGIN_SRC emacs-lisp
+(defvar org-hook--enabled t)
+(defvar org-tmp-hook nil)
+(defun org-toggle-hook ()
+  "Enable/disable running hooks in `org-mode-hook'."
+  (interactive)
+  (if org-hook--enabled
+      (progn
+        (setq org-tmp-hook org-mode-hook)
+        (setq org-mode-hook nil))
+    (setq org-mode-hook org-tmp-hook)
+    (setq org-tmp-hook nil))
+  (setq org-hook--enabled (not org-hook--enabled)))
+#+END_SRC
 
 *** Org indent
 
@@ -6566,7 +6662,7 @@ time of install.
 #+BEGIN_SRC emacs-lisp
 (use-package toc-org
   :hook
- (org-mode . toc-org-enable))
+ (org-mode . toc-org-mode))
 #+END_SRC
 
 *** Column View
@@ -6656,7 +6752,6 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+END_SRC
 
 ** Org Prose
-
 *** Insert literal entities
 
 From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
@@ -7825,7 +7920,11 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons)
+(use-package all-the-icons
+  :straight (all-the-icons :type git
+                 :files (:defaults "data" "all-the-icons-pkg.el")
+                 :host github
+                 :repo "cxa/all-the-icons.el"))
 #+END_SRC
 
 ****** all the icons dired
@@ -7939,6 +8038,8 @@ bullets as UTF-8 characters.
     ("prolog" . "")
     ("scheme" . "λ")
     ("ocaml" . "")
+    ("python" . "")
+    ("kotlin" . "")
     ("noexport" . "❌")
     ("ignore" . "🚫")
     ("bib" . "")
@@ -8017,6 +8118,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
       fill-column))
   :init
   (defun visual/writing ()
+    (local-set-key (kbd "C-a") 'beginning-of-visual-line)
     (visual-fill-column-mode 1)
     (visual-line-mode 1))
   :hook
@@ -8492,17 +8594,12 @@ Interactively.
       :config
       ;; use mu4e for email in emacs
       (setq mail-user-agent 'mu4e-user-agent)
-
       (setq mu4e-maildir "~/.mail")
-
       ;; Update with offlineimap
       (setq mu4e-get-mail-command "offlineimap -o -q")
-
       ;; Let GMAIL/IMAP take care of sent messages
       (setq mu4e-sent-messages-behavior 'delete)
-
       (require 'smtpmail)
-
        ;; smtp settings
       (setq message-send-mail-function 'smtpmail-send-it
             smtpmail-stream-type 'starttls
@@ -8648,6 +8745,11 @@ Interactively.
   :after (mu4e))
 #+END_SRC
 
+*** google contacts
+#+BEGIN_SRC emacs-lisp
+(use-package google-contacts)
+#+END_SRC
+
 ** Bug Tracking
 :PROPERTIES:
 :ID:       B9B7C7ED-8D05-44F2-95C3-C08F008966C5
@@ -8655,13 +8757,7 @@ Interactively.
 
 #+BEGIN_SRC emacs-lisp
 (use-package debbugs
-  :straight (debbugs
-             :type git
-             :repo "https://git.savannah.gnu.org/git/emacs/elpa.git"
-             :files ("packages/debbugs/*.el"
-                     "packages/debbugs/Debbugs.wsdl")
-             :local-repo "elpa"))
-
+  :straight t)
 #+END_SRC
 
 ** Browse at remote
@@ -8748,10 +8844,10 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 #+NAME: readview-epub
 #+BEGIN_SRC emacs-lisp
 (use-package nov
-  :mode ("\\.epub\\'" . nov-mode)
-  :init
+  :demand t
+  :mode (("\\.epub\\'" . nov-mode))
+  :config
   (require 'justify-kp)
-
   (defun nov/setup ()
     (unless visual-line-mode
       (visual-line-mode 1))
@@ -8760,28 +8856,30 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
     (setq nov-text-width most-positive-fixnum
           visual-fill-column-center-text t))
 
-  (defun nov/window-configuration ()
-    (nov/post-html-render)
+  (defun nov/window-configuration-change-hook ()
+    (nov/post-html-render-hook)
     (remove-hook 'window-configuration-change-hook
-                 'nov/window-configuration))
+                 'nov/window-configuration-change-hook t))
 
-  (defun nov/post-html-render ()
+  (defun nov/post-html-render-hook ()
     (if (get-buffer-window)
-        (let ((max-width (pj-line-width)) buffer-read-only)
+        (let ((max-width (pj-line-width))
+              buffer-read-only)
           (save-excursion
             (goto-char (point-min))
-              (while (not (eobp))
-                (when (not (looking-at "^[[:space:]]*$"))
-                  (goto-char (line-end-position))
-                  (when (> (shr-pixel-column) max-width)
-                    (goto-char (line-beginning-position))
-                    (pj-justify)))
-                (forward-line 1))))
-      (add-hook 'windovw-configuration-change-hook
-                'nov/window-configuration nil t)))
+            (while (not (eobp))
+              (when (not (looking-at "^[[:space:]]*$"))
+                (goto-char (line-end-position))
+                (when (> (shr-pixel-column) max-width)
+                  (goto-char (line-beginning-position))
+                  (pj-justify)))
+              (forward-line 1))))
+      (add-hook 'window-configuration-change-hook
+                'nov/window-configuration-change-hook
+                nil t)))
   :hook
   (nov-mode . nov/setup)
-  (nov-post-html-render .  nov/post-html-render))
+  (nov-post-html-render . nov/post-html-render-hook))
 #+END_SRC
 
 ** Readspec  Mode
@@ -8864,9 +8962,7 @@ display the buffer."
 (use-package lsp-mode
   :commands (lsp)
   :custom
-  (lsp-prefer-flymake nil)
-  :hook
-  (lsp-after-open . lsp-enable-imenu))
+  (lsp-prefer-flymake nil))
 #+END_SRC
 
 *** LSP UI
@@ -8874,25 +8970,28 @@ display the buffer."
 #+NAME: lsp/ui
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-ui
-  :commands (lsp-ui-mode)
+  :commands (lsp-ui-mode lsp-ui-imenu)
+  :custom
+  (lsp-ui-doc-use-webkit t)
+  (lsp-ui-doc-position 'at-point)
+  (lsp-ui-doc-header t)
+  (lsp-ui-flycheck-enable t)
+  (lsp-ui-peek-always-show t)
+  :init
+  (with-eval-after-load 'lsp-ui
+    (el-patch-feature lsp-ui-doc)
+    (el-patch-defun lsp-ui-doc--webkit-resize-callback (size)
+      (xwidget-resize (lsp-ui-doc--webkit-get-xwidget)
+                      (el-patch-wrap 1 (round (aref size 0)))
+                      (el-patch-wrap 1 (round (aref size 1))))
+      (lsp-ui-doc--move-frame (lsp-ui-doc--get-frame))))
   :bind
   (:map lsp-ui-mode-map
+        ("C-c l" . lsp-ui-imenu)
         ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
         ([remap xref-find-references]  . lsp-ui-peek-find-references)))
 #+END_SRC
 
-**** Lsp UI Flycheck
-
-#+BEGIN_SRC emacs-lisp
-(use-package lsp-ui-flycheck
-  :after (lsp flycheck)
-  :straight lsp-ui
-  :init
-  (defun lsp-ui/flycheck ()
-    (lsp-ui-flycheck-enable 1))
-  :hook
-  (lsp-after-open . lsp-ui/flycheck))
-#+END_SRC
 
 *** company lsp
 
@@ -8913,12 +9012,7 @@ display the buffer."
 
 #+NAME: dap/mode
 #+BEGIN_SRC emacs-lisp
-(use-package dap-mode
-  :after lsp-mode
-  :demand t
-  :config
-  (dap-mode t)
-  (dap-ui-mode t))
+(use-package dap-mode)
 #+END_SRC
 
 ** Code Style
@@ -8950,47 +9044,51 @@ display the buffer."
 
 **** Hide show
 
-#+NAME: fold/hs
-#+BEGIN_SRC emacs-lisp
-(use-package hideshow)
-#+END_SRC
-
 ***** hideshow visual
 
 #+BEGIN_SRC emacs-lisp
 (use-package hideshowvis
-    :preface
-    (defface dotemacs-folded-face
-        '((((background light)) (:background "#282a36"))
-          (t (:background "#a5a5a9")))
-        :group 'hideshow)
+  :init
+  (defface dotemacs-folded-face
+    `((((background dark))
+       :inherit font-lock-comment-face
+       :background ,(plist-get dotemacs-theme-colors :base00))
+      (((background light))
+       :inherit font-lock-comment-face
+       :background ,(plist-get dotemacs-theme-colors :base03)))
+      "Face to highlight `hideshow' overlays."
+      :group 'hideshow)
+  (defun display-fold-overlay (ov)
+    (when (eq 'code (overlay-get ov 'hs))
+      (when (featurep 'vimish-fold)
+        (overlay-put
+         ov 'before-string
+         (propertize "..." 'display
+                     (list vimish-fold-indication-mode
+                           'empty-line
+                           'vimish-fold-fringe))))
+      (overlay-put
+       ov 'display
+       (propertize" [...] " 'face 'dotemacs-folded-face))))
+  (setq hs-set-up-overlay 'display-fold-overlay)
 
-      :config
-      (require 'ov)
-      (setq hs-set-up-overlay
-          (lambda (ov)
-            (when (eq 'code (overlay-get ov 'hs))
-              (when (require 'vimish-fold nil t)
-                (overlay-put
-                 ov 'before-string
-                 (propertize "..." 'display
-                             (list vimish-fold-indication-mode
-                                   'empty-line
-                                   'vimish-fold-fringe))))
-              (overlay-put ov 'display " [...] " 'face dotemacs-folded-face))))
+  (defun hideshowvis/enable ()
+    (hideshowvis-minor-mode 1))
+  :hook
+  (prog-mode . hideshowvis/enable)
+  (bibtex-mode . hideshowvis/enable))
 
-
-    :hook
-    (prog-mode . hideshowvis-enable))
 #+END_SRC
 
 ***** hideshow org
 
 #+BEGIN_SRC emacs-lisp
  (use-package hideshow-org
+   :init
+    (require 'hideshow-org)
     :bind
     (:map org-mode-map
-          ("C-c @" . hs-org/minor-mode)))
+          ("C-c H" . hs-org/minor-mode)))
 #+END_SRC
 
 *** Comments
@@ -9129,12 +9227,7 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
   (when (featurep 'paredit)
     (add-hook 'paredit-mode-hook #'disable-smartparens))
 
-  (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
-
-  (sp-pair "{" nil :post-handlers
-           '(:add (smartparens-pair-newline-and-indent "RET")))
-  (sp-pair "[" nil :post-handlers
-           '(:add (smartparens-pair-newline-and-indent "RET"))))
+  (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil))
 #+END_SRC
 
 *** Rainbow Delimiters
@@ -9149,7 +9242,7 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 #+BEGIN_SRC emacs-lisp
 (use-package parinfer
   :bind
-  (("C-," . parinfer-toggle-mode))
+  ("C-," . parinfer-toggle-mode)
   :custom
   (parinfer-extensions
    '(defaults smart-yank pretty-parens paredit)))
@@ -9606,13 +9699,11 @@ Pair programming.
     (defun cquery/enable ()
       "Enable cquery in the workspace."
       (condition-case nil
-          (lsp-cquery-enable)
-        (user-error "%s" "cquery didn't work")))
+         (lsp)
+        (user-error nil)))
 
     :hook
     ((c-mode c++-mode)  . cquery/enable)
-    ((c-mode c++-mode) . dotemacs/flycheck-enable-hook)
-
     :config
     ;; Alternatively, use lsp-ui-peek interface
     ;; (setq cquery-sem-highlight-method 'font-lock)
@@ -10010,9 +10101,6 @@ Gradle is a build tool for Java. It's awesome.
   (lsp-java-server-install-dir
    (file-name-as-directory
     (emacs-var-dir "eclipse.jdt.ls" "server")))
-  (lsp-highlight-symbol-at-point nil)
-  (lsp-ui-sideline-update-mode 'point)
-  (lsp-eldoc-render-all nil)
   (lsp-java-compilation-guess-arguments t))
 
 #+END_SRC

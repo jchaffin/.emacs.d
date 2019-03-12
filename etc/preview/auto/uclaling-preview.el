@@ -58,6 +58,7 @@
     '("ja" 0)
     '("arc" 2)
     '("vb" 0)
+    '("cat" 1)
     '("Rangle" 0)
     '("Langle" 0)
     '("startfn" 0)
