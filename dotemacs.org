@@ -1771,6 +1771,7 @@ This might come back to bite me one day but I never use them.
 #+END_SRC
 
 *** Autosave
+
 #+BEGIN_SRC emacs-lisp
 (setq auto-save-default nil)
 (setq auto-save-no-message t)
@@ -4415,7 +4416,7 @@ school's WLAN.
   (require 'emms-source-playlist)
   (require 'emms-browser)
   ;; add flv and ogv
-  (define-emms-sim ple-player mplayer '(file url)
+  (define-emms-simple-player mplayer '(file url)
     (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
                   ".mpeg" ".wmv" ".wma" ".mov" ".avi"
                   ".divx" ".ogm" ".asf" ".mkv" "http://"
@@ -8563,7 +8564,7 @@ Interactively.
 #+NAME: mail/mime
 #+BEGIN_SRC emacs-lisp
 (use-package org-mime
-  :config
+  :init
   (setq org-mime-export-options
         '(:section-numbers nil
           :with-author nil
@@ -8575,6 +8576,11 @@ Interactively.
     (org-mime-change-element-style
      "blockquote" "border-left: 2px solid gray; padding-left: 4px;"))
 
+  (defun org-mime/message-mode-hook ()
+    (local-set-key (kbd "C-c M-h") 'org-mime-htmlize))
+
+  (defun org-mime/org-mode-hook ()
+    (local-set-key (kbd  "C-c M-h") 'org-mime-org-buffer-htmlize))
 
   :hook
   (message-mode . org-mime/message-mode-hook))
@@ -8702,36 +8708,44 @@ Interactively.
                                 'user-mail-address
                                 (mu4e-context-vars context)))))
                           mu4e-contexts)))
-
-
-      (require 'gnus-dired)
-
-      (defun gnus-dired-mail-buffers ()
-        "Return a list of active message buffers."
-        (let ((buffers))
-          (save-current-buffer
-            (dolist (buffer (buffer-list t))
-              (set-buffer buffer)
-              (when (and (derived-mode-p 'message-mode)
-                         (null message-sent-message-via))
-                (push (buffer-name buffers) buffers))))
-          (nreverse buffers)))
-
-      (setq mu4e-org-contacts-file (expand-file-name "contacts.org" org-directory))
+      ;; Org Contacts
+      (setq mu4e-org-contacts-file
+            (expand-file-name "contacts.org" org-directory))
+      ;; Capture contact at point using 'C-a o' in `mu4e-headers-mode'
       (add-to-list 'mu4e-headers-actions
                    '("org-contact-add" . mu4e-action-add-org-contact) t)
+;; Capture contact at point using 'C-a o' in `mu4e-vie-mode'
       (add-to-list 'mu4e-view-actions
-                   '("org-contact-add" . mu4e-action-add-org-contact) t)
-      (setq gnus-dired-mail-mode 'mu4e-user-agent)
+                   '("org-contact-add" . mu4e-action-add-org-contact) t))
+#+END_SRC
 
-      (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
+**** GNUs Dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package gnus-dired
+  :straight nil
+  :custom
+  (gnus-dired-mail-mode 'mu4e-user-agent)
+  :init
+  (defun gnus-dired-mail-buffers ()
+    "Return a list of active message buffers."
+    (let ((buffers))
+      (save-current-buffer
+        (dolist (buffer (buffer-list t))
+          (set-buffer buffer)
+          (when (and (derived-mode-p 'message-mode)
+                     (null message-sent-message-via))
+            (push (buffer-name buffers) buffers))))
+      (nreverse buffers)))
+  :hook
+  (dired-mode . turn-on-gnus-dired-mode))
 #+END_SRC
 
 **** Mu Notifications
 
-#+NAME: mu-alert
 #+BEGIN_SRC emacs-lisp
 (use-package mu4e-alert
+  :if (featurep 'mu4e)
   :after (mu4e)
   :config
   (mu4e-alert-enable-notifications))
@@ -8742,19 +8756,21 @@ Interactively.
 #+NAME: mu-maildirs
 #+BEGIN_SRC emacs-lisp
 (use-package mu4e-maildirs-extension
-    :after (mu4e)
-    :init
-    (mu4e-maildirs-extension-load))
+  :if (featurep 'mu4e)
+  :after (mu4e)
+  :init
+  (mu4e-maildirs-extension-load))
 #+END_SRC
 
 **** mu4e conversion
 
 #+BEGIN_SRC emacs-lisp
 (use-package mu4e-conversation
-  :after (mu4e))
+  :if (featurep 'mu4e))
 #+END_SRC
 
 *** google contacts
+
 #+BEGIN_SRC emacs-lisp
 (use-package google-contacts)
 #+END_SRC
