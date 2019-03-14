@@ -805,7 +805,7 @@ generating a new one if the initial scratch buffer has been killed."
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
-  :straight nil
+  :straight (ibuffer :type built-in)
   :bind ("C-x C-b" . ibuffer))
 #+END_SRC
 
@@ -1010,10 +1010,14 @@ the the returned file path will be formatted as a directory. "
 (defalias #'emacs-etc-dir
   (apply-partially #'emacs-dir "etc")
   "Resolve PATH-SEGMENTS to `no-littering-etc-directory.'")
+(defalias #'emacs-local-dir
+  (apply-partially #'emacs-etc-dir "local")
+  "Resolve PATH-SEGMENTS to local repos directory ")
 ;; straight.el directories
 (defalias #'straight-dir
   (apply-partially #'emacs-dir "straight")
   "Resolve PATH-SEGMENTS to straight.el installation directory.")
+
 (defalias #'straight-repos-dir
   (apply-partially #'straight-dir "repos")
   "Resolve PATH-SEGMENTS to straight.el repos directory.")
@@ -1567,7 +1571,7 @@ editors and various other applications on macOS.
 
 #+END_SRC
 
-**** MacOS Dash
+**** COMMENT MacOS Dash
 :PROPERTIES:
 :ID:       64240356-D983-4422-A359-4F773DD2E946
 :CUSTOM_ID: sec: macos-dash
@@ -1591,8 +1595,7 @@ Because I've purchased a license and run macOS locally, I'm going to bypass that
   (interactive)
   (let* ((protocol "dash-plugin://")
          (keywords (if dash-plugin-keywords
-                       (mapconcat 'identity dash-plugin-keywords ",")
-                     ""))
+                       (mapconcat 'identity dash-plugin-keywords ",") ""))
          (search-string
           (if (use-region-p)
               (buffer-substring-no-properties
@@ -1615,7 +1618,10 @@ Because I've purchased a license and run macOS locally, I'm going to bypass that
 #+BEGIN_SRC emacs-lisp
 (use-package reveal-in-osx-finder
   :if (eq system-type 'darwin)
-  :commands (reveal-in-osx-finder))
+  :commands (reveal-in-osx-finder)
+  :bind
+  (:map macos-open-with-command-map
+        ("f" . reveal-in-osx-finder)))
 #+END_SRC
 
 **** OSX Dictionary
@@ -1679,13 +1685,16 @@ Provides an interface to /Dictionary.app/ in Emacs. I am using this package in c
 #+NAME: macos-counsel-osx-app
 #+BEGIN_SRC emacs-lisp
 (use-package counsel-osx-app
+  :if (eq system-type 'darwin)
   :demand t
+  :bind
+  (:map macos-open-with-command-map
+        ("x" . counsel-osx-app))
   :preface
   (defun wk-osx-app-icon ()
     `(,(concat
         (propertize " " 'display '(raise -0.20))
         "Apps")))
-  :if (eq system-type 'darwin)
   :custom
   (counsel-osx-app-location '("/Applications" "/Applications/Setapp"))
   :after (ivy)
@@ -1821,7 +1830,7 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 #+NAME: buffer/revert
 #+BEGIN_SRC emacs-lisp
 (use-package autorevert
-  :straight nil
+  :straight (autorevert :type built-in)
   :init
   (global-auto-revert-mode t))
 #+END_SRC
@@ -2377,7 +2386,7 @@ whistles, it makes up for in compatibility and hackability [fn:7].
 #+BEGIN_SRC emacs-lisp
 (use-package dired
   :demand t
-  :straight nil
+  :straight (dired :type built-in)
   :custom
   ;; When split frames with two dired buffers,
   ;; use other buffer as the current directory.
@@ -2776,63 +2785,6 @@ windows. Additionally, modify company backends in the local buffer."
   (eshell-directory-change . esh/toggle-shell-completion-based-on-path))
 #+END_SRC
 
-**** Pretty Eshell
-
-From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs display layer]].
-
-#+NAME: esh/pretty
-#+BEGIN_SRC emacs-lisp
-  (use-package pretty-eshell
-    :straight nil
-    :load-path "etc/local/pretty-eshell"
-    :custom
-    ;; Eshell prompt regexp and string.
-    (eshell-prompt-regexp "λ ")   ; or "└─> "
-    :init
-    (progn
-      (with-eval-after-load 'magit
-	(require 'magit-process)
-	(require 'pretty-eshell)
-	(setq pretty-eshell-header "\n ")
-	(setq pretty-eshell-prompt-string "λ ")
-	;; Directory
-	(pretty-eshell-section
-	 esh-dir
-	 "\xf07c"  ; 
-	 (abbreviate-file-name (eshell/pwd))
-	 '(:foreground "gold" :weight bold :underline t))
-
-	;; Git Branch
-	(pretty-eshell-section
-	 esh-git
-	 "\xe907"  ; 
-	 (magit-get-current-branch)
-	 '(:foreground "pink"))
-
-	;; Python Virtual Environment
-	(pretty-eshell-section
-	 esh-python
-	 "\xe928"  ; 
-	 pyvenv-virtual-env-name)
-
-	;; Time
-	(pretty-eshell-section
-	 esh-clock
-	 "\xf017"  ; 
-	 (format-time-string "%H:%M" (current-time))
-	 '(:foreground "forest green"))
-
-	;; Prompt Number
-	(pretty-eshell-section
-	 esh-num
-	 "\xf0c9"  ; 
-	 (number-to-string pretty-eshell-prompt-num)
-	 '(:foreground "brown"))
-
-	(setq pretty-eshell-funcs
-	      (list esh-dir esh-git esh-python esh-clock esh-num)))))
-#+END_SRC
-
 **** eshell bookmark
 
 #+NAME: esh/bmk
@@ -3116,7 +3068,7 @@ directory local variables."
 
 #+BEGIN_SRC emacs-lisp
 (use-package sh-mode
-  :straight nil
+  :straight (sh-mode :type built-in)
   :custom
   (sh-indentation 2)
   :init
@@ -3173,7 +3125,7 @@ directory local variables."
 #+NAME: help-helpful
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
-    :config
+    :init
     (bind-keys
      :prefix-map helpful-prefix-map
      :prefix "M-m h"
@@ -3182,7 +3134,15 @@ directory local variables."
      ("k" . helpful-key)
      ("C" . helpful-command)
      ("d" . helpful-at-point)
-     ("F" . helpful-function)))
+     ("F" . helpful-function))
+    :config
+    (which-key-add-key-based-replacements
+      "M-m h" " Helfpul"
+      "M-m h f" "describe callable"
+      "M-m h k" "describe key"
+      "M-m h C" "describe command"
+      "M-m h d" "describe at point "
+      "M-m h F" "describe function"))
 
 #+END_SRC
 
@@ -3261,7 +3221,7 @@ different window configurations.
 #+NAME: winner-mode-config
 #+BEGIN_SRC emacs-lisp
   (use-package winner
-    :straight nil
+    :straight (winner :type built-in)
     :init
     (winner-mode 1)
     :hook
@@ -3288,8 +3248,7 @@ different window configurations.
     (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
     (aw-background nil)
     :init
-    (when (custom-facep 'aw-leading-char-face)
-      (set-face-foreground 'aw-leading-char-face (face-background 'default))))
+    (set-face-foreground 'aw-leading-char-face (face-background 'default)))
 
 #+END_SRC
 
@@ -3363,7 +3322,6 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
 (use-package font-lock+
   :demand t)
-
 #+END_SRC
 
 ***** Italicize font lock keyword face
@@ -3935,7 +3893,7 @@ documentation browser.
 
 #+BEGIN_SRC emacs-lisp
 (use-package abbrev
-  :straight nil
+  :straight (abbrev :type built-in)
   :custom
   (abbrev-file-name (emacs-etc-dir "abbrev/defs.el")))
 #+END_SRC
@@ -4278,10 +4236,9 @@ any reason for me reconsider my choice.
 Artist mode is a built-in Emacs package.
 
 #+BEGIN_SRC emacs-lisp
-(use-package artist-mode
-  :straight nil
-  :bind ((:map artist-mode-map
-               ("C-c C-a p" . artist-select-op-pen-line))))
+(use-package artist
+  :bind (:map artist-mode-map
+               ("C-c C-a p" . artist-select-op-pen-line)))
 #+END_SRC
 
 *** UML Diagrams
@@ -4444,9 +4401,8 @@ school's WLAN.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-player
-  :straight nil
-  :after (bongo)
-  :load-path "etc/local/org-player")
+  :straight (org-player :local-repo "~/.emacs.d/etc/local/org-player")
+  :after (bongo))
 #+END_SRC
 
 * Org
@@ -4840,17 +4796,16 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 #+NAME: latex-reftex
 #+BEGIN_SRC emacs-lisp
 (use-package reftex
-    :straight nil
-    :init
-    (defun reftex/setup ()
-      (turn-on-reftex)
-      (setq reftex-plug-into-AUCTeX
-            '(nil nil t t t)
-            reftex-use-fonts t
-            reftex-default-bibliography
-            `(,(org-dir "ref/references.bib"))))
-    :hook
-    (LaTeX-mode . reftex/setup))
+  :init
+  (defun reftex/setup ()
+    (turn-on-reftex)
+    (setq reftex-plug-into-AUCTeX
+          '(nil nil t t t)
+          reftex-use-fonts t
+          reftex-default-bibliography
+          `(,(org-dir "ref/references.bib"))))
+  :hook
+  (LaTeX-mode . reftex/setup))
 #+END_SRC
 
 ***** Company Reftex
@@ -5245,7 +5200,6 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 #+BEGIN_SRC emacs-lisp
 (use-package bibtex
-  :straight nil
   :custom
   (bibtex-BibTeX-entry-alist
    '(("Article" "Article in Journal"
@@ -5765,14 +5719,6 @@ Embed YouTube Links in =iframe=.
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
 #+END_SRC
 
-**** Devonthink
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-devonthink
-  :straight nil
-  :load-path "etc/local/org-devonthink")
-#+END_SRC
-
 **** Org Bookmark Heading
 
 #+NAME: org-links-bookmark
@@ -6023,18 +5969,6 @@ is positive, move after, and if negative, move before."
     "Template for org-contacts.")
   :init
   (with-eval-after-load ' org-capture
-
-    (defadvice org-capture (before org-capture-before activate)
-      (remove-hook 'org-mode-hook 'org-pretty-tags-mode))
-
-    (defun org-capture-restore-tag-overlays ()
-      "Restore `org-pretty-tags-surrogate-strings'."
-      (dolist (buf (org-buffer-list))
-        (with-current-buffer buf
-          (org-pretty-tags-mode 1)))
-
-      (add-hook 'org-mode-hook 'org-pretty-tags-mode))
-
     (setq org-capture-templates
           `(("l" "Protocol Link" entry
              (file+headline ,org-default-notes-file "Inbox")
@@ -6046,8 +5980,9 @@ is positive, move after, and if negative, move before."
             ("c" "Contact" entry (file "contacts.org")
              ,org-contacts-template
              :empty-lines 1))))
-  :hook
-  (org-capture-after-finalize . org-capture-restore-tag-overlays))
+  :config
+  (when (functionp 'org-pretty-tags-inhibit-overlays)
+    (advice-add 'org-capture :around #'org-pretty-tags-inhibit-overlays)))
 #+END_SRC
 
 **** Alfred capture
@@ -7276,7 +7211,7 @@ Neil Smithline posted this snippet to let you browse org files with
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
-  :straight nil
+  :straight (ibuffer :type built-in)
   :init
   (defun org-ibuffer ()
     "Open an `ibuffer' window showing only `org-mode' buffers."
@@ -7599,10 +7534,9 @@ theme in \"quick mode\" by eliding hooks specified in
 
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-keybinding-command-tooltip-mode
-  :straight nil
-  :load-path "etc/local/emacs-keybinding-command-tooltip-mode"
-  :demand t
-  :config
+  :straight (emacs-keybinding-command-tooltip-mode
+             :local-repo "~/.emacs.d/etc/local/emacs-keybinding-command-tooltip-mode")
+  :init
   (emacs-keybinding-command-tooltip-mode 1))
 #+END_SRC
 
@@ -7713,6 +7647,8 @@ Minor mode to highlight sexp.
 (use-package visual-indentation-mode)
 #+END_SRC
 
+
+** Pretty
 *** Pretty Mode
 :PROPERTIES:
 :ID:       096E820A-240F-4A31-8B93-E72B821FF8CF
@@ -7759,14 +7695,70 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-*** Pretty Fonts
+*** Pretty Emacs
+**** Pretty Eshell
+
+#+NAME: esh/pretty
+#+BEGIN_SRC emacs-lisp
+(use-package pretty-eshell
+  :straight (pretty-eshell
+             :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+             :files ("pretty-eshell.el"))
+  :custom
+    ;; Eshell prompt regexp and string.
+    (eshell-prompt-regexp "λ ")   ; or "└─> "
+    :init
+    (progn
+      (with-eval-after-load 'magit
+	(require 'magit-process)
+	(require 'pretty-eshell)
+	(setq pretty-eshell-header "\n ")
+	(setq pretty-eshell-prompt-string "λ ")
+	;; Directory
+	(pretty-eshell-section
+	 esh-dir
+	 "\xf07c"  ; 
+	 (abbreviate-file-name (eshell/pwd))
+	 '(:foreground "gold" :weight bold :underline t))
+
+	;; Git Branch
+	(pretty-eshell-section
+	 esh-git
+	 "\xe907"  ; 
+	 (magit-get-current-branch)
+	 '(:foreground "pink"))
+
+	;; Python Virtual Environment
+	(pretty-eshell-section
+	 esh-python
+	 "\xe928"  ; 
+	 pyvenv-virtual-env-name)
+
+	;; Time
+	(pretty-eshell-section
+	 esh-clock
+	 "\xf017"  ; 
+	 (format-time-string "%H:%M" (current-time))
+	 '(:foreground "forest green"))
+
+	;; Prompt Number
+	(pretty-eshell-section
+	 esh-num
+	 "\xf0c9"  ; 
+	 (number-to-string pretty-eshell-prompt-num)
+	 '(:foreground "brown"))
+
+	(setq pretty-eshell-funcs
+	      (list esh-dir esh-git esh-python esh-clock esh-num)))))
+#+END_SRC
+
+**** Pretty Fonts
 
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-fonts
-  :load-path "etc/local/pretty-fonts"
-  :straight nil
+  :straight (pretty-fonts :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+                          :files ("pretty-fonts.el"))
   :init
-
   (defun pretty-fonts-before-theme ()
     (set-face-font
      'default "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
@@ -7805,13 +7797,13 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-*** Pretty Code
+**** Pretty Code
 
 #+BEGIN_SRC emacs-lisp
-
 (use-package pretty-code
-  :load-path "etc/local/pretty-code"
-  :straight nil
+  :straight
+  (pretty-code :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+               :files ("pretty-code.el"))
   :init
   (require 'pretty-code)
   (pretty-code-add-hook 'emacs-lisp-mode-hook '((:def "defun")))
@@ -7824,10 +7816,10 @@ the absence of a window system. I'll check for the latter for now.
 *** Pretty Outlines
 
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (use-package pretty-outlines
-  :straight nil
-  :load-path "etc/local/pretty-outlines"
+  :straight  (pretty-outlines
+              :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+               :files ("pretty-outlines.el"))
   :custom
   (pretty-outlines-ellipsis ""))
 #+END_SRC
@@ -8027,9 +8019,7 @@ bullets as UTF-8 characters.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-pretty-tags
-  :straight (org-pretty-tags
-             :host gitlab
-             :repo "marcowahl/org-pretty-tags")
+  :straight (org-pretty-tags :type git :host gitlab :repo "marcowahl/org-pretty-tags")
   :preface (set-fontset-font "fontset-default" '#xE91A "file-icons")
   :custom
   (org-pretty-tags-surrogate-strings
@@ -8059,6 +8049,13 @@ bullets as UTF-8 characters.
   :init
   (defun org-pretty-tags-enable ()
     (add-hook 'org-mode-hook #'org-pretty-tags-mode))
+
+  (defun org-pretty-tags-inhibit-overlays (orig-fun &rest args)
+    "Inhibit `org-pretty-tags-mode' from running when ORIG-FUN called,
+optionally with ARGS. "
+    (remove-hook 'org-mode-hook 'org-pretty-tags-mode)
+    (apply orig-fun args)
+    (pretty-tags-restore-overlays))
   :hook
   (after-init . org-pretty-tags-enable))
 #+END_SRC
@@ -8600,133 +8597,125 @@ Interactively.
 
 #+NAME: mu-mu4e
 #+BEGIN_SRC emacs-lisp
-  (use-package mu4e
-      :straight nil
-      :load-path "/usr/local/share/emacs/site-lisp/mu-edge/mu4e"
-      :init
-      (require 'mu4e)
+(use-package mu4e
+  :if (executable-find "mu")
+  :straight (mu4e :local-repo "/usr/local/share/emacs/site-lisp/mu-edge"
+                         :files (:defaults "*.el"))
+  :demand t
+  :custom
+  (mail-user-agent 'mu4e-user-agent) ;; use mu4e for email in emacs
+  (mu4e-maildir "~/.mail")
+  (mu4e-get-mail-command "offlineimap -o -q") ;; Update with offlineimap
+  (mu4e-sent-messages-behavior 'delete) ;; Let GMAIL/IMAP take care of sent messages
+  (mu4e-context-policy 'pick-first)
+  (mu4e-compose-context-policy 'ask-if-none)
+  :init
+  (when (require 'smtpmail nil  t) ; smtmp settings
+    (setq message-send-mail-function 'smtpmail-send-it
+        smtpmail-stream-type 'starttls
+        smtpmail-default-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-service 587))
+    ;; Kill message buffers on send
+  (setq message-kill-buffer-on-exit t)
+  ;; mu4e View
+  (setq mu4e-attachment-dir "~/Downloads"
+        mu4e-view-show-images t
+        mu4e-show-addresses t
+        mu4e-view-prefer-html t
+        mu4e-view-show-images t)
 
-      :config
-      ;; use mu4e for email in emacs
-      (setq mail-user-agent 'mu4e-user-agent)
-      (setq mu4e-maildir "~/.mail")
-      ;; Update with offlineimap
-      (setq mu4e-get-mail-command "offlineimap -o -q")
-      ;; Let GMAIL/IMAP take care of sent messages
-      (setq mu4e-sent-messages-behavior 'delete)
-      (require 'smtpmail)
-       ;; smtp settings
-      (setq message-send-mail-function 'smtpmail-send-it
-            smtpmail-stream-type 'starttls
-            smtpmail-default-smtp-server "smtp.gmail.com"
-            smtpmail-smtp-server "smtp.gmail.com"
-            smtpmail-smtp-service 587)
+  (when (fboundp 'imagemagick-register-types)
+    (imagemagick-register-types))
 
-      ;; Kill message buffers on send
-      (setq message-kill-buffer-on-exit t)
+  (with-eval-after-load 'ivy
+    (setq mu4e-completing-read-function 'ivy-completing-read))
+  (setq mu4e-contexts
+        `(,(make-mu4e-context
+            :name "personal"
+            :enter-func
+            (lambda () (mu4e-message "Using Personal gmail account."))
+            :leave-func
+            (lambda () (mu4e-message "leaving Personal gmail account."))
+            :match-func
+            (lambda (msg)
+              (when msg
+                (string-match-p "^/personal")
+                (mu4e-message-field msg :maildir)))
+            :vars
+            '((user-mail-address  . "jchaffin57@gmail.com")
+              (user-full-name     . "Jacob Chaffin")
+              (mail-reply-to      . "jchaffin57@gmail.com")
+              (smtpmail-smtp-user . "jchaffin57@gmail.com")
+              (mu4e-sent-folder   . "/personal/sent")
+              (mu4e-drafts-folder . "/personal/drafts")
+              (mu4e-refile-folder . "/personal/archive")
+              (mu4e-trash-folder  . "/personal/trash")
+              (mu4e-compose-signature .
+                                      (concat
+                                       "Jacob Chaffin\n"
+                                       "jchaffin57@gmail.com\n"
+                                       "jchaffin@ucla.edu"))))
 
-      ;; mu4e View
-      (setq mu4e-attachment-dir "~/Downloads"
-            mu4e-view-show-images t
-            mu4e-show-addresses t
-            mu4e-view-prefer-html t
-            mu4e-view-show-images t)
+          ,(make-mu4e-context
+            :name "school"
+            :enter-func
+            (lambda () (mu4e-message "Entering UCLA Gmail account"))
+            :leave-func
+            (lambda () (mu4e-message "Leaving UCLA Gmail account."))
+            :match-func
+            (lambda (msg)
+              (when msg
+                (string-match-p "^/school"
+                                (mu4e-message-field msg :maildir))))
+            :vars '((user-mail-address  . "jchaffin@ucla.edu")
+                    (user-full-name     . "Jacob Chaffin")
+                    (mail-reply-to      . "jchaffin@ucla.edu" )
+                    (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
+                    (mu4e-drafts-folder . "/school/drafts")
+                    (mu4e-sent-folder   . "/school/sent")
+                    (mu4e-refile-folder . "/school/archive")
+                    (mu4e-trash-folder  . "/school/trash")
+                    (mu4e-compose-signature .
+                                            (concat
+                                             "Jacob Chaffin\n"
+                                             "UCLA 2019\n"
+                                             "Linguistics and Computer Science\n"
+                                             "jchaffin@ucla.edu"))))))
 
-
-      (when (fboundp 'imagemagick-register-types)
-        (imagemagick-register-types))
-
-      (setq mu4e-completing-read-function 'ivy-completing-read)
-
-      ;; Mu4e Contexts
-      (setq mu4e-context-policy 'pick-first
-            mu4e-compose-context-policy 'ask-if-none)
-
-      (setq mu4e-contexts
-            `(,(make-mu4e-context
-                :name "personal"
-                :enter-func
-                (lambda () (mu4e-message "Using Personal gmail account."))
-                :leave-func
-                (lambda () (mu4e-message "leaving Personal gmail account."))
-                :match-func
-                (lambda (msg)
-                  (when msg
-                    (string-match-p "^/personal")
-                    (mu4e-message-field msg :maildir)))
-                :vars
-                '((user-mail-address  . "jchaffin57@gmail.com")
-                  (user-full-name     . "Jacob Chaffin")
-                  (mail-reply-to      . "jchaffin57@gmail.com")
-                  (smtpmail-smtp-user . "jchaffin57@gmail.com")
-                  (mu4e-sent-folder   . "/personal/sent")
-                  (mu4e-drafts-folder . "/personal/drafts")
-                  (mu4e-refile-folder . "/personal/archive")
-                  (mu4e-trash-folder  . "/personal/trash")
-                  (mu4e-compose-signature .
-                   (concat
-                    "Jacob Chaffin\n"
-                    "jchaffin57@gmail.com\n"
-                    "jchaffin@ucla.edu"))))
-
-               ,(make-mu4e-context
-                 :name "school"
-                 :enter-func
-                 (lambda () (mu4e-message "Entering UCLA Gmail account"))
-                 :leave-func
-                 (lambda () (mu4e-message "Leaving UCLA Gmail account."))
-                 :match-func
-                 (lambda (msg)
-                   (when msg
-                     (string-match-p "^/school"
-                     (mu4e-message-field msg :maildir))))
-                 :vars '((user-mail-address  . "jchaffin@ucla.edu")
-                         (user-full-name     . "Jacob Chaffin")
-                         (mail-reply-to      . "jchaffin@ucla.edu" )
-                         (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
-                         (mu4e-drafts-folder . "/school/drafts")
-                         (mu4e-sent-folder   . "/school/sent")
-                         (mu4e-refile-folder . "/school/archive")
-                         (mu4e-trash-folder  . "/school/trash")
-                         (mu4e-compose-signature .
-                          (concat
-                           "Jacob Chaffin\n"
-                           "UCLA 2019\n"
-                           "Linguistics and Computer Science\n"
-                           "jchaffin@ucla.edu"))))))
-
-      ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
-      ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
-      ;; `user-mail-address' values for all contexts. If you have other mail
-      ;; addresses as well, you'll need to add those manually.
-      (setq mu4e-user-mail-address-list
-            (delq nil
-                  (mapcar (lambda (context)
-                            (when (mu4e-context-vars context)
-                              (cdr
-                               (assq
-                                'user-mail-address
-                                (mu4e-context-vars context)))))
-                          mu4e-contexts)))
-      ;; Org Contacts
-      (setq mu4e-org-contacts-file
-            (expand-file-name "contacts.org" org-directory))
-      ;; Capture contact at point using 'C-a o' in `mu4e-headers-mode'
-      (add-to-list 'mu4e-headers-actions
-                   '("org-contact-add" . mu4e-action-add-org-contact) t)
-;; Capture contact at point using 'C-a o' in `mu4e-vie-mode'
-      (add-to-list 'mu4e-view-actions
-                   '("org-contact-add" . mu4e-action-add-org-contact) t))
+  ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
+  ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
+  ;; `user-mail-address' values for all contexts. If you have other mail
+  ;; addresses as well, you'll need to add those manually.
+  (setq mu4e-user-mail-address-list
+        (delq nil
+              (mapcar (lambda (context)
+                        (when (mu4e-context-vars context)
+                          (cdr
+                           (assq
+                            'user-mail-address
+                            (mu4e-context-vars context)))))
+                      mu4e-contexts)))
+  ;; Org Contacts
+  (setq mu4e-org-contacts-file
+        (expand-file-name "contacts.org" org-directory))
+  ;; Capture contact at point using 'C-a o' in `mu4e-headers-mode'
+  (add-to-list 'mu4e-headers-actions
+               '("org-contact-add" . mu4e-action-add-org-contact) t)
+  ;; Capture contact at point using 'C-a o' in `mu4e-vie-mode'
+  (add-to-list 'mu4e-view-actions
+               '("org-contact-add" . mu4e-action-add-org-contact) t))
 #+END_SRC
 
 **** GNUs Dired
 
 #+BEGIN_SRC emacs-lisp
 (use-package gnus-dired
-  :straight nil
-  :custom
-  (gnus-dired-mail-mode 'mu4e-user-agent)
+  :straight (gnus-dired :type built-in)
   :init
+  (when (featurep 'mu4e)
+    (setq gnus-dired-mail-mode 'mu4e-user-agent))
+
   (defun gnus-dired-mail-buffers ()
     "Return a list of active message buffers."
     (let ((buffers))
@@ -8866,45 +8855,49 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 
 [[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
 
-#+NAME: readview-epub
 #+BEGIN_SRC emacs-lisp
 (use-package nov
   :demand t
+  :after (justify-kp)
   :mode (("\\.epub\\'" . nov-mode))
-  :config
-  (require 'justify-kp)
-  (defun nov/setup ()
-    (unless visual-line-mode
-      (visual-line-mode 1))
-    (unless visual-fill-column-mode
-      (visual-fill-column-mode 1))
-    (setq nov-text-width most-positive-fixnum
-          visual-fill-column-center-text t))
+  :init
+  (defun nov/visual ()
+    "Setup `nov-mode'"
+    (let ((nov-text-width most-positive-fixnum) ; inhibit text filling
+          (visual-fill-column-center-text t))
+      (unless visual-line-mode
+        (visual-line-mode 1))
+      (unless visual-fill-column-mode
+        (visual-fill-column-mode 1))))
 
   (defun nov/window-configuration-change-hook ()
-    (nov/post-html-render-hook)
+    (nov--justify-text)
     (remove-hook 'window-configuration-change-hook
                  'nov/window-configuration-change-hook t))
 
-  (defun nov/post-html-render-hook ()
-    (if (get-buffer-window)
-        (let ((max-width (pj-line-width))
-              buffer-read-only)
-          (save-excursion
-            (goto-char (point-min))
-            (while (not (eobp))
-              (when (not (looking-at "^[[:space:]]*$"))
-                (goto-char (line-end-position))
-                (when (> (shr-pixel-column) max-width)
-                  (goto-char (line-beginning-position))
-                  (pj-justify)))
-              (forward-line 1))))
-      (add-hook 'window-configuration-change-hook
-                'nov/window-configuration-change-hook
-                nil t)))
+  (defun nov--justify-text ()
+    ;; Justify text using `justify-kp'.
+    (when (require 'justify-kp nil t)
+      (if (get-buffer-window)
+          (let ((max-width (pj-line-width))
+                buffer-read-only)
+            (save-excursion
+              (goto-char (point-min))
+              (while (not (eobp))
+                (when (not (looking-at "^[[:space:]]*$"))
+                  (goto-char (line-end-position))
+                  (when (> (shr-pixel-column) max-width)
+                    (goto-char (line-beginning-position))
+                    (pj-justify)))
+                (forward-line 1))))
+        (add-hook 'window-configuration-change-hook
+                  'nov/window-configuration-change-hook nil t))))
+  :config
+  (when (functionp 'org-pretty-tags-inhibit-overlays)
+    (advice-add 'nov-mode :around #'org-pretty-tags-inhibit-overlays))
   :hook
-  (nov-mode . nov/setup)
-  (nov-post-html-render . nov/post-html-render-hook))
+  (nov-mode . nov/visual)
+  (nov-post-html-render . nov--justify-text))
 #+END_SRC
 
 ** Readspec  Mode
@@ -9458,12 +9451,17 @@ Travel back in time (to your last commit).
 #+BEGIN_SRC emacs-lisp
 (use-package git-timemachine
   :after (magit-popup)
+  :custom
+  (git-timemachine-abbreviation-length 7)
   :bind
   ("C-c v t" . git-timemachine-toggle)
   :config
-  (setq git-timemachine-abbreviation-length 7)
+  (setq)
   (which-key-add-key-based-replacements
-    "C-c v t" " Timemachine"))
+    "C-c v t" " Timemachine")
+  (when (functionp 'org-pretty-tags-inhibit-overlays)
+    (advice-add 'git-timemachine-toggle
+                :around #'org-pretty-tags-inhibit-overlays)))
 #+END_SRC
 
 **** Git messenger
@@ -9772,11 +9770,7 @@ Pair programming.
 #+NAME: cc/llvm
 #+BEGIN_SRC emacs-lisp
 (use-package llvm-mode
-    :straight nil
-    :load-path "~/.emacs.d/etc/local/llvm-mode"
-    :init
-    (require 'llvm-mode)
-    (require 'tablegen-mode))
+  :straight (llvm-mode :local-repo "~/.emacs.d/etc/local/llvm-mode"))
 #+END_SRC
 
 **** Clang Tidy
@@ -9819,7 +9813,7 @@ Configuration for common-lisp.
 #+NAME: cl/mode
 #+BEGIN_SRC emacs-lisp
 (use-package lisp-mode
-  :straight nil
+  :straight (lisp-mode :type built-in)
   :init
   (defun common-lisp-setup ()
     "setup for common lisp."
@@ -10024,7 +10018,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+NAME: elisp/mode
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-lisp-mode
-  :straight nil
+  :straight (emacs-lisp-mode :type built-in)
   :init
   (defun emacs-lisp/setup ()
     "Setup elisp."
@@ -10079,7 +10073,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+NAME: java/mode
 #+BEGIN_SRC emacs-lisp
 (use-package java-mode
-  :straight nil
+  :straight (java-mode :type built-in)
   :init
   (defun java/setup ()
     "Setup `java-mode' buffers."
@@ -10528,7 +10522,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 #+NAME: lang/prolog
 #+BEGIN_SRC emacs-lisp
 (use-package prolog-mode
-  :straight nil
+  :straight (prolog-mode :type built-in)
   :mode "\\.pl\\'")
 #+END_SRC
 
@@ -10540,13 +10534,11 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 (use-package ruby-mode
   :mode "\\.rb\\'"
   :interpreter "ruby"
-  :config
-
-  (defun dotemacs/ruby-dash-docsets ()
+  :init
+  (defun ruby-dash-docsets ()
     (setq-local dash-plugin-keywords '("ruby" "rails")))
-
-
-  (add-hook 'ruby-mode-hook #'dotemacs/ruby-dash-docsets))
+  :hook
+  (ruby-mode . ruby-dash-docsets))
 
 #+END_SRC
 
@@ -10801,10 +10793,9 @@ Mode for editing Homebrew formula.
 #+NAME: html/mode
 #+BEGIN_SRC emacs-lisp
 (use-package html-mode
-  :straight nil
+  :straight (html-mode :type built-in)
   :hook
   (html-mode . lsp))
-
 #+END_SRC
 
 ***** Tag Edit
