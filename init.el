@@ -52,7 +52,7 @@
             (repo "raxod502/straight.el")
             (branch straight-repository-branch)
             (remote-file "install.el"))
-      ;; TODO Add error handling if straight fails to install or load.
+        ;; TODO Add error handling if straight fails to install or load.
         ;; If anything goes wrong here it won't throw until the unwind form
         ;; at the end of this file when `straight-finalize-transaction'
         ;; isn't defined.
@@ -81,7 +81,7 @@
       (straight-use-package
        '(blackout :host github :repo "raxod502/blackout"))
       (require 'blackout)
-     ;; no-littering -- reduce the clutter in `user-emacs-directory'
+      ;; no-littering -- reduce the clutter in `user-emacs-directory'
       (use-package no-littering
         :demand t
         :commands (no-littering-expand-etc-file-name)
@@ -202,6 +202,8 @@ Inserted by installed Org or when a release is made."
 
 
       ;; * Literate
+      (use-package cl-lib)
+
       (defgroup dotemacs nil
         "Customization group for the `dotemacs' Emacs configuration."
         :group 'applications
@@ -216,9 +218,67 @@ Inserted by installed Org or when a release is made."
         :type 'file
         :group 'dotemacs)
 
+      (defun load-literate (&optional user-config-file init-server)
+        "If USER-CONFIG-FILE is passed as an argument, then tangle.
+Else use the value of `halidom-literate-config-file'."
+        (let ((target-file (or user-config-file halidom-literate-config-file))
+              (target-dir (or user-emacs-directory default-directory)))
+          (when init-server
+	          (require 'server)
+            (unless (server-running-p)
+              (setq server-socket-dir
+                    (expand-file-name "server" user-emacs-directory))
+              (server-start)))
+          (if target-file
+              (org-babel-load-file
+               (expand-file-name target-file target-dir))
+            (error "%s not found, cannot tangle." target-file))))
+
+      ;; Debug
+
+      (defvar literate-debug-blocks
+        '("core/read-only"
+          "core/ox"
+          "core/ivy"
+          "core/counsel"
+          "core/paredit"
+          "core/elisp"
+          "core/rainbow-delimiters"
+          "core/swiper")
+        "Named source blocks to tangle when `use-literate-p' is enabled. ")
+
+
+      (defun literate-tangle-src-block (name)
+        (let ((buf (find-file-noselect dotemacs-literate-config-file)))
+          (with-current-buffer (get-buffer buf)
+            (org-element-map (org-element-parse-buffer) 'src-block
+              (lambda (block)
+                (if (string= name (org-element-property :name block))
+                    (let ((code (org-element-property :value block))
+                          (params (org-element-property :parameters block)))
+			                (let (pkg)
+			                  (with-temp-buffer
+                          (insert code)
+			                    (save-excursion
+			                      (goto-char (point-min))
+			                      (when (re-search-forward "use-package " nil t)
+				                      (setq pkg (buffer-substring-no-properties
+					                               (point) (point-at-eol))))
+			                      (if pkg
+				                        (message "%s evaluated" pkg)
+				                      (message "tangled %s" name)))
+                          (eval-buffer))))))))
+          (kill-buffer buf)))
+
+
+
       ;; Extract source code and load the config
-      (if (file-exists-p dotemacs-literate-config-file)
-          (org-babel-load-file dotemacs-literate-config-file)))
+      (if use-literate-p
+          (if (file-exists-p dotemacs-literate-config-file)
+              (org-babel-load-file dotemacs-literate-config-file)
+            (error "File does not exist %s" dotemacs-literate-config-file))
+        (mapcar #'literate-tangle-src-block literate-debug-blocks)
+        (setq initial-buffer-choice dotemacs-literate-config-file)))
   (straight-finalize-transaction))
 
 

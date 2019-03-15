@@ -1,0 +1,168 @@
+# -*- mode: snippet -*-
+# name: tufte-latex
+# key: tufte-setup
+# --
+#+TITLE: $1
+#+OPTIONS: ':nil *:t -:t ::t <:t H:5 \n:nil ^:{} arch:headline
+#+OPTIONS: author:t c:nil creator:nil d:(not "LOGBOOK") date:t e:t
+#+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:nil
+#+OPTIONS: tags:t tasks:nil tex:t timestamp:nil title:t toc:nil todo:t |:t
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
+#+STARTUP: noinlineimages
+#+STARTUP: entitiespretty
+#+MACRO: newthought \newthought{$1}
+#+MACRO: sidenote \sidenote[$2][$3]{$1}
+#+MACRO: marginnote \marginnote[$2]{$1}
+#+MACRO: tl Tufte-LaTeX
+#+LATEX_HEADER: \usepackage{etex}
+#+LATEX_HEADER: \reserveinserts{36}
+#+LATEX_HEADER: \usepackage[maxfloats=48]{morefloats}
+#+LATEX_HEADER: \usepackage[style=verbose-trad1, backend=bibtex]{biblatex}
+#+LATEX_HEADER: \addbibresource{$2}
+#+LATEX_HEADER: \usepackage{booktabs,graphicx,microtype,hyphenat,marginfix,amsmath}
+#+LATEX_HEADER: \geometry{paperheight=10.5in,paperwidth=8.5in,textwidth=4.375in}
+#+LATEX_HEADER: \titleformat{\part}[display]{\relax\itshape\huge}{}{0pt}{\huge\rmfamily\itshape}[]
+#+LATEX_HEADER: \usepackage{xparse}
+#+LATEX_HEADER: \usepackage{xpatch}
+#+LATEX_HEADER: \makeatletter
+#+LATEX_HEADER: \xpatchcmd{\@footnotetext}%
+#+LATEX_HEADER:       {\color@begingroup}
+#+LATEX_HEADER:       {\color@begingroup\toggletrue{blx@footnote}}
+#+LATEX_HEADER:       {}
+#+LATEX_HEADER:       {}
+#+LATEX_HEADER: \makeatother
+#+LATEX_HEADER:
+#+LATEX_HEADER: \DeclareCiteCommand{\sidecitehelper}
+#+LATEX_HEADER:   {\usebibmacro{prenote}}
+#+LATEX_HEADER:   {\usebibmacro{citeindex}%
+#+LATEX_HEADER:    \usebibmacro{cite}}
+#+LATEX_HEADER:   {\multicitedelim}
+#+LATEX_HEADER:   {\usebibmacro{cite:postnote}}
+#+LATEX_HEADER:
+#+LATEX_HEADER: \ExplSyntaxOn
+#+LATEX_HEADER: \NewDocumentCommand\sidecite{D<>{}O{}om}{%
+#+LATEX_HEADER:   \iftoggle{blx@footnote}
+#+LATEX_HEADER:     {\cs_set_protected_nopar:Npn \__sct_wrapper:nn ##1 ##2 {\mkbibparens{##2}}}
+#+LATEX_HEADER:     {\cs_set_protected_nopar:Npn \__sct_wrapper:nn ##1 ##2 {\sidenote[][##1]{##2}}}
+#+LATEX_HEADER:     {\IfNoValueTF{#3}
+#+LATEX_HEADER:       {\__sct_wrapper:nn{#1}{\sidecitehelper[#2]{#4}}}
+#+LATEX_HEADER:       {\__sct_wrapper:nn{#1}{\sidecitehelper[#2][#3]{#4}}}}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: \ExplSyntaxOff
+
+
+* Setup :noexport:
+
+#+NAME: tufte-ebib-setup
+#+BEGIN_SRC emacs-lisp #+begin_src emacs-lisp :results silent :exports none
+(require 'ebib)
+(setq ebib-citation-commands
+    (quote ((org-mode (("footcite" "[[footcite:%K][%A;%A;%D]]")
+                       ("multicite" "[[multicite:%K][%A;%A;%D]]")
+                       ("parencite" "[[parencite:%K][%A;%A;%D]]")
+                       ("textcite" "[[textcite:%K][%A;%A;%D]]")
+                       ("cite" "[[cite:%K][%A;%A;%D]]")
+                       ("sidecite" "[[sidecite:%K][%A;%A;%A;%D]]"))))))
+(org-add-link-type
+ "cite-tufte" 'ebib-open-org-link
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (format "\\cite[%s\\baselineskip]{%s}"
+             (nth 0 (split-string desc ";"))
+             path))))
+(org-add-link-type
+ "cite" 'ebib-open-org-link
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (pre (nth 1 desc-list))
+            (post (nth 0 desc-list)))
+       (format "\\cite%s%s{%s}"
+               (if (equal "" pre) pre (format "[%s]" pre))
+               (if (equal "" post) post (format "[%s]" post))
+               path)))))
+(org-add-link-type
+ "parencite" 'ebib-open-org-link
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (pre (nth 1 desc-list))
+            (post (nth 0 desc-list)))
+       (format "\\parencite%s%s{%s}"
+               (if (equal "" pre) pre (format "[%s]" pre))
+               (if (equal "" post) post (format "[%s]" post))
+               path)))))
+
+(org-add-link-type
+ "textcite" 'ebib-open-org-link
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (pre (nth 1 desc-list))
+            (post (nth 0 desc-list)))
+       (format "\\textcite%s%s{%s}"
+               (if (equal "" pre) pre (format "[%s]" pre))
+               (if (and (equal "" pre) (equal "" post)) post
+                   (format "[%s]" post))
+               path)))))
+(org-add-link-type
+ "textcite" 'ebib-open-org-link
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (pre (nth 1 desc-list))
+            (post (nth 0 desc-list)))
+       (format "\\textcite%s%s{%s}"
+               (if (equal "" pre) pre (format "[%s]" pre))
+               (if (and (equal "" pre) (equal "" post)) post
+                   (format "[%s]" post))
+               path)))))
+(org-add-link-type
+ "multicite" 'ebib-open-org-link
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (pre (nth 1 desc-list))
+            (post (nth 0 desc-list)))
+       (format "%s%s{%s}"
+               (if (equal "" pre) pre (format "[%s]" pre))
+               (if (and (equal "" pre) (equal "" post)) post
+                   (format "[%s]" post))
+               path)))))
+(org-add-link-type
+ "sidecite" 'ebib-open-org-link
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (post (nth 0 desc-list))
+            (pre (nth 1 desc-list))
+            (offset (nth 2 desc-list)))
+       (format "\\sidecite%s%s%s{%s}"
+               (if (equal "" offset) offset (format "<%s>" offset))
+               (if (equal "" pre) pre (format "[%s]" pre))
+               (if (and (equal "" pre) (equal "" post)) post (format "[%s]" post))
+               path)))))
+(defun tsd-latex-filter-footcites (text backend info)
+    "Replace footcites placeholders in Beamer/LaTeX export."
+    (when (org-export-derived-backend-p backend 'latex)
+      (replace-regexp-in-string "ƒ" "\\footcites" text nil t)))
+  (add-to-list 'org-export-filter-plain-text-functions
+               'tsd-latex-filter-footcites)
+  (add-to-list 'org-export-filter-headline-functions
+               'tsd-latex-filter-footcites)
+#+END_SRC
+
+* Local Variables :noexport:
+
+# Local Variables:
+# eval: (require 'ox-tufte-latex)
+# eval: (require 'ox-extra)
+# eval: (require 'ox-gfm)
+# eval: (org-sbe "tufte-ebib-setup")
+# org-hide-macro-markers: t
+# org-latex-title-command: ""
+# org-latex-caption-above: nil
+# org-inline-image-overlays: nil
+# End:

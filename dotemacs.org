@@ -89,9 +89,9 @@
     - [[#posframe][Posframe]]
   - [[#window][Window]]
     - [[#winner-mode][Winner Mode]]
-    - [[#ace-window][Ace Window]]
-    - [[#persp-mode][Persp mode]]
+    - [[#window-numbering-mode][Window Numbering Mode]]
     - [[#poporg][Poporg]]
+    - [[#ace-window][Ace Window]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
   - [[#faces][Faces]]
@@ -129,13 +129,20 @@
     - [[#bongo][bongo]]
     - [[#org-player][org player]]
 - [[#org][Org]]
-  - [[#org-latex][Org LaTeX]]
-    - [[#latex][Latex]]
+  - [[#latex][Latex]]
+    - [[#auctex][Auctex]]
+    - [[#tex][Tex]]
+    - [[#tex-site][TeX Site]]
+    - [[#math][Math]]
+    - [[#extra][Extra]]
+    - [[#reftex][Reftex]]
+    - [[#magic-latex-buffer][Magic Latex Buffer]]
+    - [[#texinfo][Texinfo]]
     - [[#preview][Preview]]
     - [[#cdlatex][cdlatex]]
     - [[#edit-latex][Edit Latex]]
-    - [[#bibtex][BibTeX]]
-    - [[#org-ref][Org Ref]]
+  - [[#research][Research]]
+    - [[#citations][Citations]]
     - [[#pdfs][PDFs]]
   - [[#outlines][Outlines]]
     - [[#navi][Navi]]
@@ -177,8 +184,6 @@
     - [[#ox-publish][Ox Publish]]
     - [[#ox-org][Ox Org]]
     - [[#ox-latex][Ox Latex]]
-    - [[#ox-latex-subfigure][Ox Latex subfigure]]
-    - [[#ox-linguistics][Ox Linguistics]]
     - [[#ox-pandoc][Ox Pandoc]]
     - [[#ox-gfm][Ox GFM]]
     - [[#ox-hugo][Ox Hugo]]
@@ -209,11 +214,11 @@
     - [[#hl-todo][Hl Todo]]
     - [[#symbol-highlighting][Symbol Highlighting]]
     - [[#highlight-indentation][Highlight Indentation]]
+  - [[#pretty][Pretty]]
     - [[#pretty-mode][Pretty Mode]]
     - [[#prettify-symbols][Prettify Symbols]]
     - [[#prettify-utilities][Prettify Utilities]]
-    - [[#pretty-fonts][Pretty Fonts]]
-    - [[#pretty-code][Pretty Code]]
+    - [[#pretty-emacs][Pretty Emacs]]
     - [[#pretty-outlines][Pretty Outlines]]
   - [[#fonts][Fonts]]
     - [[#fontutils][Fontutils]]
@@ -360,11 +365,6 @@ Functional bindings i.e thread =->= macro.
 (use-package dash-functional)
 #+END_SRC
 
-**** cl-lib
-
-#+BEGIN_SRC emacs-lisp
-(use-package cl-lib)
-#+END_SRC
 
 **** cl/highlight
 
@@ -644,6 +644,7 @@ from within Emacs.
 :ID:       8BED33C1-B7FF-4457-AF53-A67AAB7A14DA
 :END:
 
+#+NAME: core/reload
 #+BEGIN_SRC emacs-lisp
 (defun straight-reload-init ()
   "Reload init file using straight transaction system."
@@ -951,7 +952,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 
 **** Resolve Path
 
-#+NAME: fd-resolve-path
+#+NAME: core/path
 #+BEGIN_SRC emacs-lisp
 
 (defun resolve-path (&rest paths)
@@ -964,7 +965,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 **** User Directories
 ***** User Home
 
-#+NAME: fd-user-home
+#+NAME: core/home
 #+BEGIN_SRC emacs-lisp
 (cl-defun user-home (&rest path-segments &key (slash nil) &allow-other-keys)
   "Resolves the absolute path formed PATH-SEGMENTS to the
@@ -1037,7 +1038,7 @@ the the returned file path will be formatted as a directory. "
 
 See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 
-#+NAME: fd-read-only
+#+NAME: core/read-only
 #+BEGIN_SRC emacs-lisp
 (defvar protected-directory-list '("~/.emacs.d/straight"
                                    "/usr/local/Cellar"
@@ -1281,7 +1282,7 @@ killall gpg-agent
 
 *** Hydra
 
-#+NAME: kb-hydra
+#+NAME: core/hydra
 #+BEGIN_SRC emacs-lisp
 (use-package hydra
   :init
@@ -1357,6 +1358,23 @@ killall gpg-agent
 (use-package ivy-hydra
   :after (hydra)
   :demand t)
+#+END_SRC
+
+**** Pretty Hydra
+
+#+BEGIN_SRC emacs-lisp
+(use-package major-mode-hydra
+  :bind
+  ("C-M-m" . major-mode-hydra)
+  :config
+  (setq major-mode-hydra-title-generator
+      '(lambda (mode)
+         (s-concat "\n"
+                   (s-repeat 10 " ")
+                   (all-the-icons-icon-for-mode mode :v-adjust 0.05)
+                   " "
+                   (symbol-name mode)
+                   " commands"))))
 #+END_SRC
 
 *** Which Key
@@ -1687,9 +1705,6 @@ Provides an interface to /Dictionary.app/ in Emacs. I am using this package in c
 (use-package counsel-osx-app
   :if (eq system-type 'darwin)
   :demand t
-  :bind
-  (:map macos-open-with-command-map
-        ("x" . counsel-osx-app))
   :preface
   (defun wk-osx-app-icon ()
     `(,(concat
@@ -3231,38 +3246,13 @@ different window configurations.
      (org-shiftright-final . windmove-right)))
 #+END_SRC
 
-*** Ace Window
+*** Window Numbering Mode
 
-#+NAME: window/ace
 #+BEGIN_SRC emacs-lisp
-  (use-package ace-window
-    :after avy
-    :demand t
-    :custom-face
-    (aw-leading-char-face
-     ((t (:inverse-video t :inherit avy-lead-face :height 3.0))))
-    :bind
-    ("M-o" . ace-window)
-    :custom
-    (aw-char-position 'top-left)
-    (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-    (aw-background nil)
-    :init
-    (set-face-foreground 'aw-leading-char-face (face-background 'default)))
-
-#+END_SRC
-
-*** Persp mode
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package persp-mode
-  :custom
-  (persp-autokill-buffer-on-remove 'kill-weak)
+(use-package window-numbering
   :init
-  (defun persp/enable ()
-    (persp-mode 1))
-  :hook
-  (after-init . persp/enable))
+  (window-numbering-mode 1))
+
 #+END_SRC
 
 *** Poporg
@@ -3270,6 +3260,24 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
 (use-package poporg
   :bind ("C-c \"" . poporg-dwim))
+#+END_SRC
+
+*** Ace Window
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :custom-face
+    (aw-leading-char-face
+     ((t (:inverse-video t :inherit avy-lead-face :height 2.0))))
+    :bind
+    ("M-o" . ace-window)
+    :custom
+    (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+    (aw-background nil)
+    :init
+    (ace-window-display-mode)
+    :config
+    (set-face-foreground 'aw-leading-char-face (face-background 'default)))
 #+END_SRC
 
 *** Golden Ratio
@@ -3404,7 +3412,7 @@ if not better.
 
 I prefer the default regex matcher, but if you want fuzzy matching as a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
 
-#+NAME: ivy/mode
+#+NAME: core/ivy
 #+BEGIN_SRC emacs-lisp
 (use-package ivy
   :bind (("C-c C-r" . ivy-resume))
@@ -3720,7 +3728,7 @@ END:
 *** Counsel
 **** counsel mode
 
-#+NAME: counsel/mode
+#+NAME: core/counsel
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
     :bind (("<f1> l" . counsel-find-library)
@@ -3746,7 +3754,7 @@ END:
 
 #+END_SRC
 
-**** counsel Projectile
+**** Counsel Projectile
 
 [[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
 friends.
@@ -3756,9 +3764,15 @@ friends.
 (use-package counsel-projectile
     :after (:all projectile counsel)
     :demand t
+    :custom
+    (counsel-projectile-org-capture-templates
+     '(("t" "[${name}] Task" entry (file+headline "${root}/${name}.org" "Tasks")
+        "* ☛ TODO %?\n  %u\n  %a")
+       ("n" "[${name}] Note" entry (file+headline "${root}/notes.org" "Notes")
+        "* ☛ %a %?\n  %u\n")))
     :init
     (counsel-projectile-mode t)
-    ;; Use Dired
+    ;; ppUse Dired
     (setcar counsel-projectile-switch-project-action 4))
 #+END_SRC
 
@@ -3862,7 +3876,7 @@ documentation browser.
 
 *** Swiper
 
-#+NAME: mb-swiper
+#+NAME: core/swiper
 #+BEGIN_SRC emacs-lisp
 (use-package swiper
     :custom
@@ -4409,13 +4423,12 @@ school's WLAN.
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
 :END:
-** Org LaTeX
-*** Latex
+** Latex
 :PROPERTIES:
 :ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
 :CUSTOM_ID: sec:latex
 :END:
-**** Auctex
+*** Auctex
 
 #+BEGIN_SRC emacs-lisp
 (use-package auctex
@@ -4423,7 +4436,7 @@ school's WLAN.
               ("M-s l" . TeX-engine-set)))
 #+END_SRC
 
-***** company auctex
+**** company auctex
 :PROPERTIES:
 :ID:       EF3C7FFE-2A5E-4DF9-A2E6-FC0FBC9E8F9D
 :END:
@@ -4437,7 +4450,7 @@ school's WLAN.
   (company-auctex-init))
 #+END_SRC
 
-***** auctex latexmk
+**** auctex latexmk
 :PROPERTIES:
 :ID:       68110AC8-A864-46E1-B4CC-C3297F78C7B4
 :END:
@@ -4452,7 +4465,7 @@ school's WLAN.
   (auctex-latexmk-setup))
 #+END_SRC
 
-**** Tex
+*** Tex
 
 #+NAME: latex-tex
 #+BEGIN_SRC emacs-lisp
@@ -4510,7 +4523,7 @@ This requires the pdf-tools package to be installed."
 
 #+END_SRC
 
-***** Tex commands
+**** Tex commands
 
 Credits to @jkitchin and scimax.
 
@@ -4634,7 +4647,7 @@ Latex style path: [[${sty-path}]]
   (goto-char (point-min)))
 #+END_SRC
 
-**** TeX Site
+*** TeX Site
 
 #+BEGIN_SRC emacs-lisp
 (use-package tex-site
@@ -4642,12 +4655,12 @@ Latex style path: [[${sty-path}]]
 
 #+END_SRC
 
-**** Math
+*** Math
 :PROPERTIES:
 :ID:       1DCF30B4-5549-4415-B588-FE9C5056F0A3
 :END:
 
-***** Company Math
+**** Company Math
 
 #+NAME: latex-math-completion
 #+BEGIN_SRC emacs-lisp
@@ -4658,7 +4671,7 @@ Latex style path: [[${sty-path}]]
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 #+END_SRC
 
-***** Math Symbols
+**** Math Symbols
 
 Entered on [2018-06-13 Wed 11:42]
 
@@ -4748,13 +4761,13 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+END_SRC
 
-***** Unicode math input
+**** Unicode math input
 
 #+BEGIN_SRC emacs-lisp
 (use-package unicode-math-input)
 #+END_SRC
 
-**** Extra
+*** Extra
 
 #+BEGIN_SRC emacs-lisp
 (use-package latex-extra
@@ -4785,7 +4798,7 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+END_SRC
 
-**** Reftex
+*** Reftex
 
 
 RefTeX is a citation and reference tool maintained by the
@@ -4808,7 +4821,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
   (LaTeX-mode . reftex/setup))
 #+END_SRC
 
-***** Company Reftex
+**** Company Reftex
 :PROPERTIES:
 :ID:       7E380FB6-09B2-4E73-87D1-5515402B58D1
 :END:
@@ -4820,7 +4833,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
   :after (:all company reftex))
 #+END_SRC
 
-**** Magic Latex Buffer
+*** Magic Latex Buffer
 
 Prettify dedicated org-mode latex buffers.
 
@@ -4837,7 +4850,7 @@ Prettify dedicated org-mode latex buffers.
       (LaTeX-mode . magic-latex-buffer))
 #+END_SRC
 
-**** Texinfo
+*** Texinfo
 
 #+NAME: latex-texinfo
 #+BEGIN_SRC emacs-lisp
@@ -5196,7 +5209,10 @@ Generate latex fragments based on the latex compiler and class in the current bu
 (use-package org-edit-latex)
 #+END_SRC
 
-*** BibTeX
+** Research
+*** Citations
+
+**** BibTeX
 
 #+BEGIN_SRC emacs-lisp
 (use-package bibtex
@@ -5439,7 +5455,16 @@ entry types and required fields."
 
 #+END_SRC
 
-*** Org Ref
+**** Google Scholar
+
+#+BEGIN_SRC emacs-lisp
+(use-package gscholar-bibtex
+  :init
+  (with-eval-after-load 'reftex
+    (setq gscholar-bibtex-database-file (car reftex-default-bibliography))))
+#+END_SRC
+
+**** Org Ref
 :PROPERTIES:
 :ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
 :END:
@@ -5526,6 +5551,11 @@ entry types and required fields."
         (message "No PDF found for %s" key))))
 
   (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point))
+#+END_SRC
+
+**** Ebib
+#+BEGIN_SRC emacs-lisp
+(use-package ebib)
 #+END_SRC
 
 *** PDFs
@@ -5715,6 +5745,16 @@ Embed YouTube Links in =iframe=.
     ((eq format 'latex)
      (format "\\%s{%s}" path desc)))))
 
+(org-add-link-type
+ "latex-opt" nil
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (opt (nth 1 desc-list))
+            (arg (nth 0 desc-list)))
+       (format "\\%s%s{%s}" path
+               (if (equal "" opt) opt (format "[%s]" opt))
+               arg)))))
 ;; See https://lists.gnu.org/archive/html/emacs-orgmode/2014-08/msg00982.html
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
 #+END_SRC
@@ -6787,7 +6827,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 :CUSTOM_ID: sec:ox
 :END:
 *** Ox
-
+#+NAME: core/ox
 #+BEGIN_SRC emacs-lisp
 (use-package ox
   :straight org-plus-contrib
@@ -6940,7 +6980,7 @@ and subtrees of the ignored headlines will be retained.
   ;; minted
   (defcustom org-latex-minted-from-org-p nil
     "If non-nil, then included minted in `org-latex-packages-alist'
-and get options from `org-latex-minted-options'."
+  and get options from `org-latex-minted-options'."
     :type 'boolean
     :group 'org-export-latex
     :version "26.1"
@@ -6951,29 +6991,32 @@ and get options from `org-latex-minted-options'."
     (interactive)
     (cl-flet ((nominted (pkg) (not (string= (cadr pkg) "minted"))))
       (if (not org-latex-minted-from-org-p)
-          (setq org-latex-packages-alist
-                (append org-latex-packages-alist '(("newfloat" "minted"))))
-        (setq org-latex-packages-alist (seq-filter #'nominted org-latex-packages-alist)))
+	  (setq org-latex-packages-alist
+		(append org-latex-packages-alist '(("newfloat" "minted"))))
+	(setq org-latex-packages-alist (seq-filter #'nominted org-latex-packages-alist)))
       (setq org-latex-minted-from-org-p (not org-latex-minted-from-org-p))
       (message "org minted %s" (if org-latex-minted-from-org-p
-                                   "enabled" "disabled"))))
+				   "enabled" "disabled"))))
   ;; Latex process
-  (setq oxl-process-pdflatex
-        '("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+  (setq oxl-process-bibtex
+	'("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+
+  (setq oxl-process-biber
+	'("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -biber -f %f"))
 
   (setq oxl-process-xelatex
-        '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
+	'("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
 
   (setq oxl-process-lualatex
-        '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
+	'("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
 
   (defcustom org-latex-pdf-engines
     '(("lualatex" . oxl-process-lualatex)
       ("xelatex" . oxl-process-xelatex)
-      ("pdflatex" . oxl-process-pdflatex))
+      ("pdflatex" . (oxl-process-bibtex oxl-process-biber)))
     "A list of LaTeX commands available to run when
-`org-latex-export-to-pdf' is invoked."
-    :type '(cons string symbol)
+  `org-latex-export-to-pdf' is invoked."
+    :type '(choice (cons string symbol) (cons string (repeat symbol)))
     :group 'org-export-latex
     :version "26.1")
 
@@ -6984,10 +7027,13 @@ and get options from `org-latex-minted-options'."
     (interactive
      (list (completing-read "Compiler: " org-latex-pdf-engines)))
     (if (member compiler org-latex-compilers)
-        (let ((process (symbol-value (cdr (assoc compiler org-latex-pdf-engines)))))
-          (setq org-latex-pdf-process process
-                org-latex-compiler compiler)
-          (run-hooks org-latex-pdf-process-hook))
+	(let ((process (cdr (assoc compiler org-latex-pdf-engines))))
+	  (setq org-latex-pdf-process (symbol-value
+				       (if (listp process)
+					   (intern (completing-read "Process:" process))
+					 process))
+		org-latex-compiler compiler)
+	  (run-hooks org-latex-pdf-process-hook))
       (error "%s not in `org-latex-compilers'" compiler)))
 
   :config
@@ -6995,74 +7041,75 @@ and get options from `org-latex-minted-options'."
     (org-latex-pdf-process-set org-latex-compiler))
   ;; From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
   (setq org-latex-classes
-        '(("article-standalone"
-	         "\\documentclass{article}
-          [NO-DEFAULT-PACKAGES]
-          [PACKAGES]
-          [EXTRA]" ;; header-string
-	         ("\\section{%s}" . "\\section*{%s}")
-	         ("\\subsection{%s}" . "\\subsection*a{%s}")
-	         ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	         ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	         ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("uclaling"
-           "\\documentclass{uclaling}
-           [NO-DEFAULT-PACKAGES]
-           [EXTRA]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("uclacs"
-           "\\documentclass{uclacs}
-          [NO-DEFAULT-PACKAGES]
-          [EXTRA]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("humanities"
-           "\\documentclass{humanities}
-          [NO-DEFAULT-PACKAGES]
-          [EXTRA]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("unicode-math"
-           "\\documentclass{article}
-         [PACKAGES]
-         [NO-DEFAULT-PACKAGES]
-         [EXTRA]
-         \\usepackage{fontspec}
-         \\usepackage{amsmath}
-         \\usepackage{xltxtra}
-         \\usepackage{unicode-math}
-         \\setmathfont{STIX2Math}[
-           Path/Users/jacobchaffin/Library/Fonts/,
-           Extension={.otf},
-           Scale=1]
-         \\setmainfont{STIX2Text}[
-           Path/Users/jacobchaffin/Library/Fonts/,
-           Extension={.otf},
-           UprightFont={*-Regular},
-           BoldFont={*-Bold},
-           ItalicFont={*-Italic},
-           BoldItalicFont={*-BoldItalic}]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+	'(("article-standalone"
+		 "\\documentclass{article}
+	    [NO-DEFAULT-PACKAGES]
+	    [PACKAGES]
+	    [EXTRA]" ;; header-string
+		 ("\\section{%s}" . "\\section*{%s}")
+		 ("\\subsection{%s}" . "\\subsection*a{%s}")
+		 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+		 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("uclaling"
+	   "\\documentclass{uclaling}
+	     [NO-DEFAULT-PACKAGES]
+	     [EXTRA]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("uclacs"
+	   "\\documentclass{uclacs}
+	    [NO-DEFAULT-PACKAGES]
+	    [EXTRA]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("humanities"
+	   "\\documentclass{humanities}
+	    [NO-DEFAULT-PACKAGES]
+	    [EXTRA]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("unicode-math"
+	   "\\documentclass{article}
+	   [PACKAGES]
+	   [NO-DEFAULT-PACKAGES]
+	   [EXTRA]
+	   \\usepackage{fontspec}
+	   \\usepackage{amsmath}
+	   \\usepackage{xltxtra}
+	   \\usepackage{unicode-math}
+	   \\setmathfont{STIX2Math}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     Scale=1]
+	   \\setmainfont{STIX2Text}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     UprightFont={*-Regular},
+	     BoldFont={*-Bold},
+	     ItalicFont={*-Italic},
+	     BoldItalicFont={*-BoldItalic}]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
   :bind
   (:map org-mode-map
-        ("M-s l" . org-latex-pdf-process-set)))
+	("M-s l" . org-latex-pdf-process-set)))
+
 #+END_SRC
 
-*** Ox Latex subfigure
+**** Ox Latex subfigure
 
 #+NAME: oxl/subfigure
 #+BEGIN_SRC emacs-lisp
@@ -7078,7 +7125,30 @@ and get options from `org-latex-minted-options'."
 
 #+END_SRC
 
-*** Ox Linguistics
+**** Ox tufte
+#+BEGIN_SRC emacs-lisp
+(use-package ox-tufte-latex
+  :straight (ox-tufte-latex :type git
+                            :host github
+                            :repo "tsdye/tufte-org-mode"
+                            :local-repo "ox-tufte-latex"
+                            :files (:defaults "ox-tufte-latex.el"))
+  :after (ox)
+  :init
+  (append org-latex-classes
+          '(("tufte-handout"
+             "\\documentclass[twoside,nobib]{tufte-handout}
+             [NO-DEFAULT-PACKAGES]"
+             ("\\section{%s}" . "\\section*{%s}")
+             ("\\subsection{%s}" . "\\subsection*{%s}"))
+            '("tufte-handout"
+              "\\documentclass[twoside,nobib]{tufte-handout}
+              [NO-DEFAULT-PACKAGES]"
+              ("\\section{%s}" . "\\section*{%s}")
+              ("\\subsection{%s}" . "\\subsection*{%s}")))))
+#+END_SRC
+
+**** Ox Linguistics
 
 #+BEGIN_SRC emacs-lisp
 (use-package ox-linguistics
@@ -7112,7 +7182,7 @@ for exporting org-mode documents to various formats.
   :config
   (defun ox-pandoc--pdf-engine ()
     "Set the default latex pdf engine to the one set by `org-latex-pdf-process'. "
-    (let ((syms (mapcar (lambda (x) (cdr x)) org-latex-pdf-engines))
+    (let ((syms (mapcar (lambda (x) (if (listp x) (if (listp (cdr x)) (cadr x) (cdr x)))) org-latex-pdf-engines))
           (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
           (prefix "oxl-process-"))
       (cadr (split-string (symbol-name (car (seq-filter pred syms))) prefix))))
@@ -7614,7 +7684,7 @@ Minor mode to highlight sexp.
 
 **** Highlight Symbol
 
-#+NAME: hl-highlight-symbol
+#+NAME: core/highlight-symbol
 #+BEGIN_SRC emacs-lisp
 (use-package highlight-symbol)
 #+END_SRC
@@ -9185,7 +9255,7 @@ done [[https://github.com/tomjakubowski/.emacs.d/blob/master/init.el][here]], bu
 block of the programming language is easier to follow and
 offers more meaningful semantics.
 
-#+NAME: pairs/paredit
+#+NAME: core/paredit
 #+BEGIN_SRC emacs-lisp
 (use-package paredit
   :config
@@ -9257,9 +9327,11 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 
 *** Rainbow Delimiters
 
-#+NAME: pair/rainbow
+#+NAME: core/rainbow-delimiters
 #+BEGIN_SRC emacs-lisp
-(use-package rainbow-delimiters)
+(use-package rainbow-delimiters
+  :commands (rainbow-delimiters-mode)
+)
 #+END_SRC
 
 *** Parinfer
@@ -9574,6 +9646,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 
 #+BEGIN_SRC emacs-lisp
   (use-package wakatime-mode
+
     :if (executable-find "wakatime")
     :hook
     (prog-mode . wakatime-mode)
@@ -9583,9 +9656,9 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
       (browse-url "https://wakatime.com/dashboard"))
     :custom
     (wakatime-cli-path
-    "/usr/local/lib/python3.7/site-packages/wakatime/cli.py")
+     (file-truename "~/.local/pipx/venvs/wakatime/lib/python3.7/site-packages/wakatime/cli.py"))
     (wakatime-python-bin
-     (executable-find "python3")))
+     (file-truename "/Users/jacobchaffin/.pyenv/versions/3.7.2/bin/python3.7")))
 #+END_SRC
 
 *** Logging
@@ -10015,7 +10088,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 *** Emacs Lisp
 **** Emacs lisp mode
 
-#+NAME: elisp/mode
+#+NAME: core/elisp
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-lisp-mode
   :straight (emacs-lisp-mode :type built-in)
