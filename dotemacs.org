@@ -5485,7 +5485,8 @@ entry types and required fields."
   :straight (org-ref :type git
                      :files (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
                      :host github
-                     :repo "jkitchin/org-ref")
+                     :repo "jkitchin/org-ref"
+                     :fork (:host github :repo org-ref "jchaffin/org-ref"))
   :after ivy
   :commands (org-ref-org-menu)
   :custom
@@ -5520,7 +5521,6 @@ entry types and required fields."
   (require 'org-ref)
   :config
   (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
-
   (with-eval-after-load 'org-ref
     (defun org-ref-vref-export (keyword desc format)
      "An export function for vref links."
@@ -5560,7 +5560,6 @@ entry types and required fields."
       (if (file-exists-p pdf-file)
           (find-file pdf-file)
         (message "No PDF found for %s" key))))
-
   (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point))
 #+END_SRC
 
