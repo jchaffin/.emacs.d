@@ -269,17 +269,12 @@ Else use the value of `halidom-literate-config-file'."
 				                      (message "tangled %s" name)))
                           (eval-buffer))))))))
           (kill-buffer buf)))
-
-
-
       ;; Extract source code and load the config
       (if use-literate-p
           (if (file-exists-p dotemacs-literate-config-file)
               (org-babel-load-file dotemacs-literate-config-file)
             (error "File does not exist %s" dotemacs-literate-config-file))
-        (mapcar #'literate-tangle-src-block literate-debug-blocks)
-        (setq initial-buffer-choice dotemacs-literate-config-file)))
+        (mapcar #'literate-tangle-src-block literate-debug-blocks))
+      (setq initial-buffer-choice dotemacs-literate-config-file))
   (straight-finalize-transaction))
-
-
 ;;;; init.el ends here

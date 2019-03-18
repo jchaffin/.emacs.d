@@ -1,7 +1,7 @@
 #+title: Dotemacs
 #+language: en
 #+AUTHOR: Jacob Chaffin
-#+PROPERTY: :header-args :tangle yes
+#+PROPERTY: :header-args :tangle yes :comments both
 #+STARTUP: showeverything
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 
@@ -287,6 +287,7 @@
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
     - [[#formatting][Formatting]]
+    - [[#agressive-indent-mode][Agressive Indent Mode]]
   - [[#eldoc][Eldoc]]
   - [[#pair-matching][Pair Matching]]
     - [[#paredit][Paredit]]
@@ -1589,7 +1590,7 @@ editors and various other applications on macOS.
 
 #+END_SRC
 
-**** COMMENT MacOS Dash
+**** MacOS Dash
 :PROPERTIES:
 :ID:       64240356-D983-4422-A359-4F773DD2E946
 :CUSTOM_ID: sec: macos-dash
@@ -3428,172 +3429,163 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
      (t . ivy--regex-ignore-order)))
   (ivy-use-selectable-prompt nil)
   :config
-  (defun ivy-insert-org-entity ()
-  "Insert an org-entity using ivy."
-  (interactive)
-  (ivy-read "Entity: " (cl-loop for element in (append org-entities org-entities-user)
-				when (not (stringp element))
-				collect
-				(cons
-				 (format "%20s | %20s | %20s | %s"
-					 (cl-first element) ;name
-					 (cl-second element) ; latex
-					 (cl-fourth element) ; html
-					 (cl-seventh element)) ;utf-8
-				 element))
-	    :require-match t
-	    :action '(1
-		      ("u" (lambda (candidate)
-			     (insert (cl-seventh (cdr candidate)))) "utf-8")
-		      ("o" (lambda (candidate)
-			     (insert "\\" (cl-first (cdr candidate)))) "org-entity")
-		      ("l" (lambda (candidate)
-			     (insert (cl-second (cdr candidate)))) "latex")
-		      ("h" (lambda (candidate)
-			     (insert (cl-fourth (cdr candidate)))) "html")
-		      ("a" (lambda (candidate)
-			     (insert (cl-fifth (cdr candidate)))) "ascii")
-		      ("L" (lambda (candidate)
-			     (insert (cl-sixth (cdr candidate))) "Latin-1")))))
-;; * ivy navigation
-(defun ivy-org-jump-to-visible-headline ()
-  "Jump to visible headline in the buffer."
-  (interactive)
-  (org-mark-ring-push)
-  (avy-with avy-goto-line (avy--generic-jump "^\\*+" nil avy-style)))
+  (defvar ivy-recursive-restore-in-progress nil)
+
+  (defun ivy-note-when-inside-recursive-restore (orig-fun &rest args)
+    (let ((ivy-recursive-restore-in-progress t))
+      (apply orig-fun args)))
+
+  (defun ivy-no-read-while-exiting-recursion (orig-fun &rest args)
+    (if ivy-recursive-restore-in-progress
+        (error "Cannot use `ivy-read' while restoring recursive state.")
+      (apply orig-fun args)))
+
+  (advice-add 'ivy-recursive-restore :around
+              #'ivy-note-when-inside-recursive-restore)
+
+  (advice-add 'ivy-read :around #'ivy-no-read-while-exiting-recursion)
+
+  (ivy-set-actions 'ivy-switch-
+                   '(("k" (lambda (x) (kill-buffer x) (ivy--reset-state ivy-last)) "kill")
+                     ("j" ivy--switch-buffer-other-window-action "other")))
+
+  ;; * ivy navigation
+  (defun ivy-org-jump-to-visible-headline ()
+    "Jump to visible headline in the buffer."
+    (interactive)
+    (org-mark-ring-push)
+    (avy-with avy-goto-line (avy--generic-jump "^\\*+" nil avy-style)))
+
+  (defun ivy-jump-to-visible-sentence ()
+    "Jump to visible sentence in the buffer."
+    (interactive)
+    (org-mark-ring-push)
+    (avy-with avy-goto-line (avy--generic-jump (sentence-end) nil avy-style))
+    (forward-sentence))
+
+  (defun ivy-org-jump-to-heading ()
+    "Jump to heading in the current buffer."
+    (interactive)
+    (let ((headlines '()))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward
+	              ;; this matches org headings in elisp too.
+	              "^\\(;; \\)?\\(\\*+\\)\\(?: +\\(.*?\\)\\)?[ 	]*$"  nil t)
+	        (cl-pushnew (list
+		                   (format "%-80s"
+			                         (match-string 0))
+		                   (cons 'position (match-beginning 0)))
+		                  headlines)))
+      (ivy-read "Headline: "
+	              (reverse headlines)
+	              :action (lambda (candidate)
+			                    (org-mark-ring-push)
+			                    (goto-char (cdr (assoc 'position candidate)))
+			                    (outline-show-entry)))))
 
 
-(defun ivy-jump-to-visible-sentence ()
-  "Jump to visible sentence in the buffer."
-  (interactive)
-  (org-mark-ring-push)
-  (avy-with avy-goto-line (avy--generic-jump (sentence-end) nil avy-style))
-  (forward-sentence))
+  (defun ivy-org-jump-to-agenda-heading ()
+    "Jump to a heading in an agenda file."
+    (interactive)
+    (let ((headlines '()))
+      ;; these files should be open already since they are agenda files.
+      (loop for file in (org-agenda-files) do
+	          (with-current-buffer (find-file-noselect file)
+	            (save-excursion
+	              (goto-char (point-min))
+	              (while (re-search-forward org-heading-regexp nil t)
+		              (cl-pushnew (list
+			                         (format "%-80s (%s)"
+				                               (match-string 0)
+				                               (file-name-nondirectory file))
+			                         :file file
+			                         :position (match-beginning 0))
+			                        headlines)))))
+      (ivy-read "Headline: "
+	              (reverse headlines)
+	              :action (lambda (candidate)
+			                    (org-mark-ring-push)
+			                    (find-file (plist-get (cdr candidate) :file))
+			                    (goto-char (plist-get (cdr candidate) :position))
+			                    (outline-show-entry)))))
 
 
-(defun ivy-org-jump-to-heading ()
-  "Jump to heading in the current buffer."
-  (interactive)
-  (let ((headlines '()))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward
-	      ;; this matches org headings in elisp too.
-	      "^\\(;; \\)?\\(\\*+\\)\\(?: +\\(.*?\\)\\)?[ 	]*$"  nil t)
-	(cl-pushnew (list
-		     (format "%-80s"
-			     (match-string 0))
-		     (cons 'position (match-beginning 0)))
-		    headlines)))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(goto-char (cdr (assoc 'position candidate)))
-			(outline-show-entry)))))
-
-
-(defun ivy-org-jump-to-agenda-heading ()
-  "Jump to a heading in an agenda file."
-  (interactive)
-  (let ((headlines '()))
-    ;; these files should be open already since they are agenda files.
-    (loop for file in (org-agenda-files) do
-	  (with-current-buffer (find-file-noselect file)
-	    (save-excursion
-	      (goto-char (point-min))
-	      (while (re-search-forward org-heading-regexp nil t)
-		(cl-pushnew (list
-			     (format "%-80s (%s)"
-				     (match-string 0)
-				     (file-name-nondirectory file))
-			     :file file
-			     :position (match-beginning 0))
-			    headlines)))))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(find-file (plist-get (cdr candidate) :file))
-			(goto-char (plist-get (cdr candidate) :position))
-			(outline-show-entry)))))
-
-
-(defun ivy-org-jump-to-heading-in-files (files &optional fontify)
-  "Jump to org heading in FILES.
+  (defun ivy-org-jump-to-heading-in-files (files &optional fontify)
+    "Jump to org heading in FILES.
 Optional FONTIFY colors the headlines. It might slow things down
 a lot with large numbers of org-files or long org-files. This
 function does not open the files."
-  (let ((headlines '()))
-    (loop for file in files do
-	  (with-temp-buffer
-	    (insert-file-contents file)
-	    (when fontify
-	      (org-mode)
-	      (font-lock-fontify-buffer))
-	    (goto-char (point-min))
-	    (while (re-search-forward org-heading-regexp nil t)
-	      (cl-pushnew (list
-			   (format "%-80s (%s)"
-				   (match-string 0)
-				   (file-name-nondirectory file))
-			   :file file
-			   :position (match-beginning 0))
-			  headlines))))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(find-file (plist-get (cdr candidate) :file))
-			(goto-char (plist-get (cdr candidate) :position))
-			(outline-show-entry)))))
+    (let ((headlines '()))
+      (loop for file in files do
+	          (with-temp-buffer
+	            (insert-file-contents file)
+	            (when fontify
+	              (org-mode)
+	              (font-lock-fontify-buffer))
+	            (goto-char (point-min))
+	            (while (re-search-forward org-heading-regexp nil t)
+	              (cl-pushnew (list
+			                       (format "%-80s (%s)"
+				                             (match-string 0)
+				                             (file-name-nondirectory file))
+			                       :file file
+			                       :position (match-beginning 0))
+			                      headlines))))
+      (ivy-read "Headline: "
+	              (reverse headlines)
+	              :action (lambda (candidate)
+			                    (org-mark-ring-push)
+			                    (find-file (plist-get (cdr candidate) :file))
+			                    (goto-char (plist-get (cdr candidate) :position))
+			                    (outline-show-entry)))))
 
 
-(defun ivy-org-jump-to-heading-in-directory (&optional recursive)
-  "Jump to heading in an org file in the current directory.
+  (defun ivy-org-jump-to-heading-in-directory (&optional recursive)
+    "Jump to heading in an org file in the current directory.
 Use a prefix arg to make it RECURSIVE.
 Use a double prefix to make it recursive and fontified."
-  (interactive "P")
-  (let ((fontify nil))
-    (when (equal recursive '(16))
-      (setq fontify t))
-    (ivy-org-jump-to-heading-in-files
-     (f-entries "."
-		(lambda (f)
-		  (and
-		   (f-ext? f "org")
-		   (not (s-contains? "#" f))))
-		recursive)
-     fontify)))
+    (interactive "P")
+    (let ((fontify nil))
+      (when (equal recursive '(16))
+        (setq fontify t))
+      (ivy-org-jump-to-heading-in-files
+       (f-entries "."
+		              (lambda (f)
+		                (and
+		                 (f-ext? f "org")
+		                 (not (s-contains? "#" f))))
+		              recursive)
+       fontify)))
 
 
-(defun ivy-org-jump-to-project-headline (&optional fontify)
-  "Jump to a headline in an org-file in the current project.
+  (defun ivy-org-jump-to-project-headline (&optional fontify)
+    "Jump to a headline in an org-file in the current project.
 The project is defined by projectile. Use a prefix arg FONTIFY
 for colored headlines."
-  (interactive "P")
-  (ivy-org-jump-to-heading-in-files
-   (mapcar
-    (lambda (f) (expand-file-name f (projectile-project-root)))
-    (-filter (lambda (f)
-	       (and
-		(f-ext? f "org")
-		(not (s-contains? "#" f))))
-	     (projectile-current-project-files)))
-   fontify))
+    (interactive "P")
+    (ivy-org-jump-to-heading-in-files
+     (mapcar
+      (lambda (f) (expand-file-name f (projectile-project-root)))
+      (-filter (lambda (f)
+	               (and
+		              (f-ext? f "org")
+		              (not (s-contains? "#" f))))
+	             (projectile-current-project-files)))
+     fontify))
 
 
-(defun ivy-org-jump-to-open-headline (&optional fontify)
-  "Jump to a headline in an open org-file.
+  (defun ivy-org-jump-to-open-headline (&optional fontify)
+    "Jump to a headline in an open org-file.
 Use a prefix arg FONTIFY for colored headlines."
-  (interactive "P")
-  (ivy-org-jump-to-heading-in-files
-   (mapcar 'buffer-file-name
-	   (-filter (lambda (b)
-		      (-when-let (f (buffer-file-name b))
-			(f-ext? f "org")))
-		    (buffer-list)))
-   fontify)))
+    (interactive "P")
+    (ivy-org-jump-to-heading-in-files
+     (mapcar 'buffer-file-name
+	           (-filter (lambda (b)
+		                    (-when-let (f (buffer-file-name b))
+			                    (f-ext? f "org")))
+		                  (buffer-list)))
+     fontify)))
 #+END_SRC
 
 **** Ivy rtags
@@ -3614,7 +3606,7 @@ Use a prefix arg FONTIFY for colored headlines."
 #+NAME: ivy/xref
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-xref
-    :init
+  :init
   (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 #+END_SRC
 
@@ -3636,8 +3628,12 @@ Use a prefix arg FONTIFY for colored headlines."
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-rich
   :after ivy
+
+  :custom
+  (ivy-rich-switch-buffer-align-virtual-buffer t)
+  (ivy-format-function #'ivy-format-function-line)
   :init
-  (defun ivy-rich-switch-buffer-icon (candidate)
+(defun ivy-rich-switch-buffer-icon (candidate)
     "Use `all-the-icons' icons in buffer list."
     (with-current-buffer
 	      (get-buffer candidate)
@@ -3645,8 +3641,7 @@ Use a prefix arg FONTIFY for colored headlines."
 	      (if (symbolp icon)
 	          (all-the-icons-icon-for-mode 'fundamental-mode)
 	        icon))))
-  :init
-  (setq ivy-format-function #'ivy-format-function-line)
+
 
   (setq ivy-rich-display-transformers-list
    '(ivy-switch-buffer
@@ -3737,16 +3732,18 @@ END:
            ("C-c G" . counsel-git-grep)
            ("C-c k" . counsel-ag)
            ("C-x l" . counsel-locate)
+           ("C-x C-b" . counsel-ibuffer)
            ([remap insert-char] . counsel-unicode-char)
            (:map minibuffer-local-map
                  ("C-r" . counsel-minibuffer-history))
+           (:map prog-mode-map
+                 ("C-c C-j" . counsel-imenu))
            (:map org-mode-map
                  ("C-c C-j" . counsel-org-goto)
                  ("C-c M-t" . counsel-org-tag)
                  ("C-c f"   . counsel-org-file)))
     :init
     (counsel-mode +1)
-
     :config
     (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
     (setq counsel-mode-override-describe-bindings t)
@@ -3766,9 +3763,11 @@ friends.
     :demand t
     :custom
     (counsel-projectile-org-capture-templates
-     '(("t" "[${name}] Task" entry (file+headline "${root}/${name}.org" "Tasks")
+     '(("t" "[${name}] Task" entry
+        (file+headline "${root}/${name}.org" "Tasks")
         "* ☛ TODO %?\n  %u\n  %a")
-       ("n" "[${name}] Note" entry (file+headline "${root}/notes.org" "Notes")
+       ("n" "[${name}] Note" entry
+        (file+headline "${root}/notes.org" "Notes")
         "* ☛ %a %?\n  %u\n")))
     :init
     (counsel-projectile-mode t)
@@ -3874,6 +3873,16 @@ documentation browser.
   :after (counsel))
 #+END_SRC
 
+**** counsel org clock
+
+#+BEGIN_SRC emacs-lisp
+(use-package counsel-org-clock
+  :straight (:host github
+                   :repo "akirak/counsel-org-clock")
+  :after (:all org ivy)
+  :demand t)
+#+END_SRC
+
 *** Swiper
 
 #+NAME: core/swiper
@@ -3881,8 +3890,9 @@ documentation browser.
 (use-package swiper
     :custom
     (enable-recursive-minibuffers t)
+    (swiper-stay-on-quit t)
     :bind
-    ("\C-s" . swiper)
+    ("\C-s" . counsel-grep-or-swiper)
     :config
     (if (eq system-type 'darwin)
         (global-set-key (kbd "s-f") 'swiper)))
@@ -4220,6 +4230,7 @@ any reason for me reconsider my choice.
   :after (:all ivy bibtex)
   :demand t
   :custom
+  (bibtex-completion-additional-search-fields '(tags))
   (bibtex-completion-bibliography
    `(,(org-dir "ref/references.bib")
      ,(dropbox-dir "courses/comsci131/comsci131.bib")
@@ -4234,9 +4245,9 @@ any reason for me reconsider my choice.
      ,(dropbox-dir "courses/ling165c/materials/pdfs")))
   (bibtex-completion-notes-path (org-dir "ref/notes.org"))
   :config
-(setq bibtex-completion-pdf-open-function
-      (lambda (fpath)
-        (start-process "open" "*open*" "open" fpath)))
+  (setq bibtex-completion-pdf-open-function
+        (lambda (fpath)
+          (start-process "open" "*open*" "open" fpath)))
   (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
 #+END_SRC
 
@@ -6197,12 +6208,10 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (org-sidebar
    :host github
    :repo "alphapapa/org-sidebar")
-
   :init
   (require 'org-ql)
   (require 'dash-functional)
   (require 'org-sidebar)
-
   :config
   (cl-defmacro course-sidebar (name description)
     `(progn
@@ -6223,13 +6232,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
        (defun ,(intern (concat name "-sidebar")) ()
          (interactive)
          (funcall ',(intern (concat name "/sidebar"))))))
-
   (defvar org-course-courses
     '(("comsci161" . "Intro to A.I.")
       ("comsci131" . "Programming Languages")
       ("ling165c"  . "Semantics II")
       ("ling102"   . "Phonetics")))
-
     (cl-loop for (course . description) in org-course-courses do
            (eval `(course-sidebar ,course ,description))))
 #+END_SRC
@@ -6444,6 +6451,7 @@ the result as a time value."
 #+END_SRC
 
 *** Clock
+
 **** Pomodoro
 :PROPERTIES:
 :ID:       3600535E-2C20-4E33-8572-E933319E87B3
@@ -6482,17 +6490,6 @@ the result as a time value."
         (org-pomodoro-path "Complete.wav")))
 #+END_SRC
 
-**** counsel org clock
-
-#+NAME: org-taskmgr-coclock
-#+BEGIN_SRC emacs-lisp
-(use-package counsel-org-clock
-  :straight (:host github
-                   :repo "akirak/counsel-org-clock")
-  :after (:all org ivy)
-  :demand t)
-#+END_SRC
-
 **** org mru clock
 
 The [[https://github.com/unhammer/org-mru-clock][org-mru-clock]] package prefills clock history with clocks from
@@ -6518,6 +6515,20 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 #+BEGIN_SRC emacs-lisp
 (use-package org-clock-convenience)
 #+END_SRC
+
+**** Org Clock
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-clock
+  :straight org-plus-contrib
+  :custom
+  (org-clock-persist t)
+  :init
+  (org-clock-persistence-insinuate))
+
+#+END_SRC
+
+***
 
 *** Org Brain
 
@@ -6725,7 +6736,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+BEGIN_SRC emacs-lisp
 (defun org-set-ellipsis ()
       (and (featurep 'all-the-icons)
-           (setq org-ellpsis "")))
+           (setq-default org-ellpsis "")))
 
 (add-hook 'org-mode-hook #'org-set-ellipsis)
 #+END_SRC
@@ -7300,8 +7311,8 @@ Neil Smithline posted this snippet to let you browse org files with
     (setq org-protocol-default-template-key "l")
     (require 'server)
     (unless (server-running-p)
-      (setq server-socket-dir (format "/tmp/emacs%d" (user-uid))))
-    (server-start))
+      (setq server-socket-dir (format "/tmp/emacs%d" (user-uid)))
+      (server-start)))
 #+END_SRC
 
 *** Org Contacts
@@ -7717,7 +7728,6 @@ Minor mode to highlight sexp.
 (use-package visual-indentation-mode)
 #+END_SRC
 
-
 ** Pretty
 *** Pretty Mode
 :PROPERTIES:
@@ -8120,12 +8130,17 @@ bullets as UTF-8 characters.
   (defun org-pretty-tags-enable ()
     (add-hook 'org-mode-hook #'org-pretty-tags-mode))
 
+  (defun pretty-tags-restore-overlays ()
+    "Restore `org-pretty-tags-surrogate-strings'."
+    (dolist (buf (org-buffer-list))
+      (add-hook 'org-mode-hook 'org-pretty-tags-mode)))
   (defun org-pretty-tags-inhibit-overlays (orig-fun &rest args)
     "Inhibit `org-pretty-tags-mode' from running when ORIG-FUN called,
 optionally with ARGS. "
     (remove-hook 'org-mode-hook 'org-pretty-tags-mode)
     (apply orig-fun args)
     (pretty-tags-restore-overlays))
+
   :hook
   (after-init . org-pretty-tags-enable))
 #+END_SRC
@@ -8670,8 +8685,7 @@ Interactively.
 (use-package mu4e
   :if (executable-find "mu")
   :straight (mu4e :local-repo "/usr/local/share/emacs/site-lisp/mu-edge"
-                         :files (:defaults "*.el"))
-  :demand t
+                  :files (:defaults "*.el"))
   :custom
   (mail-user-agent 'mu4e-user-agent) ;; use mu4e for email in emacs
   (mu4e-maildir "~/.mail")
@@ -8700,7 +8714,8 @@ Interactively.
 
   (with-eval-after-load 'ivy
     (setq mu4e-completing-read-function 'ivy-completing-read))
-  (setq mu4e-contexts
+  (when (require 'mu4e-context nil t)
+(setq mu4e-contexts
         `(,(make-mu4e-context
             :name "personal"
             :enter-func
@@ -8751,7 +8766,7 @@ Interactively.
                                              "Jacob Chaffin\n"
                                              "UCLA 2019\n"
                                              "Linguistics and Computer Science\n"
-                                             "jchaffin@ucla.edu"))))))
+                                             "jchaffin@ucla.edu")))))))
 
   ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
   ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
@@ -8766,6 +8781,7 @@ Interactively.
                             'user-mail-address
                             (mu4e-context-vars context)))))
                       mu4e-contexts)))
+  :config
   ;; Org Contacts
   (setq mu4e-org-contacts-file
         (expand-file-name "contacts.org" org-directory))
@@ -8840,8 +8856,7 @@ Interactively.
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(use-package debbugs
-  :straight t)
+(use-package debbugs)
 #+END_SRC
 
 ** Browse at remote
@@ -9235,15 +9250,22 @@ display the buffer."
 (use-package format-all)
 #+END_SRC
 
+*** Agressive Indent Mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package  aggressive-indent
+  :hook
+  (emacs-lisp . aggressive-indent-mode))
+
+#+END_SRC
+
 ** Eldoc
 
 #+BEGIN_SRC emacs-lisp
 (use-package eldoc
   :config
   (when (fboundp 'paredit)
-    (eldoc-add-command
-     'paredit-backward-delete
-     'paredit-close-round)))
+    (eldoc-add-command 'paredit-backward-delete 'paredit-close-round)))
 #+END_SRC
 
 ** Pair Matching
