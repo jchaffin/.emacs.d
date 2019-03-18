@@ -1,7 +1,7 @@
 #+title: Dotemacs
 #+language: en
 #+AUTHOR: Jacob Chaffin
-#+PROPERTY: :header-args :tangle yes
+#+PROPERTY: :header-args :tangle yes :comments both
 #+STARTUP: showeverything
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 
@@ -89,9 +89,9 @@
     - [[#posframe][Posframe]]
   - [[#window][Window]]
     - [[#winner-mode][Winner Mode]]
-    - [[#ace-window][Ace Window]]
-    - [[#persp-mode][Persp mode]]
+    - [[#window-numbering-mode][Window Numbering Mode]]
     - [[#poporg][Poporg]]
+    - [[#ace-window][Ace Window]]
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
   - [[#faces][Faces]]
@@ -129,13 +129,20 @@
     - [[#bongo][bongo]]
     - [[#org-player][org player]]
 - [[#org][Org]]
-  - [[#org-latex][Org LaTeX]]
-    - [[#latex][Latex]]
+  - [[#latex][Latex]]
+    - [[#auctex][Auctex]]
+    - [[#tex][Tex]]
+    - [[#tex-site][TeX Site]]
+    - [[#math][Math]]
+    - [[#extra][Extra]]
+    - [[#reftex][Reftex]]
+    - [[#magic-latex-buffer][Magic Latex Buffer]]
+    - [[#texinfo][Texinfo]]
     - [[#preview][Preview]]
     - [[#cdlatex][cdlatex]]
     - [[#edit-latex][Edit Latex]]
-    - [[#bibtex][BibTeX]]
-    - [[#org-ref][Org Ref]]
+  - [[#research][Research]]
+    - [[#citations][Citations]]
     - [[#pdfs][PDFs]]
   - [[#outlines][Outlines]]
     - [[#navi][Navi]]
@@ -177,8 +184,6 @@
     - [[#ox-publish][Ox Publish]]
     - [[#ox-org][Ox Org]]
     - [[#ox-latex][Ox Latex]]
-    - [[#ox-latex-subfigure][Ox Latex subfigure]]
-    - [[#ox-linguistics][Ox Linguistics]]
     - [[#ox-pandoc][Ox Pandoc]]
     - [[#ox-gfm][Ox GFM]]
     - [[#ox-hugo][Ox Hugo]]
@@ -209,11 +214,11 @@
     - [[#hl-todo][Hl Todo]]
     - [[#symbol-highlighting][Symbol Highlighting]]
     - [[#highlight-indentation][Highlight Indentation]]
+  - [[#pretty][Pretty]]
     - [[#pretty-mode][Pretty Mode]]
     - [[#prettify-symbols][Prettify Symbols]]
     - [[#prettify-utilities][Prettify Utilities]]
-    - [[#pretty-fonts][Pretty Fonts]]
-    - [[#pretty-code][Pretty Code]]
+    - [[#pretty-emacs][Pretty Emacs]]
     - [[#pretty-outlines][Pretty Outlines]]
   - [[#fonts][Fonts]]
     - [[#fontutils][Fontutils]]
@@ -278,9 +283,11 @@
     - [[#line-numbers][Line numbers]]
     - [[#folding][Folding]]
     - [[#comments][Comments]]
+    - [[#comments-1][Comments]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
     - [[#formatting][Formatting]]
+    - [[#agressive-indent-mode][Agressive Indent Mode]]
   - [[#eldoc][Eldoc]]
   - [[#pair-matching][Pair Matching]]
     - [[#paredit][Paredit]]
@@ -359,11 +366,6 @@ Functional bindings i.e thread =->= macro.
 (use-package dash-functional)
 #+END_SRC
 
-**** cl-lib
-
-#+BEGIN_SRC emacs-lisp
-(use-package cl-lib)
-#+END_SRC
 
 **** cl/highlight
 
@@ -643,6 +645,7 @@ from within Emacs.
 :ID:       8BED33C1-B7FF-4457-AF53-A67AAB7A14DA
 :END:
 
+#+NAME: core/reload
 #+BEGIN_SRC emacs-lisp
 (defun straight-reload-init ()
   "Reload init file using straight transaction system."
@@ -804,7 +807,7 @@ generating a new one if the initial scratch buffer has been killed."
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
-  :straight nil
+  :straight (ibuffer :type built-in)
   :bind ("C-x C-b" . ibuffer))
 #+END_SRC
 
@@ -950,7 +953,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 
 **** Resolve Path
 
-#+NAME: fd-resolve-path
+#+NAME: core/path
 #+BEGIN_SRC emacs-lisp
 
 (defun resolve-path (&rest paths)
@@ -963,7 +966,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 **** User Directories
 ***** User Home
 
-#+NAME: fd-user-home
+#+NAME: core/home
 #+BEGIN_SRC emacs-lisp
 (cl-defun user-home (&rest path-segments &key (slash nil) &allow-other-keys)
   "Resolves the absolute path formed PATH-SEGMENTS to the
@@ -1009,10 +1012,14 @@ the the returned file path will be formatted as a directory. "
 (defalias #'emacs-etc-dir
   (apply-partially #'emacs-dir "etc")
   "Resolve PATH-SEGMENTS to `no-littering-etc-directory.'")
+(defalias #'emacs-local-dir
+  (apply-partially #'emacs-etc-dir "local")
+  "Resolve PATH-SEGMENTS to local repos directory ")
 ;; straight.el directories
 (defalias #'straight-dir
   (apply-partially #'emacs-dir "straight")
   "Resolve PATH-SEGMENTS to straight.el installation directory.")
+
 (defalias #'straight-repos-dir
   (apply-partially #'straight-dir "repos")
   "Resolve PATH-SEGMENTS to straight.el repos directory.")
@@ -1032,7 +1039,7 @@ the the returned file path will be formatted as a directory. "
 
 See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 
-#+NAME: fd-read-only
+#+NAME: core/read-only
 #+BEGIN_SRC emacs-lisp
 (defvar protected-directory-list '("~/.emacs.d/straight"
                                    "/usr/local/Cellar"
@@ -1276,7 +1283,7 @@ killall gpg-agent
 
 *** Hydra
 
-#+NAME: kb-hydra
+#+NAME: core/hydra
 #+BEGIN_SRC emacs-lisp
 (use-package hydra
   :init
@@ -1352,6 +1359,23 @@ killall gpg-agent
 (use-package ivy-hydra
   :after (hydra)
   :demand t)
+#+END_SRC
+
+**** Pretty Hydra
+
+#+BEGIN_SRC emacs-lisp
+(use-package major-mode-hydra
+  :bind
+  ("C-M-m" . major-mode-hydra)
+  :config
+  (setq major-mode-hydra-title-generator
+      '(lambda (mode)
+         (s-concat "\n"
+                   (s-repeat 10 " ")
+                   (all-the-icons-icon-for-mode mode :v-adjust 0.05)
+                   " "
+                   (symbol-name mode)
+                   " commands"))))
 #+END_SRC
 
 *** Which Key
@@ -1590,8 +1614,7 @@ Because I've purchased a license and run macOS locally, I'm going to bypass that
   (interactive)
   (let* ((protocol "dash-plugin://")
          (keywords (if dash-plugin-keywords
-                       (mapconcat 'identity dash-plugin-keywords ",")
-                     ""))
+                       (mapconcat 'identity dash-plugin-keywords ",") ""))
          (search-string
           (if (use-region-p)
               (buffer-substring-no-properties
@@ -1614,7 +1637,10 @@ Because I've purchased a license and run macOS locally, I'm going to bypass that
 #+BEGIN_SRC emacs-lisp
 (use-package reveal-in-osx-finder
   :if (eq system-type 'darwin)
-  :commands (reveal-in-osx-finder))
+  :commands (reveal-in-osx-finder)
+  :bind
+  (:map macos-open-with-command-map
+        ("f" . reveal-in-osx-finder)))
 #+END_SRC
 
 **** OSX Dictionary
@@ -1678,13 +1704,13 @@ Provides an interface to /Dictionary.app/ in Emacs. I am using this package in c
 #+NAME: macos-counsel-osx-app
 #+BEGIN_SRC emacs-lisp
 (use-package counsel-osx-app
+  :if (eq system-type 'darwin)
   :demand t
   :preface
   (defun wk-osx-app-icon ()
     `(,(concat
         (propertize " " 'display '(raise -0.20))
         "Apps")))
-  :if (eq system-type 'darwin)
   :custom
   (counsel-osx-app-location '("/Applications" "/Applications/Setapp"))
   :after (ivy)
@@ -1770,6 +1796,7 @@ This might come back to bite me one day but I never use them.
 #+END_SRC
 
 *** Autosave
+
 #+BEGIN_SRC emacs-lisp
 (setq auto-save-default nil)
 (setq auto-save-no-message t)
@@ -1819,7 +1846,7 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 #+NAME: buffer/revert
 #+BEGIN_SRC emacs-lisp
 (use-package autorevert
-  :straight nil
+  :straight (autorevert :type built-in)
   :init
   (global-auto-revert-mode t))
 #+END_SRC
@@ -2375,7 +2402,7 @@ whistles, it makes up for in compatibility and hackability [fn:7].
 #+BEGIN_SRC emacs-lisp
 (use-package dired
   :demand t
-  :straight nil
+  :straight (dired :type built-in)
   :custom
   ;; When split frames with two dired buffers,
   ;; use other buffer as the current directory.
@@ -2774,63 +2801,6 @@ windows. Additionally, modify company backends in the local buffer."
   (eshell-directory-change . esh/toggle-shell-completion-based-on-path))
 #+END_SRC
 
-**** Pretty Eshell
-
-From Eric Kaschalk's [[https://github.com/ekaschalk/.spacemacs.d][spacemacs display layer]].
-
-#+NAME: esh/pretty
-#+BEGIN_SRC emacs-lisp
-  (use-package pretty-eshell
-    :straight nil
-    :load-path "etc/local/pretty-eshell"
-    :custom
-    ;; Eshell prompt regexp and string.
-    (eshell-prompt-regexp "λ ")   ; or "└─> "
-    :init
-    (progn
-      (with-eval-after-load 'magit
-	(require 'magit-process)
-	(require 'pretty-eshell)
-	(setq pretty-eshell-header "\n ")
-	(setq pretty-eshell-prompt-string "λ ")
-	;; Directory
-	(pretty-eshell-section
-	 esh-dir
-	 "\xf07c"  ; 
-	 (abbreviate-file-name (eshell/pwd))
-	 '(:foreground "gold" :weight bold :underline t))
-
-	;; Git Branch
-	(pretty-eshell-section
-	 esh-git
-	 "\xe907"  ; 
-	 (magit-get-current-branch)
-	 '(:foreground "pink"))
-
-	;; Python Virtual Environment
-	(pretty-eshell-section
-	 esh-python
-	 "\xe928"  ; 
-	 pyvenv-virtual-env-name)
-
-	;; Time
-	(pretty-eshell-section
-	 esh-clock
-	 "\xf017"  ; 
-	 (format-time-string "%H:%M" (current-time))
-	 '(:foreground "forest green"))
-
-	;; Prompt Number
-	(pretty-eshell-section
-	 esh-num
-	 "\xf0c9"  ; 
-	 (number-to-string pretty-eshell-prompt-num)
-	 '(:foreground "brown"))
-
-	(setq pretty-eshell-funcs
-	      (list esh-dir esh-git esh-python esh-clock esh-num)))))
-#+END_SRC
-
 **** eshell bookmark
 
 #+NAME: esh/bmk
@@ -3114,7 +3084,7 @@ directory local variables."
 
 #+BEGIN_SRC emacs-lisp
 (use-package sh-mode
-  :straight nil
+  :straight (sh-mode :type built-in)
   :custom
   (sh-indentation 2)
   :init
@@ -3171,7 +3141,7 @@ directory local variables."
 #+NAME: help-helpful
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
-    :config
+    :init
     (bind-keys
      :prefix-map helpful-prefix-map
      :prefix "M-m h"
@@ -3180,7 +3150,15 @@ directory local variables."
      ("k" . helpful-key)
      ("C" . helpful-command)
      ("d" . helpful-at-point)
-     ("F" . helpful-function)))
+     ("F" . helpful-function))
+    :config
+    (which-key-add-key-based-replacements
+      "M-m h" " Helfpul"
+      "M-m h f" "describe callable"
+      "M-m h k" "describe key"
+      "M-m h C" "describe command"
+      "M-m h d" "describe at point "
+      "M-m h F" "describe function"))
 
 #+END_SRC
 
@@ -3259,7 +3237,7 @@ different window configurations.
 #+NAME: winner-mode-config
 #+BEGIN_SRC emacs-lisp
   (use-package winner
-    :straight nil
+    :straight (winner :type built-in)
     :init
     (winner-mode 1)
     :hook
@@ -3269,39 +3247,13 @@ different window configurations.
      (org-shiftright-final . windmove-right)))
 #+END_SRC
 
-*** Ace Window
+*** Window Numbering Mode
 
-#+NAME: window/ace
 #+BEGIN_SRC emacs-lisp
-  (use-package ace-window
-    :after avy
-    :demand t
-    :custom-face
-    (aw-leading-char-face
-     ((t (:inverse-video t :inherit avy-lead-face :height 3.0))))
-    :bind
-    ("M-o" . ace-window)
-    :custom
-    (aw-char-position 'top-left)
-    (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-    (aw-background nil)
-    :init
-    (when (custom-facep 'aw-leading-char-face)
-      (set-face-foreground 'aw-leading-char-face (face-background 'default))))
-
-#+END_SRC
-
-*** Persp mode
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package persp-mode
-  :custom
-  (persp-autokill-buffer-on-remove 'kill-weak)
+(use-package window-numbering
   :init
-  (defun persp/enable ()
-    (persp-mode 1))
-  :hook
-  (after-init . persp/enable))
+  (window-numbering-mode 1))
+
 #+END_SRC
 
 *** Poporg
@@ -3309,6 +3261,24 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
 (use-package poporg
   :bind ("C-c \"" . poporg-dwim))
+#+END_SRC
+
+*** Ace Window
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :custom-face
+    (aw-leading-char-face
+     ((t (:inverse-video t :inherit avy-lead-face :height 2.0))))
+    :bind
+    ("M-o" . ace-window)
+    :custom
+    (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+    (aw-background nil)
+    :init
+    (ace-window-display-mode)
+    :config
+    (set-face-foreground 'aw-leading-char-face (face-background 'default)))
 #+END_SRC
 
 *** Golden Ratio
@@ -3361,7 +3331,6 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
 (use-package font-lock+
   :demand t)
-
 #+END_SRC
 
 ***** Italicize font lock keyword face
@@ -3444,7 +3413,7 @@ if not better.
 
 I prefer the default regex matcher, but if you want fuzzy matching as a fallback or replacement checkout this [[https://oremacs.com/2016/01/06/ivy-flx/][article]].
 
-#+NAME: ivy/mode
+#+NAME: core/ivy
 #+BEGIN_SRC emacs-lisp
 (use-package ivy
   :bind (("C-c C-r" . ivy-resume))
@@ -3460,172 +3429,163 @@ I prefer the default regex matcher, but if you want fuzzy matching as a fallback
      (t . ivy--regex-ignore-order)))
   (ivy-use-selectable-prompt nil)
   :config
-  (defun ivy-insert-org-entity ()
-  "Insert an org-entity using ivy."
-  (interactive)
-  (ivy-read "Entity: " (cl-loop for element in (append org-entities org-entities-user)
-				when (not (stringp element))
-				collect
-				(cons
-				 (format "%20s | %20s | %20s | %s"
-					 (cl-first element) ;name
-					 (cl-second element) ; latex
-					 (cl-fourth element) ; html
-					 (cl-seventh element)) ;utf-8
-				 element))
-	    :require-match t
-	    :action '(1
-		      ("u" (lambda (candidate)
-			     (insert (cl-seventh (cdr candidate)))) "utf-8")
-		      ("o" (lambda (candidate)
-			     (insert "\\" (cl-first (cdr candidate)))) "org-entity")
-		      ("l" (lambda (candidate)
-			     (insert (cl-second (cdr candidate)))) "latex")
-		      ("h" (lambda (candidate)
-			     (insert (cl-fourth (cdr candidate)))) "html")
-		      ("a" (lambda (candidate)
-			     (insert (cl-fifth (cdr candidate)))) "ascii")
-		      ("L" (lambda (candidate)
-			     (insert (cl-sixth (cdr candidate))) "Latin-1")))))
-;; * ivy navigation
-(defun ivy-org-jump-to-visible-headline ()
-  "Jump to visible headline in the buffer."
-  (interactive)
-  (org-mark-ring-push)
-  (avy-with avy-goto-line (avy--generic-jump "^\\*+" nil avy-style)))
+  (defvar ivy-recursive-restore-in-progress nil)
+
+  (defun ivy-note-when-inside-recursive-restore (orig-fun &rest args)
+    (let ((ivy-recursive-restore-in-progress t))
+      (apply orig-fun args)))
+
+  (defun ivy-no-read-while-exiting-recursion (orig-fun &rest args)
+    (if ivy-recursive-restore-in-progress
+        (error "Cannot use `ivy-read' while restoring recursive state.")
+      (apply orig-fun args)))
+
+  (advice-add 'ivy-recursive-restore :around
+              #'ivy-note-when-inside-recursive-restore)
+
+  (advice-add 'ivy-read :around #'ivy-no-read-while-exiting-recursion)
+
+  (ivy-set-actions 'ivy-switch-
+                   '(("k" (lambda (x) (kill-buffer x) (ivy--reset-state ivy-last)) "kill")
+                     ("j" ivy--switch-buffer-other-window-action "other")))
+
+  ;; * ivy navigation
+  (defun ivy-org-jump-to-visible-headline ()
+    "Jump to visible headline in the buffer."
+    (interactive)
+    (org-mark-ring-push)
+    (avy-with avy-goto-line (avy--generic-jump "^\\*+" nil avy-style)))
+
+  (defun ivy-jump-to-visible-sentence ()
+    "Jump to visible sentence in the buffer."
+    (interactive)
+    (org-mark-ring-push)
+    (avy-with avy-goto-line (avy--generic-jump (sentence-end) nil avy-style))
+    (forward-sentence))
+
+  (defun ivy-org-jump-to-heading ()
+    "Jump to heading in the current buffer."
+    (interactive)
+    (let ((headlines '()))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward
+	              ;; this matches org headings in elisp too.
+	              "^\\(;; \\)?\\(\\*+\\)\\(?: +\\(.*?\\)\\)?[ 	]*$"  nil t)
+	        (cl-pushnew (list
+		                   (format "%-80s"
+			                         (match-string 0))
+		                   (cons 'position (match-beginning 0)))
+		                  headlines)))
+      (ivy-read "Headline: "
+	              (reverse headlines)
+	              :action (lambda (candidate)
+			                    (org-mark-ring-push)
+			                    (goto-char (cdr (assoc 'position candidate)))
+			                    (outline-show-entry)))))
 
 
-(defun ivy-jump-to-visible-sentence ()
-  "Jump to visible sentence in the buffer."
-  (interactive)
-  (org-mark-ring-push)
-  (avy-with avy-goto-line (avy--generic-jump (sentence-end) nil avy-style))
-  (forward-sentence))
+  (defun ivy-org-jump-to-agenda-heading ()
+    "Jump to a heading in an agenda file."
+    (interactive)
+    (let ((headlines '()))
+      ;; these files should be open already since they are agenda files.
+      (loop for file in (org-agenda-files) do
+	          (with-current-buffer (find-file-noselect file)
+	            (save-excursion
+	              (goto-char (point-min))
+	              (while (re-search-forward org-heading-regexp nil t)
+		              (cl-pushnew (list
+			                         (format "%-80s (%s)"
+				                               (match-string 0)
+				                               (file-name-nondirectory file))
+			                         :file file
+			                         :position (match-beginning 0))
+			                        headlines)))))
+      (ivy-read "Headline: "
+	              (reverse headlines)
+	              :action (lambda (candidate)
+			                    (org-mark-ring-push)
+			                    (find-file (plist-get (cdr candidate) :file))
+			                    (goto-char (plist-get (cdr candidate) :position))
+			                    (outline-show-entry)))))
 
 
-(defun ivy-org-jump-to-heading ()
-  "Jump to heading in the current buffer."
-  (interactive)
-  (let ((headlines '()))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward
-	      ;; this matches org headings in elisp too.
-	      "^\\(;; \\)?\\(\\*+\\)\\(?: +\\(.*?\\)\\)?[ 	]*$"  nil t)
-	(cl-pushnew (list
-		     (format "%-80s"
-			     (match-string 0))
-		     (cons 'position (match-beginning 0)))
-		    headlines)))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(goto-char (cdr (assoc 'position candidate)))
-			(outline-show-entry)))))
-
-
-(defun ivy-org-jump-to-agenda-heading ()
-  "Jump to a heading in an agenda file."
-  (interactive)
-  (let ((headlines '()))
-    ;; these files should be open already since they are agenda files.
-    (loop for file in (org-agenda-files) do
-	  (with-current-buffer (find-file-noselect file)
-	    (save-excursion
-	      (goto-char (point-min))
-	      (while (re-search-forward org-heading-regexp nil t)
-		(cl-pushnew (list
-			     (format "%-80s (%s)"
-				     (match-string 0)
-				     (file-name-nondirectory file))
-			     :file file
-			     :position (match-beginning 0))
-			    headlines)))))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(find-file (plist-get (cdr candidate) :file))
-			(goto-char (plist-get (cdr candidate) :position))
-			(outline-show-entry)))))
-
-
-(defun ivy-org-jump-to-heading-in-files (files &optional fontify)
-  "Jump to org heading in FILES.
+  (defun ivy-org-jump-to-heading-in-files (files &optional fontify)
+    "Jump to org heading in FILES.
 Optional FONTIFY colors the headlines. It might slow things down
 a lot with large numbers of org-files or long org-files. This
 function does not open the files."
-  (let ((headlines '()))
-    (loop for file in files do
-	  (with-temp-buffer
-	    (insert-file-contents file)
-	    (when fontify
-	      (org-mode)
-	      (font-lock-fontify-buffer))
-	    (goto-char (point-min))
-	    (while (re-search-forward org-heading-regexp nil t)
-	      (cl-pushnew (list
-			   (format "%-80s (%s)"
-				   (match-string 0)
-				   (file-name-nondirectory file))
-			   :file file
-			   :position (match-beginning 0))
-			  headlines))))
-    (ivy-read "Headline: "
-	      (reverse headlines)
-	      :action (lambda (candidate)
-			(org-mark-ring-push)
-			(find-file (plist-get (cdr candidate) :file))
-			(goto-char (plist-get (cdr candidate) :position))
-			(outline-show-entry)))))
+    (let ((headlines '()))
+      (loop for file in files do
+	          (with-temp-buffer
+	            (insert-file-contents file)
+	            (when fontify
+	              (org-mode)
+	              (font-lock-fontify-buffer))
+	            (goto-char (point-min))
+	            (while (re-search-forward org-heading-regexp nil t)
+	              (cl-pushnew (list
+			                       (format "%-80s (%s)"
+				                             (match-string 0)
+				                             (file-name-nondirectory file))
+			                       :file file
+			                       :position (match-beginning 0))
+			                      headlines))))
+      (ivy-read "Headline: "
+	              (reverse headlines)
+	              :action (lambda (candidate)
+			                    (org-mark-ring-push)
+			                    (find-file (plist-get (cdr candidate) :file))
+			                    (goto-char (plist-get (cdr candidate) :position))
+			                    (outline-show-entry)))))
 
 
-(defun ivy-org-jump-to-heading-in-directory (&optional recursive)
-  "Jump to heading in an org file in the current directory.
+  (defun ivy-org-jump-to-heading-in-directory (&optional recursive)
+    "Jump to heading in an org file in the current directory.
 Use a prefix arg to make it RECURSIVE.
 Use a double prefix to make it recursive and fontified."
-  (interactive "P")
-  (let ((fontify nil))
-    (when (equal recursive '(16))
-      (setq fontify t))
-    (ivy-org-jump-to-heading-in-files
-     (f-entries "."
-		(lambda (f)
-		  (and
-		   (f-ext? f "org")
-		   (not (s-contains? "#" f))))
-		recursive)
-     fontify)))
+    (interactive "P")
+    (let ((fontify nil))
+      (when (equal recursive '(16))
+        (setq fontify t))
+      (ivy-org-jump-to-heading-in-files
+       (f-entries "."
+		              (lambda (f)
+		                (and
+		                 (f-ext? f "org")
+		                 (not (s-contains? "#" f))))
+		              recursive)
+       fontify)))
 
 
-(defun ivy-org-jump-to-project-headline (&optional fontify)
-  "Jump to a headline in an org-file in the current project.
+  (defun ivy-org-jump-to-project-headline (&optional fontify)
+    "Jump to a headline in an org-file in the current project.
 The project is defined by projectile. Use a prefix arg FONTIFY
 for colored headlines."
-  (interactive "P")
-  (ivy-org-jump-to-heading-in-files
-   (mapcar
-    (lambda (f) (expand-file-name f (projectile-project-root)))
-    (-filter (lambda (f)
-	       (and
-		(f-ext? f "org")
-		(not (s-contains? "#" f))))
-	     (projectile-current-project-files)))
-   fontify))
+    (interactive "P")
+    (ivy-org-jump-to-heading-in-files
+     (mapcar
+      (lambda (f) (expand-file-name f (projectile-project-root)))
+      (-filter (lambda (f)
+	               (and
+		              (f-ext? f "org")
+		              (not (s-contains? "#" f))))
+	             (projectile-current-project-files)))
+     fontify))
 
 
-(defun ivy-org-jump-to-open-headline (&optional fontify)
-  "Jump to a headline in an open org-file.
+  (defun ivy-org-jump-to-open-headline (&optional fontify)
+    "Jump to a headline in an open org-file.
 Use a prefix arg FONTIFY for colored headlines."
-  (interactive "P")
-  (ivy-org-jump-to-heading-in-files
-   (mapcar 'buffer-file-name
-	   (-filter (lambda (b)
-		      (-when-let (f (buffer-file-name b))
-			(f-ext? f "org")))
-		    (buffer-list)))
-   fontify)))
+    (interactive "P")
+    (ivy-org-jump-to-heading-in-files
+     (mapcar 'buffer-file-name
+	           (-filter (lambda (b)
+		                    (-when-let (f (buffer-file-name b))
+			                    (f-ext? f "org")))
+		                  (buffer-list)))
+     fontify)))
 #+END_SRC
 
 **** Ivy rtags
@@ -3646,7 +3606,7 @@ Use a prefix arg FONTIFY for colored headlines."
 #+NAME: ivy/xref
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-xref
-    :init
+  :init
   (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 #+END_SRC
 
@@ -3668,8 +3628,12 @@ Use a prefix arg FONTIFY for colored headlines."
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-rich
   :after ivy
+
+  :custom
+  (ivy-rich-switch-buffer-align-virtual-buffer t)
+  (ivy-format-function #'ivy-format-function-line)
   :init
-  (defun ivy-rich-switch-buffer-icon (candidate)
+(defun ivy-rich-switch-buffer-icon (candidate)
     "Use `all-the-icons' icons in buffer list."
     (with-current-buffer
 	      (get-buffer candidate)
@@ -3677,8 +3641,7 @@ Use a prefix arg FONTIFY for colored headlines."
 	      (if (symbolp icon)
 	          (all-the-icons-icon-for-mode 'fundamental-mode)
 	        icon))))
-  :init
-  (setq ivy-format-function #'ivy-format-function-line)
+
 
   (setq ivy-rich-display-transformers-list
    '(ivy-switch-buffer
@@ -3760,7 +3723,7 @@ END:
 *** Counsel
 **** counsel mode
 
-#+NAME: counsel/mode
+#+NAME: core/counsel
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
     :bind (("<f1> l" . counsel-find-library)
@@ -3769,16 +3732,18 @@ END:
            ("C-c G" . counsel-git-grep)
            ("C-c k" . counsel-ag)
            ("C-x l" . counsel-locate)
+           ("C-x C-b" . counsel-ibuffer)
            ([remap insert-char] . counsel-unicode-char)
            (:map minibuffer-local-map
                  ("C-r" . counsel-minibuffer-history))
+           (:map prog-mode-map
+                 ("C-c C-j" . counsel-imenu))
            (:map org-mode-map
                  ("C-c C-j" . counsel-org-goto)
                  ("C-c M-t" . counsel-org-tag)
                  ("C-c f"   . counsel-org-file)))
     :init
     (counsel-mode +1)
-
     :config
     (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
     (setq counsel-mode-override-describe-bindings t)
@@ -3786,7 +3751,7 @@ END:
 
 #+END_SRC
 
-**** counsel Projectile
+**** Counsel Projectile
 
 [[https://github.com/ericdanan/counsel-projectile][Counsel Projectile]] provides a project management interface via ivy and
 friends.
@@ -3796,9 +3761,17 @@ friends.
 (use-package counsel-projectile
     :after (:all projectile counsel)
     :demand t
+    :custom
+    (counsel-projectile-org-capture-templates
+     '(("t" "[${name}] Task" entry
+        (file+headline "${root}/${name}.org" "Tasks")
+        "* ☛ TODO %?\n  %u\n  %a")
+       ("n" "[${name}] Note" entry
+        (file+headline "${root}/notes.org" "Notes")
+        "* ☛ %a %?\n  %u\n")))
     :init
     (counsel-projectile-mode t)
-    ;; Use Dired
+    ;; ppUse Dired
     (setcar counsel-projectile-switch-project-action 4))
 #+END_SRC
 
@@ -3900,15 +3873,26 @@ documentation browser.
   :after (counsel))
 #+END_SRC
 
+**** counsel org clock
+
+#+BEGIN_SRC emacs-lisp
+(use-package counsel-org-clock
+  :straight (:host github
+                   :repo "akirak/counsel-org-clock")
+  :after (:all org ivy)
+  :demand t)
+#+END_SRC
+
 *** Swiper
 
-#+NAME: mb-swiper
+#+NAME: core/swiper
 #+BEGIN_SRC emacs-lisp
 (use-package swiper
     :custom
     (enable-recursive-minibuffers t)
+    (swiper-stay-on-quit t)
     :bind
-    ("\C-s" . swiper)
+    ("\C-s" . counsel-grep-or-swiper)
     :config
     (if (eq system-type 'darwin)
         (global-set-key (kbd "s-f") 'swiper)))
@@ -3933,7 +3917,7 @@ documentation browser.
 
 #+BEGIN_SRC emacs-lisp
 (use-package abbrev
-  :straight nil
+  :straight (abbrev :type built-in)
   :custom
   (abbrev-file-name (emacs-etc-dir "abbrev/defs.el")))
 #+END_SRC
@@ -4246,6 +4230,7 @@ any reason for me reconsider my choice.
   :after (:all ivy bibtex)
   :demand t
   :custom
+  (bibtex-completion-additional-search-fields '(tags))
   (bibtex-completion-bibliography
    `(,(org-dir "ref/references.bib")
      ,(dropbox-dir "courses/comsci131/comsci131.bib")
@@ -4260,9 +4245,9 @@ any reason for me reconsider my choice.
      ,(dropbox-dir "courses/ling165c/materials/pdfs")))
   (bibtex-completion-notes-path (org-dir "ref/notes.org"))
   :config
-(setq bibtex-completion-pdf-open-function
-      (lambda (fpath)
-        (start-process "open" "*open*" "open" fpath)))
+  (setq bibtex-completion-pdf-open-function
+        (lambda (fpath)
+          (start-process "open" "*open*" "open" fpath)))
   (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
 #+END_SRC
 
@@ -4276,10 +4261,9 @@ any reason for me reconsider my choice.
 Artist mode is a built-in Emacs package.
 
 #+BEGIN_SRC emacs-lisp
-(use-package artist-mode
-  :straight nil
-  :bind ((:map artist-mode-map
-               ("C-c C-a p" . artist-select-op-pen-line))))
+(use-package artist
+  :bind (:map artist-mode-map
+               ("C-c C-a p" . artist-select-op-pen-line)))
 #+END_SRC
 
 *** UML Diagrams
@@ -4414,7 +4398,7 @@ school's WLAN.
   (require 'emms-source-playlist)
   (require 'emms-browser)
   ;; add flv and ogv
-  (define-emms-sim ple-player mplayer '(file url)
+  (define-emms-simple-player mplayer '(file url)
     (regexp-opt '(".ogg" ".mp3" ".mp4" ".wav" ".mpg"
                   ".mpeg" ".wmv" ".wma" ".mov" ".avi"
                   ".divx" ".ogm" ".asf" ".mkv" "http://"
@@ -4442,22 +4426,20 @@ school's WLAN.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-player
-  :straight nil
-  :after (bongo)
-  :load-path "etc/local/org-player")
+  :straight (org-player :local-repo "~/.emacs.d/etc/local/org-player")
+  :after (bongo))
 #+END_SRC
 
 * Org
 :PROPERTIES:
 :ID:       C2106106-C5F8-4B9B-815D-058678CB9242
 :END:
-** Org LaTeX
-*** Latex
+** Latex
 :PROPERTIES:
 :ID:       C2BC6BE6-0295-4540-8E6F-9C8620FCBE0B
 :CUSTOM_ID: sec:latex
 :END:
-**** Auctex
+*** Auctex
 
 #+BEGIN_SRC emacs-lisp
 (use-package auctex
@@ -4465,7 +4447,7 @@ school's WLAN.
               ("M-s l" . TeX-engine-set)))
 #+END_SRC
 
-***** company auctex
+**** company auctex
 :PROPERTIES:
 :ID:       EF3C7FFE-2A5E-4DF9-A2E6-FC0FBC9E8F9D
 :END:
@@ -4479,7 +4461,7 @@ school's WLAN.
   (company-auctex-init))
 #+END_SRC
 
-***** auctex latexmk
+**** auctex latexmk
 :PROPERTIES:
 :ID:       68110AC8-A864-46E1-B4CC-C3297F78C7B4
 :END:
@@ -4494,7 +4476,7 @@ school's WLAN.
   (auctex-latexmk-setup))
 #+END_SRC
 
-**** Tex
+*** Tex
 
 #+NAME: latex-tex
 #+BEGIN_SRC emacs-lisp
@@ -4552,7 +4534,7 @@ This requires the pdf-tools package to be installed."
 
 #+END_SRC
 
-***** Tex commands
+**** Tex commands
 
 Credits to @jkitchin and scimax.
 
@@ -4676,7 +4658,7 @@ Latex style path: [[${sty-path}]]
   (goto-char (point-min)))
 #+END_SRC
 
-**** TeX Site
+*** TeX Site
 
 #+BEGIN_SRC emacs-lisp
 (use-package tex-site
@@ -4684,12 +4666,12 @@ Latex style path: [[${sty-path}]]
 
 #+END_SRC
 
-**** Math
+*** Math
 :PROPERTIES:
 :ID:       1DCF30B4-5549-4415-B588-FE9C5056F0A3
 :END:
 
-***** Company Math
+**** Company Math
 
 #+NAME: latex-math-completion
 #+BEGIN_SRC emacs-lisp
@@ -4700,7 +4682,7 @@ Latex style path: [[${sty-path}]]
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 #+END_SRC
 
-***** Math Symbols
+**** Math Symbols
 
 Entered on [2018-06-13 Wed 11:42]
 
@@ -4790,13 +4772,13 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+END_SRC
 
-***** Unicode math input
+**** Unicode math input
 
 #+BEGIN_SRC emacs-lisp
 (use-package unicode-math-input)
 #+END_SRC
 
-**** Extra
+*** Extra
 
 #+BEGIN_SRC emacs-lisp
 (use-package latex-extra
@@ -4827,7 +4809,7 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+END_SRC
 
-**** Reftex
+*** Reftex
 
 
 RefTeX is a citation and reference tool maintained by the
@@ -4838,20 +4820,19 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 #+NAME: latex-reftex
 #+BEGIN_SRC emacs-lisp
 (use-package reftex
-    :straight nil
-    :init
-    (defun reftex/setup ()
-      (turn-on-reftex)
-      (setq reftex-plug-into-AUCTeX
-            '(nil nil t t t)
-            reftex-use-fonts t
-            reftex-default-bibliography
-            `(,(org-dir "ref/references.bib"))))
-    :hook
-    (LaTeX-mode . reftex/setup))
+  :init
+  (defun reftex/setup ()
+    (turn-on-reftex)
+    (setq reftex-plug-into-AUCTeX
+          '(nil nil t t t)
+          reftex-use-fonts t
+          reftex-default-bibliography
+          `(,(org-dir "ref/references.bib"))))
+  :hook
+  (LaTeX-mode . reftex/setup))
 #+END_SRC
 
-***** Company Reftex
+**** Company Reftex
 :PROPERTIES:
 :ID:       7E380FB6-09B2-4E73-87D1-5515402B58D1
 :END:
@@ -4863,7 +4844,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
   :after (:all company reftex))
 #+END_SRC
 
-**** Magic Latex Buffer
+*** Magic Latex Buffer
 
 Prettify dedicated org-mode latex buffers.
 
@@ -4880,7 +4861,7 @@ Prettify dedicated org-mode latex buffers.
       (LaTeX-mode . magic-latex-buffer))
 #+END_SRC
 
-**** Texinfo
+*** Texinfo
 
 #+NAME: latex-texinfo
 #+BEGIN_SRC emacs-lisp
@@ -5239,11 +5220,13 @@ Generate latex fragments based on the latex compiler and class in the current bu
 (use-package org-edit-latex)
 #+END_SRC
 
-*** BibTeX
+** Research
+*** Citations
+
+**** BibTeX
 
 #+BEGIN_SRC emacs-lisp
 (use-package bibtex
-  :straight nil
   :custom
   (bibtex-BibTeX-entry-alist
    '(("Article" "Article in Journal"
@@ -5483,7 +5466,16 @@ entry types and required fields."
 
 #+END_SRC
 
-*** Org Ref
+**** Google Scholar
+
+#+BEGIN_SRC emacs-lisp
+(use-package gscholar-bibtex
+  :init
+  (with-eval-after-load 'reftex
+    (setq gscholar-bibtex-database-file (car reftex-default-bibliography))))
+#+END_SRC
+
+**** Org Ref
 :PROPERTIES:
 :ID:       1038C1B0-F5E1-4246-A360-B29BFBA82AC2
 :END:
@@ -5570,6 +5562,11 @@ entry types and required fields."
         (message "No PDF found for %s" key))))
 
   (setq org-ref-open-pdf-function 'org-ref-open-pdf-at-point))
+#+END_SRC
+
+**** Ebib
+#+BEGIN_SRC emacs-lisp
+(use-package ebib)
 #+END_SRC
 
 *** PDFs
@@ -5759,16 +5756,18 @@ Embed YouTube Links in =iframe=.
     ((eq format 'latex)
      (format "\\%s{%s}" path desc)))))
 
+(org-add-link-type
+ "latex-opt" nil
+ (lambda (path desc format)
+   (when (eq format 'latex)
+     (let* ((desc-list (split-string desc ";"))
+            (opt (nth 1 desc-list))
+            (arg (nth 0 desc-list)))
+       (format "\\%s%s{%s}" path
+               (if (equal "" opt) opt (format "[%s]" opt))
+               arg)))))
 ;; See https://lists.gnu.org/archive/html/emacs-orgmode/2014-08/msg00982.html
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
-#+END_SRC
-
-**** Devonthink
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-devonthink
-  :straight nil
-  :load-path "etc/local/org-devonthink")
 #+END_SRC
 
 **** Org Bookmark Heading
@@ -6021,18 +6020,6 @@ is positive, move after, and if negative, move before."
     "Template for org-contacts.")
   :init
   (with-eval-after-load ' org-capture
-
-    (defadvice org-capture (before org-capture-before activate)
-      (remove-hook 'org-mode-hook 'org-pretty-tags-mode))
-
-    (defun org-capture-restore-tag-overlays ()
-      "Restore `org-pretty-tags-surrogate-strings'."
-      (dolist (buf (org-buffer-list))
-        (with-current-buffer buf
-          (org-pretty-tags-mode 1)))
-
-      (add-hook 'org-mode-hook 'org-pretty-tags-mode))
-
     (setq org-capture-templates
           `(("l" "Protocol Link" entry
              (file+headline ,org-default-notes-file "Inbox")
@@ -6041,11 +6028,12 @@ is positive, move after, and if negative, move before."
              "* TODO %?\n  %i\n  %a")
             ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
              "* %?\nEntered on %U\n  %i\n  %a")
-            ("c" "Contact" entry (file+headline "contacts.org")
+            ("c" "Contact" entry (file "contacts.org")
              ,org-contacts-template
              :empty-lines 1))))
-  :hook
-  (org-capture-after-finalize . org-capture-restore-tag-overlays))
+  :config
+  (when (functionp 'org-pretty-tags-inhibit-overlays)
+    (advice-add 'org-capture :around #'org-pretty-tags-inhibit-overlays)))
 #+END_SRC
 
 **** Alfred capture
@@ -6220,12 +6208,10 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (org-sidebar
    :host github
    :repo "alphapapa/org-sidebar")
-
   :init
   (require 'org-ql)
   (require 'dash-functional)
   (require 'org-sidebar)
-
   :config
   (cl-defmacro course-sidebar (name description)
     `(progn
@@ -6246,13 +6232,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
        (defun ,(intern (concat name "-sidebar")) ()
          (interactive)
          (funcall ',(intern (concat name "/sidebar"))))))
-
   (defvar org-course-courses
     '(("comsci161" . "Intro to A.I.")
       ("comsci131" . "Programming Languages")
       ("ling165c"  . "Semantics II")
       ("ling102"   . "Phonetics")))
-
     (cl-loop for (course . description) in org-course-courses do
            (eval `(course-sidebar ,course ,description))))
 #+END_SRC
@@ -6467,6 +6451,7 @@ the result as a time value."
 #+END_SRC
 
 *** Clock
+
 **** Pomodoro
 :PROPERTIES:
 :ID:       3600535E-2C20-4E33-8572-E933319E87B3
@@ -6505,17 +6490,6 @@ the result as a time value."
         (org-pomodoro-path "Complete.wav")))
 #+END_SRC
 
-**** counsel org clock
-
-#+NAME: org-taskmgr-coclock
-#+BEGIN_SRC emacs-lisp
-(use-package counsel-org-clock
-  :straight (:host github
-                   :repo "akirak/counsel-org-clock")
-  :after (:all org ivy)
-  :demand t)
-#+END_SRC
-
 **** org mru clock
 
 The [[https://github.com/unhammer/org-mru-clock][org-mru-clock]] package prefills clock history with clocks from
@@ -6541,6 +6515,20 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 #+BEGIN_SRC emacs-lisp
 (use-package org-clock-convenience)
 #+END_SRC
+
+**** Org Clock
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-clock
+  :straight org-plus-contrib
+  :custom
+  (org-clock-persist t)
+  :init
+  (org-clock-persistence-insinuate))
+
+#+END_SRC
+
+***
 
 *** Org Brain
 
@@ -6748,7 +6736,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+BEGIN_SRC emacs-lisp
 (defun org-set-ellipsis ()
       (and (featurep 'all-the-icons)
-           (setq org-ellpsis "")))
+           (setq-default org-ellpsis "")))
 
 (add-hook 'org-mode-hook #'org-set-ellipsis)
 #+END_SRC
@@ -6850,7 +6838,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 :CUSTOM_ID: sec:ox
 :END:
 *** Ox
-
+#+NAME: core/ox
 #+BEGIN_SRC emacs-lisp
 (use-package ox
   :straight org-plus-contrib
@@ -7003,7 +6991,7 @@ and subtrees of the ignored headlines will be retained.
   ;; minted
   (defcustom org-latex-minted-from-org-p nil
     "If non-nil, then included minted in `org-latex-packages-alist'
-and get options from `org-latex-minted-options'."
+  and get options from `org-latex-minted-options'."
     :type 'boolean
     :group 'org-export-latex
     :version "26.1"
@@ -7014,29 +7002,32 @@ and get options from `org-latex-minted-options'."
     (interactive)
     (cl-flet ((nominted (pkg) (not (string= (cadr pkg) "minted"))))
       (if (not org-latex-minted-from-org-p)
-          (setq org-latex-packages-alist
-                (append org-latex-packages-alist '(("newfloat" "minted"))))
-        (setq org-latex-packages-alist (seq-filter #'nominted org-latex-packages-alist)))
+	  (setq org-latex-packages-alist
+		(append org-latex-packages-alist '(("newfloat" "minted"))))
+	(setq org-latex-packages-alist (seq-filter #'nominted org-latex-packages-alist)))
       (setq org-latex-minted-from-org-p (not org-latex-minted-from-org-p))
       (message "org minted %s" (if org-latex-minted-from-org-p
-                                   "enabled" "disabled"))))
+				   "enabled" "disabled"))))
   ;; Latex process
-  (setq oxl-process-pdflatex
-        '("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+  (setq oxl-process-bibtex
+	'("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+
+  (setq oxl-process-biber
+	'("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -biber -f %f"))
 
   (setq oxl-process-xelatex
-        '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
+	'("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
 
   (setq oxl-process-lualatex
-        '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
+	'("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
 
   (defcustom org-latex-pdf-engines
     '(("lualatex" . oxl-process-lualatex)
       ("xelatex" . oxl-process-xelatex)
-      ("pdflatex" . oxl-process-pdflatex))
+      ("pdflatex" . (oxl-process-bibtex oxl-process-biber)))
     "A list of LaTeX commands available to run when
-`org-latex-export-to-pdf' is invoked."
-    :type '(cons string symbol)
+  `org-latex-export-to-pdf' is invoked."
+    :type '(choice (cons string symbol) (cons string (repeat symbol)))
     :group 'org-export-latex
     :version "26.1")
 
@@ -7047,10 +7038,13 @@ and get options from `org-latex-minted-options'."
     (interactive
      (list (completing-read "Compiler: " org-latex-pdf-engines)))
     (if (member compiler org-latex-compilers)
-        (let ((process (symbol-value (cdr (assoc compiler org-latex-pdf-engines)))))
-          (setq org-latex-pdf-process process
-                org-latex-compiler compiler)
-          (run-hooks org-latex-pdf-process-hook))
+	(let ((process (cdr (assoc compiler org-latex-pdf-engines))))
+	  (setq org-latex-pdf-process (symbol-value
+				       (if (listp process)
+					   (intern (completing-read "Process:" process))
+					 process))
+		org-latex-compiler compiler)
+	  (run-hooks org-latex-pdf-process-hook))
       (error "%s not in `org-latex-compilers'" compiler)))
 
   :config
@@ -7058,74 +7052,75 @@ and get options from `org-latex-minted-options'."
     (org-latex-pdf-process-set org-latex-compiler))
   ;; From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
   (setq org-latex-classes
-        '(("article-standalone"
-	         "\\documentclass{article}
-          [NO-DEFAULT-PACKAGES]
-          [PACKAGES]
-          [EXTRA]" ;; header-string
-	         ("\\section{%s}" . "\\section*{%s}")
-	         ("\\subsection{%s}" . "\\subsection*a{%s}")
-	         ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	         ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	         ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("uclaling"
-           "\\documentclass{uclaling}
-           [NO-DEFAULT-PACKAGES]
-           [EXTRA]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("uclacs"
-           "\\documentclass{uclacs}
-          [NO-DEFAULT-PACKAGES]
-          [EXTRA]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("humanities"
-           "\\documentclass{humanities}
-          [NO-DEFAULT-PACKAGES]
-          [EXTRA]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-          ("unicode-math"
-           "\\documentclass{article}
-         [PACKAGES]
-         [NO-DEFAULT-PACKAGES]
-         [EXTRA]
-         \\usepackage{fontspec}
-         \\usepackage{amsmath}
-         \\usepackage{xltxtra}
-         \\usepackage{unicode-math}
-         \\setmathfont{STIX2Math}[
-           Path/Users/jacobchaffin/Library/Fonts/,
-           Extension={.otf},
-           Scale=1]
-         \\setmainfont{STIX2Text}[
-           Path/Users/jacobchaffin/Library/Fonts/,
-           Extension={.otf},
-           UprightFont={*-Regular},
-           BoldFont={*-Bold},
-           ItalicFont={*-Italic},
-           BoldItalicFont={*-BoldItalic}]"
-           ("\\section{%s}" . "\\section*{%s}")
-           ("\\subsection{%s}" . "\\subsection*{%s}")
-           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-           ("\\paragraph{%s}" . "\\paragraph*{%s}")
-           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+	'(("article-standalone"
+		 "\\documentclass{article}
+	    [NO-DEFAULT-PACKAGES]
+	    [PACKAGES]
+	    [EXTRA]" ;; header-string
+		 ("\\section{%s}" . "\\section*{%s}")
+		 ("\\subsection{%s}" . "\\subsection*a{%s}")
+		 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+		 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("uclaling"
+	   "\\documentclass{uclaling}
+	     [NO-DEFAULT-PACKAGES]
+	     [EXTRA]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("uclacs"
+	   "\\documentclass{uclacs}
+	    [NO-DEFAULT-PACKAGES]
+	    [EXTRA]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("humanities"
+	   "\\documentclass{humanities}
+	    [NO-DEFAULT-PACKAGES]
+	    [EXTRA]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	  ("unicode-math"
+	   "\\documentclass{article}
+	   [PACKAGES]
+	   [NO-DEFAULT-PACKAGES]
+	   [EXTRA]
+	   \\usepackage{fontspec}
+	   \\usepackage{amsmath}
+	   \\usepackage{xltxtra}
+	   \\usepackage{unicode-math}
+	   \\setmathfont{STIX2Math}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     Scale=1]
+	   \\setmainfont{STIX2Text}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     UprightFont={*-Regular},
+	     BoldFont={*-Bold},
+	     ItalicFont={*-Italic},
+	     BoldItalicFont={*-BoldItalic}]"
+	   ("\\section{%s}" . "\\section*{%s}")
+	   ("\\subsection{%s}" . "\\subsection*{%s}")
+	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
   :bind
   (:map org-mode-map
-        ("M-s l" . org-latex-pdf-process-set)))
+	("M-s l" . org-latex-pdf-process-set)))
+
 #+END_SRC
 
-*** Ox Latex subfigure
+**** Ox Latex subfigure
 
 #+NAME: oxl/subfigure
 #+BEGIN_SRC emacs-lisp
@@ -7141,7 +7136,30 @@ and get options from `org-latex-minted-options'."
 
 #+END_SRC
 
-*** Ox Linguistics
+**** Ox tufte
+#+BEGIN_SRC emacs-lisp
+(use-package ox-tufte-latex
+  :straight (ox-tufte-latex :type git
+                            :host github
+                            :repo "tsdye/tufte-org-mode"
+                            :local-repo "ox-tufte-latex"
+                            :files (:defaults "ox-tufte-latex.el"))
+  :after (ox)
+  :init
+  (append org-latex-classes
+          '(("tufte-handout"
+             "\\documentclass[twoside,nobib]{tufte-handout}
+             [NO-DEFAULT-PACKAGES]"
+             ("\\section{%s}" . "\\section*{%s}")
+             ("\\subsection{%s}" . "\\subsection*{%s}"))
+            '("tufte-handout"
+              "\\documentclass[twoside,nobib]{tufte-handout}
+              [NO-DEFAULT-PACKAGES]"
+              ("\\section{%s}" . "\\section*{%s}")
+              ("\\subsection{%s}" . "\\subsection*{%s}")))))
+#+END_SRC
+
+**** Ox Linguistics
 
 #+BEGIN_SRC emacs-lisp
 (use-package ox-linguistics
@@ -7175,7 +7193,7 @@ for exporting org-mode documents to various formats.
   :config
   (defun ox-pandoc--pdf-engine ()
     "Set the default latex pdf engine to the one set by `org-latex-pdf-process'. "
-    (let ((syms (mapcar (lambda (x) (cdr x)) org-latex-pdf-engines))
+    (let ((syms (mapcar (lambda (x) (if (listp x) (if (listp (cdr x)) (cadr x) (cdr x)))) org-latex-pdf-engines))
           (pred (lambda (sym) (eq (symbol-value sym) org-latex-pdf-process)))
           (prefix "oxl-process-"))
       (cadr (split-string (symbol-name (car (seq-filter pred syms))) prefix))))
@@ -7274,7 +7292,7 @@ Neil Smithline posted this snippet to let you browse org files with
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
-  :straight nil
+  :straight (ibuffer :type built-in)
   :init
   (defun org-ibuffer ()
     "Open an `ibuffer' window showing only `org-mode' buffers."
@@ -7293,8 +7311,8 @@ Neil Smithline posted this snippet to let you browse org files with
     (setq org-protocol-default-template-key "l")
     (require 'server)
     (unless (server-running-p)
-      (setq server-socket-dir (format "/tmp/emacs%d" (user-uid))))
-    (server-start))
+      (setq server-socket-dir (format "/tmp/emacs%d" (user-uid)))
+      (server-start)))
 #+END_SRC
 
 *** Org Contacts
@@ -7597,10 +7615,9 @@ theme in \"quick mode\" by eliding hooks specified in
 
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-keybinding-command-tooltip-mode
-  :straight nil
-  :load-path "etc/local/emacs-keybinding-command-tooltip-mode"
-  :demand t
-  :config
+  :straight (emacs-keybinding-command-tooltip-mode
+             :local-repo "~/.emacs.d/etc/local/emacs-keybinding-command-tooltip-mode")
+  :init
   (emacs-keybinding-command-tooltip-mode 1))
 #+END_SRC
 
@@ -7678,7 +7695,7 @@ Minor mode to highlight sexp.
 
 **** Highlight Symbol
 
-#+NAME: hl-highlight-symbol
+#+NAME: core/highlight-symbol
 #+BEGIN_SRC emacs-lisp
 (use-package highlight-symbol)
 #+END_SRC
@@ -7711,6 +7728,7 @@ Minor mode to highlight sexp.
 (use-package visual-indentation-mode)
 #+END_SRC
 
+** Pretty
 *** Pretty Mode
 :PROPERTIES:
 :ID:       096E820A-240F-4A31-8B93-E72B821FF8CF
@@ -7757,14 +7775,70 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-*** Pretty Fonts
+*** Pretty Emacs
+**** Pretty Eshell
+
+#+NAME: esh/pretty
+#+BEGIN_SRC emacs-lisp
+(use-package pretty-eshell
+  :straight (pretty-eshell
+             :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+             :files ("pretty-eshell.el"))
+  :custom
+    ;; Eshell prompt regexp and string.
+    (eshell-prompt-regexp "λ ")   ; or "└─> "
+    :init
+    (progn
+      (with-eval-after-load 'magit
+	(require 'magit-process)
+	(require 'pretty-eshell)
+	(setq pretty-eshell-header "\n ")
+	(setq pretty-eshell-prompt-string "λ ")
+	;; Directory
+	(pretty-eshell-section
+	 esh-dir
+	 "\xf07c"  ; 
+	 (abbreviate-file-name (eshell/pwd))
+	 '(:foreground "gold" :weight bold :underline t))
+
+	;; Git Branch
+	(pretty-eshell-section
+	 esh-git
+	 "\xe907"  ; 
+	 (magit-get-current-branch)
+	 '(:foreground "pink"))
+
+	;; Python Virtual Environment
+	(pretty-eshell-section
+	 esh-python
+	 "\xe928"  ; 
+	 pyvenv-virtual-env-name)
+
+	;; Time
+	(pretty-eshell-section
+	 esh-clock
+	 "\xf017"  ; 
+	 (format-time-string "%H:%M" (current-time))
+	 '(:foreground "forest green"))
+
+	;; Prompt Number
+	(pretty-eshell-section
+	 esh-num
+	 "\xf0c9"  ; 
+	 (number-to-string pretty-eshell-prompt-num)
+	 '(:foreground "brown"))
+
+	(setq pretty-eshell-funcs
+	      (list esh-dir esh-git esh-python esh-clock esh-num)))))
+#+END_SRC
+
+**** Pretty Fonts
 
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-fonts
-  :load-path "etc/local/pretty-fonts"
-  :straight nil
+  :straight (pretty-fonts :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+                          :files ("pretty-fonts.el"))
   :init
-
   (defun pretty-fonts-before-theme ()
     (set-face-font
      'default "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
@@ -7803,13 +7877,13 @@ the absence of a window system. I'll check for the latter for now.
 
 #+END_SRC
 
-*** Pretty Code
+**** Pretty Code
 
 #+BEGIN_SRC emacs-lisp
-
 (use-package pretty-code
-  :load-path "etc/local/pretty-code"
-  :straight nil
+  :straight
+  (pretty-code :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+               :files ("pretty-code.el"))
   :init
   (require 'pretty-code)
   (pretty-code-add-hook 'emacs-lisp-mode-hook '((:def "defun")))
@@ -7822,10 +7896,10 @@ the absence of a window system. I'll check for the latter for now.
 *** Pretty Outlines
 
 #+BEGIN_SRC emacs-lisp :tangle no
-
 (use-package pretty-outlines
-  :straight nil
-  :load-path "etc/local/pretty-outlines"
+  :straight  (pretty-outlines
+              :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+               :files ("pretty-outlines.el"))
   :custom
   (pretty-outlines-ellipsis ""))
 #+END_SRC
@@ -8025,9 +8099,7 @@ bullets as UTF-8 characters.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-pretty-tags
-  :straight (org-pretty-tags
-             :host gitlab
-             :repo "marcowahl/org-pretty-tags")
+  :straight (org-pretty-tags :type git :host gitlab :repo "marcowahl/org-pretty-tags")
   :preface (set-fontset-font "fontset-default" '#xE91A "file-icons")
   :custom
   (org-pretty-tags-surrogate-strings
@@ -8057,6 +8129,18 @@ bullets as UTF-8 characters.
   :init
   (defun org-pretty-tags-enable ()
     (add-hook 'org-mode-hook #'org-pretty-tags-mode))
+
+  (defun pretty-tags-restore-overlays ()
+    "Restore `org-pretty-tags-surrogate-strings'."
+    (dolist (buf (org-buffer-list))
+      (add-hook 'org-mode-hook 'org-pretty-tags-mode)))
+  (defun org-pretty-tags-inhibit-overlays (orig-fun &rest args)
+    "Inhibit `org-pretty-tags-mode' from running when ORIG-FUN called,
+optionally with ARGS. "
+    (remove-hook 'org-mode-hook 'org-pretty-tags-mode)
+    (apply orig-fun args)
+    (pretty-tags-restore-overlays))
+
   :hook
   (after-init . org-pretty-tags-enable))
 #+END_SRC
@@ -8562,7 +8646,7 @@ Interactively.
 #+NAME: mail/mime
 #+BEGIN_SRC emacs-lisp
 (use-package org-mime
-  :config
+  :init
   (setq org-mime-export-options
         '(:section-numbers nil
           :with-author nil
@@ -8574,6 +8658,11 @@ Interactively.
     (org-mime-change-element-style
      "blockquote" "border-left: 2px solid gray; padding-left: 4px;"))
 
+  (defun org-mime/message-mode-hook ()
+    (local-set-key (kbd "C-c M-h") 'org-mime-htmlize))
+
+  (defun org-mime/org-mode-hook ()
+    (local-set-key (kbd  "C-c M-h") 'org-mime-org-buffer-htmlize))
 
   :hook
   (message-mode . org-mime/message-mode-hook))
@@ -8593,144 +8682,145 @@ Interactively.
 
 #+NAME: mu-mu4e
 #+BEGIN_SRC emacs-lisp
-  (use-package mu4e
-      :straight nil
-      :load-path "/usr/local/share/emacs/site-lisp/mu-edge/mu4e"
-      :init
-      (require 'mu4e)
+(use-package mu4e
+  :if (executable-find "mu")
+  :straight (mu4e :local-repo "/usr/local/share/emacs/site-lisp/mu-edge"
+                  :files (:defaults "*.el"))
+  :custom
+  (mail-user-agent 'mu4e-user-agent) ;; use mu4e for email in emacs
+  (mu4e-maildir "~/.mail")
+  (mu4e-get-mail-command "offlineimap -o -q") ;; Update with offlineimap
+  (mu4e-sent-messages-behavior 'delete) ;; Let GMAIL/IMAP take care of sent messages
+  (mu4e-context-policy 'pick-first)
+  (mu4e-compose-context-policy 'ask-if-none)
+  :init
+  (when (require 'smtpmail nil  t) ; smtmp settings
+    (setq message-send-mail-function 'smtpmail-send-it
+        smtpmail-stream-type 'starttls
+        smtpmail-default-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-service 587))
+    ;; Kill message buffers on send
+  (setq message-kill-buffer-on-exit t)
+  ;; mu4e View
+  (setq mu4e-attachment-dir "~/Downloads"
+        mu4e-view-show-images t
+        mu4e-show-addresses t
+        mu4e-view-prefer-html t
+        mu4e-view-show-images t)
 
-      :config
-      ;; use mu4e for email in emacs
-      (setq mail-user-agent 'mu4e-user-agent)
-      (setq mu4e-maildir "~/.mail")
-      ;; Update with offlineimap
-      (setq mu4e-get-mail-command "offlineimap -o -q")
-      ;; Let GMAIL/IMAP take care of sent messages
-      (setq mu4e-sent-messages-behavior 'delete)
-      (require 'smtpmail)
-       ;; smtp settings
-      (setq message-send-mail-function 'smtpmail-send-it
-            smtpmail-stream-type 'starttls
-            smtpmail-default-smtp-server "smtp.gmail.com"
-            smtpmail-smtp-server "smtp.gmail.com"
-            smtpmail-smtp-service 587)
+  (when (fboundp 'imagemagick-register-types)
+    (imagemagick-register-types))
 
-      ;; Kill message buffers on send
-      (setq message-kill-buffer-on-exit t)
+  (with-eval-after-load 'ivy
+    (setq mu4e-completing-read-function 'ivy-completing-read))
+  (when (require 'mu4e-context nil t)
+(setq mu4e-contexts
+        `(,(make-mu4e-context
+            :name "personal"
+            :enter-func
+            (lambda () (mu4e-message "Using Personal gmail account."))
+            :leave-func
+            (lambda () (mu4e-message "leaving Personal gmail account."))
+            :match-func
+            (lambda (msg)
+              (when msg
+                (string-match-p "^/personal")
+                (mu4e-message-field msg :maildir)))
+            :vars
+            '((user-mail-address  . "jchaffin57@gmail.com")
+              (user-full-name     . "Jacob Chaffin")
+              (mail-reply-to      . "jchaffin57@gmail.com")
+              (smtpmail-smtp-user . "jchaffin57@gmail.com")
+              (mu4e-sent-folder   . "/personal/sent")
+              (mu4e-drafts-folder . "/personal/drafts")
+              (mu4e-refile-folder . "/personal/archive")
+              (mu4e-trash-folder  . "/personal/trash")
+              (mu4e-compose-signature .
+                                      (concat
+                                       "Jacob Chaffin\n"
+                                       "jchaffin57@gmail.com\n"
+                                       "jchaffin@ucla.edu"))))
 
-      ;; mu4e View
-      (setq mu4e-attachment-dir "~/Downloads"
-            mu4e-view-show-images t
-            mu4e-show-addresses t
-            mu4e-view-prefer-html t
-            mu4e-view-show-images t)
+          ,(make-mu4e-context
+            :name "school"
+            :enter-func
+            (lambda () (mu4e-message "Entering UCLA Gmail account"))
+            :leave-func
+            (lambda () (mu4e-message "Leaving UCLA Gmail account."))
+            :match-func
+            (lambda (msg)
+              (when msg
+                (string-match-p "^/school"
+                                (mu4e-message-field msg :maildir))))
+            :vars '((user-mail-address  . "jchaffin@ucla.edu")
+                    (user-full-name     . "Jacob Chaffin")
+                    (mail-reply-to      . "jchaffin@ucla.edu" )
+                    (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
+                    (mu4e-drafts-folder . "/school/drafts")
+                    (mu4e-sent-folder   . "/school/sent")
+                    (mu4e-refile-folder . "/school/archive")
+                    (mu4e-trash-folder  . "/school/trash")
+                    (mu4e-compose-signature .
+                                            (concat
+                                             "Jacob Chaffin\n"
+                                             "UCLA 2019\n"
+                                             "Linguistics and Computer Science\n"
+                                             "jchaffin@ucla.edu")))))))
 
+  ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
+  ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
+  ;; `user-mail-address' values for all contexts. If you have other mail
+  ;; addresses as well, you'll need to add those manually.
+  (setq mu4e-user-mail-address-list
+        (delq nil
+              (mapcar (lambda (context)
+                        (when (mu4e-context-vars context)
+                          (cdr
+                           (assq
+                            'user-mail-address
+                            (mu4e-context-vars context)))))
+                      mu4e-contexts)))
+  :config
+  ;; Org Contacts
+  (setq mu4e-org-contacts-file
+        (expand-file-name "contacts.org" org-directory))
+  ;; Capture contact at point using 'C-a o' in `mu4e-headers-mode'
+  (add-to-list 'mu4e-headers-actions
+               '("org-contact-add" . mu4e-action-add-org-contact) t)
+  ;; Capture contact at point using 'C-a o' in `mu4e-vie-mode'
+  (add-to-list 'mu4e-view-actions
+               '("org-contact-add" . mu4e-action-add-org-contact) t))
+#+END_SRC
 
-      (when (fboundp 'imagemagick-register-types)
-        (imagemagick-register-types))
+**** GNUs Dired
 
-      (setq mu4e-completing-read-function 'ivy-completing-read)
+#+BEGIN_SRC emacs-lisp
+(use-package gnus-dired
+  :straight (gnus-dired :type built-in)
+  :init
+  (when (featurep 'mu4e)
+    (setq gnus-dired-mail-mode 'mu4e-user-agent))
 
-      ;; Mu4e Contexts
-      (setq mu4e-context-policy 'pick-first
-            mu4e-compose-context-policy 'ask-if-none)
-
-      (setq mu4e-contexts
-            `(,(make-mu4e-context
-                :name "personal"
-                :enter-func
-                (lambda () (mu4e-message "Using Personal gmail account."))
-                :leave-func
-                (lambda () (mu4e-message "leaving Personal gmail account."))
-                :match-func
-                (lambda (msg)
-                  (when msg
-                    (string-match-p "^/personal")
-                    (mu4e-message-field msg :maildir)))
-                :vars
-                '((user-mail-address  . "jchaffin57@gmail.com")
-                  (user-full-name     . "Jacob Chaffin")
-                  (mail-reply-to      . "jchaffin57@gmail.com")
-                  (smtpmail-smtp-user . "jchaffin57@gmail.com")
-                  (mu4e-sent-folder   . "/personal/sent")
-                  (mu4e-drafts-folder . "/personal/drafts")
-                  (mu4e-refile-folder . "/personal/archive")
-                  (mu4e-trash-folder  . "/personal/trash")
-                  (mu4e-compose-signature .
-                   (concat
-                    "Jacob Chaffin\n"
-                    "jchaffin57@gmail.com\n"
-                    "jchaffin@ucla.edu"))))
-
-               ,(make-mu4e-context
-                 :name "school"
-                 :enter-func
-                 (lambda () (mu4e-message "Entering UCLA Gmail account"))
-                 :leave-func
-                 (lambda () (mu4e-message "Leaving UCLA Gmail account."))
-                 :match-func
-                 (lambda (msg)
-                   (when msg
-                     (string-match-p "^/school"
-                     (mu4e-message-field msg :maildir))))
-                 :vars '((user-mail-address  . "jchaffin@ucla.edu")
-                         (user-full-name     . "Jacob Chaffin")
-                         (mail-reply-to      . "jchaffin@ucla.edu" )
-                         (smtpmail-smtp-user . "jchaffin@g.ucla.edu")
-                         (mu4e-drafts-folder . "/school/drafts")
-                         (mu4e-sent-folder   . "/school/sent")
-                         (mu4e-refile-folder . "/school/archive")
-                         (mu4e-trash-folder  . "/school/trash")
-                         (mu4e-compose-signature .
-                          (concat
-                           "Jacob Chaffin\n"
-                           "UCLA 2019\n"
-                           "Linguistics and Computer Science\n"
-                           "jchaffin@ucla.edu"))))))
-
-      ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
-      ;; This sets `mu4e-user-mail-address-list' to the concatenation of all
-      ;; `user-mail-address' values for all contexts. If you have other mail
-      ;; addresses as well, you'll need to add those manually.
-      (setq mu4e-user-mail-address-list
-            (delq nil
-                  (mapcar (lambda (context)
-                            (when (mu4e-context-vars context)
-                              (cdr
-                               (assq
-                                'user-mail-address
-                                (mu4e-context-vars context)))))
-                          mu4e-contexts)))
-
-
-      (require 'gnus-dired)
-
-      (defun gnus-dired-mail-buffers ()
-        "Return a list of active message buffers."
-        (let ((buffers))
-          (save-current-buffer
-            (dolist (buffer (buffer-list t))
-              (set-buffer buffer)
-              (when (and (derived-mode-p 'message-mode)
-                         (null message-sent-message-via))
-                (push (buffer-name buffers) buffers))))
-          (nreverse buffers)))
-
-      (setq mu4e-org-contacts-file (expand-file-name "contacts.org" org-directory))
-      (add-to-list 'mu4e-headers-actions
-                   '("org-contact-add" . mu4e-action-add-org-contact) t)
-      (add-to-list 'mu4e-view-actions
-                   '("org-contact-add" . mu4e-action-add-org-contact) t)
-      (setq gnus-dired-mail-mode 'mu4e-user-agent)
-
-      (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
+  (defun gnus-dired-mail-buffers ()
+    "Return a list of active message buffers."
+    (let ((buffers))
+      (save-current-buffer
+        (dolist (buffer (buffer-list t))
+          (set-buffer buffer)
+          (when (and (derived-mode-p 'message-mode)
+                     (null message-sent-message-via))
+            (push (buffer-name buffers) buffers))))
+      (nreverse buffers)))
+  :hook
+  (dired-mode . turn-on-gnus-dired-mode))
 #+END_SRC
 
 **** Mu Notifications
 
-#+NAME: mu-alert
 #+BEGIN_SRC emacs-lisp
 (use-package mu4e-alert
+  :if (featurep 'mu4e)
   :after (mu4e)
   :config
   (mu4e-alert-enable-notifications))
@@ -8741,19 +8831,21 @@ Interactively.
 #+NAME: mu-maildirs
 #+BEGIN_SRC emacs-lisp
 (use-package mu4e-maildirs-extension
-    :after (mu4e)
-    :init
-    (mu4e-maildirs-extension-load))
+  :if (featurep 'mu4e)
+  :after (mu4e)
+  :init
+  (mu4e-maildirs-extension-load))
 #+END_SRC
 
 **** mu4e conversion
 
 #+BEGIN_SRC emacs-lisp
 (use-package mu4e-conversation
-  :after (mu4e))
+  :if (featurep 'mu4e))
 #+END_SRC
 
 *** google contacts
+
 #+BEGIN_SRC emacs-lisp
 (use-package google-contacts)
 #+END_SRC
@@ -8764,8 +8856,7 @@ Interactively.
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(use-package debbugs
-  :straight t)
+(use-package debbugs)
 #+END_SRC
 
 ** Browse at remote
@@ -8849,45 +8940,49 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 
 [[https://github.com/wasamasa/nov.el][Nov.el]] is a major mode for reading EPUB documents in Emacs.
 
-#+NAME: readview-epub
 #+BEGIN_SRC emacs-lisp
 (use-package nov
   :demand t
+  :after (justify-kp)
   :mode (("\\.epub\\'" . nov-mode))
-  :config
-  (require 'justify-kp)
-  (defun nov/setup ()
-    (unless visual-line-mode
-      (visual-line-mode 1))
-    (unless visual-fill-column-mode
-      (visual-fill-column-mode 1))
-    (setq nov-text-width most-positive-fixnum
-          visual-fill-column-center-text t))
+  :init
+  (defun nov/visual ()
+    "Setup `nov-mode'"
+    (let ((nov-text-width most-positive-fixnum) ; inhibit text filling
+          (visual-fill-column-center-text t))
+      (unless visual-line-mode
+        (visual-line-mode 1))
+      (unless visual-fill-column-mode
+        (visual-fill-column-mode 1))))
 
   (defun nov/window-configuration-change-hook ()
-    (nov/post-html-render-hook)
+    (nov--justify-text)
     (remove-hook 'window-configuration-change-hook
                  'nov/window-configuration-change-hook t))
 
-  (defun nov/post-html-render-hook ()
-    (if (get-buffer-window)
-        (let ((max-width (pj-line-width))
-              buffer-read-only)
-          (save-excursion
-            (goto-char (point-min))
-            (while (not (eobp))
-              (when (not (looking-at "^[[:space:]]*$"))
-                (goto-char (line-end-position))
-                (when (> (shr-pixel-column) max-width)
-                  (goto-char (line-beginning-position))
-                  (pj-justify)))
-              (forward-line 1))))
-      (add-hook 'window-configuration-change-hook
-                'nov/window-configuration-change-hook
-                nil t)))
+  (defun nov--justify-text ()
+    ;; Justify text using `justify-kp'.
+    (when (require 'justify-kp nil t)
+      (if (get-buffer-window)
+          (let ((max-width (pj-line-width))
+                buffer-read-only)
+            (save-excursion
+              (goto-char (point-min))
+              (while (not (eobp))
+                (when (not (looking-at "^[[:space:]]*$"))
+                  (goto-char (line-end-position))
+                  (when (> (shr-pixel-column) max-width)
+                    (goto-char (line-beginning-position))
+                    (pj-justify)))
+                (forward-line 1))))
+        (add-hook 'window-configuration-change-hook
+                  'nov/window-configuration-change-hook nil t))))
+  :config
+  (when (functionp 'org-pretty-tags-inhibit-overlays)
+    (advice-add 'nov-mode :around #'org-pretty-tags-inhibit-overlays))
   :hook
-  (nov-mode . nov/setup)
-  (nov-post-html-render . nov/post-html-render-hook))
+  (nov-mode . nov/visual)
+  (nov-post-html-render . nov--justify-text))
 #+END_SRC
 
 ** Readspec  Mode
@@ -9155,15 +9250,22 @@ display the buffer."
 (use-package format-all)
 #+END_SRC
 
+*** Agressive Indent Mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package  aggressive-indent
+  :hook
+  (emacs-lisp . aggressive-indent-mode))
+
+#+END_SRC
+
 ** Eldoc
 
 #+BEGIN_SRC emacs-lisp
 (use-package eldoc
   :config
   (when (fboundp 'paredit)
-    (eldoc-add-command
-     'paredit-backward-delete
-     'paredit-close-round)))
+    (eldoc-add-command 'paredit-backward-delete 'paredit-close-round)))
 #+END_SRC
 
 ** Pair Matching
@@ -9175,7 +9277,7 @@ done [[https://github.com/tomjakubowski/.emacs.d/blob/master/init.el][here]], bu
 block of the programming language is easier to follow and
 offers more meaningful semantics.
 
-#+NAME: pairs/paredit
+#+NAME: core/paredit
 #+BEGIN_SRC emacs-lisp
 (use-package paredit
   :config
@@ -9247,9 +9349,11 @@ Like paredit, [[https://github.com/Fuco1/smartparens][smartparens]] is a minor-m
 
 *** Rainbow Delimiters
 
-#+NAME: pair/rainbow
+#+NAME: core/rainbow-delimiters
 #+BEGIN_SRC emacs-lisp
-(use-package rainbow-delimiters)
+(use-package rainbow-delimiters
+  :commands (rainbow-delimiters-mode)
+)
 #+END_SRC
 
 *** Parinfer
@@ -9441,12 +9545,17 @@ Travel back in time (to your last commit).
 #+BEGIN_SRC emacs-lisp
 (use-package git-timemachine
   :after (magit-popup)
+  :custom
+  (git-timemachine-abbreviation-length 7)
   :bind
   ("C-c v t" . git-timemachine-toggle)
   :config
-  (setq git-timemachine-abbreviation-length 7)
+  (setq)
   (which-key-add-key-based-replacements
-    "C-c v t" " Timemachine"))
+    "C-c v t" " Timemachine")
+  (when (functionp 'org-pretty-tags-inhibit-overlays)
+    (advice-add 'git-timemachine-toggle
+                :around #'org-pretty-tags-inhibit-overlays)))
 #+END_SRC
 
 **** Git messenger
@@ -9559,6 +9668,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 
 #+BEGIN_SRC emacs-lisp
   (use-package wakatime-mode
+
     :if (executable-find "wakatime")
     :hook
     (prog-mode . wakatime-mode)
@@ -9568,9 +9678,9 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
       (browse-url "https://wakatime.com/dashboard"))
     :custom
     (wakatime-cli-path
-    "/usr/local/lib/python3.7/site-packages/wakatime/cli.py")
+     (file-truename "~/.local/pipx/venvs/wakatime/lib/python3.7/site-packages/wakatime/cli.py"))
     (wakatime-python-bin
-     (executable-find "python3")))
+     (file-truename "/Users/jacobchaffin/.pyenv/versions/3.7.2/bin/python3.7")))
 #+END_SRC
 
 *** Logging
@@ -9755,11 +9865,7 @@ Pair programming.
 #+NAME: cc/llvm
 #+BEGIN_SRC emacs-lisp
 (use-package llvm-mode
-    :straight nil
-    :load-path "~/.emacs.d/etc/local/llvm-mode"
-    :init
-    (require 'llvm-mode)
-    (require 'tablegen-mode))
+  :straight (llvm-mode :local-repo "~/.emacs.d/etc/local/llvm-mode"))
 #+END_SRC
 
 **** Clang Tidy
@@ -9802,7 +9908,7 @@ Configuration for common-lisp.
 #+NAME: cl/mode
 #+BEGIN_SRC emacs-lisp
 (use-package lisp-mode
-  :straight nil
+  :straight (lisp-mode :type built-in)
   :init
   (defun common-lisp-setup ()
     "setup for common lisp."
@@ -10004,10 +10110,10 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 *** Emacs Lisp
 **** Emacs lisp mode
 
-#+NAME: elisp/mode
+#+NAME: core/elisp
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-lisp-mode
-  :straight nil
+  :straight (emacs-lisp-mode :type built-in)
   :init
   (defun emacs-lisp/setup ()
     "Setup elisp."
@@ -10062,7 +10168,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+NAME: java/mode
 #+BEGIN_SRC emacs-lisp
 (use-package java-mode
-  :straight nil
+  :straight (java-mode :type built-in)
   :init
   (defun java/setup ()
     "Setup `java-mode' buffers."
@@ -10511,7 +10617,7 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 #+NAME: lang/prolog
 #+BEGIN_SRC emacs-lisp
 (use-package prolog-mode
-  :straight nil
+  :straight (prolog-mode :type built-in)
   :mode "\\.pl\\'")
 #+END_SRC
 
@@ -10523,13 +10629,11 @@ The [[https://github.com/millejoh/emacs-ipython-notebook][emacs ipython notebook
 (use-package ruby-mode
   :mode "\\.rb\\'"
   :interpreter "ruby"
-  :config
-
-  (defun dotemacs/ruby-dash-docsets ()
+  :init
+  (defun ruby-dash-docsets ()
     (setq-local dash-plugin-keywords '("ruby" "rails")))
-
-
-  (add-hook 'ruby-mode-hook #'dotemacs/ruby-dash-docsets))
+  :hook
+  (ruby-mode . ruby-dash-docsets))
 
 #+END_SRC
 
@@ -10784,10 +10888,9 @@ Mode for editing Homebrew formula.
 #+NAME: html/mode
 #+BEGIN_SRC emacs-lisp
 (use-package html-mode
-  :straight nil
+  :straight (html-mode :type built-in)
   :hook
   (html-mode . lsp))
-
 #+END_SRC
 
 ***** Tag Edit
