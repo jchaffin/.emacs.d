@@ -169,6 +169,7 @@ Inserted by installed Org or when a release is made."
         (org-yank-adjusted-subtrees t)
         (org-yank-folded-subtrees t)
         (org-use-speed-commands t)
+        (org-display-internal-link-with-indirect-buffer t)
         (org-modules '(org-bbdb
                        org-bibtex
                        org-crypt

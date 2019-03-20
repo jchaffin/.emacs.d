@@ -224,6 +224,7 @@
  '(bibtex-autokey-titlewords-stretch 1)
  '(bibtex-autokey-year-length 4)
  '(bibtex-autokey-year-title-separator "-")
+ '(bibtex-completion-additional-search-fields '(tags))
  '(bibtex-completion-bibliography
    '("/Users/jacobchaffin/Dropbox/org/ref/references.bib" "/Users/jacobchaffin/Dropbox/courses/comsci131/comsci131.bib" "/Users/jacobchaffin/Dropbox/courses/comsci161/comsci161.bib" "/Users/jacobchaffin/Dropbox/courses/ling102/ling102.bib" "/Users/jacobchaffin/Dropbox/courses/ling165c/ling165c.bib"))
  '(bibtex-completion-library-path
@@ -398,6 +399,7 @@
  '(org-annotate-file-storage-file "~/Dropbox/org/annotate.org")
  '(org-archive-location "archive/%s_archive::")
  '(org-attach-auto-tag "attach")
+ '(org-attach-store-link-p t)
  '(org-babel-uppercase-example-markers t nil nil "Customized with use-package org")
  '(org-blank-before-new-entry '((heading . auto) (plain-list-item . auto)))
  '(org-bullets-bullet-list '("▸" "●"))
@@ -409,6 +411,7 @@
  '(org-ctrl-k-protect-subtree 'error)
  '(org-default-notes-file "/Users/jacobchaffin/Dropbox/org/notes.org")
  '(org-directory "/Users/jacobchaffin/Dropbox/org")
+ '(org-display-internal-link-with-indirect-buffer t)
  '(org-edit-src-persistent-message nil)
  '(org-ellipsis "")
  '(org-entities-user
@@ -487,6 +490,8 @@
  '(org-list-allow-alphabetical t)
  '(org-modules
    '(org-bbdb org-bibtex org-docview org-eww org-gnus org-habit org-id org-info org-inlinetask org-irc org-mhe org-protocol org-rmail org-tempo org-w3m org-eshell org-annotate-file org-bookmark org-checklist org-collector org-mac-iCal org-mac-link org-velocity))
+ '(org-noter-always-create-frame nil t)
+ '(org-noter-hide-other nil t)
  '(org-onenote-token-file
    "/Users/jacobchaffin/.emacs.d/var/org/onenote-oauth2.plstore" t)
  '(org-pandoc-options '((standalone . t)))
@@ -515,7 +520,7 @@
      ("TOC_3_gh" . "")
      ("web" . "🔗")
      ("@shopping" . "🛒")))
- '(org-projectile-per-project-filepath 'org-project-per-project-function t)
+ '(org-projectile-per-project-filepath 'org-projectile-per-project-function t)
  '(org-ref-bibliography-notes "/Users/jacobchaffin/Dropbox/org/ref/notes.org")
  '(org-ref-completion-library 'org-ref-ivy-cite)
  '(org-ref-default-bibliography '("/Users/jacobchaffin/Dropbox/org/ref/references.bib"))
@@ -562,10 +567,10 @@
  '(read-file-name-completion-ignore-case t)
  '(sh-basic-offset 2)
  '(sh-indentation 2)
- '(shell-pop-full-span t t)
- '(shell-pop-term-shell "/usr/local/bin/zsh" t)
- '(shell-pop-window-position 'bottom t)
- '(shell-pop-window-size 30 t)
+ '(shell-pop-full-span t)
+ '(shell-pop-term-shell "/usr/local/bin/zsh")
+ '(shell-pop-window-position 'bottom)
+ '(shell-pop-window-size 30)
  '(skeletor-completing-read-function 'ivy-completing-read)
  '(skeletor-project-directory "/Users/jacobchaffin/Developer/Projects")
  '(skeletor-python-bin-search-path '("/usr/local/bin" "/usr/bin"))
