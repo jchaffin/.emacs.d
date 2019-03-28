@@ -4161,17 +4161,9 @@ any reason for me reconsider my choice.
 ")
   (bibtex-completion-additional-search-fields '(tags))
   (bibtex-completion-bibliography
-   `(,(org-dir "ref/references.bib")
-     ,(dropbox-dir "courses/comsci131/comsci131.bib")
-     ,(dropbox-dir "courses/comsci161/comsci161.bib")
-     ,(dropbox-dir "courses/ling102/ling102.bib")
-     ,(dropbox-dir "courses/ling165c/ling165c.bib")))
+   `(,(org-dir "ref/references.bib")))
   (bibtex-completion-library-path
-   `(,(seq-filter #'file-directory-p (directory-files-no-wildcards (dropbox-dir "Documents/pdfs") t))
-     ,(dropbox-dir "courses/comsci131/materials/pdfs")
-     ,(dropbox-dir "courses/comsci161/materials/pdfs")
-     ,(dropbox-dir "courses/ling102/materials/pdfs")
-     ,(dropbox-dir "courses/ling165c/materials/pdfs")))
+   `(,(seq-filter #'file-directory-p (directory-files-no-wildcards (dropbox-dir "Documents/pdfs") t))))
   (bibtex-completion-notes-path (org-dir "ref/notes.org"))
   :init
   (defun org-noter-insert-noter-document ()
@@ -6259,14 +6251,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                   (concat "~/Dropbox/courses/" name "/" name ".org")))
        (defun ,(intern (concat name "-sidebar")) ()
          (interactive)
-         (funcall ',(intern (concat name "/sidebar"))))))
-  (defvar org-course-courses
-    '(("comsci161" . "Intro to A.I.")
-      ("comsci131" . "Programming Languages")
-      ("ling165c"  . "Semantics II")
-      ("ling102"   . "Phonetics")))
-    (cl-loop for (course . description) in org-course-courses do
-           (eval `(course-sidebar ,course ,description))))
+         (funcall ',(intern (concat name "/sidebar")))))))
 #+END_SRC
 
 **** Org Now
@@ -6414,14 +6399,6 @@ Calendar.
            :view 'month
            :contents-sources
            (list
-            (cfw:org-create-file-source
-             "⟦ ⟧ LING 165C" "~/Dropbox/courses/ling165c/ling165c.org" "#91E5DD")
-            (cfw:org-create-file-source
-             "🗣 LING 103" "~/Dropbox/courses/ling102/ling102.org" "purple")
-            (cfw:org-create-file-source
-             "💻 COMSCI 131 " "~/Dropbox/courses/comsci131/comsci131.org" "tomato1")
-            (cfw:org-create-file-source
-             "♟ COMSCI 161" "~/Dropbox/courses/comsci131/comsci161.org" "khaki1")
             (cfw:org-create-file-source
              "📅 Schedule" "~/Dropbox/org/agenda/schedule.org" (face-foreground 'org-agenda-calendar-event))))))
 
@@ -8073,7 +8050,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
   :type '(alist :tag "Font families to glyphs"
                 :value-type '(choice integer (repeat integer))))
 
- (defun font-overide-glyphs ()
+ (defun font-override-glyphs ()
      "Modify the default fontset to choose the right icons."
      (interactive)
        (dolist (font-glyphs font-override-list)
@@ -8138,6 +8115,8 @@ bullets as UTF-8 characters.
              :type git
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
+  :preface
+  (set-fontset-font "fontset-default" '#xE91A  "file-icons")
   :custom
   (org-pretty-tags-surrogate-strings
    '(("homework" . "📕️")
