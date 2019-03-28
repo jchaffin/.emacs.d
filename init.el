@@ -1,6 +1,6 @@
 ;;; init.el -- user initialization file for GNU Emacs
 ;;
-;; Copyright (c) 2019 Jacob Chaffin
+;;; Copyright (c) 2019 Jacob Chaffin:
 ;;
 ;; Author: Jacob Chaffin <jchaffin@ucla.edu>
 ;; Keywords: emacs, .emacs.d, elisp, straight-el
@@ -23,7 +23,6 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
-
 (unwind-protect
     (let ((straight-treat-as-init t))
       (when (locate-library "gnutls")
@@ -31,19 +30,22 @@
         ;; Prevent elpa from loading `package.el' in case loading fails.
         ;; Use LibreSSL certificates to bootstrap dependencies.
         (add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem"))
+;;;; straight
+;;;;; configure straight
       (setq straight-repository-branch "develop"
             straight-profiles '((dotemacs . "versions.el")
                                 (nil . "default.el"))
             straight-current-profile 'dotemacs)
       ;; Enable `straight-live-modifications-mode' if its dependencies are
       ;; found.
+;;;;; straight live modifications:
       (if (and (executable-find "watchexec")
                (executable-find "python3"))
           (setq straight-check-for-modifications
                 '(watch-files find-when-checking))
         (setq straight-check-for-modifications
               '(check-on-save find-when-checking)))
-      ;; install straight.el
+;;;;; Bootstrap straight.el:
       (let ((bootstrap-file
              (expand-file-name
               "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -64,24 +66,25 @@
             (goto-char (point-max))
             (eval-print-last-sexp)))
         (load bootstrap-file nil 'nomessage))
-
+;;;;; Configure use-package:
       ;; Enable the `:bind-key' keyword
       (straight-use-package 'bind-key)
       ;; Now clone the `use-package' library
       (straight-use-package 'use-package)
       ;; Enable the `:ensure-system-package' keyword
       (straight-use-package 'use-package-ensure-system-package)
-      ;; lazy load by default
-      (setq use-package-always-defer t)
-      ;; Enable the newer version of `use-package'.
-      (setq straight-use-package-version 'straight
-            straight-use-package-by-default t)
+      ;; blackout
       ;; Use `blackout' to clean mode lighters, essentially a drop in
       ;; replacement for ':diminish'
       (straight-use-package
        '(blackout :host github :repo "raxod502/blackout"))
       (require 'blackout)
-      ;; no-littering -- reduce the clutter in `user-emacs-directory'
+      ;; lazy load by default
+      (setq use-package-always-defer t)
+      ;; Enable the newer version of `use-package'.
+      (setq straight-use-package-version 'straight
+            straight-use-package-by-default t)
+      ;; reduce the clutter in `user-emacs-directory'
       (use-package no-littering
         :demand t
         :commands (no-littering-expand-etc-file-name)
@@ -108,9 +111,7 @@
       (require 'subr-x)
       (straight-use-package 'git)
 
-
-      ;; * [[id:C2106106-C5F8-4B9B-815D-058678CB9242][Org Mode]]
-                                        ;
+;;;; Org Mode:
       ;; Make straight.el and org-mode play nice.
       ;; The Org mode build system autogenerates an "org-versions.el" file
       ;; which in turn is used for loading org libraries and definitions.
@@ -123,6 +124,8 @@
       ;; before the loading the straight version of Org, which prevents
       ;; Emacs from trying to load the built-in library.
       ;; See [[https://github.com/raxod502/straight.el/issues/211][straight.el/issues/#211]]
+;;;;; org-release:
+
       (defun org-release ()
         "The release version of org-mode.
       Inserted by installing org-mode or when a release is made."
@@ -132,6 +135,8 @@
            (string-remove-prefix
             "release_"
             (git-run "describe" "--match=release\*" "--abbrev=0" "HEAD")))))
+;;;;; org-git-version:
+
       (defun org-git-version ()
         "The Git version of Org Mode.
 Inserted by installed Org or when a release is made."
@@ -140,9 +145,9 @@ Inserted by installed Org or when a release is made."
           (string-trim
            (git-run "describe" "--match=release\*" "--abbrev=6" "HEAD"))))
       (provide 'org-version)
-      ;; Install org and org-contribs
+;;;;; install org mode:
       (straight-use-package 'org-plus-contrib)
-      ;; load org
+
       (use-package org
         :straight org-plus-contrib
         :custom
@@ -175,7 +180,7 @@ Inserted by installed Org or when a release is made."
                        org-crypt
                        org-elisp-symbol
                        org-eww
-                       org-habit
+v                       org-habit
                        org-id
                        org-info
                        org-inlinetask
@@ -201,10 +206,7 @@ Inserted by installed Org or when a release is made."
                ("C-c C-x h" . org-toggle-link-display)
                ("C-c C-s" . org-schedule))))
 
-
-      ;; * Literate
-      (use-package cl-lib)
-
+;;;; Literate:
       (defgroup dotemacs nil
         "Customization group for the `dotemacs' Emacs configuration."
         :group 'applications
@@ -219,24 +221,6 @@ Inserted by installed Org or when a release is made."
         :type 'file
         :group 'dotemacs)
 
-      (defun load-literate (&optional user-config-file init-server)
-        "If USER-CONFIG-FILE is passed as an argument, then tangle.
-Else use the value of `halidom-literate-config-file'."
-        (let ((target-file (or user-config-file halidom-literate-config-file))
-              (target-dir (or user-emacs-directory default-directory)))
-          (when init-server
-	          (require 'server)
-            (unless (server-running-p)
-              (setq server-socket-dir
-                    (expand-file-name "server" user-emacs-directory))
-              (server-start)))
-          (if target-file
-              (org-babel-load-file
-               (expand-file-name target-file target-dir))
-            (error "%s not found, cannot tangle." target-file))))
-
-      ;; Debug
-
       (defvar literate-debug-blocks
         '("core/read-only"
           "core/ox"
@@ -248,28 +232,6 @@ Else use the value of `halidom-literate-config-file'."
           "core/swiper")
         "Named source blocks to tangle when `use-literate-p' is enabled. ")
 
-
-      (defun literate-tangle-src-block (name)
-        (let ((buf (find-file-noselect dotemacs-literate-config-file)))
-          (with-current-buffer (get-buffer buf)
-            (org-element-map (org-element-parse-buffer) 'src-block
-              (lambda (block)
-                (if (string= name (org-element-property :name block))
-                    (let ((code (org-element-property :value block))
-                          (params (org-element-property :parameters block)))
-			                (let (pkg)
-			                  (with-temp-buffer
-                          (insert code)
-			                    (save-excursion
-			                      (goto-char (point-min))
-			                      (when (re-search-forward "use-package " nil t)
-				                      (setq pkg (buffer-substring-no-properties
-					                               (point) (point-at-eol))))
-			                      (if pkg
-				                        (message "%s evaluated" pkg)
-				                      (message "tangled %s" name)))
-                          (eval-buffer))))))))
-          (kill-buffer buf)))
       ;; Extract source code and load the config
       (if use-literate-p
           (if (file-exists-p dotemacs-literate-config-file)
@@ -278,4 +240,4 @@ Else use the value of `halidom-literate-config-file'."
         (mapcar #'literate-tangle-src-block literate-debug-blocks))
       (setq initial-buffer-choice dotemacs-literate-config-file))
   (straight-finalize-transaction))
-;;;; init.el ends here
+;;; init.el ends here

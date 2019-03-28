@@ -18,6 +18,7 @@
     - [[#macros][Macros]]
     - [[#functions][Functions]]
     - [[#buffer-utilities][Buffer utilities]]
+    - [[#buffer-list-names][Buffer List Names]]
     - [[#window-utilities][Window utilities]]
     - [[#file-utilities][File utilities]]
   - [[#package-manager][Package Manager]]
@@ -92,7 +93,7 @@
     - [[#posframe][Posframe]]
   - [[#window][Window]]
     - [[#winner-mode][Winner Mode]]
-    - [[#window-numbering-mode][Window Numbering Mode]]
+    - [[#shackle][Shackle]]
     - [[#poporg][Poporg]]
     - [[#ace-window][Ace Window]]
     - [[#golden-ratio][Golden Ratio]]
@@ -146,10 +147,12 @@
     - [[#cdlatex][cdlatex]]
     - [[#edit-latex][Edit Latex]]
   - [[#research][Research]]
+    - [[#setup][Setup]]
     - [[#citations][Citations]]
     - [[#pdfs][PDFs]]
   - [[#outlines][Outlines]]
     - [[#navi][Navi]]
+    - [[#outshine][Outshine]]
     - [[#foldout][foldout]]
     - [[#org-links][Org Links]]
   - [[#org-coding][Org Coding]]
@@ -179,7 +182,7 @@
   - [[#org-prose][Org Prose]]
     - [[#insert-literal-entities][Insert literal entities]]
     - [[#org-index][Org Index]]
-    - [[#org-interleave][Org Interleave]]
+    - [[#org-noter][Org Noter]]
     - [[#org-journal][Org Journal]]
   - [[#org-export][Org Export]]
     - [[#ox][Ox]]
@@ -192,7 +195,6 @@
     - [[#ox-hugo][Ox Hugo]]
     - [[#ox-html][Ox HTML]]
   - [[#org-hacks][Org Hacks]]
-    - [[#org-occur-open][Org occur open]]
     - [[#reveal-cursor-in-folded-subtree][Reveal cursor in folded subtree.]]
     - [[#ibuffer-and-org-files][ibuffer and org files]]
   - [[#org-web][Org Web]]
@@ -369,7 +371,6 @@ Functional bindings i.e thread =->= macro.
 (use-package dash-functional)
 #+END_SRC
 
-
 **** cl/highlight
 
 #+NAME: cl/highlight
@@ -445,7 +446,7 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 
 #+BEGIN_SRC emacs-lisp
 (setq initial-scratch-message nil
-      initial-major-mode 'org-mode
+      initial-major-mode 'emacs-lisp-mode
       inhibit-startup-echo-area-message t)
 #+END_SRC
 
@@ -754,7 +755,19 @@ from within Emacs.
 #+END_SRC
 
 *** Buffer utilities
-**** Buffer List Names
+**** Uniquify buffer names
+
+#+BEGIN_SRC emacs-lisp
+(use-package uniquify
+  :straight (uniquify :type built-in)
+  :custom
+  (uniquify-buffer-name-style 'forward)
+  (uniquify-separator "/")
+  (uniquify-after-kill-buffer-p t)
+  (uniquify-ignore-buffers-re "^\\*"))
+#+END_SRC
+
+*** Buffer List Names
 
 #+NAME: buffer-list-names
 #+BEGIN_SRC emacs-lisp
@@ -789,8 +802,9 @@ generating a new one if the initial scratch buffer has been killed."
 
 #+BEGIN_SRC emacs-lisp
 (use-package midnight
-  :config
-  (setq midnight-period 7200)
+  :custom
+  (midnight-period 7200)
+  :init
   (midnight-mode 1))
 #+END_SRC
 
@@ -827,7 +841,6 @@ Interactively get =point=
 #+BEGIN_SRC emacs-lisp
 (use-package auto-minor-mode)
 #+END_SRC
-
 
 *** Window utilities
 **** Window Count
@@ -1058,8 +1071,7 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 ** Package Manager
 **  Goto local package repository
 
-Function to jump to a repository installed by [[#straight][straight]]. An
-interactive minibuffer completion menu using ivy.
+Function to jump to a repository installed by [[#straight][straight]]. An interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp
 (defun straight-installed-packages ()
@@ -1328,7 +1340,7 @@ killall gpg-agent
                    ("e" eval-last-sexp "last sexp"))
 
        "Restart" (("i" straight-reload-init "init")
-                  ("r" restart-emacs "emacs")
+                  ("q" restart-emacs "emacs")
                   ("O" org-mode-restart "org mode")
                   ("w" lsp-restart-workspace "workspace")
                   ("d" docker-restart "docker")
@@ -1464,9 +1476,7 @@ Interface for controlling external processes in Emacs.
 
 *** macOS
 
-I work on a macbook, so this section is where I'm loading all of my
-settings that rely on local file paths, macOS applications, and
-external programs.
+I work on a macbook, so this section is where I'm loading all of my settings that rely on local file paths, macOS applications, and external programs.
 
 **** MacOS Keys
 ***** Modifier Keys
@@ -1482,11 +1492,23 @@ Also sets terminal coding system to "utf-8".
       mac-option-modifier  'meta
       ns-control-modifier  'control
       ns-function-modifier 'hyper)
-
-
 #+END_SRC
 
-***** Generate =<mouse-2>= on trackpad
+***** Some friendlier keystrokes
+
+#+BEGIN_SRC emacs-lisp
+(when (eq system-type 'darwin)
+  (global-set-key (kbd "s-=" ) 'text-scale-increase)
+  (global-set-key (kbd "s--")  'text-scale-decrease)
+  ;; Default is <XF86Back> .. C-x <right>
+  (global-set-key (kbd "s-[")  'previous-buffer)
+  (global-set-key (kbd "s-]")  'next-buffer)
+  (global-set-key (kbd "s-}")  'ns-next-frame)
+  (global-set-key (kbd "s-{")  'ns-prev-frame)
+  (global-set-key (kbd "s-L")  'mark-sexp))
+#+END_SRC
+
+***** Generate =mouse-2= on trackpad
 
 As far as I know, there is no trackpad gesture to trigger the
 =<mouse-2>= event in Emacs. The following snippet uses [[help:key-translation-map][key-translation-map]] to emulate the =<mouse-2>= event when clicking
@@ -3143,15 +3165,16 @@ different window configurations.
      (org-shiftright-final . windmove-right)))
 #+END_SRC
 
-*** Window Numbering Mode
-
+*** Shackle
 #+BEGIN_SRC emacs-lisp
-(use-package window-numbering
+(use-package shackle
   :init
-  (window-numbering-mode 1))
+  (shackle-mode 1)
+  :config
+  (setq shackle-rules '((compilation-mode :noselect t))
+        shackle-default-rule '(:select t)))
 
 #+END_SRC
-
 *** Poporg
 
 #+BEGIN_SRC emacs-lisp
@@ -4124,6 +4147,18 @@ any reason for me reconsider my choice.
   :bind
   ("C-x c" . ivy-bibtex)
   :custom
+  (bibtex-completion-notes-template-one-file
+   "** ${title} (${year}):
+ :PROPERTIES:
+ :Custom_ID: ${=key=}
+ :AUTHOR: ${author-or-editor}
+ :JOURNAL: ${journal}
+ :YEAR: ${year}
+ :DOI: ${doi}
+ :VOLUME: ${volume}
+ :END:
+
+")
   (bibtex-completion-additional-search-fields '(tags))
   (bibtex-completion-bibliography
    `(,(org-dir "ref/references.bib")
@@ -4132,17 +4167,24 @@ any reason for me reconsider my choice.
      ,(dropbox-dir "courses/ling102/ling102.bib")
      ,(dropbox-dir "courses/ling165c/ling165c.bib")))
   (bibtex-completion-library-path
-   `(,(dropbox-dir "Documents/pdfs")
+   `(,(seq-filter #'file-directory-p (directory-files-no-wildcards (dropbox-dir "Documents/pdfs") t))
      ,(dropbox-dir "courses/comsci131/materials/pdfs")
      ,(dropbox-dir "courses/comsci161/materials/pdfs")
      ,(dropbox-dir "courses/ling102/materials/pdfs")
      ,(dropbox-dir "courses/ling165c/materials/pdfs")))
   (bibtex-completion-notes-path (org-dir "ref/notes.org"))
+  :init
+  (defun org-noter-insert-noter-document ()
+    (interactive)
+    (if-let ((key  (cdr-safe (assoc "CUSTOM_ID" (org-entry-properties)))))
+        (if-let ((pdfs  (bibtex-completion-find-pdf key bibtex-completion-find-additional-pdfs)))
+            (org-set-property "NOTER_DOCUMENT" (abbreviate-file-name (car pdfs))))))
   :config
   (setq bibtex-completion-pdf-open-function
         (lambda (fpath)
           (start-process "open" "*open*" "open" fpath)))
   (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
+
 #+END_SRC
 
 ** Images
@@ -5121,6 +5163,43 @@ Generate latex fragments based on the latex compiler and class in the current bu
 #+END_SRC
 
 ** Research
+*** Setup
+
+#+BEGIN_SRC emacs-lisp
+(defcustom dotemacs-bibliography (expand-file-name "ref/references.bib" org-directory)
+  "The default bibliography file."
+  :type 'file
+  :group 'dotemacs)
+(defcustom dotemacs-bibliography-notes-directory (expand-file-name "ref/notes" org-directory)
+  "Bibliograhpy notes directory"
+  :type 'file
+  :group 'dotemacs)
+(defcustom dotemacs-bibliography-notes (expand-file-name "ref/notes.org")
+  "Bib notes file"
+  :type 'file
+  :group 'dotemacs)
+(defcustom dotemacs-bibliography-notes-template
+  "** %y - %t
+    :PROPERTIES:
+    :Custom_ID: %k
+    :AUTHOR: %9a
+    :JOURNAL: %j
+    :YEAR: %y
+    :VOLUME: %v
+    :PAGES: %p
+    :DOI: %D
+    :URL: %U
+    :END:
+
+"
+  "Bib notes format"
+  )
+
+
+
+
+
+#+END_SRC
 *** Citations
 
 **** BibTeX
@@ -5383,8 +5462,9 @@ entry types and required fields."
 #+BEGIN_SRC emacs-lisp
 (use-package org-ref
   :straight (org-ref :type git
-                     :files (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
                      :host github
+                     :files
+                     (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
                      :repo "jkitchin/org-ref"
                      :fork (:host github :repo org-ref "jchaffin/org-ref"))
   :after ivy
@@ -5393,8 +5473,22 @@ entry types and required fields."
   (org-ref-completion-library 'org-ref-ivy-cite)
   (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
   (org-ref-bibliography-notes (org-dir "ref/notes.org"))
-  (org-ref-notes-directory (org-dir "ref/notes/"))
+  (org-ref-notes-directory (org-dir "ref/notes"))
   (org-ref-pdf-directory (dropbox-dir "Documents/pdfs/" :slash t))
+  (org-ref-note-tilte-format
+   "** %y - %t
+  :PROPERTIES:
+  :Custom_ID: %k
+  :AUTHOR: %9a
+  :JOURNAL: %j
+  :YEAR: %y
+  :VOLUME: %v
+  :PAGES: %p
+  :DOI: %D
+  :URL: %U
+  :END:
+
+")
   (org-ref-show-citation-on-enter t)
   (org-ref-show-broken-links t)
     (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
@@ -5525,6 +5619,16 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
 (use-package navi)
 #+END_SRC
 
+*** Outshine
+#+BEGIN_SRC emacs-lisp
+(use-package outshine
+  :init
+  (defvar outline-minor-mode-prefix "\M-#")
+  :config
+  (setq outshine-use-speed-commands t)
+  :hook
+  ((emacs-lisp-mode lisp-mode) . outshine-mode))
+#+END_SRC
 *** foldout
 :PROPERTIES:
 :ID:       7A037F3A-7569-44C4-858A-B298381AC21D
@@ -5552,6 +5656,7 @@ instead of ~outline-show-entry~.
 
 *** Org Links :structure:
 
+**** Prompt for description
 #+begin_src emacs-lisp
 (defun org-link-describe (link desc)
   (if (file-exists-p link)
@@ -5716,6 +5821,18 @@ Embed YouTube Links in =iframe=.
                       (buffer-name)
                       (- (point) 3)))))
           (goto-char end))))))
+#+END_SRC
+
+**** Org occur open
+
+#+BEGIN_SRC emacs-lisp
+(defun org-occur-open (uri)
+  "Visit the file specified by URI, and run `occur' on the fragment
+  (anything after the first '#') in the uri."
+  (let ((list (split-string uri "#")))
+    (org-open-file (car list) t)
+    (occur (mapconcat 'identity (cdr list) "#"))))
+(org-add-link-type "occur" 'org-occur-open)
 #+END_SRC
 
 ** Org Coding
@@ -5944,8 +6061,7 @@ is positive, move after, and if negative, move before."
              ,org-contacts-template
              :empty-lines 1))))
   :config
-  (when (functionp 'org-pretty-tags-inhibit-overlays)
-    (advice-add 'org-capture :around #'org-pretty-tags-inhibit-overlays)))
+  (advice-add 'org-capture :around #'org-pretty-tags-inhibit-overlays))
 #+END_SRC
 
 **** Alfred capture
@@ -6721,7 +6837,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
   (use-package org-index)
 #+END_SRC
 
-*** Org Interleave :notetaking:
+*** Org Noter :notetaking:
 
 #+NAME: org-docmgr-interleave
 #+BEGIN_SRC emacs-lisp
@@ -7171,18 +7287,6 @@ for exporting org-mode documents to various formats.
 
 From Thomas Frössman's [[http://thomasf.github.io/solarized-css/test/org-hacks.html#sec-1-8-5][org hacks]]:
 
-*** Org occur open
-
-#+BEGIN_SRC emacs-lisp
-(defun org-occur-open (uri)
-  "Visit the file specified by URI, and run `occur' on the fragment
-  (anything after the first '#') in the uri."
-  (let ((list (split-string uri "#")))
-    (org-open-file (car list) t)
-    (occur (mapconcat 'identity (cdr list) "#"))))
-(org-add-link-type "occur" 'org-occur-open)
-#+END_SRC
-
 *** Reveal cursor in folded subtree.
 :PROPERTIES:
 :ID:       088BEAF5-B9FE-43F4-995D-5E26FB6DCB16
@@ -7198,7 +7302,7 @@ Fix problem with  which puts point back in a folded position.
       (outline-previous-visible-heading 1)
       (org-show-subtree))))
 
-(remove-hook 'org-mode-hook 'org-mode-save-place-fix)
+(add-hook 'org-mode-hook 'org-mode-save-place-fix)
 #+END_SRC
 
 *** ibuffer and org files
@@ -7208,7 +7312,8 @@ Neil Smithline posted this snippet to let you browse org files with
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
-  :straight (ibuffer :type built-in)
+  :straight
+  (ibuffer :type built-in)
   :init
   (defun org-ibuffer ()
     "Open an `ibuffer' window showing only `org-mode' buffers."
@@ -7282,31 +7387,38 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
   :type '(choice
           (const :tag "Use a dark theme by default." dark)
           (const :tag "Use a light theme by default" light)
-          (const :tag "Ignore the value of this variable" nil)))
+          (const :tag "Ignore the value of this variable" nil))
+  :group 'dotemacs)
 
 (defcustom dotemacs-term-theme 'wombat
   "The default term theme."
-  :type 'symbol)
+  :type 'symbol
+  :group 'dotemacs)
 
 (defcustom dotemacs-prose-theme 'tsdh-light
    "The default theme for writing text."
-   :type 'symbol)
+   :type 'symbol
+   :group 'dotemacs)
 
 (defcustom dotemacs-light-theme 'tsdh-light
   "The light theme."
-  :type 'symbol)
+  :type 'symbol
+  :group 'dotemacs)
 
 (defcustom dotemacs-dark-theme 'tsdh-dark
   "The dark theme."
-  :type 'symbol)
+  :type 'symbol
+  :group 'dotemacs)
 
 (defcustom dotemacs-theme 'tsdh-dark
   "The default theme to load."
-  :type 'string)
+  :type 'string
+  :group 'dotemacs)
 
 (defcustom dotemacs-theme-colors nil
   "plist of colors for the current theme."
-  :type '(plist :key-type symbol :value-type sexp))
+  :type '(plist :key-type symbol :value-type sexp)
+  :group 'dotemace)
 #+END_SRC
 
 *** Custom Theme
@@ -7498,7 +7610,7 @@ theme in \"quick mode\" by eliding hooks specified in
   ;; https://github.com/syl20bnr/spacemacs/pull/7667
   (defun dotemacs/org-restart ()
     "Restart all open org-mode buffers."
-    (let ((org-buffers (org-buffer-list)))
+    (let ((org-buffers (org-buffer-list  'files t)))
       (dolist (buf org-buffers)
         (with-current-buffer buf
           (org-mode-restart)))))
@@ -7532,7 +7644,8 @@ theme in \"quick mode\" by eliding hooks specified in
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-keybinding-command-tooltip-mode
   :straight (emacs-keybinding-command-tooltip-mode
-             :local-repo "~/.emacs.d/etc/local/emacs-keybinding-command-tooltip-mode")
+             :local-repo
+             "~/.emacs.d/etc/local/emacs-keybinding-command-tooltip-mode")
   :init
   (emacs-keybinding-command-tooltip-mode 1))
 #+END_SRC
@@ -7951,22 +8064,27 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 :END:
 
 #+BEGIN_SRC emacs-lisp
-  (defun font-overide-glyphs ()
-    "Modify the default fontset to choose the right icons."
-    (interactive)
-    (let ((font-glyphs-alist '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
-                               ("file-icons" . (#xE917 #xE926 #xE600 #xE601 #xE91A))
-                               ("Material Icons" . (#xE80C #xE8CE))
-                               ("FontAwesome" . (#xF167))))
-          (font-families (font-family-list)))
-      (dolist (font-glyphs font-glyphs-alist)
-        (when (member (car font-glyphs) font-families)
-          (mapcar
-           (lambda (glyph)
-             (set-fontset-font "fontset-default"
-                               glyph (car font-glyphs)
-                               nil 'prepend))
-           (cdr font-glyphs))))))
+(defcustom font-override-list
+  '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
+    ("file-icons" . (#xE917 #xE926 #xE600 #xE601 #xE91A))
+    ("Material Icons" . (#xE80C #xE8CE))
+    ("FontAwesome" . (#xF167)))
+  "Alist of font family glyphs to manually override in the defaul fontspec."
+  :type '(alist :tag "Font families to glyphs"
+                :value-type '(choice integer (repeat integer))))
+
+ (defun font-overide-glyphs ()
+     "Modify the default fontset to choose the right icons."
+     (interactive)
+       (dolist (font-glyphs font-override-list)
+         (when (and (require 'font-utils nil t)
+                    (font-utils-exists-p (car font-glyphs)))
+           (mapcar
+            (lambda (glyph)
+              (set-fontset-font "fontset-default"
+                                glyph (car font-glyphs)
+                                nil 'prepend))
+            (cdr font-glyphs)))))
 
 #+END_SRC
 
@@ -8016,8 +8134,10 @@ bullets as UTF-8 characters.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-pretty-tags
-  :straight (org-pretty-tags :type git :host gitlab :repo "marcowahl/org-pretty-tags")
-  :preface (set-fontset-font "fontset-default" '#xE91A "file-ICONS")
+  :straight (org-pretty-tags
+             :type git
+             :host gitlab
+             :repo "marcowahl/org-pretty-tags")
   :custom
   (org-pretty-tags-surrogate-strings
    '(("homework" . "📕️")
@@ -8049,17 +8169,22 @@ bullets as UTF-8 characters.
 
   (defun pretty-tags-restore-overlays ()
     "Restore `org-pretty-tags-surrogate-strings'."
-    (dolist (buf (org-buffer-list))
+    (dolist (buf (org-buffer-list 'files t))
+      (with-current-buffer buf
+        (org-pretty-tags-mode 1))
       (add-hook 'org-mode-hook 'org-pretty-tags-mode)))
+
   (defun org-pretty-tags-inhibit-overlays (orig-fun &rest args)
     "Inhibit `org-pretty-tags-mode' from running when ORIG-FUN called,
 optionally with ARGS. "
     (remove-hook 'org-mode-hook 'org-pretty-tags-mode)
+    (org-pretty-tags-mode -1)
     (apply orig-fun args)
     (pretty-tags-restore-overlays))
 
   :hook
   (after-init . org-pretty-tags-enable))
+
 #+END_SRC
 
 **** Org Fancy Priorities
@@ -8603,6 +8728,7 @@ Interactively.
   :if (executable-find "mu")
   :straight (mu4e :local-repo "/usr/local/share/emacs/site-lisp/mu-edge"
                   :files (:defaults "*.el"))
+  :demand t
   :custom
   (mail-user-agent 'mu4e-user-agent) ;; use mu4e for email in emacs
   (mu4e-maildir "~/.mail")
@@ -8610,6 +8736,7 @@ Interactively.
   (mu4e-sent-messages-behavior 'delete) ;; Let GMAIL/IMAP take care of sent messages
   (mu4e-context-policy 'pick-first)
   (mu4e-compose-context-policy 'ask-if-none)
+  (mu4e-compose-format-flowed t)
   :init
   (when (require 'smtpmail nil  t) ; smtmp settings
     (setq message-send-mail-function 'smtpmail-send-it
@@ -8632,8 +8759,8 @@ Interactively.
   (with-eval-after-load 'ivy
     (setq mu4e-completing-read-function 'ivy-completing-read))
   (when (require 'mu4e-context nil t)
-(setq mu4e-contexts
-        `(,(make-mu4e-context
+    (setq mu4e-contexts
+          `(,(make-mu4e-context
             :name "personal"
             :enter-func
             (lambda () (mu4e-message "Using Personal gmail account."))
@@ -8642,8 +8769,7 @@ Interactively.
             :match-func
             (lambda (msg)
               (when msg
-                (string-match-p "^/personal")
-                (mu4e-message-field msg :maildir)))
+                (string-match-p "^/personal"  (mu4e-message-field msg :maildir))))
             :vars
             '((user-mail-address  . "jchaffin57@gmail.com")
               (user-full-name     . "Jacob Chaffin")
@@ -8668,8 +8794,7 @@ Interactively.
             :match-func
             (lambda (msg)
               (when msg
-                (string-match-p "^/school"
-                                (mu4e-message-field msg :maildir))))
+                (string-match-p "^/school" (mu4e-message-field msg :maildir))))
             :vars '((user-mail-address  . "jchaffin@ucla.edu")
                     (user-full-name     . "Jacob Chaffin")
                     (mail-reply-to      . "jchaffin@ucla.edu" )
@@ -10416,10 +10541,10 @@ Real jsx support.
     :bind
     ("C-x p e" . pyenv-activate-current-project)
     ("C-x p s" . pyenv-mode-set)
+    (:map pyenv-mode-map
+          ("C-c C-s" . nil))
     :commands
-
     (pyenv-mode-set pyenv-mode-unset pyenv-mode-versions)
-
     :config
 
     (defvar pyenv-current-version nil nil)
