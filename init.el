@@ -164,7 +164,8 @@ Inserted by installed Org or when a release is made."
         (org-src-window-setup 'current-window)
         (org-ctrl-k-protect-subtree 'error)
         (org-catch-invisible-edits 'smart)
-        ;; Structure
+        ;; Structure andd Appearance
+        (org-ellipsis "")
         (org-hide-emphasis-markers t)
         (org-use-sub-superscripts '{})
         (org-blank-before-new-entry
@@ -180,7 +181,7 @@ Inserted by installed Org or when a release is made."
                        org-crypt
                        org-elisp-symbol
                        org-eww
-v                       org-habit
+                       org-habit
                        org-id
                        org-info
                        org-inlinetask

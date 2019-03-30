@@ -48,6 +48,8 @@
     - [[#shortcuts][Shortcuts]]
     - [[#auto-revert-mode][Auto Revert Mode]]
     - [[#bookmark][Bookmark+]]
+    - [[#undo-tree][Undo Tree]]
+    - [[#undo-propose][Undo Propose]]
   - [[#apps][Apps]]
     - [[#finder][Finder]]
     - [[#counsel-osx-app][Counsel OSX App]]
@@ -177,7 +179,6 @@
     - [[#column-view][Column View]]
     - [[#equation-renumbering][Equation Renumbering]]
     - [[#highlight-inline-latex-fragments][Highlight inline LaTeX fragments]]
-    - [[#org-ellipsis][Org Ellipsis]]
     - [[#org-outline-numbering][Org outline numbering]]
   - [[#org-prose][Org Prose]]
     - [[#insert-literal-entities][Insert literal entities]]
@@ -1753,6 +1754,32 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 (use-package bookmark+)
 #+END_SRC
 
+*** Undo Tree
+
+Visualize buffer modifications during an Emacs session as an
+interactive tree .
+
+#+NAME: search/undo-tree
+#+BEGIN_SRC emacs-lisp
+(use-package undo-tree
+  :custom
+  (undo-tree-auto-save-history t)
+  (undo-tree-visualizer-timestamps t)
+  (undo-tree-visualizer-diff t)
+  :init
+  (global-undo-tree-mode)
+  :config
+  (when (eq system-type 'darwin)
+    (global-set-key (kbd "s-z") 'undo-tree-undo)
+    (global-set-key (kbd "s-Z") 'undo-tree-redo)))
+#+END_SRC
+
+*** Undo Propose
+
+#+BEGIN_SRC emacs-lisp
+(use-package undo-propose)
+#+END_SRC
+
 ** Apps
 
 *** Finder
@@ -2581,26 +2608,6 @@ Jump to arbitrary point in Buffer
 
 #+END_SRC
 
-**** Undo Tree
-
-Visualize buffer modifications during an Emacs session as an
-interactive tree .
-
-#+NAME: search/undo-tree
-#+BEGIN_SRC emacs-lisp
-(use-package undo-tree
-  :custom
-  (undo-tree-auto-save-history t)
-  (undo-tree-visualizer-timestamps t)
-  (undo-tree-visualizer-diff t)
-  :init
-  (global-undo-tree-mode)
-  :config
-  (when (eq system-type 'darwin)
-    (global-set-key (kbd "s-z") 'undo-tree-undo)
-    (global-set-key (kbd "s-Z") 'undo-tree-redo)))
-#+END_SRC
-
 ** Shell
 :PROPERTIES:
 :ID:       055F15AE-FAFA-416A-ABC5-8DBB9D9D7CBF
@@ -3014,12 +3021,14 @@ directory local variables."
 #+END_SRC
 
 **** LAMMPS
+
 #+BEGIN_SRC emacs-lisp
 (use-package lammps-mode
   :mode (("in\\." . lammps-mode)
          ("\\.lmp\\'" . lammps-mode)))
 
 #+END_SRC
+
 ** Documentation
 :PROPERTIES:
 :ID:       67707BA1-09DE-4175-BD74-4BA869BFBAA9
@@ -3118,6 +3127,7 @@ directory local variables."
 #+END_SRC
 
 *** Frame fns
+
 #+BEGIN_SRC emacs-lisp
 (use-package frame-fns)
 #+END_SRC
@@ -6732,16 +6742,6 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
 #+NAME: org-latex-highlight-tex
 #+BEGIN_SRC emacs-lisp
 (setq org-highlight-latex-and-related '(latex))
-#+END_SRC
-
-*** Org Ellipsis
-
-#+BEGIN_SRC emacs-lisp
-(defun org-set-ellipsis ()
-      (and (featurep 'all-the-icons)
-           (setq-default org-ellpsis "")))
-
-(add-hook 'org-mode-hook #'org-set-ellipsis)
 #+END_SRC
 
 *** Org outline numbering
