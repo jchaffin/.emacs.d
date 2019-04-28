@@ -142,7 +142,6 @@
     - [[#tex-site][TeX Site]]
     - [[#math][Math]]
     - [[#extra][Extra]]
-    - [[#reftex][Reftex]]
     - [[#magic-latex-buffer][Magic Latex Buffer]]
     - [[#texinfo][Texinfo]]
     - [[#preview][Preview]]
@@ -4148,47 +4147,6 @@ any reason for me reconsider my choice.
     (code-library-sync-to-gist t))
 #+END_SRC
 
-**** Ivy Bibtex
-
-#+BEGIN_SRC emacs-lisp
-(use-package ivy-bibtex
-  :after (:all ivy bibtex)
-  :demand t
-  :bind
-  ("C-x c" . ivy-bibtex)
-  :custom
-  (bibtex-completion-notes-template-one-file
-   "** ${title} (${year}):
- :PROPERTIES:
- :Custom_ID: ${=key=}
- :AUTHOR: ${author-or-editor}
- :JOURNAL: ${journal}
- :YEAR: ${year}
- :DOI: ${doi}
- :VOLUME: ${volume}
- :END:
-
-")
-  (bibtex-completion-additional-search-fields '(tags))
-  (bibtex-completion-bibliography
-   `(,(org-dir "ref/references.bib")))
-  (bibtex-completion-library-path
-   `(,(seq-filter #'file-directory-p (directory-files-no-wildcards (dropbox-dir "Documents/pdfs") t))))
-  (bibtex-completion-notes-path (org-dir "ref/notes.org"))
-  :init
-  (defun org-noter-insert-noter-document ()
-    (interactive)
-    (if-let ((key  (cdr-safe (assoc "CUSTOM_ID" (org-entry-properties)))))
-        (if-let ((pdfs  (bibtex-completion-find-pdf key bibtex-completion-find-additional-pdfs)))
-            (org-set-property "NOTER_DOCUMENT" (abbreviate-file-name (car pdfs))))))
-  :config
-  (setq bibtex-completion-pdf-open-function
-        (lambda (fpath)
-          (start-process "open" "*open*" "open" fpath)))
-  (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
-
-#+END_SRC
-
 ** Images
 :PROPERTIES:
 :ID:       36DECCD2-7A7F-4B6A-A3AA-88C6CC72CFBE
@@ -4753,41 +4711,6 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+END_SRC
 
-*** Reftex
-
-
-RefTeX is a citation and reference tool maintained by the
-AucTeX team.
-
-Since Emacs 24.3, its built in with the Emacs distribution.
-
-#+NAME: latex-reftex
-#+BEGIN_SRC emacs-lisp
-(use-package reftex
-  :init
-  (defun reftex/setup ()
-    (turn-on-reftex)
-    (setq reftex-plug-into-AUCTeX
-          '(nil nil t t t)
-          reftex-use-fonts t
-          reftex-default-bibliography
-          `(,(org-dir "ref/references.bib"))))
-  :hook
-  (LaTeX-mode . reftex/setup))
-#+END_SRC
-
-**** Company Reftex
-:PROPERTIES:
-:ID:       7E380FB6-09B2-4E73-87D1-5515402B58D1
-:END:
-
-#+NAME: latex-company-reftex
-#+BEGIN_SRC emacs-lisp
-(use-package company-reftex
-  :demand t
-  :after (:all company reftex))
-#+END_SRC
-
 *** Magic Latex Buffer
 
 Prettify dedicated org-mode latex buffers.
@@ -5168,7 +5091,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** Setup
 
 #+BEGIN_SRC emacs-lisp
-(defcustom dotemacs-bibliography (expand-file-name "ref/references.bib" org-directory)
+(defcustom dotemacs-bibliography-file (expand-file-name "ref/references.bib" org-directory)
   "The default bibliography file."
   :type 'file
   :group 'dotemacs)
@@ -5195,7 +5118,18 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 "
   "Bib notes format"
-  )
+  :type 'string
+  :group 'dotemacs)
+
+(defcustom dotemacs-pdf-directory
+  (seq-filter #'file-directory-p (directory-files-no-wildcards
+                                  "~/Dropbox/Documents/pdfs" t))
+  "Directory or list of directories containing bibtex pdfs."
+  :type '(choice directory (repeat directory))
+  :group 'dotemacs)
+
+
+
 
 
 
@@ -5203,12 +5137,44 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 #+END_SRC
 *** Citations
+**** Reftex
+
+
+RefTeX is a citation and reference tool maintained by the
+AucTeX team.
+
+Since Emacs 24.3, its built in with the Emacs distribution.
+
+#+NAME: latex-reftex
+#+BEGIN_SRC emacs-lisp
+(use-package reftex
+  :custom
+  (reftex-plug-into-AUCTeX
+   '(nil nil t t t))
+  (reftex-use-fonts t)
+  (reftex-default-bibliography dotemacs-bibliography-file)
+  :hook
+  (LaTeX-mode . turn-on-reftex))
+#+END_SRC
+
+***** Company Reftex
+:PROPERTIES:
+:ID:       7E380FB6-09B2-4E73-87D1-5515402B58D1
+:END:
+
+#+NAME: latex-company-reftex
+#+BEGIN_SRC emacs-lisp
+(use-package company-reftex
+  :demand t
+  :after (:all company reftex))
+#+END_SRC
 
 **** BibTeX
 
 #+BEGIN_SRC emacs-lisp
 (use-package bibtex
   :custom
+  (bibtex-align-at-equal-sign t)
   (bibtex-BibTeX-entry-alist
    '(("Article" "Article in Journal"
       (("author")
@@ -5447,6 +5413,47 @@ entry types and required fields."
 
 #+END_SRC
 
+**** Ivy Bibtex
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-bibtex
+  :after (:all ivy bibtex)
+  :demand t
+  :bind
+  ("C-x c" . ivy-bibtex)
+  :custom
+  (bibtex-completion-pdf-symbol "")
+  (bibtex-completion-notes-template-one-file
+   "** ${title} (${year}):
+ :PROPERTIES:
+ :Custom_ID: ${=key=}
+ :AUTHOR: ${author-or-editor}
+ :JOURNAL: ${journal}
+ :YEAR: ${year}
+ :DOI: ${doi}
+ :VOLUME: ${volume}
+ :END:
+
+")
+  (bibtex-completion-additional-search-fields '(tags))
+  (bibtex-completion-bibliography
+   `(,(org-dir "ref/references.bib")))
+  (bibtex-completion-library-path dotemacs-pdf-directory)
+  (bibtex-completion-notes-path (org-dir "ref/notes.org"))
+  :init
+  (defun org-noter-insert-noter-document ()
+    (interactive)
+    (if-let ((key  (cdr-safe (assoc "CUSTOM_ID" (org-entry-properties)))))
+        (if-let ((pdfs  (bibtex-completion-find-pdf key bibtex-completion-find-additional-pdfs)))
+            (org-set-property "NOTER_DOCUMENT" (abbreviate-file-name (car pdfs))))))
+  :config
+  (setq bibtex-completion-pdf-open-function
+        (lambda (fpath)
+          (start-process "open" "*open*" "open" fpath)))
+  (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
+
+#+END_SRC
+
 **** Google Scholar
 
 #+BEGIN_SRC emacs-lisp
@@ -5463,58 +5470,18 @@ entry types and required fields."
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-ref
-  :straight (org-ref :type git
-                     :host github
-                     :files
-                     (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
-                     :repo "jkitchin/org-ref"
-                     :fork (:host github :repo org-ref "jchaffin/org-ref"))
-  :after ivy
   :commands (org-ref-org-menu)
   :custom
+  (org-latex-prefer-user-labels t)
   (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
-  (org-ref-bibliography-notes (org-dir "ref/notes.org"))
-  (org-ref-notes-directory (org-dir "ref/notes"))
-  (org-ref-pdf-directory (dropbox-dir "Documents/pdfs/" :slash t))
-  (org-ref-note-tilte-format
-   "** %y - %t
-  :PROPERTIES:
-  :Custom_ID: %k
-  :AUTHOR: %9a
-  :JOURNAL: %j
-  :YEAR: %y
-  :VOLUME: %v
-  :PAGES: %p
-  :DOI: %D
-  :URL: %U
-  :END:
-
-")
+  (org-ref-default-bibliography (list dotemacs-bibliography-file))
+  (org-ref-bibliography-notes dotemacs-bibliography-notes)
+  (org-ref-notes-directory dotemacs-bibliography-notes-directory)
+  (org-ref-pdf-directory dotemacs-pdf-directory)
+  (org-ref-note-title-format dotemacs-bibliography-notes-template)
   (org-ref-show-citation-on-enter t)
-  (org-ref-show-broken-links t)
-    (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+  (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
                        "autoref" "cref" "Cref" "vref"))
-  :init
-  (setq org-latex-prefer-user-labels t)
-  ;; https://github.com/jkitchin/org-ref/issues/428
-  (progn
-    (require 'doi-utils)
-    (require 'org-ref-url-utils)
-    (require 'org-id)
-    (require 'org-ref-latex)
-    (require 'org-ref-bibtex)
-    (require 'org-ref-pdf)
-    (require 'org-ref-scopus)
-    (require 'org-ref-isbn)
-    (require 'org-ref-pubmed)
-    (require 'org-ref-arxiv)
-    (require 'org-ref-sci-id)
-    (require 'org-ref-wos)
-    (require 'org-ref-worldcat)
-    (require 'x2bib)
-    (require 'ivy-bibtex))
-  (require 'org-ref)
   :config
   (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
   (with-eval-after-load 'org-ref
@@ -5561,7 +5528,24 @@ entry types and required fields."
 
 **** Ebib
 #+BEGIN_SRC emacs-lisp
-(use-package ebib)
+(use-package ebib
+  :bind
+  ("C-c e" . ebib)
+  :custom
+  (ebib-file-associations '(("pdf")))
+  (ebib-extra-fields
+   '((BibTeX "crossref" "annote" "abstract" "keywords" "file" "tags"
+             "timestamp" "url" "doi")
+     (biblatex "crossref" "annotation" "abstract" "keywords" "file" "tags"
+               "timestamp")))
+  (ebib-latex-preamble
+   (mapconcat #'identity '("\\documentclass{article}"
+                          "\\usepackage{natbib}"
+                          "\\bibliographystyle{plainnat}")
+              " "))
+  (ebib-file-search-dirs dotemacs-pdf-directory)
+  (ebib-reading-list-file (org-dir "ref/reading.org"))
+  (ebib-preload-bib-files (list dotemacs-bibliography-file)))
 #+END_SRC
 
 *** PDFs
@@ -5613,6 +5597,7 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
 #+END_SRC
 
 **** Pdf Extras
+
 
 ** Outlines
 *** Navi
@@ -6462,6 +6447,36 @@ the result as a time value."
           `,@exprs))))
 
 #+END_SRC
+
+**** Send to Fantastical 2
+
+From [[https://jblevins.org/log/emacs-fantastical][Sending Events to Fantastical 2 from Emacs]]
+
+#+BEGIN_SRC emacs-lisp
+(defun send-region-to-fantastical (beg end)
+  "Send the selected region to Fantastical.
+Parse the first line to create the event and use the second
+and subsequent lines as the event note."
+  (interactive "r")
+  (let* ((region (buffer-substring-no-properties beg end))
+         (match (string-match "^\\(.*\\)$" region))
+         (event (substring region (match-beginning 1) (match-end 1)))
+         (notes (if (< (match-end 0) (length region))
+                   (concat (substring region (+ (match-end 0) 1) nil) "\n\n")
+                 "")))
+    (do-applescript
+     (format "set theDate to current date
+              set eventText to %s
+              set eventNotes to %s
+              set eventNotes to (eventNotes) & \"Added from Emacs on \" & (theDate as string)
+              tell application \"Fantastical\"
+                parse sentence (eventText) notes (eventNotes)
+              end tell"
+             (applescript-quote-string event)
+             (applescript-quote-string notes)))))
+
+#+END_SRC
+
 
 *** Clock
 
@@ -8117,7 +8132,10 @@ bullets as UTF-8 characters.
              :repo "marcowahl/org-pretty-tags")
   :preface
   (set-fontset-font "fontset-default" '#xE91A  "file-icons")
+  (set-fontset-font "fontset-default" '#xE600 "file-icons")
+  (set-fontset-font "fontset-default" '#xE601 "file-icons")
   :custom
+
   (org-pretty-tags-surrogate-strings
    '(("homework" . "📕️")
     ("note" . "️📓")
@@ -8136,12 +8154,25 @@ bullets as UTF-8 characters.
     ("ocaml" . "")
     ("python" . "")
     ("kotlin" . "")
+    ("tex". "")
     ("noexport" . "❌")
     ("ignore" . "🚫")
     ("bib" . "")
     ("TOC_3_gh" . "")
+    ;; web sites and categories
     ("web" . "🔗")
-    ("@shopping" . "🛒")))
+    ("@stackexchange" . "")
+    ("@stackoverflow" . "")
+    ("@github" . "")
+    ("@youtube" . "")
+    ("@reddit" . "")
+    ("@shopping" . "🛒")
+    ("@audiophile" . "")
+    ("@gift" . "")
+    ("@inbox" . "")
+    ;; etc
+    ("speaker" . "")))
+
   :init
   (defun org-pretty-tags-enable ()
     (add-hook 'org-mode-hook #'org-pretty-tags-mode))
