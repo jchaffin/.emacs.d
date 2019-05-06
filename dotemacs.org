@@ -22,7 +22,7 @@
     - [[#window-utilities][Window utilities]]
     - [[#file-utilities][File utilities]]
   - [[#package-manager][Package Manager]]
-  -  [[#goto-local-package-repository][Goto local package repository]]
+    - [[#goto-local-package-repository][Goto local package repository]]
     - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
     - [[#straight-ivy-actions][straight ivy actions]]
   - [[#security][Security]]
@@ -53,7 +53,7 @@
   - [[#apps][Apps]]
     - [[#finder][Finder]]
     - [[#counsel-osx-app][Counsel OSX App]]
-  - [[#text-editing][Text editing]]
+  - [[#editor][Editor]]
     - [[#editing][Editing]]
     - [[#deleting][Deleting]]
     - [[#search][Search]]
@@ -108,7 +108,7 @@
     - [[#font-lock][Font lock]]
     - [[#button-lock][Button Lock]]
   - [[#minibuffer][Minibuffer]]
-    - [[#prompt-properties][Prompt Properties]]
+    - [[#prompt][Prompt]]
     - [[#ivy][Ivy]]
     - [[#counsel][Counsel]]
     - [[#swiper][Swiper]]
@@ -142,7 +142,6 @@
     - [[#tex-site][TeX Site]]
     - [[#math][Math]]
     - [[#extra][Extra]]
-    - [[#reftex][Reftex]]
     - [[#magic-latex-buffer][Magic Latex Buffer]]
     - [[#texinfo][Texinfo]]
     - [[#preview][Preview]]
@@ -1070,7 +1069,7 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 #+END_Src
 
 ** Package Manager
-**  Goto local package repository
+*** Goto local package repository
 
 Function to jump to a repository installed by [[#straight][straight]]. An interactive minibuffer completion menu using ivy.
 
@@ -1781,7 +1780,6 @@ interactive tree .
 #+END_SRC
 
 ** Apps
-
 *** Finder
 
 #+BEGIN_SRC emacs-lisp
@@ -1889,7 +1887,7 @@ PATH is optional, and defaults to the current directory."
 
 #+END_SRC
 
-** Text editing
+** Editor
 :PROPERTIES:
 :ID:       11FDD2DB-E7F5-4EB9-AD41-9B5DFAC004E0
 :END:
@@ -3318,7 +3316,7 @@ different window configurations.
 :PROPERTIES:
 :ID:       356E9F9B-4A80-4D65-9846-2B37DB270206
 :END:
-*** Prompt Properties
+*** Prompt
 
 Don't let the cursor go into the minibuffer prompt.
 
@@ -4148,47 +4146,6 @@ any reason for me reconsider my choice.
     (code-library-sync-to-gist t))
 #+END_SRC
 
-**** Ivy Bibtex
-
-#+BEGIN_SRC emacs-lisp
-(use-package ivy-bibtex
-  :after (:all ivy bibtex)
-  :demand t
-  :bind
-  ("C-x c" . ivy-bibtex)
-  :custom
-  (bibtex-completion-notes-template-one-file
-   "** ${title} (${year}):
- :PROPERTIES:
- :Custom_ID: ${=key=}
- :AUTHOR: ${author-or-editor}
- :JOURNAL: ${journal}
- :YEAR: ${year}
- :DOI: ${doi}
- :VOLUME: ${volume}
- :END:
-
-")
-  (bibtex-completion-additional-search-fields '(tags))
-  (bibtex-completion-bibliography
-   `(,(org-dir "ref/references.bib")))
-  (bibtex-completion-library-path
-   `(,(seq-filter #'file-directory-p (directory-files-no-wildcards (dropbox-dir "Documents/pdfs") t))))
-  (bibtex-completion-notes-path (org-dir "ref/notes.org"))
-  :init
-  (defun org-noter-insert-noter-document ()
-    (interactive)
-    (if-let ((key  (cdr-safe (assoc "CUSTOM_ID" (org-entry-properties)))))
-        (if-let ((pdfs  (bibtex-completion-find-pdf key bibtex-completion-find-additional-pdfs)))
-            (org-set-property "NOTER_DOCUMENT" (abbreviate-file-name (car pdfs))))))
-  :config
-  (setq bibtex-completion-pdf-open-function
-        (lambda (fpath)
-          (start-process "open" "*open*" "open" fpath)))
-  (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
-
-#+END_SRC
-
 ** Images
 :PROPERTIES:
 :ID:       36DECCD2-7A7F-4B6A-A3AA-88C6CC72CFBE
@@ -4753,41 +4710,6 @@ Entered on [2018-06-13 Wed 11:42]
 
 #+END_SRC
 
-*** Reftex
-
-
-RefTeX is a citation and reference tool maintained by the
-AucTeX team.
-
-Since Emacs 24.3, its built in with the Emacs distribution.
-
-#+NAME: latex-reftex
-#+BEGIN_SRC emacs-lisp
-(use-package reftex
-  :init
-  (defun reftex/setup ()
-    (turn-on-reftex)
-    (setq reftex-plug-into-AUCTeX
-          '(nil nil t t t)
-          reftex-use-fonts t
-          reftex-default-bibliography
-          `(,(org-dir "ref/references.bib"))))
-  :hook
-  (LaTeX-mode . reftex/setup))
-#+END_SRC
-
-**** Company Reftex
-:PROPERTIES:
-:ID:       7E380FB6-09B2-4E73-87D1-5515402B58D1
-:END:
-
-#+NAME: latex-company-reftex
-#+BEGIN_SRC emacs-lisp
-(use-package company-reftex
-  :demand t
-  :after (:all company reftex))
-#+END_SRC
-
 *** Magic Latex Buffer
 
 Prettify dedicated org-mode latex buffers.
@@ -5168,7 +5090,7 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** Setup
 
 #+BEGIN_SRC emacs-lisp
-(defcustom dotemacs-bibliography (expand-file-name "ref/references.bib" org-directory)
+(defcustom dotemacs-bibliography-file (expand-file-name "ref/references.bib" org-directory)
   "The default bibliography file."
   :type 'file
   :group 'dotemacs)
@@ -5195,7 +5117,18 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 "
   "Bib notes format"
-  )
+  :type 'string
+  :group 'dotemacs)
+
+(defcustom dotemacs-pdf-directory
+  (seq-filter #'file-directory-p (directory-files-no-wildcards
+                                  "~/Dropbox/Documents/pdfs" t))
+  "Directory or list of directories containing bibtex pdfs."
+  :type '(choice directory (repeat directory))
+  :group 'dotemacs)
+
+
+
 
 
 
@@ -5203,12 +5136,44 @@ Generate latex fragments based on the latex compiler and class in the current bu
 
 #+END_SRC
 *** Citations
+**** Reftex
+
+
+RefTeX is a citation and reference tool maintained by the
+AucTeX team.
+
+Since Emacs 24.3, its built in with the Emacs distribution.
+
+#+NAME: latex-reftex
+#+BEGIN_SRC emacs-lisp
+(use-package reftex
+  :custom
+  (reftex-plug-into-AUCTeX
+   '(nil nil t t t))
+  (reftex-use-fonts t)
+  (reftex-default-bibliography dotemacs-bibliography-file)
+  :hook
+  (LaTeX-mode . turn-on-reftex))
+#+END_SRC
+
+***** Company Reftex
+:PROPERTIES:
+:ID:       7E380FB6-09B2-4E73-87D1-5515402B58D1
+:END:
+
+#+NAME: latex-company-reftex
+#+BEGIN_SRC emacs-lisp
+(use-package company-reftex
+  :demand t
+  :after (:all company reftex))
+#+END_SRC
 
 **** BibTeX
 
 #+BEGIN_SRC emacs-lisp
 (use-package bibtex
   :custom
+  (bibtex-align-at-equal-sign t)
   (bibtex-BibTeX-entry-alist
    '(("Article" "Article in Journal"
       (("author")
@@ -5447,6 +5412,47 @@ entry types and required fields."
 
 #+END_SRC
 
+**** Ivy Bibtex
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-bibtex
+  :after (:all ivy bibtex)
+  :demand t
+  :bind
+  ("C-x c" . ivy-bibtex)
+  :custom
+  (bibtex-completion-pdf-symbol "")
+  (bibtex-completion-notes-template-one-file
+   "** ${title} (${year}):
+ :PROPERTIES:
+ :Custom_ID: ${=key=}
+ :AUTHOR: ${author-or-editor}
+ :JOURNAL: ${journal}
+ :YEAR: ${year}
+ :DOI: ${doi}
+ :VOLUME: ${volume}
+ :END:
+
+")
+  (bibtex-completion-additional-search-fields '(tags))
+  (bibtex-completion-bibliography
+   `(,(org-dir "ref/references.bib")))
+  (bibtex-completion-library-path dotemacs-pdf-directory)
+  (bibtex-completion-notes-path (org-dir "ref/notes.org"))
+  :init
+  (defun org-noter-insert-noter-document ()
+    (interactive)
+    (if-let ((key  (cdr-safe (assoc "CUSTOM_ID" (org-entry-properties)))))
+        (if-let ((pdfs  (bibtex-completion-find-pdf key bibtex-completion-find-additional-pdfs)))
+            (org-set-property "NOTER_DOCUMENT" (abbreviate-file-name (car pdfs))))))
+  :config
+  (setq bibtex-completion-pdf-open-function
+        (lambda (fpath)
+          (start-process "open" "*open*" "open" fpath)))
+  (add-to-list 'ivy-re-builders-alist '(ivy-bibtex . ivy--regex-ignore-order)))
+
+#+END_SRC
+
 **** Google Scholar
 
 #+BEGIN_SRC emacs-lisp
@@ -5463,58 +5469,18 @@ entry types and required fields."
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-ref
-  :straight (org-ref :type git
-                     :host github
-                     :files
-                     (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
-                     :repo "jkitchin/org-ref"
-                     :fork (:host github :repo org-ref "jchaffin/org-ref"))
-  :after ivy
   :commands (org-ref-org-menu)
   :custom
+  (org-latex-prefer-user-labels t)
   (org-ref-completion-library 'org-ref-ivy-cite)
-  (org-ref-default-bibliography (list (org-dir "ref/references.bib")))
-  (org-ref-bibliography-notes (org-dir "ref/notes.org"))
-  (org-ref-notes-directory (org-dir "ref/notes"))
-  (org-ref-pdf-directory (dropbox-dir "Documents/pdfs/" :slash t))
-  (org-ref-note-tilte-format
-   "** %y - %t
-  :PROPERTIES:
-  :Custom_ID: %k
-  :AUTHOR: %9a
-  :JOURNAL: %j
-  :YEAR: %y
-  :VOLUME: %v
-  :PAGES: %p
-  :DOI: %D
-  :URL: %U
-  :END:
-
-")
+  (org-ref-default-bibliography (list dotemacs-bibliography-file))
+  (org-ref-bibliography-notes dotemacs-bibliography-notes)
+  (org-ref-notes-directory dotemacs-bibliography-notes-directory)
+  (org-ref-pdf-directory dotemacs-pdf-directory)
+  (org-ref-note-title-format dotemacs-bibliography-notes-template)
   (org-ref-show-citation-on-enter t)
-  (org-ref-show-broken-links t)
-    (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
+  (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
                        "autoref" "cref" "Cref" "vref"))
-  :init
-  (setq org-latex-prefer-user-labels t)
-  ;; https://github.com/jkitchin/org-ref/issues/428
-  (progn
-    (require 'doi-utils)
-    (require 'org-ref-url-utils)
-    (require 'org-id)
-    (require 'org-ref-latex)
-    (require 'org-ref-bibtex)
-    (require 'org-ref-pdf)
-    (require 'org-ref-scopus)
-    (require 'org-ref-isbn)
-    (require 'org-ref-pubmed)
-    (require 'org-ref-arxiv)
-    (require 'org-ref-sci-id)
-    (require 'org-ref-wos)
-    (require 'org-ref-worldcat)
-    (require 'x2bib)
-    (require 'ivy-bibtex))
-  (require 'org-ref)
   :config
   (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
   (with-eval-after-load 'org-ref
@@ -5561,7 +5527,24 @@ entry types and required fields."
 
 **** Ebib
 #+BEGIN_SRC emacs-lisp
-(use-package ebib)
+(use-package ebib
+  :bind
+  ("C-c e" . ebib)
+  :custom
+  (ebib-file-associations '(("pdf")))
+  (ebib-extra-fields
+   '((BibTeX "crossref" "annote" "abstract" "keywords" "file" "tags"
+             "timestamp" "url" "doi")
+     (biblatex "crossref" "annotation" "abstract" "keywords" "file" "tags"
+               "timestamp")))
+  (ebib-latex-preamble
+   (mapconcat #'identity '("\\documentclass{article}"
+                          "\\usepackage{natbib}"
+                          "\\bibliographystyle{plainnat}")
+              " "))
+  (ebib-file-search-dirs dotemacs-pdf-directory)
+  (ebib-reading-list-file (org-dir "ref/reading.org"))
+  (ebib-preload-bib-files (list dotemacs-bibliography-file)))
 #+END_SRC
 
 *** PDFs
@@ -5595,7 +5578,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 
 **** Org PDF View
 
-Now we can open pdf files with =org-pdfview= [fn:10]:
+Now we can open pdf files with =org-pdfview= [fn:9]:
 
 #+NAME: pdf/org
 #+BEGIN_SRC emacs-lisp
@@ -5613,6 +5596,7 @@ Now we can open pdf files with =org-pdfview= [fn:10]:
 #+END_SRC
 
 **** Pdf Extras
+
 
 ** Outlines
 *** Navi
@@ -6463,6 +6447,36 @@ the result as a time value."
 
 #+END_SRC
 
+**** Send to Fantastical 2
+
+From [[https://jblevins.org/log/emacs-fantastical][Sending Events to Fantastical 2 from Emacs]]
+
+#+BEGIN_SRC emacs-lisp
+(defun send-region-to-fantastical (beg end)
+  "Send the selected region to Fantastical.
+Parse the first line to create the event and use the second
+and subsequent lines as the event note."
+  (interactive "r")
+  (let* ((region (buffer-substring-no-properties beg end))
+         (match (string-match "^\\(.*\\)$" region))
+         (event (substring region (match-beginning 1) (match-end 1)))
+         (notes (if (< (match-end 0) (length region))
+                   (concat (substring region (+ (match-end 0) 1) nil) "\n\n")
+                 "")))
+    (do-applescript
+     (format "set theDate to current date
+              set eventText to %s
+              set eventNotes to %s
+              set eventNotes to (eventNotes) & \"Added from Emacs on \" & (theDate as string)
+              tell application \"Fantastical\"
+                parse sentence (eventText) notes (eventNotes)
+              end tell"
+             (applescript-quote-string event)
+             (applescript-quote-string notes)))))
+
+#+END_SRC
+
+
 *** Clock
 
 **** Pomodoro
@@ -6521,7 +6535,7 @@ org agenda files.
           org-mru-completing-read #'ivy-completing-read)))
 #+END_SRC
 
-Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
+Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:10].
 
 **** Org clock convenience
 
@@ -8117,7 +8131,10 @@ bullets as UTF-8 characters.
              :repo "marcowahl/org-pretty-tags")
   :preface
   (set-fontset-font "fontset-default" '#xE91A  "file-icons")
+  (set-fontset-font "fontset-default" '#xE600 "file-icons")
+  (set-fontset-font "fontset-default" '#xE601 "file-icons")
   :custom
+
   (org-pretty-tags-surrogate-strings
    '(("homework" . "📕️")
     ("note" . "️📓")
@@ -8136,12 +8153,25 @@ bullets as UTF-8 characters.
     ("ocaml" . "")
     ("python" . "")
     ("kotlin" . "")
+    ("tex". "")
     ("noexport" . "❌")
     ("ignore" . "🚫")
     ("bib" . "")
     ("TOC_3_gh" . "")
+    ;; web sites and categories
     ("web" . "🔗")
-    ("@shopping" . "🛒")))
+    ("@stackexchange" . "")
+    ("@stackoverflow" . "")
+    ("@github" . "")
+    ("@youtube" . "")
+    ("@reddit" . "")
+    ("@shopping" . "🛒")
+    ("@audiophile" . "")
+    ("@gift" . "")
+    ("@inbox" . "")
+    ;; etc
+    ("speaker" . "")))
+
   :init
   (defun org-pretty-tags-enable ()
     (add-hook 'org-mode-hook #'org-pretty-tags-mode))
@@ -8325,8 +8355,9 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     :init
     (require 'spaceline-all-the-icons)
     (require 'spaceline-segments)
-    (spaceline-all-the-icons-theme 'org-pomodoro)
-    (spaceline-toggle-org-pomodoro-on))
+    (spaceline-all-the-icons-theme 'org-pomodoro 'mu4e-alert-segment)
+    (spaceline-toggle-org-pomodoro-on)
+    (spaceline-toggle-mu4e-alert-segment-on))
 #+END_SRC
 
 * Web
@@ -8703,6 +8734,7 @@ Interactively.
 
 #+NAME: mu-mu4e
 #+BEGIN_SRC emacs-lisp
+;;;; Mu4e
 (use-package mu4e
   :if (executable-find "mu")
   :straight (mu4e :local-repo "/usr/local/share/emacs/site-lisp/mu-edge"
@@ -8717,15 +8749,16 @@ Interactively.
   (mu4e-compose-context-policy 'ask-if-none)
   (mu4e-compose-format-flowed t)
   :init
-  (when (require 'smtpmail nil  t) ; smtmp settings
+   ;;;;; smtpmail
+  (when (require 'smtpmail nil  t)
     (setq message-send-mail-function 'smtpmail-send-it
-        smtpmail-stream-type 'starttls
-        smtpmail-default-smtp-server "smtp.gmail.com"
-        smtpmail-smtp-server "smtp.gmail.com"
-        smtpmail-smtp-service 587))
-    ;; Kill message buffers on send
+          smtpmail-stream-type 'starttls
+          smtpmail-default-smtp-server "smtp.gmail.com"
+          smtpmail-smtp-server "smtp.gmail.com"
+          smtpmail-smtp-service 587))
+  ;; Kill message buffers on send
   (setq message-kill-buffer-on-exit t)
-  ;; mu4e View
+  ;;;;; mu4e view
   (setq mu4e-attachment-dir "~/Downloads"
         mu4e-view-show-images t
         mu4e-show-addresses t
@@ -8737,6 +8770,7 @@ Interactively.
 
   (with-eval-after-load 'ivy
     (setq mu4e-completing-read-function 'ivy-completing-read))
+;;;;; mu4e context
   (when (require 'mu4e-context nil t)
     (setq mu4e-contexts
           `(,(make-mu4e-context
@@ -8803,15 +8837,40 @@ Interactively.
                             (mu4e-context-vars context)))))
                       mu4e-contexts)))
   :config
-  ;; Org Contacts
+;;;;; mu4e actions
   (setq mu4e-org-contacts-file
         (expand-file-name "contacts.org" org-directory))
   ;; Capture contact at point using 'C-a o' in `mu4e-headers-mode'
   (add-to-list 'mu4e-headers-actions
                '("org-contact-add" . mu4e-action-add-org-contact) t)
-  ;; Capture contact at point using 'C-a o' in `mu4e-vie-mode'
+  ;; Capture contact at point using 'C-a o' in `mu4e-view-mode'
   (add-to-list 'mu4e-view-actions
-               '("org-contact-add" . mu4e-action-add-org-contact) t))
+               '("org-contact-add" . mu4e-action-add-org-contact) t)
+  ;;;;; mu4e marks
+  ;; Add a mark for tagging messages (gmail style)
+  ;; (add-to-list 'mu4e-marks
+  ;;              '(tag
+  ;;                :char "g"
+  ;;                :prompt "gtag"
+  ;;                :ask-target (lambda () (read-string "What tag do you want to add?"))
+  ;;                :action (lambda (docid msg target)
+  ;;                          (mu4e-action-retag-message msg (concat "+" target)))))
+  ;; ;; Add a "archive and mark read" mark to a message
+  ;; (add-to-list 'mu4e-marks
+  ;;              '(archive
+  ;;                :char "A"
+  ;;                :prompt "Archive"
+  ;;                :show-target (lambda (target) "archive")
+  ;;                :action (lambda (docid msg target)
+  ;;                          ;; must come before proc-move since retag runs
+  ;;                          ;; 'sed' on the file
+  ;;                          (mu4e-action-retag msg "-\\Inbox")
+  ;;                          (mu4e~proc-move docid nil "+S-u-N"))))
+  ;; (mu4e~headers-defun-mark-for tag)
+  ;; (mu4e~headers-defun-mark-for archive)
+  ;; (define-key mu4e-headers-mode-map (kbd "g") 'mu4e-headers-mark-for-tag)
+  ;; (define-key mu4e-headers-mode-map (kbd "A") 'mu4e-headers-mark-for-archive)
+  )
 #+END_SRC
 
 **** GNUs Dired
@@ -8843,6 +8902,18 @@ Interactively.
 (use-package mu4e-alert
   :if (featurep 'mu4e)
   :after (mu4e)
+  :custom
+  (mu4e-alert-interesting-mail-query
+   (concat "flag:unread maildir:/school/INBOX "
+           "OR "
+           "flag:unread maildir:/personal/INBOX"))
+  :init
+  (mu4e-alert-enable-mode-line-display)
+  ;; (defun dotemacs-refresh-mu4e-alert-mode-line ()
+  ;;   (interactive)
+  ;;   (mu4e~proc-kill)
+  ;;   (mu4e-alert-enable-mode-line-display))
+  ;; (run-with-timer 0 60 'dotemacs-refresh-mu4e-alert-mode-line)
   :config
   (mu4e-alert-enable-notifications))
 #+END_SRC
@@ -8977,12 +9048,12 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
         (visual-fill-column-mode 1))))
 
   (defun nov/window-configuration-change-hook ()
-    (nov--justify-text)
+    (nov/justify-text)
     (remove-hook 'window-configuration-change-hook
                  'nov/window-configuration-change-hook t))
 
-  (defun nov--justify-text ()
-    ;; Justify text using `justify-kp'.
+  (defun nov/justify-text ()
+    "Justify text using `justify-kp'."
     (when (require 'justify-kp nil t)
       (if (get-buffer-window)
           (let ((max-width (pj-line-width))
@@ -11129,8 +11200,6 @@ Mode for editing Homebrew formula.
 
 [fn:8] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
 
-[fn:9] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
+[fn:9] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:10] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
-
-[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
+[fn:10] http://mbork.pl/2018-04-28_org-mru-clock

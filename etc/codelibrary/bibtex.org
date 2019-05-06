@@ -1,0 +1,19 @@
+#+PROPERTY: eval no-export
+* Online (unpublished) :latex:
+
+#+BEGIN_SRC bibtex
+@online{baez/online,
+  author       = {Baez, John C. and Lauda, Aaron D.},
+  title        = {Higher-Dimensional Algebra V: 2-Groups},
+  date         = {2004-10-27},
+  version      = 3,
+  langid       = {english},
+  langidopts   = {variant=american},
+  eprinttype   = {arxiv},
+  eprint       = {math/0307200v3},
+  annotation   = {An \texttt{online} reference from arXiv. Note the
+                  \texttt{eprint} and \texttt{eprinttype} fields. Compare
+                  \texttt{baez\slash article} which is the same item given as an
+                  \texttt{article} entry with eprint information},
+}
+#+END_SRC

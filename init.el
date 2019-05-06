@@ -1,4 +1,4 @@
-;;; init.el -- user initialization file for GNU Emacs
+;;; init.el -- User initialization file for GNU Emacs
 ;;
 ;;; Copyright (c) 2019 Jacob Chaffin:
 ;;
@@ -112,6 +112,7 @@
       (straight-use-package 'git)
 
 ;;;; Org Mode:
+;;;;; Org version
       ;; Make straight.el and org-mode play nice.
       ;; The Org mode build system autogenerates an "org-versions.el" file
       ;; which in turn is used for loading org libraries and definitions.
@@ -124,8 +125,6 @@
       ;; before the loading the straight version of Org, which prevents
       ;; Emacs from trying to load the built-in library.
       ;; See [[https://github.com/raxod502/straight.el/issues/211][straight.el/issues/#211]]
-;;;;; org-release:
-
       (defun org-release ()
         "The release version of org-mode.
       Inserted by installing org-mode or when a release is made."
@@ -135,8 +134,6 @@
            (string-remove-prefix
             "release_"
             (git-run "describe" "--match=release\*" "--abbrev=0" "HEAD")))))
-;;;;; org-git-version:
-
       (defun org-git-version ()
         "The Git version of Org Mode.
 Inserted by installed Org or when a release is made."
@@ -147,7 +144,7 @@ Inserted by installed Org or when a release is made."
       (provide 'org-version)
 ;;;;; install org mode:
       (straight-use-package 'org-plus-contrib)
-
+;;;;; Org configuration
       (use-package org
         :straight org-plus-contrib
         :custom
@@ -206,13 +203,12 @@ Inserted by installed Org or when a release is made."
          (:map org-mode-map
                ("C-c C-x h" . org-toggle-link-display)
                ("C-c C-s" . org-schedule))))
-
 ;;;; Literate:
+;;;;; Custom variables
       (defgroup dotemacs nil
         "Customization group for the `dotemacs' Emacs configuration."
         :group 'applications
         :prefix "dotemacs-")
-
       (defcustom dotemacs-literate-config-file
         (expand-file-name "dotemacs.org" user-emacs-directory)
         "The *.org file containing the source code responsible for
@@ -221,7 +217,6 @@ Inserted by installed Org or when a release is made."
       distribution."
         :type 'file
         :group 'dotemacs)
-
       (defvar literate-debug-blocks
         '("core/read-only"
           "core/ox"
@@ -232,7 +227,7 @@ Inserted by installed Org or when a release is made."
           "core/rainbow-delimiters"
           "core/swiper")
         "Named source blocks to tangle when `use-literate-p' is enabled. ")
-
+;;;;;  tangle and load
       ;; Extract source code and load the config
       (if use-literate-p
           (if (file-exists-p dotemacs-literate-config-file)
