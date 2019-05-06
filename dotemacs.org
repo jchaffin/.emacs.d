@@ -8344,10 +8344,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     :straight spaceline)
 
   (use-package spaceline-all-the-icons
-    :straight  (spaceline-all-the-icons
-		:type git
-		:host github
-		:repo "LiuPai/spaceline-all-the-icons.el")
     :after spaceline)
 
   (use-package spaceline-all-the-icons-segments
