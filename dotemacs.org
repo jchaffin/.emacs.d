@@ -22,7 +22,7 @@
     - [[#window-utilities][Window utilities]]
     - [[#file-utilities][File utilities]]
   - [[#package-manager][Package Manager]]
-  -  [[#goto-local-package-repository][Goto local package repository]]
+    - [[#goto-local-package-repository][Goto local package repository]]
     - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
     - [[#straight-ivy-actions][straight ivy actions]]
   - [[#security][Security]]
@@ -53,7 +53,7 @@
   - [[#apps][Apps]]
     - [[#finder][Finder]]
     - [[#counsel-osx-app][Counsel OSX App]]
-  - [[#text-editing][Text editing]]
+  - [[#editor][Editor]]
     - [[#editing][Editing]]
     - [[#deleting][Deleting]]
     - [[#search][Search]]
@@ -108,7 +108,7 @@
     - [[#font-lock][Font lock]]
     - [[#button-lock][Button Lock]]
   - [[#minibuffer][Minibuffer]]
-    - [[#prompt-properties][Prompt Properties]]
+    - [[#prompt][Prompt]]
     - [[#ivy][Ivy]]
     - [[#counsel][Counsel]]
     - [[#swiper][Swiper]]
@@ -1069,7 +1069,7 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 #+END_Src
 
 ** Package Manager
-**  Goto local package repository
+*** Goto local package repository
 
 Function to jump to a repository installed by [[#straight][straight]]. An interactive minibuffer completion menu using ivy.
 
@@ -1780,7 +1780,6 @@ interactive tree .
 #+END_SRC
 
 ** Apps
-
 *** Finder
 
 #+BEGIN_SRC emacs-lisp
@@ -1888,7 +1887,7 @@ PATH is optional, and defaults to the current directory."
 
 #+END_SRC
 
-** Text editing
+** Editor
 :PROPERTIES:
 :ID:       11FDD2DB-E7F5-4EB9-AD41-9B5DFAC004E0
 :END:
@@ -3317,7 +3316,7 @@ different window configurations.
 :PROPERTIES:
 :ID:       356E9F9B-4A80-4D65-9846-2B37DB270206
 :END:
-*** Prompt Properties
+*** Prompt
 
 Don't let the cursor go into the minibuffer prompt.
 
@@ -5579,7 +5578,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 
 **** Org PDF View
 
-Now we can open pdf files with =org-pdfview= [fn:10]:
+Now we can open pdf files with =org-pdfview= [fn:9]:
 
 #+NAME: pdf/org
 #+BEGIN_SRC emacs-lisp
@@ -6536,7 +6535,7 @@ org agenda files.
           org-mru-completing-read #'ivy-completing-read)))
 #+END_SRC
 
-Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:11].
+Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how these two packages compare.[fn:10].
 
 **** Org clock convenience
 
@@ -8356,8 +8355,9 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     :init
     (require 'spaceline-all-the-icons)
     (require 'spaceline-segments)
-    (spaceline-all-the-icons-theme 'org-pomodoro)
-    (spaceline-toggle-org-pomodoro-on))
+    (spaceline-all-the-icons-theme 'org-pomodoro 'mu4e-alert-segment)
+    (spaceline-toggle-org-pomodoro-on)
+    (spaceline-toggle-mu4e-alert-segment-on))
 #+END_SRC
 
 * Web
@@ -8734,6 +8734,7 @@ Interactively.
 
 #+NAME: mu-mu4e
 #+BEGIN_SRC emacs-lisp
+;;;; Mu4e
 (use-package mu4e
   :if (executable-find "mu")
   :straight (mu4e :local-repo "/usr/local/share/emacs/site-lisp/mu-edge"
@@ -8748,15 +8749,16 @@ Interactively.
   (mu4e-compose-context-policy 'ask-if-none)
   (mu4e-compose-format-flowed t)
   :init
-  (when (require 'smtpmail nil  t) ; smtmp settings
+   ;;;;; smtpmail
+  (when (require 'smtpmail nil  t)
     (setq message-send-mail-function 'smtpmail-send-it
-        smtpmail-stream-type 'starttls
-        smtpmail-default-smtp-server "smtp.gmail.com"
-        smtpmail-smtp-server "smtp.gmail.com"
-        smtpmail-smtp-service 587))
-    ;; Kill message buffers on send
+          smtpmail-stream-type 'starttls
+          smtpmail-default-smtp-server "smtp.gmail.com"
+          smtpmail-smtp-server "smtp.gmail.com"
+          smtpmail-smtp-service 587))
+  ;; Kill message buffers on send
   (setq message-kill-buffer-on-exit t)
-  ;; mu4e View
+  ;;;;; mu4e view
   (setq mu4e-attachment-dir "~/Downloads"
         mu4e-view-show-images t
         mu4e-show-addresses t
@@ -8768,6 +8770,7 @@ Interactively.
 
   (with-eval-after-load 'ivy
     (setq mu4e-completing-read-function 'ivy-completing-read))
+;;;;; mu4e context
   (when (require 'mu4e-context nil t)
     (setq mu4e-contexts
           `(,(make-mu4e-context
@@ -8834,15 +8837,40 @@ Interactively.
                             (mu4e-context-vars context)))))
                       mu4e-contexts)))
   :config
-  ;; Org Contacts
+;;;;; mu4e actions
   (setq mu4e-org-contacts-file
         (expand-file-name "contacts.org" org-directory))
   ;; Capture contact at point using 'C-a o' in `mu4e-headers-mode'
   (add-to-list 'mu4e-headers-actions
                '("org-contact-add" . mu4e-action-add-org-contact) t)
-  ;; Capture contact at point using 'C-a o' in `mu4e-vie-mode'
+  ;; Capture contact at point using 'C-a o' in `mu4e-view-mode'
   (add-to-list 'mu4e-view-actions
-               '("org-contact-add" . mu4e-action-add-org-contact) t))
+               '("org-contact-add" . mu4e-action-add-org-contact) t)
+  ;;;;; mu4e marks
+  ;; Add a mark for tagging messages (gmail style)
+  ;; (add-to-list 'mu4e-marks
+  ;;              '(tag
+  ;;                :char "g"
+  ;;                :prompt "gtag"
+  ;;                :ask-target (lambda () (read-string "What tag do you want to add?"))
+  ;;                :action (lambda (docid msg target)
+  ;;                          (mu4e-action-retag-message msg (concat "+" target)))))
+  ;; ;; Add a "archive and mark read" mark to a message
+  ;; (add-to-list 'mu4e-marks
+  ;;              '(archive
+  ;;                :char "A"
+  ;;                :prompt "Archive"
+  ;;                :show-target (lambda (target) "archive")
+  ;;                :action (lambda (docid msg target)
+  ;;                          ;; must come before proc-move since retag runs
+  ;;                          ;; 'sed' on the file
+  ;;                          (mu4e-action-retag msg "-\\Inbox")
+  ;;                          (mu4e~proc-move docid nil "+S-u-N"))))
+  ;; (mu4e~headers-defun-mark-for tag)
+  ;; (mu4e~headers-defun-mark-for archive)
+  ;; (define-key mu4e-headers-mode-map (kbd "g") 'mu4e-headers-mark-for-tag)
+  ;; (define-key mu4e-headers-mode-map (kbd "A") 'mu4e-headers-mark-for-archive)
+  )
 #+END_SRC
 
 **** GNUs Dired
@@ -8874,6 +8902,18 @@ Interactively.
 (use-package mu4e-alert
   :if (featurep 'mu4e)
   :after (mu4e)
+  :custom
+  (mu4e-alert-interesting-mail-query
+   (concat "flag:unread maildir:/school/INBOX "
+           "OR "
+           "flag:unread maildir:/personal/INBOX"))
+  :init
+  (mu4e-alert-enable-mode-line-display)
+  ;; (defun dotemacs-refresh-mu4e-alert-mode-line ()
+  ;;   (interactive)
+  ;;   (mu4e~proc-kill)
+  ;;   (mu4e-alert-enable-mode-line-display))
+  ;; (run-with-timer 0 60 'dotemacs-refresh-mu4e-alert-mode-line)
   :config
   (mu4e-alert-enable-notifications))
 #+END_SRC
@@ -9008,12 +9048,12 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
         (visual-fill-column-mode 1))))
 
   (defun nov/window-configuration-change-hook ()
-    (nov--justify-text)
+    (nov/justify-text)
     (remove-hook 'window-configuration-change-hook
                  'nov/window-configuration-change-hook t))
 
-  (defun nov--justify-text ()
-    ;; Justify text using `justify-kp'.
+  (defun nov/justify-text ()
+    "Justify text using `justify-kp'."
     (when (require 'justify-kp nil t)
       (if (get-buffer-window)
           (let ((max-width (pj-line-width))
@@ -11160,8 +11200,6 @@ Mode for editing Homebrew formula.
 
 [fn:8] [[https://www.emacswiki.org/emacs/NeoTree][Emacs Wiki - NeoTree]]
 
-[fn:9] [[https://www.emacswiki.org/emacs/WindowResize][Emacs Wiki - Window Resize]]
+[fn:9] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
 
-[fn:10] [[https://matt.hackinghistory.ca/2015/11/11/note-taking-with-pdf-tools/][Note taking with pdf-tools]]
-
-[fn:11] http://mbork.pl/2018-04-28_org-mru-clock
+[fn:10] http://mbork.pl/2018-04-28_org-mru-clock
