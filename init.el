@@ -176,7 +176,6 @@ Inserted by installed Org or when a release is made."
         (org-modules '(org-bbdb
                        org-bibtex
                        org-crypt
-                       org-elisp-symbol
                        org-eww
                        org-habit
                        org-id
@@ -186,13 +185,14 @@ Inserted by installed Org or when a release is made."
                        org-tempo
                        org-eshell
                        org-annotate-file
-                       org-bookmark
                        org-checklist
                        org-collector
                        org-mac-iCal
                        org-mac-link
-                       org-man
-                       org-velocity))
+                       org-velocity
+                       ol-bookmark
+                       ol-man
+                       ol-elisp-symbol))
         :bind
         (("C-c L" . org-insert-link-global)
          ("C-c M-O" . org-open-at-point-global)

@@ -988,16 +988,16 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
   "Resolves the absolute path formed PATH-SEGMENTS to the
    user home directory. If the optional argument SLASH is supplied,
 the the returned file path will be formatted as a directory. "
-  (let ((segments (seq-filter #'stringp path-segments)))
-    (--> (getenv "HOME")
-         (f-split it)
-         (append it segments)
-         (cdr it)
-         (cons (concat "/" (car it)) (cdr it))
-         (apply #'resolve-path it)
-         (if slash (file-name-as-directory it) it))))
+  (when (require 'f nil t)
+    (let ((segments (seq-filter #'stringp path-segments)))
+      (--> (getenv "HOME")
+	   (f-split it)
+	   (append it segments)
+	   (cdr it)
+	   (cons (concat "/" (car it)) (cdr it))
+	   (apply #'resolve-path it)
+	   (if slash (file-name-as-directory it) it)))))
 
-(user-home "hi/" :slash t)
 #+END_SRC
 
 ***** Dropbox Directory
@@ -2355,6 +2355,16 @@ whistles, it makes up for in compatibility and hackability [fn:7].
     (add-to-list 'org-file-apps '(directory . emacs))))
 #+END_SRC
 
+**** Dired x
+
+#+BEGIN_SRC emacs-lisp
+(use-package dired-x
+  :straight (dired-x :type built-in)
+  :init
+  (require 'dired-x))
+
+#+END_SRC
+
 **** Dired+
 
 Adds extensions and functionality to dired mode.
@@ -2363,6 +2373,7 @@ Adds extensions and functionality to dired mode.
 #+BEGIN_SRC emacs-lisp
 (use-package dired+
   :demand t
+  :after (dired)
   :init
   ;; from [[https://jblevins.org/log/dired-open][Integrating OS X and Emacs Dired]]:
   (defun dired-do-open-with (&optional arg)
@@ -5459,7 +5470,7 @@ entry types and required fields."
 (use-package gscholar-bibtex
   :init
   (with-eval-after-load 'reftex
-    (setq gscholar-bibtex-database-file (car reftex-default-bibliography))))
+    (setq gscholar-bibtex-database-file dotemacs-bibliography-file)))
 #+END_SRC
 
 **** Org Ref
@@ -5597,7 +5608,6 @@ Now we can open pdf files with =org-pdfview= [fn:9]:
 
 **** Pdf Extras
 
-
 ** Outlines
 *** Navi
 
@@ -5641,7 +5651,6 @@ instead of ~outline-show-entry~.
 #+END_SRC
 
 *** Org Links :structure:
-
 **** Prompt for description
 #+begin_src emacs-lisp
 (defun org-link-describe (link desc)
@@ -5819,6 +5828,20 @@ Embed YouTube Links in =iframe=.
     (org-open-file (car list) t)
     (occur (mapconcat 'identity (cdr list) "#"))))
 (org-add-link-type "occur" 'org-occur-open)
+#+END_SRC
+
+**** Org Man
+
+#+BEGIN_SRC emacs-lisp
+(use-package ol-man
+  :straight org-plus-contrib)
+#+END_SRC
+
+**** Org git links
+
+#+BEGIN_SRC emacs-lisp
+(use-package ol-git-link
+  :straight org-plus-contrib)
 #+END_SRC
 
 ** Org Coding
