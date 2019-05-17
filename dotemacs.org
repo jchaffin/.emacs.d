@@ -5652,13 +5652,24 @@ instead of ~outline-show-entry~.
 
 *** Org Links :structure:
 **** Prompt for description
+
 #+begin_src emacs-lisp
-(defun org-link-describe (link desc)
-  (if (file-exists-p link)
+(use-package ol
+  :straight org-plus-contrib
+  :demand t
+  :custom
+  (org-link-use-indirect-buffer-for-internals t)
+  :bind
+  (("C-c L" . org-insert-link-global)
+   ("C-c M-O" . org-open-at-point-global)
+   ("C-c M-o" . org-store-link))
+  :init
+  (defun org-link-describe (link desc)
+    (if (file-exists-p link)
       desc
     (read-string "Description: " desc)))
+  (setf org-make-link-description-function #'org-link-describe))
 
-(setf org-make-link-description-function #'org-link-describe)
 #+end_src
 
 **** Tag links
@@ -8376,6 +8387,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     (require 'spaceline-segments)
     (spaceline-all-the-icons-theme 'org-pomodoro 'mu4e-alert-segment)
     (spaceline-toggle-org-pomodoro-on)
+    (spaceline-toggle-all-the-icons-flycheck-status-off)
     (spaceline-toggle-mu4e-alert-segment-on))
 #+END_SRC
 
