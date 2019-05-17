@@ -172,7 +172,6 @@ Inserted by installed Org or when a release is made."
         (org-yank-adjusted-subtrees t)
         (org-yank-folded-subtrees t)
         (org-use-speed-commands t)
-        (org-display-internal-link-with-indirect-buffer t)
         (org-modules '(org-bbdb
                        org-bibtex
                        org-crypt
@@ -194,12 +193,9 @@ Inserted by installed Org or when a release is made."
                        ol-man
                        ol-elisp-symbol))
         :bind
-        (("C-c L" . org-insert-link-global)
-         ("C-c M-O" . org-open-at-point-global)
-         ("C-c a" . org-agenda)
+        (("C-c a" . org-agenda)
          ("C-c c" . org-capture)
          ("C-c b" . org-switchb)
-         ("C-c M-o" . org-store-link)
          (:map org-mode-map
                ("C-c C-x h" . org-toggle-link-display)
                ("C-c C-s" . org-schedule))))
