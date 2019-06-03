@@ -339,6 +339,27 @@
 * Emacs
 ** Startup
 *** Depedencies
+
+#+NAME: core/libs
+#+BEGIN_SRC emacs-lisp :noweb yes :exports none :results silent
+;; Page Break Lines
+<<libs/pbl>>
+;; Dash
+<<libs/dash>>
+;; f.el
+<<libs/f>>
+;; s
+<<libs/s>>
+;; a
+<<libs/a>>
+;; el-patch
+<<libs/el-patch>>
+;; async
+<<libs/async>>
+;; esup
+<<libs/esup>>
+#+END_SRC
+
 **** Page Break Lines
 :PROPERTIES:
 :ID:       E0156F78-3E5A-4855-AF01-8DA86779DE0A
@@ -347,8 +368,8 @@
 Global minor-mode that turns ~^L~ form feed characters into
 horizontal line rules.
 
-#+NAME: buffer/page-break-lines
-#+BEGIN_SRC emacs-lisp
+#+NAME: libs/pbl
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package page-break-lines
   :init
   (global-page-break-lines-mode))
@@ -356,9 +377,16 @@ horizontal line rules.
 
 **** Dash
 
+#+NAME: libs/dash
+#+BEGIN_SRC emacs-lisp :tangle no :noweb yes :exports none
+<<dash/dash.el>>
+<<dash/functional>>
+#+END_SRC
+
 Functional bindings i.e thread =->= macro.
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: dash/dash.el
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package dash
   :config
   (dash-enable-font-lock))
@@ -367,15 +395,8 @@ Functional bindings i.e thread =->= macro.
 ***** Dash functional
 
 #+NAME: dash/functional
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package dash-functional)
-#+END_SRC
-
-**** cl/highlight
-
-#+NAME: cl/highlight
-#+BEGIN_SRC emacs-lisp
-(use-package cl-lib-highlight)
 #+END_SRC
 
 **** =f=
@@ -392,14 +413,14 @@ Declarative file and directory utilities.
 The string manipulation library.
 
 #+NAME: libs/s
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package s)
 #+END_SRC
 
 **** =a=
 
 #+NAME: libs/a
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package a)
 #+END_SRC
 
@@ -408,7 +429,7 @@ The string manipulation library.
 Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to advice system and package lazy-loading.
 
 #+NAME: libs/el-patch
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package el-patch
   :init
   (require 'el-patch)
@@ -424,7 +445,8 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 
 **** async
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: libs/async
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package async
   :after dired
   :commands (dired-async-mode async-smtpmail-send-it)
@@ -437,7 +459,8 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 
 **** esup
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: libs/esup
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package esup)
 #+END_SRC
 
@@ -971,7 +994,6 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 
 #+NAME: core/path
 #+BEGIN_SRC emacs-lisp
-
 (defun resolve-path (&rest paths)
   "Concatenate path segments."
   (let ((paths- (mapcar #'directory-file-name paths)))
@@ -979,8 +1001,7 @@ From [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Ergo Emacs]]:
 
 #+END_SRC
 
-**** User Directories
-***** User Home
+**** User Home
 
 #+NAME: core/home
 #+BEGIN_SRC emacs-lisp
@@ -1000,25 +1021,18 @@ the the returned file path will be formatted as a directory. "
 
 #+END_SRC
 
-***** Dropbox Directory
 
-#+NAME: fd-dropbox
+***** Emacs Directories
+
+#+NAME: core/aliases
 #+BEGIN_SRC emacs-lisp
-(defalias #'dropbox-dir (apply-partially #'user-home "Dropbox"))
-#+END_SRC
-
-***** Project Directory
-
-#+NAME: fd-projects
-#+BEGIN_SRC emacs-lisp
+;;;; Directory aliases
 (defalias #'projects-dir
- (apply-partially #'user-home "Developer" "Projects"))
-#+END_SRC
-
-**** Emacs Directories
-
-#+NAME: fd-emacs
-#+BEGIN_SRC emacs-lisp
+ (apply-partially #'user-home "Developer" "Projects")
+ "Resolve PATH-SEGMENTS to projects directory.")
+(defalias #'dropbox-dir (apply-partially #'user-home "Dropbox")
+  "Resolve PATH-SEGMENTS to Dropbox directory.")
+;;;;; Emacs directories
 (defalias #'emacs-dir (apply-partially #'user-home ".emacs.d")
   "Resolve PATH-SEGMENTS to `user-emacs-directory'.")
 ;; no littering directories
@@ -1031,18 +1045,17 @@ the the returned file path will be formatted as a directory. "
 (defalias #'emacs-local-dir
   (apply-partially #'emacs-etc-dir "local")
   "Resolve PATH-SEGMENTS to local repos directory ")
-;; straight.el directories
+;;;;; straight.el directories
 (defalias #'straight-dir
   (apply-partially #'emacs-dir "straight")
   "Resolve PATH-SEGMENTS to straight.el installation directory.")
-
 (defalias #'straight-repos-dir
   (apply-partially #'straight-dir "repos")
   "Resolve PATH-SEGMENTS to straight.el repos directory.")
 (defalias #'straight-build-dir
   (apply-partially #'straight-dir "build")
   "Resolve PATH-SEGMENTS to straight.elj build directory")
-;; org directories
+;;;;; org directories
 (defalias #'org-dir
   (apply-partially #'dropbox-dir "org")
   "Resolve PATH-SEGMENTS to `org-directory'.")
@@ -1683,6 +1696,7 @@ other machines.
 (define-key goto-map "C" #'goto-custom)
 #+END_SRC
 
+
 *** Backup Files
 
 This might come back to bite me one day but I never use them.
@@ -1695,7 +1709,7 @@ This might come back to bite me one day but I never use them.
 
 #+BEGIN_SRC emacs-lisp
 (setq auto-save-default nil
- auto-save-no-message t)
+      auto-save-no-message t)
 #+END_SRC
 
 *** Lockfiles
@@ -3185,7 +3199,8 @@ different window configurations.
   :init
   (shackle-mode 1)
   :config
-  (setq shackle-rules '((compilation-mode :noselect t))
+  (setq shackle-rules '((compilation-mode :noselect t)
+                        ())
         shackle-default-rule '(:select t)))
 
 #+END_SRC
@@ -3547,12 +3562,9 @@ Use a prefix arg FONTIFY for colored headlines."
 
 #+NAME: ivy/todo
 #+BEGIN_SRC emacs-lisp
-
   (use-package ivy-todo
-    :config
-    (setq ivy-todo-file (agenda-dir "ivy-todo.org")))
-
-
+    :custom
+    (ivy-todo-file dotemacs-default-agenda-file))
 #+END_SRC
 
 **** Ivy rich
@@ -3659,6 +3671,8 @@ END:
 #+NAME: core/counsel
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
+    :custom
+    (counsel-bookmark-avoid-dired t)
     :bind (("<f1> l" . counsel-find-library)
            ("C-c l" . counsel-load-library)
            ("C-c g" . counsel-git)
@@ -3806,10 +3820,13 @@ ivy integration with dash docsets. This is not great, as installing
 
 #+BEGIN_SRC emacs-lisp
 (use-package counsel-org-clock
-  :straight (:host github
-                   :repo "akirak/counsel-org-clock")
+  :straight (counsel-org-clock
+             :host github
+             :repo "akirak/counsel-org-clock")
   :after (:all org ivy)
-  :demand t)
+  :demand t
+  :custom
+  (counsel-org-clock-history-include-archives t))
 #+END_SRC
 
 *** Swiper
@@ -4120,7 +4137,6 @@ any reason for me reconsider my choice.
          "ln -s `pwd`/build/compile_commands.json .")
         (dired dir)
         (revert-buffer)))
-
 
 
     (defun skeletor/projectile-ignore ()
@@ -5148,14 +5164,8 @@ Generate latex fragments based on the latex compiler and class in the current bu
   :type '(choice directory (repeat directory))
   :group 'dotemacs)
 
-
-
-
-
-
-
-
 #+END_SRC
+
 *** Citations
 **** Reftex
 
@@ -6076,9 +6086,8 @@ is positive, move after, and if negative, move before."
              "* %?\nEntered on %U\n  %i\n  %a")
             ("c" "Contact" entry (file "contacts.org")
              ,org-contacts-template
-             :empty-lines 1))))
-  :config
-  (advice-add 'org-capture :around #'org-pretty-tags-inhibit-overlays))
+             :empty-lines 1)))
+    (add-to-list 'org-agenda-files org-default-notes-file)))
 #+END_SRC
 
 **** Alfred capture
@@ -6196,10 +6205,12 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               (setq face-remapping-alist (delq f face-remapping-alist)))
             org-level-remap-face))))
   (add-hook 'org-mode-hook #'org-agenda-file-face)
-  (defvar dotemacs/default-agenda-file "~/Dropbox/org/agenda/TODOs.org"
-    "The file path of the default agenda file.")
-  (when (file-exists-p dotemacs/default-agenda-file)
-    (add-to-list 'org-agenda-files dotemacs/default-agenda-file)))
+  (defcustom dotemacs-default-agenda-file (expand-file-name "agenda/TODOS.org" org-directory)
+    "The file path of the default agenda file."
+    :type 'file
+    :group 'dotemacs)
+  (when (file-exists-p dotemacs-default-agenda-file)
+    (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
 #+END_SRC
 
 **** Super agenda
@@ -6324,8 +6335,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
             (--> project-path (split-string it "/" t) nreverse car (concat it ".org"))))
       (if (file-exists-p (expand-file-name project-agenda-file project-path))
           project-agenda-file "TODOs.org")))
-  (defvar-local org-default-agenda-file
-    (file-truename "~/Dropbox/org/todos/TODOS.org"))
+
   (defun org-projectile-files-to-agenda ()
     "Add projectile project files to agenda."
     (interactive)
@@ -8164,66 +8174,51 @@ bullets as UTF-8 characters.
   (set-fontset-font "fontset-default" '#xE91A  "file-icons")
   (set-fontset-font "fontset-default" '#xE600 "file-icons")
   (set-fontset-font "fontset-default" '#xE601 "file-icons")
+  (set-fontset-font "fontset-default" '#xE926 "file-icons")
   :custom
-
   (org-pretty-tags-surrogate-strings
-   '(("homework" . "📕️")
-    ("note" . "️📓")
-    ("exam" . "📜")
-    ("quiz" . "📝")
-    ("reading" . "📚")
-    ("lecture" . "🎓")
-    ("attach" . "📎")
-    ("@semantics" . "λ")
-    ("@phonetics" . "🗣")
-    ("@ai" . "♠")
-    ("@comsci" . "💻")
-    ("java" . "")
-    ("prolog" . "")
-    ("scheme" . "λ")
-    ("ocaml" . "")
-    ("python" . "")
-    ("kotlin" . "")
-    ("tex". "")
-    ("noexport" . "❌")
-    ("ignore" . "🚫")
-    ("bib" . "")
-    ("TOC_3_gh" . "")
-    ;; web sites and categories
-    ("web" . "🔗")
-    ("@stackexchange" . "")
-    ("@stackoverflow" . "")
-    ("@github" . "")
-    ("@youtube" . "")
-    ("@reddit" . "")
-    ("@shopping" . "🛒")
-    ("@audiophile" . "")
-    ("@gift" . "")
-    ("@inbox" . "")
-    ;; etc
-    ("speaker" . "")))
-
+   '(;; school related
+     ("homework" . "📕️")
+     ("note" . "️📓")
+     ("exam" . "📜")
+     ("quiz" . "📝")
+     ("reading" . "📚")
+     ("lecture" . "🎓")
+     ;; courses
+     ("@semantics" . "λ")
+     ("@phonetics" . "🗣")
+     ("@ai" . "♠")
+     ("@comsci" . "💻")
+     ;; org tags
+     ("attach" . "📎")
+     ("TOC_3_gh" . "")
+     ("noexport" . "❌")
+     ("ignore" . "🚫")
+     ;; languages
+     ("java" . "")
+     ("prolog" . "")
+     ("scheme" . "λ")
+     ("ocaml" . "")
+     ("python" . "")
+     ("kotlin" . "")
+     ("elisp" . "")
+     ("tex". "")
+     ("bib" . "")
+     ;; web sites
+     ("web" . "🔗")
+     ("@stackexchange" . "")
+     ("@stackoverflow" . "")
+     ("@github" . "")
+     ("@youtube" . "")
+     ("@reddit" . "")
+     ("@shopping" . "🛒")
+     ("@audiophile" . "")
+     ("@gift" . "")
+     ("@inbox" . "")
+     ;; etc
+     ("speaker" . "")))
   :init
-  (defun org-pretty-tags-enable ()
-    (add-hook 'org-mode-hook #'org-pretty-tags-mode))
-
-  (defun pretty-tags-restore-overlays ()
-    "Restore `org-pretty-tags-surrogate-strings'."
-    (dolist (buf (org-buffer-list 'files t))
-      (with-current-buffer buf
-        (org-pretty-tags-mode 1))
-      (add-hook 'org-mode-hook 'org-pretty-tags-mode)))
-
-  (defun org-pretty-tags-inhibit-overlays (orig-fun &rest args)
-    "Inhibit `org-pretty-tags-mode' from running when ORIG-FUN called,
-optionally with ARGS. "
-    (remove-hook 'org-mode-hook 'org-pretty-tags-mode)
-    (org-pretty-tags-mode -1)
-    (apply orig-fun args)
-    (pretty-tags-restore-overlays))
-
-  :hook
-  (after-init . org-pretty-tags-enable))
+  (org-pretty-tags-global-mode 1))
 
 #+END_SRC
 
@@ -9099,9 +9094,6 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
                 (forward-line 1))))
         (add-hook 'window-configuration-change-hook
                   'nov/window-configuration-change-hook nil t))))
-  :config
-  (when (functionp 'org-pretty-tags-inhibit-overlays)
-    (advice-add 'nov-mode :around #'org-pretty-tags-inhibit-overlays))
   :hook
   (nov-mode . nov/visual)
   (nov-post-html-render . nov--justify-text))
@@ -9674,10 +9666,7 @@ Travel back in time (to your last commit).
   :config
   (setq)
   (which-key-add-key-based-replacements
-    "C-c v t" " Timemachine")
-  (when (functionp 'org-pretty-tags-inhibit-overlays)
-    (advice-add 'git-timemachine-toggle
-                :around #'org-pretty-tags-inhibit-overlays)))
+    "C-c v t" " Timemachine"))
 #+END_SRC
 
 **** Git messenger
@@ -9893,6 +9882,18 @@ Pair programming.
 #+END_SRC
 
 *** C/C++
+**** C++ Mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package c++-mode
+  :straight (c++-mode :type built-in)
+  :mode (("\\.cpp\\'" . c++-mode)
+         ("\\.hpp\\'" . c++-mode)))
+
+
+
+#+END_SRC
+
 **** cmake
 
 #+NAME: cc/cmake
@@ -10258,6 +10259,12 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 (use-package lisp-extra-font-lock
   :init
   (lisp-extra-font-lock-global-mode +1))
+#+END_SRC
+
+**** cl highlight
+
+#+BEGIN_SRC emacs-lisp
+(use-package cl-lib-highlight)
 #+END_SRC
 
 **** Emacs Lisp  Format
