@@ -3563,8 +3563,11 @@ Use a prefix arg FONTIFY for colored headlines."
 #+NAME: ivy/todo
 #+BEGIN_SRC emacs-lisp
   (use-package ivy-todo
-    :custom
-    (ivy-todo-file dotemacs-default-agenda-file))
+    :after (:all ivy org-agenda)
+    :demand t
+    :init
+    (when (bound-and-true-p dotemacs-default-agenda-file)
+      (setq-default ivy-todo-file dotemacs-default-agenda-file)))
 #+END_SRC
 
 **** Ivy rich
@@ -5127,15 +5130,18 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** Setup
 
 #+BEGIN_SRC emacs-lisp
-(defcustom dotemacs-bibliography-file (expand-file-name "ref/references.bib" org-directory)
+(defcustom dotemacs-bibliography-file
+  (expand-file-name "ref/references.bib" org-directory)
   "The default bibliography file."
   :type 'file
   :group 'dotemacs)
-(defcustom dotemacs-bibliography-notes-directory (expand-file-name "ref/notes" org-directory)
+(defcustom dotemacs-bibliography-notes-directory
+  (expand-file-name "ref/notes" org-directory)
   "Bibliograhpy notes directory"
   :type 'file
   :group 'dotemacs)
-(defcustom dotemacs-bibliography-notes (expand-file-name "ref/notes.org")
+(defcustom dotemacs-bibliography-notes
+  (expand-file-name "ref/notes.org" org-directory)
   "Bib notes file"
   :type 'file
   :group 'dotemacs)
@@ -5158,8 +5164,8 @@ Generate latex fragments based on the latex compiler and class in the current bu
   :group 'dotemacs)
 
 (defcustom dotemacs-pdf-directory
-  (seq-filter #'file-directory-p (directory-files-no-wildcards
-                                  "~/Dropbox/Documents/pdfs" t))
+  (seq-filter #'file-directory-p
+              (directory-files-no-wildcards "~/Dropbox/Documents/pdfs" t))
   "Directory or list of directories containing bibtex pdfs."
   :type '(choice directory (repeat directory))
   :group 'dotemacs)
@@ -5502,6 +5508,7 @@ entry types and required fields."
 #+BEGIN_SRC emacs-lisp
 (use-package org-ref
   :commands (org-ref-org-menu)
+  :after (ivy-bibtex)
   :demand t
   :custom
   (org-latex-prefer-user-labels t)
@@ -6125,6 +6132,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 (use-package org-agenda
   :straight org-plus-contrib
   :demand t
+  :preface
+  (defcustom dotemacs-default-agenda-file (expand-file-name "agenda/TODOS.org" org-directory)
+    "The file path of the default agenda file."
+    :type 'file
+    :group 'dotemacs)
   :custom-face
   (org-agenda-date
    ((t (:underline nil :foreground "#57c7ff" :inherit (variable-pitch)))))
@@ -6205,10 +6217,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               (setq face-remapping-alist (delq f face-remapping-alist)))
             org-level-remap-face))))
   (add-hook 'org-mode-hook #'org-agenda-file-face)
-  (defcustom dotemacs-default-agenda-file (expand-file-name "agenda/TODOS.org" org-directory)
-    "The file path of the default agenda file."
-    :type 'file
-    :group 'dotemacs)
   (when (file-exists-p dotemacs-default-agenda-file)
     (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
 #+END_SRC
@@ -8160,6 +8168,26 @@ bullets as UTF-8 characters.
     (org-bullets-mode +1))
   :hook
   (org-mode . org-bullets/enable))
+#+END_SRC
+
+**** Org entities
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-entities
+  :straight org-plus-contrib
+  :custom
+  (org-entities-user
+   '(("cat"    "\\cat"    t "" "" "" "/")
+     ("lbrack" "\\lbrack" t "" "" "" "[")
+     ("rbrack" "\\rbrack" t "" "" "" "]")
+     ("lbrace" "\\lbrace" t "" "" "" "{")
+     ("rbrace" "\\rbrace" t "" "" "" "}")
+     ("vb"     "\\vb"     t "" "" "" "|")
+     ("xsol"   "\\xsol"   t "" "" "" "⧸")
+     ("Langle" "\\Langle" t "" "" "" "⟨")
+     ("Rangle" "\\Rangle" t "" "" "" "⟩")
+     ("lBrack" "\\lBrack" t "" "" "" "⟦")
+     ("rBrack" "\\rBrack" t "" "" "" "⟧"))))
 #+END_SRC
 
 **** Org Pretty Tags
