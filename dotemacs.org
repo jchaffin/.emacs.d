@@ -5130,15 +5130,18 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** Setup
 
 #+BEGIN_SRC emacs-lisp
-(defcustom dotemacs-bibliography-file (expand-file-name "ref/references.bib" org-directory)
+(defcustom dotemacs-bibliography-file
+  (expand-file-name "ref/references.bib" org-directory)
   "The default bibliography file."
   :type 'file
   :group 'dotemacs)
-(defcustom dotemacs-bibliography-notes-directory (expand-file-name "ref/notes" org-directory)
+(defcustom dotemacs-bibliography-notes-directory
+  (expand-file-name "ref/notes" org-directory)
   "Bibliograhpy notes directory"
   :type 'file
   :group 'dotemacs)
-(defcustom dotemacs-bibliography-notes (expand-file-name "ref/notes.org")
+(defcustom dotemacs-bibliography-notes
+  (expand-file-name "ref/notes.org" org-directory)
   "Bib notes file"
   :type 'file
   :group 'dotemacs)
@@ -5161,8 +5164,8 @@ Generate latex fragments based on the latex compiler and class in the current bu
   :group 'dotemacs)
 
 (defcustom dotemacs-pdf-directory
-  (seq-filter #'file-directory-p (directory-files-no-wildcards
-                                  "~/Dropbox/Documents/pdfs" t))
+  (seq-filter #'file-directory-p
+              (directory-files-no-wildcards "~/Dropbox/Documents/pdfs" t))
   "Directory or list of directories containing bibtex pdfs."
   :type '(choice directory (repeat directory))
   :group 'dotemacs)
