@@ -1389,7 +1389,16 @@ killall gpg-agent
     (which-key-separator " → " )
     :init
     (which-key-setup-minibuffer)
-    (which-key-mode 1))
+    (which-key-mode 1)
+    :config
+    (when (featurep 'all-the-icons)
+      (push '((nil . "^org-\\(.+\\)") . (nil . " \\1"))
+            which-key-replacement-alist)
+      (push '((nil . "^org-babel-\\(.+\\)") . (nil . "\\1"))
+            which-key-replacement-alist)
+      (push '((nil . "^mc/\\(.+\\)") . (nil . " \\1"))
+            which-key-replacement-alist))
+    )
 #+END_SRC
 
 *** Speed Type
@@ -2262,54 +2271,59 @@ whistles, it makes up for in compatibility and hackability [fn:7].
 
 #+NAME: project-projectile
 #+BEGIN_SRC emacs-lisp
+;;;; Projectile
 (use-package projectile
+;;;;; keybindings
   :bind-keymap
   ("C-c p" . projectile-command-map)
+;;;;; customizations
   :custom
   (projectile-completion-system 'ivy)
   (projectile-switch-project-action #'projectile-dired)
   (projectile-find-dir-includes-top-level t)
   (projectile-enable-caching t)
+;;;;; initialization
   :init
+;;;;;; compile with comint
   (el-patch-feature projectile)
-
   (el-patch-defun projectile-run-compilation (cmd)
     "Run external or Elisp compilation command CMD."
     (if (functionp cmd)
         (funcall cmd)
       (compile cmd (el-patch-add t))))
-
+;;;;;; Ignored projects
   (defvar dotemacs/ignored-project-directories
     '("~/.emacs.d/straight"))
 
   (defun projectile-ignore-projects-in-directory (project-root)
     "Ignore directories in `dotemacs/ignored-project-directories'."
-    (cl-flet ((ignored-dir-or-subdir-p
-               (path)
-               (f-descendant-of?
-                (f-expand project-root)
-                path)))
+    (cl-flet ((ignored-dir-or-subdir-p (path)
+                                       (f-descendant-of? (f-expand project-root) path)))
       (->> dotemacs/ignored-project-directories
          (seq-filter #'ignored-dir-or-subdir-p)
          seq-empty-p not)))
 
   (setq projectile-ignored-project-function
         #'projectile-ignore-projects-in-directory)
-
+;;;;; configuration
   :config
+;;;;;; Which key
   (when (featurep 'which-key)
     (which-key-add-key-based-replacements "C-c p" " Projectile")
-
     (push '((nil . "projectile-\\(.+\\)") . (nil . "\\1"))
           which-key-replacement-alist))
-
+;;;;;; Ignored directories
   (setq projectile-globally-ignored-directories
-       (append projectile-globally-ignored-directories
+        (append projectile-globally-ignored-directories
                 '("gradle" "target" ".meghanada"
                   ".gradle" "build" "bin" "node_modules"
                   "ltximg" "CMakeFiles" ".cquery_cached_index"))))
+;;;; end projectile
 
 #+END_SRC
+
+#+RESULTS: project-projectile
+| lambda | nil | (interactive) | (use-package-autoload-keymap 'projectile-command-map 'projectile nil) |
 
 **** Projectile Codesearch
 
@@ -4823,7 +4837,7 @@ save.
 
  #+END_SRC
 
-**** COMMENT Toggle transparent
+**** Toggle transparent
 
 #+BEGIN_SRC emacs-lisp
 (defun org-latex-preview-toggle-background ()
@@ -5507,6 +5521,12 @@ entry types and required fields."
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-ref
+  :straight (org-ref :type git :flavor melpa
+                     :files (:defaults "org-ref.org" "org-ref.bib" "citeproc" "org-ref-pkg.el")
+                     :host github
+                     :repo "jkitchin/org-ref"
+                     :fork
+                     (:host github :repo "jchaffin/org-ref"))
   :commands (org-ref-org-menu)
   :after (ivy-bibtex)
   :demand t
@@ -5887,7 +5907,13 @@ Embed YouTube Links in =iframe=.
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward org-babel-src-block-regexp nil t)
-        (org-babel-remove-result)))))
+        (org-babel-remove-result))))
+  (when  (featurep 'which-key)
+    (which-key-add-major-mode-key-based-replacements 'org-mode
+      "C-c C-v" "Babel"
+      "C-c \" " "Plot"
+      "C-c M-#" "Outshine"
+      "C-c M-+" "outshine babel")))
 #+END_SRC
 
 **** Ob Http
@@ -8100,7 +8126,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 ****** Modify default fontspec
 :PROPERTIES:
-:ID:       8B26EA14-B8CE-4E10-8B29-B3426E0B6D72
+:ID:       BC97F6AC-F533-4E34-8656-7052704058A2
 :END:
 
 #+BEGIN_SRC emacs-lisp
@@ -8199,6 +8225,7 @@ bullets as UTF-8 characters.
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
   :preface
+  (set-fontset-font "fontset-default" '#xE917  "file-icons")
   (set-fontset-font "fontset-default" '#xE91A  "file-icons")
   (set-fontset-font "fontset-default" '#xE600 "file-icons")
   (set-fontset-font "fontset-default" '#xE601 "file-icons")
@@ -8208,6 +8235,7 @@ bullets as UTF-8 characters.
    '(;; school related
      ("homework" . "📕️")
      ("note" . "️📓")
+     ("assignment" . "")
      ("exam" . "📜")
      ("quiz" . "📝")
      ("reading" . "📚")
@@ -8222,6 +8250,7 @@ bullets as UTF-8 characters.
      ("TOC_3_gh" . "")
      ("noexport" . "❌")
      ("ignore" . "🚫")
+     ("website" . "")
      ;; languages
      ("java" . "")
      ("prolog" . "")
@@ -8622,107 +8651,108 @@ Interactively.
 
 #+NAME: browser/engine
 #+BEGIN_SRC emacs-lisp
-  (use-package engine-mode
-    :init
-    (engine-mode t)
-    :defines (engine-mode-prefixed-map)
-    :bind*
-    (:map web-prefix-map
-          ("e". engine-mode-prefixed-map))
+(use-package engine-mode
+  :init
+  (engine-mode t)
+  :defines (engine-mode-prefixed-map)
+  :bind*
+  (:map web-prefix-map
+        ("e". engine-mode-prefixed-map))
 
-    :config
-    (setq web-engine-prefix nil)
+  :config
+  (setq web-engine-prefix nil)
 
-    (when (and (boundp 'engine/keybinding-prefix) web-engine-prefix)
-      (define-key engine-mode-map (kbd "C-x /") nil))
+  (when (and (boundp 'engine/keybinding-prefix) web-engine-prefix)
+    (define-key engine-mode-map (kbd "C-x /") nil))
 
-    (defengine cassi
-      "http://cassi.cas.org/search.jsp")
+  (defengine cassi
+    "http://cassi.cas.org/search.jsp")
 
-    (defengine ctan
-      "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
-      :keybinding "c"
-      :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
+  (defengine ctan
+    "http://www.ctan.org/search/?x=1&PORTAL=on&phrase=%s"
+    :keybinding "c"
+    :docstring "Search the Comprehensive TeX Archive Network (ctan.org)")
 
-    (defengine github
-      "https://github.com/search?ref=simplesearch&q=%s"
-      :keybinding "g"
-      :docstring "Search Github")
+  (defengine github
+    "https://github.com/search?ref=simplesearch&q=%s"
+    :keybinding "g"
+    :docstring "Search Github")
 
-    (defengine google
-      "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
-      :keybinding "Gg"
-      :docstring "Search Google")
+  (defengine google
+    "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+    :keybinding "Gg"
+    :docstring "Search Google")
 
-    (defengine google-bookmarks
-      "chrome://bookmarks/?q=%s"
-      :keybinding "Gb"
-      :docstring "Search bookmarks in Google Chrome")
+  (defengine google-bookmarks
+    "chrome://bookmarks/?q=%s"
+    :keybinding "Gb"
+    :docstring "Search bookmarks in Google Chrome")
 
-    (defengine google-images
-      "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-      :keybinding "Gi"
-      :docstring "Search google-images")
+  (defengine google-images
+    "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
+    :keybinding "Gi"
+    :docstring "Search google-images")
 
-    (defengine google-maps
-      "http://maps.google.com/maps?q=%s"
-      :keybinding "Gm"
-      :docstring "Mappin' it up.")
+  (defengine google-maps
+    "http://maps.google.com/maps?q=%s"
+    :keybinding "Gm"
+    :docstring "Mappin' it up.")
 
-    (defengine google-scholar
-      "http://scholar.google.com/scholar?q=%s"
-      :keybinding "Gs"
-      :docstring "Schoolin'it up.")
+  (defengine google-scholar
+    "http://scholar.google.com/scholar?q=%s"
+    :keybinding "Gs"
+    :docstring "Schoolin'it up.")
 
-    (defengine lib-genesis
-      "http://gen.lib.rus.ec/?req=%s"
-      :keybinding "l"
-      :docstring "I need all the books.")
+  (defengine lib-genesis
+    "http://gen.lib.rus.ec/?req=%s"
+    :keybinding "l"
+    :docstring "I need all the books.")
 
-    (defengine project-gutenberg
-      "http://www.gutenberg.org/ebooks/search/?query=%s"
-      :docstring "Read good")
+  (defengine project-gutenberg
+    "http://www.gutenberg.org/ebooks/search/?query=%s"
+    :docstring "Read good")
 
-    (defengine proquest
-      "https://search.proquest.com"
-      :keybinding "p"
-      :docstring "Search Proquest")
+  (defengine proquest
+    "https://search.proquest.com"
+    :keybinding "p"
+    :docstring "Search Proquest")
 
-    (defengine rfcs
-      "http://pretty-rfc.herokuapp.com/search?q=%s")
+  (defengine rfcs
+    "http://pretty-rfc.herokuapp.com/search?q=%s")
 
-    (defengine stack-overflow
-      "https://stackoverflow.com/search?q=%s"
-      :keybinding "s"
-      :docstring "Search StackOverflow.")
+  (defengine stack-overflow
+    "https://stackoverflow.com/search?q=%s"
+    :keybinding "s"
+    :docstring "Search StackOverflow.")
 
-    (defengine twitter
-      "https://twitter.com/search?q=%s")
+  (defengine twitter
+    "https://twitter.com/search?q=%s")
 
-    (defengine wikipedia
-      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
-      :keybinding "w"
-      :docstring "Search wikipedia.")
+  (defengine wikipedia
+    "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+    :keybinding "w"
+    :docstring "Search wikipedia.")
 
-    (defengine wiktionary
-      "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
+  (defengine wiktionary
+    "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
 
-    (defengine wolfram-alpha
-      "http://www.wolframalpha.com/input/?i=%s"
-      :keybinding "a"
-      :docstring "Search Wolfram Alfa")
+  (defengine wolfram-alpha
+    "http://www.wolframalpha.com/input/?i=%s"
+    :keybinding "a"
+    :docstring "Search Wolfram Alfa")
 
-    (defengine worldcat
-      "https://ucla.worldcat.org/search?q=%s"
-      :keybinding "W"
-      :docstring "Search Worldcat"
-      :browser 'osx-browse-url-chrome)
+  (defengine worldcat
+    "https://ucla.worldcat.org/search?q=%s"
+    :keybinding "W"
+    :docstring "Search Worldcat"
+    :browser 'osx-browse-url-chrome)
 
-    (defengine youtube
-      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
-      :keybinding "y"
-      :docstring "Search Youtube")
+  (defengine youtube
+    "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
+    :keybinding "y"
+    :docstring "Search Youtube")
 
+  (when (featurep 'which-key)
     (which-key-add-key-based-replacements
       "M-m b"        "🌍 Browse"
       "M-m b e"      "🔎 Web Engine"
@@ -8740,7 +8770,7 @@ Interactively.
       "M-m b e G i"  "Images"
       "M-m b e G b"  " Bookmarks"
       "M-m b e G m"  " Maps"
-      "M-m b e G s"  " Scholar"))
+      "M-m b e G s"  " Scholar")))
 #+END_SRC
 
 ** Email
@@ -9075,9 +9105,10 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
   (use-package org-annotate-file
     :straight org-plus-contrib
     :bind
-    ("C-c C-l" . org-annotate-file)
+    ("C-c C-x j" . org-annotate-file)
     :custom
-    (org-annotate-file-storage-file "~/Dropbox/org/annotate.org"))
+    (org-annotate-file-storage-file
+     (expand-file-name "annotate.org" org-directory)))
 
 #+END_SRC
 
@@ -9807,7 +9838,6 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
 
 #+BEGIN_SRC emacs-lisp
   (use-package wakatime-mode
-
     :if (executable-find "wakatime")
     :hook
     (prog-mode . wakatime-mode)
@@ -9819,7 +9849,7 @@ Automate time tracking with [[https://github.com/wakatime/wakatime-mode][wakatim
     (wakatime-cli-path
      (file-truename "~/.local/pipx/venvs/wakatime/lib/python3.7/site-packages/wakatime/cli.py"))
     (wakatime-python-bin
-     (file-truename "/Users/jacobchaffin/.pyenv/versions/3.7.2/bin/python3.7")))
+     (file-truename "~/.pyenv/versions/3.7.2/bin/python3.7")))
 #+END_SRC
 
 *** Logging
