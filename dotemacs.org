@@ -677,11 +677,10 @@ from within Emacs.
 (defun straight-reload-init ()
   "Reload init file using straight transaction system."
   (interactive)
-  (straight-transaction
-    (straight-mark-transaction-as-init)
-    (message "Reloading initialization file...")
-    (load user-init-file nil 'nomessage)
-    (message "Reloading initialization file...done.")))
+  (straight-mark-transaction-as-init)
+  (message "Reloading initialization file...")
+  (load user-init-file nil 'nomessage)
+  (message "Reloading initialization file...done."))
 
 
 #+END_SRC
@@ -697,14 +696,13 @@ from within Emacs.
   "Evaluate current buffer using the straight transaction system."
   (interactive)
   (message "Evaluating %s..." (buffer-name))
-  (straight-transaction
-    (if (or (null buffer-file-name)
+  (if (or (null buffer-file-name)
            (not (file-exists-p buffer-file-name)))
         (eval-buffer)
       (progn
         (when (string= buffer-file-name user-init-file)
           (straight-mark-transaction-as-init))
-        (load-file buffer-file-name))))
+        (load-file buffer-file-name)))
   (message "Evaluating %s...done." (buffer-name)))
 
 #+END_SRC
@@ -2307,7 +2305,7 @@ whistles, it makes up for in compatibility and hackability [fn:7].
         #'projectile-ignore-projects-in-directory)
 ;;;;; configuration
   :config
-;;;;;; Which key
+;;;;;; which key
   (when (featurep 'which-key)
     (which-key-add-key-based-replacements "C-c p" " Projectile")
     (push '((nil . "projectile-\\(.+\\)") . (nil . "\\1"))
@@ -2318,12 +2316,14 @@ whistles, it makes up for in compatibility and hackability [fn:7].
                 '("gradle" "target" ".meghanada"
                   ".gradle" "build" "bin" "node_modules"
                   "ltximg" "CMakeFiles" ".cquery_cached_index"))))
+;; projectile project tyupes
+(projectile-register-project-type 'yarn '("yarn.lock")
+                                  :compile "yarn install"
+                                  :test "yarn test"
+                                  :run  "yarn start")
 ;;;; end projectile
 
 #+END_SRC
-
-#+RESULTS: project-projectile
-| lambda | nil | (interactive) | (use-package-autoload-keymap 'projectile-command-map 'projectile nil) |
 
 **** Projectile Codesearch
 
@@ -5223,6 +5223,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 #+BEGIN_SRC emacs-lisp
 (use-package bibtex
+  :straight (bibtex :type built-in)
   :custom
   (bibtex-align-at-equal-sign t)
   (bibtex-BibTeX-entry-alist
@@ -5528,7 +5529,7 @@ entry types and required fields."
                      :fork
                      (:host github :repo "jchaffin/org-ref"))
   :commands (org-ref-org-menu)
-  :after (ivy-bibtex)
+  :after (:all bibtex ivy-bibtex)
   :demand t
   :custom
   (org-latex-prefer-user-labels t)
