@@ -80,7 +80,6 @@
     - [[#shell-pop][Shell Pop]]
     - [[#with-editor][With Editor]]
     - [[#ssh][SSH]]
-    - [[#scp][SCP]]
     - [[#tramp][Tramp]]
     - [[#sh-script-mode][sh-script mode]]
   - [[#documentation][Documentation]]
@@ -94,6 +93,7 @@
     - [[#transpose-frame][Transpose frame]]
     - [[#posframe][Posframe]]
   - [[#window][Window]]
+    - [[#desktop][Desktop]]
     - [[#winner-mode][Winner Mode]]
     - [[#shackle][Shackle]]
     - [[#poporg][Poporg]]
@@ -2316,11 +2316,6 @@ whistles, it makes up for in compatibility and hackability [fn:7].
                 '("gradle" "target" ".meghanada"
                   ".gradle" "build" "bin" "node_modules"
                   "ltximg" "CMakeFiles" ".cquery_cached_index"))))
-;; projectile project tyupes
-(projectile-register-project-type 'yarn '("yarn.lock")
-                                  :compile "yarn install"
-                                  :test "yarn test"
-                                  :run  "yarn start")
 ;;;; end projectile
 
 #+END_SRC
@@ -2984,7 +2979,7 @@ over ssh."
 
 #+END_SRC
 
-*** SCP
+***  COMMENT SCP
 
 #+NAME: remote/scp
 #+BEGIN_SRC emacs-lisp
@@ -3189,6 +3184,15 @@ directory local variables."
 :PROPERTIES:
 :ID:       39D49D11-3663-4F0F-A2CE-2CE4FE8CB2CB
 :END:
+*** Desktop
+
+#+BEGIN_SRC emacs-lisp
+(use-package desktop
+  :straight (desktop :type built-in)
+  :config
+  (desktop-save-mode 1))
+#+END_SRC
+
 *** Winner Mode
 
 [[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
@@ -3208,6 +3212,7 @@ different window configurations.
 #+END_SRC
 
 *** Shackle
+
 #+BEGIN_SRC emacs-lisp
 (use-package shackle
   :init
@@ -3218,7 +3223,9 @@ different window configurations.
         shackle-default-rule '(:select t)))
 
 #+END_SRC
+
 *** Poporg
+
 
 #+BEGIN_SRC emacs-lisp
 (use-package poporg
@@ -5189,7 +5196,6 @@ Generate latex fragments based on the latex compiler and class in the current bu
 *** Citations
 **** Reftex
 
-
 RefTeX is a citation and reference tool maintained by the
 AucTeX team.
 
@@ -5223,6 +5229,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 
 #+BEGIN_SRC emacs-lisp
 (use-package bibtex
+  :demand t
   :straight (bibtex :type built-in)
   :custom
   (bibtex-align-at-equal-sign t)
@@ -5529,8 +5536,7 @@ entry types and required fields."
                      :fork
                      (:host github :repo "jchaffin/org-ref"))
   :commands (org-ref-org-menu)
-  :after (:all bibtex ivy-bibtex)
-  :demand t
+  :after (ivy-bibtex)
   :custom
   (org-latex-prefer-user-labels t)
   (org-ref-completion-library 'org-ref-ivy-cite)
@@ -5540,10 +5546,11 @@ entry types and required fields."
   (org-ref-pdf-directory dotemacs-pdf-directory)
   (org-ref-note-title-format dotemacs-bibliography-notes-template)
   (org-ref-show-citation-on-enter t)
-  (org-ref-ref-types '("ref" "eqref" "pageref" "nameref"
-                       "autoref" "cref" "Cref" "vref"))
+  (org-ref-ref-types
+   '("ref" "eqref" "pageref" "nameref" "autoref" "cref" "Cref" "vref"))
   :config
-  (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map)
+  (with-eval-after-load 'bibtex-mode
+    (bind-key "C-c r" 'org-ref-bibtex-hydra/body bibtex-mode-map))
   (with-eval-after-load 'org-ref
     (defun org-ref-vref-export (keyword desc format)
      "An export function for vref links."
@@ -5552,11 +5559,9 @@ entry types and required fields."
        (format "<a href=\"#%s\">%s</a>" keyword (or desc keyword)))
       ((eq format 'latex) (format "\\vref{%s}" keyword))
       (eq format 'md) (format "[%s](#%s)" keyword keyword)))
-
     (defface org-ref-vref-face
       `((t (:inherit org-link :foreground "dark khaki")))
       "Face for ref links in org-ref.")
-
     (defun org-ref-vref-face-fn (label)
       "Return a face for a ref link."
       (save-match-data
@@ -5564,16 +5569,13 @@ entry types and required fields."
 	                 (member label (org-ref-get-labels)))
                'org-ref-vref-face)
               (t 'font-lock-warning-face))))
-
     (org-ref-link-set-parameters "vref"
       :follow #'org-ref-ref-follow
       :export #'org-ref-vref-export
       :complete #'org-ref-complete-link
       :face 'org-ref-vref-face-fn
       :help-echo #'org-ref-ref-help-echo)
-
     (remove-hook 'org-ref-clean-bibtex-entry-hook 'orcb-check-journal))
-
   (defun org-ref-open-pdf-at-point ()
     "Open the pdf for bibtex key under point if it exists."
     (interactive)
@@ -5665,9 +5667,23 @@ Now we can open pdf files with =org-pdfview= [fn:9]:
 (use-package navi)
 #+END_SRC
 
+**** Navi Mode
+#+BEGIN_SRC emacs-lisp
+(use-package navi-mode
+  :straight
+  (navi-mode :type git
+             :flavor melpa
+             :host github
+             :repo "alphapapa/navi"
+             :local-repo "navi-mode"))
+
+#+END_SRC
+
 *** Outshine
 #+BEGIN_SRC emacs-lisp
 (use-package outshine
+  :requires navi-mode
+  :demand t
   :init
   (defvar outline-minor-mode-prefix "\M-#")
   :config
@@ -6458,6 +6474,11 @@ Calendar.
   :hook
   (cfw:details-mode . org-link-minor-mode))
 
+#+END_SRC
+
+***** calfw org
+
+#+BEGIN_SRC emacs-lisp
 (use-package calfw-org
   :demand t
   :init
@@ -6473,6 +6494,7 @@ Calendar.
              "📅 Schedule" "~/Dropbox/org/agenda/schedule.org" (face-foreground 'org-agenda-calendar-event))))))
 
      (switch-to-buffer (cfw:cp-get-buffer cp)))))
+
 #+END_SRC
 
 **** Manipulate hours/minutes/seconds in table formulas
@@ -7413,7 +7435,7 @@ Neil Smithline posted this snippet to let you browse org files with
     :demand t)
 #+END_SRC
 
-** Org Download :web:
+** Org Download :ignore:
 
 Drag and Drop images directly from a web browser to an org-mode buffer.
 
