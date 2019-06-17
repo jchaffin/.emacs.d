@@ -1,0 +1,391 @@
+;; -*- mode: emacs-lisp; lexical-binding:t; coding: utf-8-emacs; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Sat Jun 15 01:52:33 2019
+;; Desktop file format version 208
+;; Emacs version 27.0.90
+
+;; Global section:
+(setq desktop-saved-frameset [frameset 1 (23812 45521 318968 0) (desktop . "208") "jacobchaffin@hal.local" nil nil ((((minibuffer . t) (font-backend mac-ct) (fontsize . 0) (font . "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1") (border-width . 0) (internal-border-width . 2) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#e2e4e5") (background-color . "#282a36") (line-spacing) (left-fringe . 8) (right-fringe . 8) (no-special-glyphs) (undecorated) (ns-appearance . dark) (ns-transparent-titlebar . t) (z-group) (no-focus-on-map) (no-accept-focus) (menu-bar-lines . 1) (tool-bar-lines . 0) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 15) (scroll-bar-height . 15) (alpha) (fullscreen . fullheight) (display-type . color) (background-mode . dark) (cursor-color . "#ff5c57") (environment) (powerline-cache) (last-focus-update . t) (border-color . "#78787e") (frameset--id . "0DB9-A906-C98A-9A79") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (visibility . t) (display . "hal.local") (explicit-name) (tool-bar-position . top) (height . 73) (width . 268) (left . 1290) (top . 23)) ((min-height . 4) (min-width . 187) (min-height-ignore . 3) (min-width-ignore . 187) (min-height-safe . 1) (min-width-safe . 2) (min-pixel-height . 56) (min-pixel-width . 1309) (min-pixel-height-ignore . 42) (min-pixel-width-ignore . 1309) (min-pixel-height-safe . 14) (min-pixel-width-safe . 14)) leaf (pixel-width . 1892) (pixel-height . 1017) (total-width . 270) (total-height . 72) (normal-height . 1.0) (normal-width . 1.0) (buffer "dotemacs.org" (selected . t) (hscroll . 0) (fringes 8 8 t) (margins nil . 182) (scroll-bars nil 0 t nil 0 t) (vscroll . 0) (dedicated) (point . 163572) (start . 162186))))])
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list '("/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/TAGS"))
+(setq search-ring nil)
+(setq regexp-search-ring '("outshine"))
+(setq register-alist nil)
+(setq file-name-history '(#("/Users/jacobchaffin/.emacs.d/etc/desktop/" 0 41 (ivy-index 0)) #("/Users/jacobchaffin/.emacs.d/etc/desktop/desktop.el" 0 51 (ivy-index 0)) #("/Users/jacobchaffin/.emacs.d/etc/desktop" 0 40 (ivy-index 0)) #("/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/" 0 52 (ivy-index 0)) #("/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/" 0 53 (ivy-index 0)) #("/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling165b/paper/" 0 63 (ivy-index 0)) #("/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling165b/" 0 57 (ivy-index 0)) #("/Users/jacobchaffin/.emacs.d/straight/repos/org/contrib/lisp/" 0 61 (ivy-index 0)) "~/.emacs.d/dotemacs.org" "~/.emacs.d/straight/repos/macos-dev-utils/macos-utils.el" "~/.emacs.d/straight/repos/org-ref/org-ref-glossary.el" "~/.emacs.d/straight/repos/org-ref/README.org" "~/Dropbox/Documents/2019/comsci131/homework/hw2/hw2.ml" "~/Dropbox/Documents/2018/fall/ling103/notes/refnotes.org" "~/.emacs.d/straight/repos/rtags/.git/FETCH_HEAD" "~/.emacs.d/straight/repos/rtags/.dir-locals.el" "~/.emacs.d/straight/repos/counsel-spotify/README.md" "~/Dropbox/org/archive/notes.org_archive" "~/Dropbox/Documents/2019/ling165c/homework/hw06/19w-ling165-hw6.pdf" "~/Dropbox/Documents/2019/ling165c/homework/hw06/ling165c-hw06.org" "~/Dropbox/Documents/2019/ling165c/ling165c.org" "~/Dropbox/Documents/2018/fall/ling103/TODOs.org" "~/Dropbox/org/contacts.org" "~/Dropbox/Documents/2018/fall/ling165b/TODOs.org" "~/Dropbox/Documents/2018/fall/ling165b/paper/proposal/proposal.org" "~/Dropbox/Documents/2019/comsci131/homework/hw5/hw5.org"))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/.emacs.d/dotemacs.org"
+  "dotemacs.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode magit-file-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  163572
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 45517 328361 0) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/org/agenda/schedule.org"
+  "schedule.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  755
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 45402 248103 0) (buffer-file-coding-system . undecided-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/ling165c.org"
+  "ling165c.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  4228
+  '(4317 nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44951 323023 117000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring (4317 5033))))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/data/43/86488E-1160-4CF6-A33B-58C928A326EF/19w-ling165-hw6.pdf"
+  "19w-ling165-hw6.pdf"
+  'pdf-view-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  1
+  '(nil nil)
+  t
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44838 846817 117000) (buffer-file-coding-system . no-conversion))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/homework/hw07/19w-ling165-hw7.pdf"
+  "19w-ling165-hw7.pdf"
+  'pdf-view-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  1
+  '(nil nil)
+  t
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44814 692167 117000) (buffer-file-coding-system . no-conversion))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/homework/hw07/ling165c-hw07.org"
+  "ling165c-hw07.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  32
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44804 333718 117000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "ling165c"
+  'dired-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode counsel-mode yas-minor-mode all-the-icons-dired-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  895
+  '(nil nil)
+  t
+  '("/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/")
+  '((buffer-display-time 23812 44785 729400 117000))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/ling165c.bib"
+  "ling165c.bib"
+  'bibtex-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode hs-minor-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  1
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 45310 487443 0) (buffer-file-coding-system . undecided-unix) (TeX-master . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/notes.org"
+  "notes.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  1800
+  '(16 nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 45310 721506 0) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "cs131"
+  'dired-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode counsel-mode yas-minor-mode all-the-icons-dired-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  425
+  '(nil nil)
+  t
+  '("/Users/jacobchaffin/Dropbox/Documents/2018/fall/cs131/")
+  '((buffer-display-time 23812 45312 599641 0))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "comsci131"
+  'dired-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode counsel-mode yas-minor-mode all-the-icons-dired-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  503
+  '(nil nil)
+  t
+  '("/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/")
+  '((buffer-display-time 23812 44609 412275 117000))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/.dir-locals.el"
+  ".dir-locals.el"
+  'emacs-lisp-mode
+  '(abbrev-mode eldoc-mode auto-compile-on-load-mode override-global-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode hs-minor-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode wakatime-mode highlight-indent-guides-mode hl-todo-mode paredit-mode highlight-symbol-mode rainbow-delimiters-mode)
+  436
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44607 808149 117000) (buffer-file-coding-system . prefer-utf-8-unix) (truncate-lines . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  ".emacs.d"
+  'dired-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode counsel-mode yas-minor-mode all-the-icons-dired-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  267
+  '(nil nil)
+  t
+  '("/Users/jacobchaffin/.emacs.d/")
+  '((buffer-display-time 23812 44593 809954 117000))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "paper"
+  'dired-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode counsel-mode yas-minor-mode all-the-icons-dired-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  440
+  '(nil nil)
+  t
+  '("/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling165b/paper/")
+  '((buffer-display-time 23812 44590 920582 117000))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling165b/paper/.dir-locals.el"
+  ".dir-locals.el"
+  'emacs-lisp-mode
+  '(abbrev-mode eldoc-mode auto-compile-on-load-mode override-global-mode outline-minor-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode hs-minor-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode wakatime-mode highlight-indent-guides-mode hl-todo-mode paredit-mode highlight-symbol-mode rainbow-delimiters-mode outshine-mode)
+  31
+  '(97 nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44588 970517 117000) (buffer-file-coding-system . prefer-utf-8-unix) (truncate-lines . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "ling165b"
+  'dired-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode counsel-mode yas-minor-mode all-the-icons-dired-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  915
+  '(nil nil)
+  t
+  '("/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling165b/")
+  '((buffer-display-time 23812 44570 640797 117000))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling165b/TODOs.org"
+  "TODOs.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  2923
+  '(15126 nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44483 294452 117000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/.emacs.d/straight/repos/org/contrib/lisp/org-notify.el"
+  "org-notify.el"
+  'emacs-lisp-mode
+  '(abbrev-mode eldoc-mode auto-compile-on-load-mode override-global-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode hs-minor-mode editorconfig-mode dired-async-mode magit-file-mode git-gutter+-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode wakatime-mode highlight-indent-guides-mode hl-todo-mode paredit-mode highlight-symbol-mode rainbow-delimiters-mode)
+  1530
+  '(1872 nil)
+  t
+  nil
+  '((tab-width . 8) (indent-tabs-mode . t) (buffer-display-time 23812 44392 856653 117000) (buffer-file-coding-system . utf-8-unix) (fill-column . 70) (truncate-lines . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "lisp"
+  'dired-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode counsel-mode yas-minor-mode all-the-icons-dired-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  3895
+  '(nil nil)
+  t
+  '("/Users/jacobchaffin/.emacs.d/straight/repos/org/contrib/lisp/")
+  '((tab-width . 8) (indent-tabs-mode . t) (buffer-display-time 23812 44342 384723 117000) (fill-column . 70))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/.emacs.d/straight/repos/org/contrib/lisp/ol-git-link.el"
+  "ol-git-link.el"
+  'emacs-lisp-mode
+  '(abbrev-mode eldoc-mode auto-compile-on-load-mode override-global-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode hs-minor-mode editorconfig-mode dired-async-mode magit-file-mode git-gutter+-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode wakatime-mode highlight-indent-guides-mode hl-todo-mode paredit-mode highlight-symbol-mode rainbow-delimiters-mode)
+  1
+  '(nil nil)
+  t
+  nil
+  '((tab-width . 8) (indent-tabs-mode . t) (buffer-display-time 23812 44342 431985 117000) (buffer-file-coding-system . prefer-utf-8-unix) (fill-column . 70) (truncate-lines . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/.emacs.d/straight/repos/org-bookmark-heading/org-bookmark-heading.el"
+  "org-bookmark-heading.el"
+  'emacs-lisp-mode
+  '(abbrev-mode eldoc-mode auto-compile-on-load-mode override-global-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode hs-minor-mode editorconfig-mode dired-async-mode magit-file-mode git-gutter+-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode wakatime-mode highlight-indent-guides-mode hl-todo-mode paredit-mode highlight-symbol-mode rainbow-delimiters-mode)
+  1
+  '(nil nil)
+  t
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44334 646492 117000) (buffer-file-coding-system . prefer-utf-8-unix) (truncate-lines . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/.emacs.d/init.el"
+  "init.el"
+  'emacs-lisp-mode
+  '(abbrev-mode eldoc-mode auto-compile-on-load-mode override-global-mode outline-minor-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode hs-minor-mode editorconfig-mode dired-async-mode magit-file-mode git-gutter+-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode wakatime-mode highlight-indent-guides-mode hl-todo-mode paredit-mode highlight-symbol-mode rainbow-delimiters-mode outshine-mode)
+  243
+  '(2376 nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44335 106244 117000) (buffer-file-coding-system . utf-8-unix) (truncate-lines . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/org/agenda/TODOS.org"
+  "TODOS.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  479
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 27325 191383 844000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/org/notes.org"
+  "notes.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  1883
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 27237 160106 844000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2018/fall/ling103/TODOs.org"
+  "TODOs.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode magit-file-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  19446
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44108 318176 117000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/homework/project/project.org"
+  "project.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  11
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 44112 915814 117000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2018/fall/cs131/TODOs.org"
+  "TODOs.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  44
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 27858 850399 165000) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/dotfiles/latex/uclaling/uclaling.org"
+  "uclaling.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode magit-file-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  1
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 28051 985700 653000) (buffer-file-coding-system . undecided-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/comsci131.org"
+  "comsci131.org"
+  'org-mode
+  '(abbrev-mode visual-line-mode eldoc-mode auto-compile-on-load-mode override-global-mode org-cdlatex-mode page-break-lines-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode flyspell-mode org-pretty-tags-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode org-pretty-table-mode org-fancy-priorities-mode org-variable-pitch-minor-mode buffer-face-mode org-indent-mode TeX-PDF-mode projectile-mode company-mode)
+  13618
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 23812 45402 220320 0) (buffer-file-coding-system . utf-8-unix) (truncate-lines))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "*info*<2>"
+  'Info-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  227
+  '(nil nil)
+  t
+  '("dir" "Top" nil)
+  '((tab-width . 8) (buffer-display-time 23812 44814 804434 117000) (case-fold-search . t))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "*info*"
+  'Info-mode
+  '(abbrev-mode auto-compile-on-load-mode override-global-mode ivy-mode which-key-mode global-auto-revert-mode undo-tree-mode wrap-region-mode counsel-mode yas-minor-mode google-this-mode editorconfig-mode dired-async-mode pyenv-mode TeX-PDF-mode projectile-mode company-mode)
+  1228712
+  '(1229197 nil)
+  t
+  '("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar/Diary" ((history ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar/Diary" 1228627) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Counting Days" 1238029) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Scroll Calendar" 1236268) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Specified Dates" 1234952) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Move to Beginning or End" 1233743) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Specified Dates" 1234952) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Scroll Calendar" 1236268) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Counting Days" 1238029) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "General Calendar" 1238552) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Counting Days" 1238029) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Scroll Calendar" 1236268) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Specified Dates" 1234952) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Move to Beginning or End" 1233743) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar Unit Motion" 1231418) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar Motion" 1231201) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar/Diary" 1229583) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Sending Mail" 1322035) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar/Diary" 1228994) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar/Diary" 1230110) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Mail Format" 1324192) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Sending Mail" 1322035) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/emacs" "Calendar/Diary" 1228627) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/org" "Previewing LaTeX fragments" 411976) ("/usr/local/Cellar/emacs-edge/27.0.90/share/info/emacs/org" "Top" 944) ("dir" "Top" 227))))
+  '((tab-width . 8) (buffer-display-time 23812 45266 696378 117000) (buffer-file-coding-system . utf-8-unix) (case-fold-search . t))
+  '((mark-ring (1228712))))
+

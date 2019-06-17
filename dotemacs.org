@@ -93,7 +93,6 @@
     - [[#transpose-frame][Transpose frame]]
     - [[#posframe][Posframe]]
   - [[#window][Window]]
-    - [[#desktop][Desktop]]
     - [[#winner-mode][Winner Mode]]
     - [[#shackle][Shackle]]
     - [[#poporg][Poporg]]
@@ -155,7 +154,18 @@
     - [[#navi][Navi]]
     - [[#outshine][Outshine]]
     - [[#foldout][foldout]]
-    - [[#org-links][Org Links]]
+  - [[#org-links][Org Links]]
+    - [[#ol][Ol]]
+    -  [[#tags][Tags]]
+    - [[#replace-link-description][Replace link description]]
+    - [[#help-links][Help links]]
+    - [[#youtube-links][YouTube links]]
+    - [[#export-markup][Export markup]]
+    - [[#heading-bookmarks][Heading bookmarks]]
+    - [[#check-for-possibly-problematic-old-link-escapes][Check for possibly problematic old link escapes]]
+    - [[#org-occur-open][Org occur open]]
+    - [[#man-page-links][Man page links]]
+    - [[#git-links][Git links]]
   - [[#org-coding][Org Coding]]
     - [[#org-babel][Org Babel]]
     - [[#library-of-babel][Library of Babel]]
@@ -203,6 +213,7 @@
   - [[#org-download][Org Download]]
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
+  - [[#org-entities][Org entities]]
 - [[#appearance][Appearance]]
   - [[#theme][Theme]]
     - [[#custom-theme][Custom Theme]]
@@ -227,7 +238,7 @@
     - [[#pretty-outlines][Pretty Outlines]]
   - [[#fonts][Fonts]]
     - [[#fontutils][Fontutils]]
-    - [[#dont-use-default-font-for-symbols][Don't use default font for symbols]]
+    - [[#font-settings][Font Settings]]
     - [[#default-text-scale][Default Text Scale]]
     - [[#variable-pitch][Variable Pitch]]
     - [[#unicode][Unicode]]
@@ -299,7 +310,7 @@
     - [[#smartparens][Smartparens]]
     - [[#rainbow-delimiters][Rainbow Delimiters]]
     - [[#parinfer][Parinfer]]
-  - [[#tags][Tags]]
+  - [[#tags-1][Tags]]
     - [[#gtags][Gtags]]
     - [[#ctags][Ctags]]
   - [[#version-control][Version Control]]
@@ -1396,7 +1407,10 @@ killall gpg-agent
             which-key-replacement-alist)
       (push '((nil . "^mc/\\(.+\\)") . (nil . " \\1"))
             which-key-replacement-alist))
-    )
+    (which-key-add-key-based-replacements
+      "C-x a" "abbrev"
+      "C-x @" "event"
+      "C-x RET" "encoding"))
 #+END_SRC
 
 *** Speed Type
@@ -2519,6 +2533,14 @@ parent directory."
 *** Treemacs
 #+BEGIN_SRC emacs-lisp
   (use-package treemacs
+    :bind
+    (:map global-map
+          ("M-0"       . treemacs-select-window)
+          ("C-x t 1"   . treemacs-delete-other-windows)
+          ("C-x t t"   . treemacs)
+          ("C-x t B"   . treemacs-bookmark)
+          ("C-x t C-t" . treemacs-find-file)
+          ("C-x t M-t" . treemacs-find-tag))
     :custom
     (treemacs-python-executable (or (executable-find "python3") (executable-find "python")))
     (treemacs-collapse-dirs
@@ -2550,10 +2572,6 @@ parent directory."
     (treemacs-tag-follow-delay           1.5)
     (treemacs-width                      35)
     :config
-    ;; The default width and height of the icons is 22 pixels. If you are
-    ;; using a Hi-DPI display, uncomment this to double the icon size.
-    ;;(treemacs-resize-icons 44)
-
     (treemacs-follow-mode t)
     (treemacs-filewatch-mode t)
     (treemacs-fringe-indicator-mode t)
@@ -2563,14 +2581,8 @@ parent directory."
        (treemacs-git-mode 'extended))
       (`(t . _)
        (treemacs-git-mode 'simple)))
-    :bind
-    (:map global-map
-          ("M-0"       . treemacs-select-window)
-          ("C-x t 1"   . treemacs-delete-other-windows)
-          ("C-x t t"   . treemacs)
-          ("C-x t B"   . treemacs-bookmark)
-          ("C-x t C-t" . treemacs-find-file)
-          ("C-x t M-t" . treemacs-find-tag)))
+    (which-key-add-key-based-replacements
+      "C-x t" "treemacs"))
 #+END_SRC
 
 *** Speedbar
@@ -3184,15 +3196,6 @@ directory local variables."
 :PROPERTIES:
 :ID:       39D49D11-3663-4F0F-A2CE-2CE4FE8CB2CB
 :END:
-*** Desktop
-
-#+BEGIN_SRC emacs-lisp
-(use-package desktop
-  :straight (desktop :type built-in)
-  :config
-  (desktop-save-mode 1))
-#+END_SRC
-
 *** Winner Mode
 
 [[https://www.emacswiki.org/emacs/WinnerMode][Winner mode]] is a global minor mode that allows easy switching across
@@ -5680,6 +5683,7 @@ Now we can open pdf files with =org-pdfview= [fn:9]:
 #+END_SRC
 
 *** Outshine
+
 #+BEGIN_SRC emacs-lisp
 (use-package outshine
   :requires navi-mode
@@ -5691,6 +5695,7 @@ Now we can open pdf files with =org-pdfview= [fn:9]:
   :hook
   ((emacs-lisp-mode lisp-mode) . outshine-mode))
 #+END_SRC
+
 *** foldout
 :PROPERTIES:
 :ID:       7A037F3A-7569-44C4-858A-B298381AC21D
@@ -5716,8 +5721,8 @@ instead of ~outline-show-entry~.
       (foldout-zoom-subtree exposure)))
 #+END_SRC
 
-*** Org Links :structure:
-**** Prompt for description
+** Org Links
+*** Ol
 
 #+BEGIN_SRC emacs-lisp
 (use-package ol
@@ -5732,7 +5737,7 @@ instead of ~outline-show-entry~.
 )
 #+END_SRC
 
-**** Tag links
+***  Tags
 
 #+NAME: org-links-tags
 #+BEGIN_SRC emacs-lisp
@@ -5745,7 +5750,7 @@ With prefix argument, also display headlines without a TODO keyword."
  "tag" 'dotemacs/tag-link)
 #+END_SRC
 
-**** Replace link by link description
+*** Replace link description
 
 #+BEGIN_SRC emacs-lisp
 (defun afs/org-replace-link-by-link-description ()
@@ -5761,35 +5766,14 @@ With prefix argument, also display headlines without a TODO keyword."
 (bind-key "C-c C-M-u" 'afs/org-replace-link-by-link-description)
 #+END_SRC
 
-**** Browse url links
-
-#+BEGIN_SRC emacs-lisp
-(defun org-extract-link ()
-  "Extract the link location at point and put it on the killring."
-  (interactive)
-  (when (org-in-regexp org-bracket-link-regexp 1)
-    (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
-
-(defun browse-url-extract-org-link (orig-fun &rest args)
-  "If `thing-at-point' is a org-link, then call `org-extract-link'
-  and apply ORIG-FUN with the extracted url in the car of original ARGS."
-  (when (and (eq major-mode 'org-mode)
-             (string= (car (org-thing-at-point)) "link"))
-    (setcar args (org-extract-link)))
-  (apply orig-fun args))
-
-(advice-add 'browse-url :around #'browse-url-extract-org-link)
-
-#+END_SRC
-
-**** Org Elisp Help Links
+*** Help links
 
 #+NAME: org-links-elisp-help
 #+BEGIN_SRC emacs-lisp
 (use-package org-elisp-help)
 #+END_SRC
 
-**** YouTube links
+*** YouTube links
 
 From [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][Endless Parentheses]] blogpost:
 
@@ -5815,7 +5799,7 @@ Embed YouTube Links in =iframe=.
 
 #+END_SRC
 
-**** Latex links
+*** Export markup
 
 #+NAME: org-links-latex
 #+BEGIN_SRC emacs-lisp
@@ -5843,14 +5827,14 @@ Embed YouTube Links in =iframe=.
 (setq org-latex-link-with-unknown-path-format "\\textsc{%s}")
 #+END_SRC
 
-**** Org Bookmark Heading
+*** Heading bookmarks
 
 #+NAME: org-links-bookmark
 #+BEGIN_SRC emacs-lisp
 (use-package org-bookmark-heading)
 #+END_SRC
 
-**** Check for possibly problematic old link escapes
+*** Check for possibly problematic old link escapes
 :PROPERTIES:
 :ID:       628ECB9A-4F8A-453E-8521-318C008FD287
 :END:
@@ -5880,7 +5864,7 @@ Embed YouTube Links in =iframe=.
           (goto-char end))))))
 #+END_SRC
 
-**** Org occur open
+*** Org occur open
 
 #+BEGIN_SRC emacs-lisp
 (defun org-occur-open (uri)
@@ -5892,14 +5876,14 @@ Embed YouTube Links in =iframe=.
 (org-add-link-type "occur" 'org-occur-open)
 #+END_SRC
 
-**** Org Man
+*** Man page links
 
 #+BEGIN_SRC emacs-lisp
 (use-package ol-man
   :straight org-plus-contrib)
 #+END_SRC
 
-**** Org git links
+*** Git links
 
 #+BEGIN_SRC emacs-lisp
 (use-package ol-git-link
@@ -6074,6 +6058,7 @@ is positive, move after, and if negative, move before."
   (outline-hide-leaves))
 
 (add-to-list 'org-speed-commands-user (cons "T" 'org-teleport))
+
 #+END_SRC
 
 ** Org Tasks
@@ -6186,7 +6171,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (org-agenda-calendar-event
    ((t (:foreground "#cc9393" :inherit (default)))))
   :custom
-  ;; Agenda Files
   (org-agenda-diary-file (expand-file-name "diary.org" org-directory))
   (org-agenda-category-icon-alist
    `(("global"     ,(list "")  nil nil :ascent center)
@@ -6195,21 +6179,17 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
      ("LING 102"   ,(list "🗣")  nil nil :ascent center)
      ("COMSCI 161" ,(list "♟") nil nil :ascent center)
      ("COMSCI 131" ,(list "💻") nil nil :ascent center)))
-  ;; Agenda startup
   (org-agenda-inhibit-startup t)
-  ;; Org skip
   (org-agenda-skip-unavailable-files t)
   (org-agenda-skip-scheduled-if-deadline-is-shown t)
   (org-agenda-skip-scheduled-if-done t)
   (org-agenda-skip-deadline-if-done t)
   (org-agenda-skip-timestamp-if-done t)
   (org-agenda-skip-scheduled-delay-if-deadline 21) ;; ignore if 21 days after scheduled
-  ;; Ignore
   (org-agenda-todo-ignore-scheduled t)
   (org-agenda-todo-ignore-deadlines t)
   (org-agenda-todo-ignore-timestamp t)
   (org-agenda-todo-ignore-with-date t)
-;; TODO keywords
   (org-todo-keywords
    '((sequence "☛ TODO(t)" "|" " DONE(d)" )
      (sequence "|" "✘ CANCELLED(c)")))
@@ -6217,22 +6197,22 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
    '(("✘ CANCELLED" . (:foreground "yellow"))
      (" DONE" . org-done)
      ("☛ TODO" . org-todo)))
-  ;; Org Tags
   (org-tags-column 0)
   (org-complete-tags-always-offer-all-agenda-tags t)
-  ;; Agenda sort
   (org-sort-agenda-notime-is-late nil)
-  ;; Agenda View
   (org-agenda-block-separator "─")
   (org-agenda-remove-tags t)
   (org-agenda-time-leading-zero t)
-
   (org-agenda-columns-add-appointments-to-effort-sum t)
   (org-agenda-mouse-1-follows-link t)
   ;; http://cachestocaches.com/2016/9/my-workflow-org-agenda/
-  ;; Org Refile
   (org-refile-targets (quote ((nil  :maxlevel . 9)
                               (org-agenda-files :maxlevel . 9))))
+  ;; https://cestlaz.github.io/posts/using-emacs-26-gcal/
+  (org-agenda-custom-commands
+   '(("c" "Simple agenda view"
+      ((agenda "")
+       (alltodo "")))))
   :init
   (defun agenda-skip-cancelled ()
     (org-agenda-skip-entry-if 'todo '("✘ CANCELLED")))
@@ -7463,6 +7443,26 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 (use-package org-preview-html)
 #+END_SRC
 
+** Org entities
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-entities
+  :straight org-plus-contrib
+  :custom
+  (org-entities-user
+   '(("cat"    "\\cat"    t "" "" "" "/")
+     ("lbrack" "\\lbrack" t "" "" "" "[")
+     ("rbrack" "\\rbrack" t "" "" "" "]")
+     ("lbrace" "\\lbrace" t "" "" "" "{")
+     ("rbrace" "\\rbrace" t "" "" "" "}")
+     ("vb"     "\\vb"     t "" "" "" "|")
+     ("xsol"   "\\xsol"   t "" "" "" "⧸")
+     ("Langle" "\\Langle" t "" "" "" "⟨")
+     ("Rangle" "\\Rangle" t "" "" "" "⟩")
+     ("lBrack" "\\lBrack" t "" "" "" "⟦")
+     ("rBrack" "\\rBrack" t "" "" "" "⟧"))))
+#+END_SRC
+
 * Appearance
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
@@ -8033,12 +8033,20 @@ the absence of a window system. I'll check for the latter for now.
   :demand t)
 #+END_SRC
 
-*** Don't use default font for symbols
+*** Font Settings
 
+**** Symbols Font
 See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_blocks/][defining unicode character blocks : emacs]]
 
 #+BEGIN_SRC emacs-lisp
 (setq use-default-font-for-symbols nil)
+#+END_SRC
+
+**** Apple Color Emoji
+
+#+BEGIN_SRC emacs-lisp
+(set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
+(set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend)
 #+END_SRC
 
 *** Default Text Scale
@@ -8073,13 +8081,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 *** Unicode
 **** Emojis
-***** Apple Color Emoji
-
-#+BEGIN_SRC emacs-lisp
-(set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
-(set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend)
-#+END_SRC
-
 ***** Unicode Emoticons
 
 #+BEGIN_SRC emacs-lisp
@@ -8192,7 +8193,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 #+END_SRC
 
-**** Org Unicode
 **** Org Bullets
 
 Inspired by this [[http://nadeausoftware.com/articles/2007/11/latency_friendly_customized_bullets_using_unicode_characters][article]] on creating latency-friendly unicode bullets,
@@ -8217,26 +8217,6 @@ bullets as UTF-8 characters.
     (org-bullets-mode +1))
   :hook
   (org-mode . org-bullets/enable))
-#+END_SRC
-
-**** Org entities
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-entities
-  :straight org-plus-contrib
-  :custom
-  (org-entities-user
-   '(("cat"    "\\cat"    t "" "" "" "/")
-     ("lbrack" "\\lbrack" t "" "" "" "[")
-     ("rbrack" "\\rbrack" t "" "" "" "]")
-     ("lbrace" "\\lbrace" t "" "" "" "{")
-     ("rbrace" "\\rbrace" t "" "" "" "}")
-     ("vb"     "\\vb"     t "" "" "" "|")
-     ("xsol"   "\\xsol"   t "" "" "" "⧸")
-     ("Langle" "\\Langle" t "" "" "" "⟨")
-     ("Rangle" "\\Rangle" t "" "" "" "⟩")
-     ("lBrack" "\\lBrack" t "" "" "" "⟦")
-     ("rBrack" "\\rBrack" t "" "" "" "⟧"))))
 #+END_SRC
 
 **** Org Pretty Tags
@@ -8298,7 +8278,8 @@ bullets as UTF-8 characters.
      ;; etc
      ("speaker" . "")))
   :init
-  (org-pretty-tags-global-mode 1))
+  (when (featurep 'all-the-icons)
+    (org-pretty-tags-global-mode 1)))
 
 #+END_SRC
 
@@ -8308,8 +8289,8 @@ bullets as UTF-8 characters.
 (use-package org-fancy-priorities
   :config
   (setq org-fancy-priorities-list '((?A . "❗")
-                                    (?B . "⏫")
-                                    (?C . "⬆️")))
+                                     (?B . "⏫")
+                                     (?C . "⬆️")))
   :hook
   (org-mode . org-fancy-priorities-mode))
 
@@ -8551,6 +8532,27 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
   :defines (osx-browse-mode osx-browse-mode-map)
   :init
   (osx-browse-mode 1))
+#+END_SRC
+
+**** Browse url links
+
+#+BEGIN_SRC emacs-lisp
+(defun org-extract-link ()
+  "Extract the link location at point and put it on the killring."
+  (interactive)
+  (when (org-in-regexp org-bracket-link-regexp 1)
+    (kill-new (org-link-unescape (org-match-string-no-properties 1)))))
+
+(defun browse-url-extract-org-link (orig-fun &rest args)
+  "If `thing-at-point' is a org-link, then call `org-extract-link'
+  and apply ORIG-FUN with the extracted url in the car of original ARGS."
+  (when (and (eq major-mode 'org-mode)
+             (string= (car (org-thing-at-point)) "link"))
+    (setcar args (org-extract-link)))
+  (apply orig-fun args))
+
+(advice-add 'browse-url :around #'browse-url-extract-org-link)
+
 #+END_SRC
 
 *** Google this
