@@ -11,6 +11,7 @@
     - [[#depedencies][Depedencies]]
     - [[#initial-display][Initial Display]]
     - [[#initial-setup][Initial Setup]]
+    - [[#fill-column][Fill Column]]
     - [[#rebooting][Rebooting]]
     - [[#reloading][Reloading]]
     - [[#evaluating][Evaluating]]
@@ -648,7 +649,13 @@ contributing to the solution.
 (defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
-**** Fill Column
+**** Enable local variables
+#+BEGIN_SRC emacs-lisp
+(setq enable-local-variables :all enable-local-eval t)
+#+END_SRC
+
+*** Fill Column
+
 :PROPERTIES:
 :ID:       7BB78F7D-BB56-4036-A244-853CAC7D761C
 :END:
@@ -2989,37 +2996,6 @@ over ssh."
 #+BEGIN_SRC emacs-lisp
 (use-package ssh-deploy)
 
-#+END_SRC
-
-***  COMMENT SCP
-
-#+NAME: remote/scp
-#+BEGIN_SRC emacs-lisp
-(use-package scp
-  :preface
-  (setq enable-local-variables :all enable-local-eval t)
-  :init
-  (cl-defun scp/setup (&optional host user password remote-path port)
-    "Set the connection information for the current project using
-directory local variables."
-    (interactive (list
-                  (read-string "Host: "
-                               tramp-default-host)
-                  (read-string "User: "
-                               (or tramp-default-user
-                                  (getenv "USER")))
-                  (read-string "Password: ")
-                  (read-string "Remote Path: "
-                               (concat
-                                "~/"
-                                (basename default-directory)))
-                  (read-string "Port: " "22")))
-    (let ((vars
-           (mapcar* #'cons
-                    '(host user password remote-path port)
-                    (list host user password remote-path port))))
-      (dolist (var vars)
-        (add-dir-local-variable nil (car var) (cdr var))))))
 #+END_SRC
 
 *** Tramp
@@ -6157,7 +6133,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+NAME: agenda/org-agenda
 #+BEGIN_SRC emacs-lisp
-(use-package org-agenda
+z    (use-package org-agenda
   :straight org-plus-contrib
   :demand t
   :preface
@@ -6174,11 +6150,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (org-agenda-diary-file (expand-file-name "diary.org" org-directory))
   (org-agenda-category-icon-alist
    `(("global"     ,(list "")  nil nil :ascent center)
-     ("schedule"   ,(list "📅")   nil nil :ascent center)
-     ("LING 165C"  ,(list "⟦ ⟧")  nil nil :ascent center)
-     ("LING 102"   ,(list "🗣")  nil nil :ascent center)
-     ("COMSCI 161" ,(list "♟") nil nil :ascent center)
-     ("COMSCI 131" ,(list "💻") nil nil :ascent center)))
+     ("schedule"   ,(list "📅")   nil nil :ascent center)))
   (org-agenda-inhibit-startup t)
   (org-agenda-skip-unavailable-files t)
   (org-agenda-skip-scheduled-if-deadline-is-shown t)
@@ -7100,24 +7072,24 @@ and subtrees of the ignored headlines will be retained.
     (interactive)
     (cl-flet ((nominted (pkg) (not (string= (cadr pkg) "minted"))))
       (if (not org-latex-minted-from-org-p)
-	  (setq org-latex-packages-alist
-		(append org-latex-packages-alist '(("newfloat" "minted"))))
-	(setq org-latex-packages-alist (seq-filter #'nominted org-latex-packages-alist)))
+	        (setq org-latex-packages-alist
+		            (append org-latex-packages-alist '(("newfloat" "minted"))))
+	      (setq org-latex-packages-alist (seq-filter #'nominted org-latex-packages-alist)))
       (setq org-latex-minted-from-org-p (not org-latex-minted-from-org-p))
       (message "org minted %s" (if org-latex-minted-from-org-p
-				   "enabled" "disabled"))))
+				                           "enabled" "disabled"))))
   ;; Latex process
   (setq oxl-process-bibtex
-	'("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
+	      '("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -bibtex -f %f"))
 
   (setq oxl-process-biber
-	'("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -biber -f %f"))
+	      '("latexmk -pdflatex='pdflatex -interaction=nonstopmode -shell-escape' -synctex=1 -pdf -biber -f %f"))
 
   (setq oxl-process-xelatex
-	'("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
+	      '("latexmk -pdf -synctex=1 -shell-escape -xelatex -f %f"))
 
   (setq oxl-process-lualatex
-	'("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
+	      '("latexmk -pdf -synctex=1 -shell-escape -lualatex -f %f"))
 
   (defcustom org-latex-pdf-engines
     '(("lualatex" . oxl-process-lualatex)
@@ -7136,62 +7108,67 @@ and subtrees of the ignored headlines will be retained.
     (interactive
      (list (completing-read "Compiler: " org-latex-pdf-engines)))
     (if (member compiler org-latex-compilers)
-	(let ((process (cdr (assoc compiler org-latex-pdf-engines))))
-	  (setq org-latex-pdf-process (symbol-value
-				       (if (listp process)
-					   (intern (completing-read "Process:" process))
-					 process))
-		org-latex-compiler compiler)
-	  (run-hooks org-latex-pdf-process-hook))
+	      (let ((process (cdr (assoc compiler org-latex-pdf-engines))))
+	        (setq org-latex-pdf-process (symbol-value
+				                               (if (listp process)
+					                                 (intern (completing-read "Process:" process))
+					                               process))
+		            org-latex-compiler compiler)
+	        (run-hooks org-latex-pdf-process-hook))
       (error "%s not in `org-latex-compilers'" compiler)))
 
   :config
   (setq org-latex-logfiles-extensions
         (append org-latex-logfiles-extensions
                 '("acn" "ind" "ilg" "ist" "glo" "tex" "synctex.gz")))
+
   (with-eval-after-load 'ox
     (org-latex-pdf-process-set org-latex-compiler))
-  ;; From John Kitchen's [[https://github.com/jkitchin/scimax][scimax]] project, a starter for scientists and engineers.
-  (setq org-latex-classes
-	'(("article-standalone"
-		 "\\documentclass{article}
-	    [NO-DEFAULT-PACKAGES]
-	    [PACKAGES]
-	    [EXTRA]" ;; header-string
-		 ("\\section{%s}" . "\\section*{%s}")
-		 ("\\subsection{%s}" . "\\subsection*a{%s}")
-		 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-		 ("\\paragraph{%s}" . "\\paragraph*{%s}")
-		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-	  ("uclaling"
-	   "\\documentclass{uclaling}
-	     [NO-DEFAULT-PACKAGES]
-	     [EXTRA]"
-	   ("\\section{%s}" . "\\section*{%s}")
-	   ("\\subsection{%s}" . "\\subsection*{%s}")
-	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-	  ("uclacs"
-	   "\\documentclass{uclacs}
-	    [NO-DEFAULT-PACKAGES]
-	    [EXTRA]"
-	   ("\\section{%s}" . "\\section*{%s}")
-	   ("\\subsection{%s}" . "\\subsection*{%s}")
-	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-	  ("humanities"
-	   "\\documentclass{humanities}
-	    [NO-DEFAULT-PACKAGES]
-	    [EXTRA]"
-	   ("\\section{%s}" . "\\section*{%s}")
-	   ("\\subsection{%s}" . "\\subsection*{%s}")
-	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-	  ("unicode-math"
-	   "\\documentclass{article}
+
+  (add-to-list 'org-latex-classes
+	             '(;; standalone
+                 ("article-standalone"
+		              "\\documentclass{article}
+              	    [NO-DEFAULT-PACKAGES]
+              	    [PACKAGES]
+              	    [EXTRA]" ;; header-string
+    		          ("\\section{%s}" . "\\section*{%s}")
+    		          ("\\subsection{%s}" . "\\subsection*a{%s}")
+    		          ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+    		          ("\\paragraph{%s}" . "\\paragraph*{%s}")
+    		          ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+                 ;;; Linguistics class
+     	           ("uclaling"
+     	            "\\documentclass{uclaling}
+             	     [NO-DEFAULT-PACKAGES]
+                   [EXTRA]"
+     	            ("\\section{%s}" . "\\section*{%s}")
+     	            ("\\subsection{%s}" . "\\subsection*{%s}")
+     	            ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+     	            ("\\paragraph{%s}" . "\\paragraph*{%s}")
+     	            ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+                 ;; Computer Science class
+	               ("uclacs"
+	                "\\documentclass{uclacs}
+            	    [NO-DEFAULT-PACKAGES]
+            	    [EXTRA]"
+	                ("\\section{%s}" . "\\section*{%s}")
+	                ("\\subsection{%s}" . "\\subsection*{%s}")
+	                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	                ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+                 ;; Humanties class
+	               ("humanities"
+	                "\\documentclass{humanities}
+	                [NO-DEFAULT-PACKAGES]
+	                [EXTRA]"
+	                ("\\section{%s}" . "\\section*{%s}")
+	                ("\\subsection{%s}" . "\\subsection*{%s}")
+	                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	                ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	               ("unicode-math"
+	                "\\documentclass{article}
 	   [PACKAGES]
 	   [NO-DEFAULT-PACKAGES]
 	   [EXTRA]
@@ -7210,15 +7187,14 @@ and subtrees of the ignored headlines will be retained.
 	     BoldFont={*-Bold},
 	     ItalicFont={*-Italic},
 	     BoldItalicFont={*-BoldItalic}]"
-	   ("\\section{%s}" . "\\section*{%s}")
-	   ("\\subsection{%s}" . "\\subsection*{%s}")
-	   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	   ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+	                ("\\section{%s}" . "\\section*{%s}")
+	                ("\\subsection{%s}" . "\\subsection*{%s}")
+	                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	                ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
   :bind
   (:map org-mode-map
 	      ("M-s l" . org-latex-pdf-process-set)))
-
 #+END_SRC
 
 **** Ox Latex subfigure

@@ -19,7 +19,6 @@
    [default bold shadow italic underline bold bold-italic bold])
  '(ansi-term-color-vector
    [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white] t)
- '(auctex-latexmk-inherit-TeX-PDF-mode t)
  '(aw-background nil)
  '(aw-keys '(97 115 100 102 103 104 106 107 108))
  '(bibtex-BibTeX-entry-alist
@@ -241,7 +240,6 @@
 
 ")
  '(bibtex-completion-pdf-symbol "")
- '(bmkp-last-as-first-bookmark-file "~/.emacs.d/var/bookmark-default.el")
  '(browse-url-chromium-program "/Applications/Chromium.app/Contents/MacOS/Chromium")
  '(cdlatex-insert-auto-labels-in-env-templates t)
  '(cfw:display-calendar-holidays nil)
@@ -275,17 +273,6 @@
  '(counsel-gtags-ignore-case t t)
  '(counsel-org-clock-history-include-archives t)
  '(counsel-osx-app-location '("/Applications" "/Applications/Setapp") t)
- '(counsel-projectile-org-capture-templates
-   '(("t" "[${name}] Task" entry
-      (file "${root}/${name}.org")
-      "* ☛ TODO %?
-  %u
-  %a")
-     ("n" "[${name}] Note" entry
-      (file+headline "${root}/notes.org" "Notes")
-      "* ☛ %a %?
-  %u
-")))
  '(cquery-executable "/usr/local/bin/cquery" t)
  '(cquery-extra-init-params
    '(:index
@@ -385,8 +372,6 @@
  '(mu4e-get-mail-command "offlineimap -o -q")
  '(mu4e-maildir "~/.mail")
  '(mu4e-sent-messages-behavior 'delete)
- '(neo-smart-open t)
- '(neo-theme 'icons)
  '(no-littering-etc-directory "/Users/jacobchaffin/.emacs.d/etc" t)
  '(no-littering-var-directory "/Users/jacobchaffin/.emacs.d/var" t)
  '(nrepl-hide-special-buffers t t)
@@ -429,8 +414,8 @@
  '(org-agenda-todo-ignore-with-date t)
  '(org-annotate-file-storage-file "/Users/jacobchaffin/Dropbox/org/annotate.org")
  '(org-archive-location "archive/%s_archive::")
- '(org-attach-auto-tag "attach")
- '(org-attach-store-link-p t)
+ '(org-attach-auto-tag "attach" t)
+ '(org-attach-store-link-p t t)
  '(org-babel-uppercase-example-markers t)
  '(org-blank-before-new-entry '((heading . auto) (plain-list-item . auto)))
  '(org-bullets-bullet-list '("▸" "●"))
@@ -524,10 +509,6 @@
      ("@gift" . "")
      ("@inbox" . "")
      ("speaker" . "")))
- '(org-projectile-capture-template "* ☛ TODO %?
-  %i
-  %a" t)
- '(org-projectile-per-project-filepath 'org-projectile-per-project-function t)
  '(org-ref-bibliography-notes "/Users/jacobchaffin/Dropbox/org/ref/notes.org" t)
  '(org-ref-completion-library 'org-ref-ivy-cite t)
  '(org-ref-default-bibliography '("/Users/jacobchaffin/Dropbox/org/ref/references.bib") t)
@@ -594,10 +575,13 @@
      (org-latex-default-class . "uclaling")
      (projectile-project-name . "LING 165C Syntax II")
      (org-ref-notes-directory . "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/notes.org")
+     (projectile-project-name . "CS131 F18")
      (org-ref-default-bibliography "/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/comsci131.bib")
      (projectile-project-name . "COMSCI 131 W19")
      (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/materials/pdfs/")
-     (projectile-project-name . "CS131 F18")))
+     (projectile-project-name . "CS161 A.I.")
+     (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/2019/comsci161/materials/pdfs/")
+     (org-ref-default-bibliography "/Users/jacobchaffin/Dropbox/Documents/2019/comsci161/comsci161.bib")))
  '(sh-indentation 2)
  '(shell-pop-full-span t t)
  '(shell-pop-term-shell "/usr/local/bin/zsh" t)

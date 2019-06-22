@@ -196,6 +196,48 @@
         "Named source blocks to tangle when `use-literate-p' is enabled. ")
 ;;;; tangle and load
       ;; Extract source code and load the config
+  (defun literate-src-parameter-string->alist (parameters)
+         "Convert src block parameter string into a plist."
+         (let ((params-list (split-string parameters " " t)))
+           (cl-loop for x in params-list
+              for i from 1 to (length params-list)
+              if (cl-oddp i)
+              collect (intern x) into odds
+              else
+              collect x into evens
+              end
+              finally (return (seq-mapn #'cons odds evens)))))
+
+
+       (defun literate-src-block-noweb-p (parameters)
+         (let ((params-alist (literate-src-parameter-string->alist parameters)))
+           (string= "yes" (cdr (assoc :noweb params-alist)))))
+
+
+       (defun sanitize-no-web-block (code)
+         (let ((sx (split-string code "\n" t)))
+           (cl-flet ((func (s)
+                       (replace-regexp-in-string "<<\\(.*?\\)>>" "\\1" s)))
+             (mapcar #'func sx))))
+
+       (defun literate-tangle-src-block (name)
+         (let ((buf (find-file-noselect dotemacs-literate-config-file)))
+           (with-current-buffer (get-file-buffer dotemacs-literate-config-file)
+             (unwind-protect
+                 (org-element-map (org-element-parse-buffer) 'src-block
+                (lambda (block)
+                  (if (string= name (org-element-property :name block))
+                      (let ((code (org-element-property :value block))
+                            (params (org-element-property :parameters block))
+                            (noweb-p (literate-src-block-noweb-p
+                                      (org-element-property :parameters block))))
+
+                        (if noweb-p
+                            (mapcar #'literate-tangle-src-block (sanitize-no-web-block code))
+                          (with-temp-buffer
+                            (insert code)
+                            (eval-buffer)))))))))))
+
       (if use-literate-p
           (if (file-exists-p dotemacs-literate-config-file)
               (org-babel-load-file dotemacs-literate-config-file)
