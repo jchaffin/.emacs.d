@@ -240,6 +240,7 @@
 
 ")
  '(bibtex-completion-pdf-symbol "")
+ '(bmkp-last-as-first-bookmark-file "/Users/jacobchaffin/.emacs.d/var/bookmark-default.el")
  '(browse-url-chromium-program "/Applications/Chromium.app/Contents/MacOS/Chromium")
  '(cdlatex-insert-auto-labels-in-env-templates t)
  '(cfw:display-calendar-holidays nil)
@@ -382,18 +383,6 @@
       nil nil :ascent center)
      ("schedule"
       ("📅")
-      nil nil :ascent center)
-     ("LING 165C"
-      ("⟦ ⟧")
-      nil nil :ascent center)
-     ("LING 102"
-      ("🗣")
-      nil nil :ascent center)
-     ("COMSCI 161"
-      ("♟")
-      nil nil :ascent center)
-     ("COMSCI 131"
-      ("💻")
       nil nil :ascent center)))
  '(org-agenda-columns-add-appointments-to-effort-sum t)
  '(org-agenda-custom-commands '(("c" "Simple agenda view" ((agenda "") (alltodo "")))))
@@ -567,21 +556,6 @@
  '(reftex-default-bibliography "/Users/jacobchaffin/Dropbox/org/ref/references.bib")
  '(reftex-plug-into-AUCTeX '(nil nil t t t))
  '(reftex-use-fonts t)
- '(safe-local-variable-values
-   '((eval org-preview-xelatex)
-     (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/materials/pdfs/")
-     (org-ref-default-bibliography "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/ling165c.bib")
-     (org-latex-compiler . "xelatex")
-     (org-latex-default-class . "uclaling")
-     (projectile-project-name . "LING 165C Syntax II")
-     (org-ref-notes-directory . "/Users/jacobchaffin/Dropbox/Documents/2019/ling165c/notes.org")
-     (projectile-project-name . "CS131 F18")
-     (org-ref-default-bibliography "/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/comsci131.bib")
-     (projectile-project-name . "COMSCI 131 W19")
-     (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/2019/comsci131/materials/pdfs/")
-     (projectile-project-name . "CS161 A.I.")
-     (org-ref-pdf-directory . "/Users/jacobchaffin/Dropbox/Documents/2019/comsci161/materials/pdfs/")
-     (org-ref-default-bibliography "/Users/jacobchaffin/Dropbox/Documents/2019/comsci161/comsci161.bib")))
  '(sh-indentation 2)
  '(shell-pop-full-span t t)
  '(shell-pop-term-shell "/usr/local/bin/zsh" t)

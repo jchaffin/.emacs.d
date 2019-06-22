@@ -6133,7 +6133,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+NAME: agenda/org-agenda
 #+BEGIN_SRC emacs-lisp
-z    (use-package org-agenda
+(use-package org-agenda
   :straight org-plus-contrib
   :demand t
   :preface
