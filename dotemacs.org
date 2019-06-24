@@ -2328,7 +2328,12 @@ whistles, it makes up for in compatibility and hackability [fn:7].
   :config
 ;;;;;; which key
   (when (featurep 'which-key)
-    (which-key-add-key-based-replacements "C-c p" " Projectile")
+    (which-key-add-key-based-replacements
+      "C-c p" " Projectile"
+      "C-c p x" "exec"
+      "C-c p O" "org"
+      "C-c p s" "search"
+      "C-c p 4" "other")
     (push '((nil . "projectile-\\(.+\\)") . (nil . "\\1"))
           which-key-replacement-alist))
 ;;;;;; Ignored directories
@@ -5662,12 +5667,13 @@ Now we can open pdf files with =org-pdfview= [fn:9]:
 
 #+BEGIN_SRC emacs-lisp
 (use-package outshine
-  :requires navi-mode
   :demand t
-  :init
+  :preface
   (defvar outline-minor-mode-prefix "\M-#")
-  :config
-  (setq outshine-use-speed-commands t)
+  :init
+  (require 'navi-mode)
+  :custom
+  (outshine-use-speed-commands t)
   :hook
   ((emacs-lisp-mode lisp-mode) . outshine-mode))
 #+END_SRC
@@ -7434,6 +7440,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
      ("vb"     "\\vb"     t "" "" "" "|")
      ("xsol"   "\\xsol"   t "" "" "" "⧸")
      ("Langle" "\\Langle" t "" "" "" "⟨")
+     ("textbackslash" "\\textbackslash" "" "" "" "＼")
      ("Rangle" "\\Rangle" t "" "" "" "⟩")
      ("lBrack" "\\lBrack" t "" "" "" "⟦")
      ("rBrack" "\\rBrack" t "" "" "" "⟧"))))
@@ -9071,7 +9078,6 @@ Interactively.
   (deft-auto-save-interval 0)
   (deft-extensions '("org"))
   (deft-directory "~/Dropbox/org/notes/")
-  (deft-use-filename-as-title t)
   (deft-default-extension "org"))
 #+END_SRC
 
