@@ -4916,7 +4916,8 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
 (advice-add 'org-create-formula-image :around #'org-inject-latex-fragment)
 #+END_SRC
 
-**** Parsing keywords
+**** Preview Compiler
+***** Parsing keywords
 
 #+NAME: org-preview-parsing
 #+BEGIN_SRC emacs-lisp
@@ -4950,7 +4951,7 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
 
 #+END_SRC
 
-**** XeLaTeX
+***** XeLaTeX
 
 #+NAME: org-preview-xelatex
 #+BEGIN_SRC emacs-lisp
@@ -5019,11 +5020,15 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
          (read-file-contents preview-file))))
 #+END_SRC
 
-**** LuaLaTeX
+***** LuaLaTeX
 
 #+NAME: org-preview-lualatex
 #+BEGIN_SRC emacs-lisp
-(defcustom lualatex-preview-header nil
+((defun func-name ()
+   "
+
+ Returns: "
+   )custom lualatex-preview-header nil
   "The preamble to use for previewing LaTeX fragments with LuLaTeX."
   :type 'string)
 
@@ -5087,7 +5092,7 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
            lualatex-preview-header))))
 #+END_SRC
 
-**** Dynamic latex previews
+***** Dynamic latex previews
 
 Generate latex fragments based on the latex compiler and class in the current buffer.
 
@@ -6097,7 +6102,7 @@ is positive, move after, and if negative, move before."
           `(("l" "Protocol Link" entry
              (file+headline ,org-default-notes-file "Inbox")
              "* [[%:link][%:description]] \n\n#+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n%?\n")
-            ("t" "Global Todo" entry (file+headline "~/Dropbox/org/agenda/TODOs.org" "Tasks")
+            ("t" "Task" entry (file+headline "~/Dropbox/org/agenda/TODOs.org" "Tasks")
              "* ☛ TODO %?\n  %i\n  %a")
             ("j" "Journal" entry (file+olp+datetree "~/Dropbox/org/journal.org")
              "* %?\nEntered on %U\n  %i\n  %a")
@@ -10339,6 +10344,16 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 (use-package elisp-format
     :custom
     (elisp-format-column 80))
+#+END_SRC
+
+**** linkd.el
+
+#+BEGIN_SRC emacs-lisp
+(use-package linkd
+  :hook
+  (emacs-lisp-mode . linkd-mode))
+
+
 #+END_SRC
 
 *** Groovy
