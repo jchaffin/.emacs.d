@@ -5024,72 +5024,68 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
 
 #+NAME: org-preview-lualatex
 #+BEGIN_SRC emacs-lisp
-((defun func-name ()
-   "
+  (defcustom lualatex-preview-header nil
+    "The preamble to use for previewing LaTeX fragments with LuLaTeX."
+    :type 'string)
 
- Returns: "
-   )custom lualatex-preview-header nil
-  "The preamble to use for previewing LaTeX fragments with LuLaTeX."
-  :type 'string)
-
-(defcustom lualatex-preview-process-alist
-  '((dvipng
-     :programs
-     ("lualatex" "dvipng")
-     :description "dvi > png"
-     :message "You need to install the programs: lualatex and dvipng"
-     :image-input-type "dvi"
-     :image-output-type "png"
-     :image-size-adjust (1.3 1.3)
-     :latex-compiler
-     ("lualatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
-    (dvisvgm
-     :programs
-     ("latex" "dvisvgm")
-     :description "dvi > svg"
-     :message "you need to install the programs: lualatex and dvisvgm."
-     :use-xcolor t
-     :image-input-type "xdv"
-     :image-output-type "svg"
-     :image-size-adjust
-     (1.7 . 1.5)
-     :latex-compiler
-     ("lualatex -no-pdf -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("dvisvgm %f -n -b min -c %S -o %O"))
-    (imagemagick
-     :programs ("lualatex" "convert")
-     :description "pdf > png"
-     :message "You need to install lualatex and imagemagick"
-     :use-xcolor t
-     :image-input-type "pdf"
-     :image-output-type "png"
-     :image-size-adjust (1.0 1.0)
-     :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
-     :image-converter
-     ("convert -density %D -trim -antialias %f -quality 100 %O")))
-  "Preview engines for lualatex."
-  :type '(alist
-          :tag "LaTeX to image backends"
-		      :value-type (plist)))
+  (defcustom lualatex-preview-process-alist
+    '((dvipng
+       :programs
+       ("lualatex" "dvipng")
+       :description "dvi > png"
+       :message "You need to install the programs: lualatex and dvipng"
+       :image-input-type "dvi"
+       :image-output-type "png"
+       :image-size-adjust (1.3 1.3)
+       :latex-compiler
+       ("lualatex -interaction nonstopmode -output-directory %o %f")
+       :image-converter
+       ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
+      (dvisvgm
+       :programs
+       ("latex" "dvisvgm")
+       :description "dvi > svg"
+       :message "you need to install the programs: lualatex and dvisvgm."
+       :use-xcolor t
+       :image-input-type "xdv"
+       :image-output-type "svg"
+       :image-size-adjust
+       (1.7 . 1.5)
+       :latex-compiler
+       ("lualatex -no-pdf -interaction nonstopmode -output-directory %o %f")
+       :image-converter
+       ("dvisvgm %f -n -b min -c %S -o %O"))
+      (imagemagick
+       :programs ("lualatex" "convert")
+       :description "pdf > png"
+       :message "You need to install lualatex and imagemagick"
+       :use-xcolor t
+       :image-input-type "pdf"
+       :image-output-type "png"
+       :image-size-adjust (1.0 1.0)
+       :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
+       :image-converter
+       ("convert -density %D -trim -antialias %f -quality 100 %O")))
+    "Preview engines for lualatex."
+    :type '(alist
+	    :tag "LaTeX to image backends"
+			:value-type (plist)))
 
 
-(defun org-preview-lualatex ()
-  (interactive)
-  (let ((preview-file (emacs-etc-dir "preview/uclacs-preview.tex")))
-    (set (make-local-variable 'org-preview-latex-process-alist)lualatex-preview-process-alist)
+  (defun org-preview-lualatex ()
+    (interactive)
+    (let ((preview-file (emacs-etc-dir "preview/uclacs-preview.tex")))
+      (set (make-local-variable 'org-preview-latex-process-alist)lualatex-preview-process-alist)
 
-    (when (assoc 'latex org-babel-load-languages)
-      (set (make-local-variable 'org-edit-latex-frag-master)
-           preview-file))
+      (when (assoc 'latex org-babel-load-languages)
+	(set (make-local-variable 'org-edit-latex-frag-master)
+	     preview-file))
 
-    (set (make-local-variable 'org-format-latex-header)
-         (if (org-preview/uclacs-p)
-             (concat lualatex-preview-header
-                     (read-file-contents preview-file))
-           lualatex-preview-header))))
+      (set (make-local-variable 'org-format-latex-header)
+	   (if (org-preview/uclacs-p)
+	       (concat lualatex-preview-header
+		       (read-file-contents preview-file))
+	     lualatex-preview-header))))
 #+END_SRC
 
 ***** Dynamic latex previews
