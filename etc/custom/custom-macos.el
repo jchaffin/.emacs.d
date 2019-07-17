@@ -281,24 +281,24 @@
      :cacheFormat "msgpack" :completion
      (:detailedLabel t)) t)
  '(css-indent-offset 2 t)
- '(deft-auto-save-interval 0 t)
+ '(deft-auto-save-interval 0)
  '(deft-default-extension "org" t)
- '(deft-directory "~/Dropbox/org/notes/" t)
- '(deft-extensions '("org") t)
+ '(deft-directory "~/Dropbox/org/notes/")
+ '(deft-extensions '("org"))
  '(delete-by-moving-to-trash t)
  '(dired-dwim-target t)
  '(dired-sidebar-should-follow-file nil t)
  '(dired-sidebar-theme 'none t)
  '(ebib-extra-fields
    '((BibTeX "crossref" "annote" "abstract" "keywords" "file" "tags" "timestamp" "url" "doi")
-     (biblatex "crossref" "annotation" "abstract" "keywords" "file" "tags" "timestamp")))
- '(ebib-file-associations '(("pdf")))
+     (biblatex "crossref" "annotation" "abstract" "keywords" "file" "tags" "timestamp")) t)
+ '(ebib-file-associations '(("pdf")) t)
  '(ebib-file-search-dirs
-   '("/Users/jacobchaffin/Dropbox/Documents/pdfs/ai" "/Users/jacobchaffin/Dropbox/Documents/pdfs/algorithms" "/Users/jacobchaffin/Dropbox/Documents/pdfs/clojure" "/Users/jacobchaffin/Dropbox/Documents/pdfs/comsci" "/Users/jacobchaffin/Dropbox/Documents/pdfs/history" "/Users/jacobchaffin/Dropbox/Documents/pdfs/home-improv" "/Users/jacobchaffin/Dropbox/Documents/pdfs/javascript" "/Users/jacobchaffin/Dropbox/Documents/pdfs/latex" "/Users/jacobchaffin/Dropbox/Documents/pdfs/lisp" "/Users/jacobchaffin/Dropbox/Documents/pdfs/manuals" "/Users/jacobchaffin/Dropbox/Documents/pdfs/papers" "/Users/jacobchaffin/Dropbox/Documents/pdfs/phonetics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/python" "/Users/jacobchaffin/Dropbox/Documents/pdfs/refcards" "/Users/jacobchaffin/Dropbox/Documents/pdfs/semantics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/syntax"))
+   '("/Users/jacobchaffin/Dropbox/Documents/pdfs/ai" "/Users/jacobchaffin/Dropbox/Documents/pdfs/algorithms" "/Users/jacobchaffin/Dropbox/Documents/pdfs/clojure" "/Users/jacobchaffin/Dropbox/Documents/pdfs/comsci" "/Users/jacobchaffin/Dropbox/Documents/pdfs/history" "/Users/jacobchaffin/Dropbox/Documents/pdfs/home-improv" "/Users/jacobchaffin/Dropbox/Documents/pdfs/javascript" "/Users/jacobchaffin/Dropbox/Documents/pdfs/latex" "/Users/jacobchaffin/Dropbox/Documents/pdfs/lisp" "/Users/jacobchaffin/Dropbox/Documents/pdfs/manuals" "/Users/jacobchaffin/Dropbox/Documents/pdfs/papers" "/Users/jacobchaffin/Dropbox/Documents/pdfs/phonetics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/python" "/Users/jacobchaffin/Dropbox/Documents/pdfs/refcards" "/Users/jacobchaffin/Dropbox/Documents/pdfs/semantics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/syntax") t)
  '(ebib-latex-preamble
-   "\\documentclass{article} \\usepackage{natbib} \\bibliographystyle{plainnat}")
- '(ebib-preload-bib-files '("/Users/jacobchaffin/Dropbox/org/ref/references.bib"))
- '(ebib-reading-list-file "/Users/jacobchaffin/Dropbox/org/ref/reading.org")
+   "\\documentclass{article} \\usepackage{natbib} \\bibliographystyle{plainnat}" t)
+ '(ebib-preload-bib-files '("/Users/jacobchaffin/Dropbox/org/ref/references.bib") t)
+ '(ebib-reading-list-file "/Users/jacobchaffin/Dropbox/org/ref/reading.org" t)
  '(ediff-diff-options "-w" t)
  '(elisp-format-column 80 t)
  '(emmms-info-asynchronously nil t)
@@ -359,9 +359,9 @@
  '(mail-user-agent 'mu4e-user-agent)
  '(markdown-command "multimarkdown")
  '(markdown-open-command 'markdown-open-preview)
- '(mc/always-run-for-all t t)
- '(merlin-command 'opam)
- '(merlin-error-after-save nil)
+ '(mc/always-run-for-all t)
+ '(merlin-command 'opam t)
+ '(merlin-error-after-save nil t)
  '(midnight-period 7200 t)
  '(monky-process-type 'cmdserver t)
  '(mu4e-alert-interesting-mail-query
@@ -378,7 +378,7 @@
  '(org-agenda-block-separator "─")
  '(org-agenda-category-icon-alist
    '(("global"
-      ("")
+      ("🌍")
       nil nil :ascent center)
      ("schedule"
       ("📅")
@@ -417,18 +417,25 @@
  '(org-directory "/Users/jacobchaffin/Dropbox/org")
  '(org-ellipsis "")
  '(org-entities-user
-   '(("cat" "\\cat" t "" "" "" "/")
+   '(("alpha" "\\alpha" t "" "" "" "𝛼")
+     ("beta" "\\beta" t "" "" "" "𝛽")
+     ("gamma" "\\gamma" t "" "" "" "𝛾")
+     ("lambda" "\\lambda" t "" "" "" "λ")
+     ("cat" "\\cat" t "" "" "" "/")
      ("lbrack" "\\lbrack" t "" "" "" "[")
      ("rbrack" "\\rbrack" t "" "" "" "]")
      ("lbrace" "\\lbrace" t "" "" "" "{")
      ("rbrace" "\\rbrace" t "" "" "" "}")
+     ("Rangle" "\\Rangle" t "" "" "" "⟩")
+     ("Langle" "\\Langle" t "" "" "" "⟨")
+     ("lBrack" "\\lBrack" t "" "" "" "⟦")
+     ("rBrack" "\\rBrack" t "" "" "" "⟧")
+     ("text" "\\text" t "" "" "" "T")
      ("vb" "\\vb" t "" "" "" "|")
      ("xsol" "\\xsol" t "" "" "" "⧸")
-     ("Langle" "\\Langle" t "" "" "" "⟨")
-     ("textbackslash" "\\textbackslash" "" "" "" "＼")
-     ("Rangle" "\\Rangle" t "" "" "" "⟩")
-     ("lBrack" "\\lBrack" t "" "" "" "⟦")
-     ("rBrack" "\\rBrack" t "" "" "" "⟧")))
+     ("textbackslash" "\\textbackslash" t "" "" "" "＼")
+     ("subseteq" "\\subseteq" t "" "" "" "⊆")
+     ("subsetneq" "\\subsetneq" t "" "" "" "⊊")))
  '(org-export-with-sub-superscripts '{})
  '(org-gcal-file-alist
    '(("jchaffin@g.ucla.edu" . "/Users/jacobchaffin/Dropbox/org/agenda/schedule.org")))
@@ -442,6 +449,82 @@
  '(org-journal-enable-agenda-integration nil)
  '(org-journal-time-format "")
  '(org-journal-time-prefix "* ")
+ '(org-latex-classes
+   '(("article" "\\documentclass[11pt]{article}"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+     ("report" "\\documentclass[11pt]{report}"
+      ("\\part{%s}" . "\\part*{%s}")
+      ("\\chapter{%s}" . "\\chapter*{%s}")
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
+     ("book" "\\documentclass[11pt]{book}"
+      ("\\part{%s}" . "\\part*{%s}")
+      ("\\chapter{%s}" . "\\chapter*{%s}")
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
+     ("article-standalone" "\\documentclass{article}
+      [NO-DEFAULT-PACKAGES]
+      [PACKAGES]
+      [EXTRA]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*a{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+     ("uclaling" "\\documentclass{uclaling}
+      [NO-DEFAULT-PACKAGES]
+      [EXTRA]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+     ("uclacs" "\\documentclass{uclacs}
+      [NO-DEFAULT-PACKAGES]
+      [EXTRA]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+     ("humanities" "\\documentclass{humanities}
+      [NO-DEFAULT-PACKAGES]
+      [EXTRA]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+     ("unicode-math" "\\documentclass{article}
+     [PACKAGES]
+     [NO-DEFAULT-PACKAGES]
+     [EXTRA]
+	   \\usepackage{fontspec}
+	   \\usepackage{amsmath}
+	   \\usepackage{xltxtra}
+	   \\usepackage{unicode-math}
+	   \\setmathfont{STIX2Math}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     Scale=1]
+	   \\setmainfont{STIX2Text}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     UprightFont={*-Regular},
+	     BoldFont={*-Bold},
+	     ItalicFont={*-Italic},
+	     BoldItalicFont={*-BoldItalic}]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
  '(org-latex-compiler "xelatex")
  '(org-latex-hyperref-template nil)
  '(org-latex-listings 'minted)
@@ -464,17 +547,17 @@
  '(org-pretty-tags-surrogate-strings
    '(("homework" . "📕️")
      ("note" . "️📓")
-     ("assignment" . "")
-     ("exam" . "📜")
-     ("quiz" . "📝")
+     ("assignment" . "📒️")
+     ("exam" . "📝")
+     ("quiz" . "📘")
      ("reading" . "📚")
      ("lecture" . "🎓")
      ("@semantics" . "λ")
      ("@phonetics" . "🗣")
-     ("@ai" . "♠")
+     ("@ai" . "♘")
      ("@comsci" . "💻")
      ("attach" . "📎")
-     ("TOC_3_gh" . "")
+     ("TOC_3_gh" . "")
      ("noexport" . "❌")
      ("ignore" . "🚫")
      ("website" . "")
@@ -497,10 +580,10 @@
      ("@audiophile" . "")
      ("@gift" . "")
      ("@inbox" . "")
-     ("speaker" . "")))
- '(org-ref-bibliography-notes "/Users/jacobchaffin/Dropbox/org/ref/notes.org" t)
- '(org-ref-completion-library 'org-ref-ivy-cite t)
- '(org-ref-default-bibliography '("/Users/jacobchaffin/Dropbox/org/ref/references.bib") t)
+     ("speaker" . "🔈")))
+ '(org-ref-bibliography-notes "/Users/jacobchaffin/Dropbox/org/ref/notes.org")
+ '(org-ref-completion-library 'org-ref-ivy-cite)
+ '(org-ref-default-bibliography '("/Users/jacobchaffin/Dropbox/org/ref/references.bib"))
  '(org-ref-note-title-format
    "** %y - %t
     :PROPERTIES:
@@ -514,13 +597,13 @@
     :URL: %U
     :END:
 
-" t)
- '(org-ref-notes-directory "/Users/jacobchaffin/Dropbox/org/ref/notes" t)
+")
+ '(org-ref-notes-directory "/Users/jacobchaffin/Dropbox/org/ref/notes")
  '(org-ref-pdf-directory
-   '("/Users/jacobchaffin/Dropbox/Documents/pdfs/ai" "/Users/jacobchaffin/Dropbox/Documents/pdfs/algorithms" "/Users/jacobchaffin/Dropbox/Documents/pdfs/clojure" "/Users/jacobchaffin/Dropbox/Documents/pdfs/comsci" "/Users/jacobchaffin/Dropbox/Documents/pdfs/history" "/Users/jacobchaffin/Dropbox/Documents/pdfs/home-improv" "/Users/jacobchaffin/Dropbox/Documents/pdfs/javascript" "/Users/jacobchaffin/Dropbox/Documents/pdfs/latex" "/Users/jacobchaffin/Dropbox/Documents/pdfs/lisp" "/Users/jacobchaffin/Dropbox/Documents/pdfs/manuals" "/Users/jacobchaffin/Dropbox/Documents/pdfs/papers" "/Users/jacobchaffin/Dropbox/Documents/pdfs/phonetics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/python" "/Users/jacobchaffin/Dropbox/Documents/pdfs/refcards" "/Users/jacobchaffin/Dropbox/Documents/pdfs/semantics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/syntax") t)
+   '("/Users/jacobchaffin/Dropbox/Documents/pdfs/ai" "/Users/jacobchaffin/Dropbox/Documents/pdfs/algorithms" "/Users/jacobchaffin/Dropbox/Documents/pdfs/clojure" "/Users/jacobchaffin/Dropbox/Documents/pdfs/comsci" "/Users/jacobchaffin/Dropbox/Documents/pdfs/history" "/Users/jacobchaffin/Dropbox/Documents/pdfs/home-improv" "/Users/jacobchaffin/Dropbox/Documents/pdfs/javascript" "/Users/jacobchaffin/Dropbox/Documents/pdfs/latex" "/Users/jacobchaffin/Dropbox/Documents/pdfs/lisp" "/Users/jacobchaffin/Dropbox/Documents/pdfs/manuals" "/Users/jacobchaffin/Dropbox/Documents/pdfs/papers" "/Users/jacobchaffin/Dropbox/Documents/pdfs/phonetics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/python" "/Users/jacobchaffin/Dropbox/Documents/pdfs/refcards" "/Users/jacobchaffin/Dropbox/Documents/pdfs/semantics" "/Users/jacobchaffin/Dropbox/Documents/pdfs/syntax"))
  '(org-ref-ref-types
-   '("ref" "eqref" "pageref" "nameref" "autoref" "cref" "Cref" "vref") t)
- '(org-ref-show-citation-on-enter t t)
+   '("ref" "eqref" "pageref" "nameref" "autoref" "cref" "Cref" "vref"))
+ '(org-ref-show-citation-on-enter t)
  '(org-refile-targets '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
  '(org-sort-agenda-notime-is-late nil)
  '(org-src-fontify-natively t)
@@ -532,10 +615,10 @@
  '(org-tags-column 0)
  '(org-todo-keyword-faces
    '(("✘ CANCELLED" :foreground "yellow")
-     (" DONE" . org-done)
+     (" DONE" . org-done)
      ("☛ TODO" . org-todo)))
  '(org-todo-keywords
-   '((sequence "☛ TODO(t)" "|" " DONE(d)")
+   '((sequence "☛ TODO(t)" "|" " DONE(d)")
      (sequence "|" "✘ CANCELLED(c)")))
  '(org-use-speed-commands t)
  '(org-use-sub-superscripts '{})
@@ -546,7 +629,7 @@
  '(outshine-use-speed-commands t)
  '(parinfer-extensions '(defaults smart-yank pretty-parens paredit) t)
  '(pcomplete-cycle-completions nil)
- '(pdf-annot-activate-created-annotations t t)
+ '(pdf-annot-activate-created-annotations t)
  '(pdf-view-resize-factor 2)
  '(projectile-completion-system 'ivy)
  '(projectile-enable-caching t)

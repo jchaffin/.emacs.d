@@ -377,8 +377,7 @@
 :ID:       E0156F78-3E5A-4855-AF01-8DA86779DE0A
 :END:
 
-Global minor-mode that turns ~^L~ form feed characters into
-horizontal line rules.
+Global minor-mode that turns ~^L~ form feed characters into horizontal line rules.
 
 #+NAME: libs/pbl
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1581,16 +1580,16 @@ editors and various other applications on macOS.
   ("M-m o" . macos-open-with-command-map)
   :config
   (which-key-add-key-based-replacements
-    "M-m o" " Open With"
-    "M-m o o" " Default"
+    "M-m o" " Open With"
+    "M-m o o" " Default"
     "M-m o s" " ST3"
-    "M-m o a" " Atom"
-    "M-m o v" " VSCode "
+    "M-m o a" " Atom"
+    "M-m o v" " VSCode "
     "M-m o b" " BBEdit"
-    "M-m o p" " PDFPen"
+    "M-m o p" " PDFPen"
     "M-m o c" " Coda"
     "M-m o t" " iTerm"
-    "M-m o t" " GitTower"))
+    "M-m o t" " Tower"))
 #+END_SRC
 
 **** Reveal in macOS Finder
@@ -3100,7 +3099,7 @@ over ssh."
      ("F" . helpful-function))
     :config
     (which-key-add-key-based-replacements
-      "M-m h" " Helfpul"
+      "M-m h" " Helfpul"
       "M-m h f" "describe callable"
       "M-m h k" "describe key"
       "M-m h C" "describe command"
@@ -4015,6 +4014,7 @@ any reason for me reconsider my choice.
   (auto-insert-mode 1)
   :config
   (define-auto-insert "\\.el$" [ "default-elisp.el" autoinsert-yas-expand ])
+  (define-auto-insert "\\.cls$" [ "default-cls.cls" autoinsert-yas-expand ])
   :hook
   (find-file . auto-insert))
 
@@ -4939,7 +4939,7 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
 
 (defun org-preview/process-class ()
   (or (org-preview/process-keyword "LATEX_CLASS")
-     org-latex-default-class))
+      org-latex-default-class))
 
 (defun org-preview/uclaling-p ()
   (let ((latex-class (org-preview/process-class)))
@@ -4949,15 +4949,22 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
   (let ((latex-class (org-preview/process-class)))
     (string= "uclacs" latex-class)))
 
+
 #+END_SRC
 
-***** XeLaTeX
 
-#+NAME: org-preview-xelatex
+
+***** Dynamic latex previews
+
+Generate latex fragments based on the latex compiler and class in the current buffer.
+
+#+NAME: org-preview-dynamic
 #+BEGIN_SRC emacs-lisp
 (defcustom xelatex-preview-header org-format-latex-header
   "The preamble to use for previewing LaTeX fragments with XeLaTeX."
   :type 'string)
+
+(defvar pdflatex-preview-process-alist org-preview-latex-process-alist)
 
 (defcustom xelatex-preview-process-alist
   '((dvipng
@@ -4999,113 +5006,84 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
      ("convert -density %D -trim -antialias %f -quality 100 %O")))
   "Preview engines for xelatex."
   :type '(alist
-          :tag "LaTeX to image backends"
-          :value-type (plist)))
+	        :tag "LaTeX to image backends"
+	        :value-type (plist)))
 
-(defun org-preview-reparse-local-variables ()
+(defcustom lualatex-preview-header nil
+  "The preamble to use for previewing LaTeX fragments with LuLaTeX."
+  :type 'string)
+
+(defcustom lualatex-preview-process-alist
+  '((dvipng
+	   :programs
+	   ("lualatex" "dvipng")
+	   :description "dvi > png"
+	   :message "You need to install the programs: lualatex and dvipng"
+	   :image-input-type "dvi"
+	   :image-output-type "png"
+	   :image-size-adjust (1.3 1.3)
+	   :latex-compiler
+	   ("lualatex -interaction nonstopmode -output-directory %o %f")
+	   :image-converter
+	   ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
+	  (dvisvgm
+	   :programs
+	   ("latex" "dvisvgm")
+	   :description "dvi > svg"
+	   :message "you need to install the programs: lualatex and dvisvgm."
+	   :use-xcolor t
+	   :image-input-type "xdv"
+	   :image-output-type "svg"
+	   :image-size-adjust
+	   (1.7 . 1.5)
+	   :latex-compiler
+	   ("lualatex -no-pdf -interaction nonstopmode -output-directory %o %f")
+	   :image-converter
+	   ("dvisvgm %f -n -b min -c %S -o %O"))
+	  (imagemagick
+	   :programs ("lualatex" "convert")
+	   :description "pdf > png"
+	   :message "You need to install lualatex and imagemagick"
+	   :use-xcolor t
+	   :image-input-type "pdf"
+	   :image-output-type "png"
+	   :image-size-adjust (1.0 1.0)
+	   :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
+	   :image-converter
+	   ("convert -density %D -trim -antialias %f -quality 100 %O")))
+  "Preview engines for lualatex."
+  :type '(alist
+	        :tag "LaTeX to image backends"
+			    :value-type (plist)))
+
+(defun org-preview-set (engine class)
+  (let* ((process-alist (intern (concat (symbol-name engine) "-preview-process-alist")))
+	       (class (symbol-name (org-preview/process-class)))
+	       (preview-dir (emacs-etc-dir "preview"))
+	       (preview-file
+	        (expand-file-name
+	         (concat
+	          (if (string= org-latex-default-class class)
+		            (symbol-name engine) class)
+	          "-preview.tex") preview-dir)))
+    (if (member (symbol-name engine) org-latex-compilers)
+	      (set (make-local-variable 'org-preview-latex-process-alist) (symbol-value process-alist))
+	    (error "%s is not in `org-latex-compilers'" (symbol-name engine)))
+    (when (file-exists-p preview-file)
+	    (and (assoc 'latex org-babel-load-languages)
+	         (set (make-local-variable 'org-edit-latex-frag-master) preview-file))
+	    (set (make-local-variable 'org-format-latex-header)
+	         (read-file-contents preview-file)))))
+
+(defadvice org-latex-preview (before org--latex-preview-region activate)
   (interactive)
-  (hack-local-variables))
-
-(defun org-preview-xelatex ()
-  (interactive)
-
-  (let ((preview-file (emacs-etc-dir "preview/uclaling-preview.tex")))
-    (set (make-local-variable 'org-preview-latex-process-alist)
-         xelatex-preview-process-alist)
-
-    (when (assoc 'latex org-babel-load-languages)
-      (set (make-local-variable 'org-edit-latex-frag-master) preview-file))
-
-    (set (make-local-variable 'org-format-latex-header)
-         (read-file-contents preview-file))))
-#+END_SRC
-
-***** LuaLaTeX
-
-#+NAME: org-preview-lualatex
-#+BEGIN_SRC emacs-lisp
-  (defcustom lualatex-preview-header nil
-    "The preamble to use for previewing LaTeX fragments with LuLaTeX."
-    :type 'string)
-
-  (defcustom lualatex-preview-process-alist
-    '((dvipng
-       :programs
-       ("lualatex" "dvipng")
-       :description "dvi > png"
-       :message "You need to install the programs: lualatex and dvipng"
-       :image-input-type "dvi"
-       :image-output-type "png"
-       :image-size-adjust (1.3 1.3)
-       :latex-compiler
-       ("lualatex -interaction nonstopmode -output-directory %o %f")
-       :image-converter
-       ("dvipng -fg %F -bg %B -D %D -T tight -o %O %f"))
-      (dvisvgm
-       :programs
-       ("latex" "dvisvgm")
-       :description "dvi > svg"
-       :message "you need to install the programs: lualatex and dvisvgm."
-       :use-xcolor t
-       :image-input-type "xdv"
-       :image-output-type "svg"
-       :image-size-adjust
-       (1.7 . 1.5)
-       :latex-compiler
-       ("lualatex -no-pdf -interaction nonstopmode -output-directory %o %f")
-       :image-converter
-       ("dvisvgm %f -n -b min -c %S -o %O"))
-      (imagemagick
-       :programs ("lualatex" "convert")
-       :description "pdf > png"
-       :message "You need to install lualatex and imagemagick"
-       :use-xcolor t
-       :image-input-type "pdf"
-       :image-output-type "png"
-       :image-size-adjust (1.0 1.0)
-       :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
-       :image-converter
-       ("convert -density %D -trim -antialias %f -quality 100 %O")))
-    "Preview engines for lualatex."
-    :type '(alist
-	    :tag "LaTeX to image backends"
-			:value-type (plist)))
-
-
-  (defun org-preview-lualatex ()
-    (interactive)
-    (let ((preview-file (emacs-etc-dir "preview/uclacs-preview.tex")))
-      (set (make-local-variable 'org-preview-latex-process-alist)lualatex-preview-process-alist)
-
-      (when (assoc 'latex org-babel-load-languages)
-	(set (make-local-variable 'org-edit-latex-frag-master)
-	     preview-file))
-
-      (set (make-local-variable 'org-format-latex-header)
-	   (if (org-preview/uclacs-p)
-	       (concat lualatex-preview-header
-		       (read-file-contents preview-file))
-	     lualatex-preview-header))))
-#+END_SRC
-
-***** Dynamic latex previews
-
-Generate latex fragments based on the latex compiler and class in the current buffer.
-
-#+NAME: org-preview-dynamic
-#+BEGIN_SRC emacs-lisp
-(defun org-preview-with-compiler ()
-  (let ((latex-compiler (org-preview/process-compiler)))
+  (let ((engine (org-preview/process-compiler))
+	      (class (org-preview/process-class)))
     (when-let (preview-process (org-preview/set-process))
-      (set (make-local-variable 'org-preview-latex-default-process)
-           preview-process))
-    (when (or (string= latex-compiler "xelatex")
-              (string= latex-compiler "xetex"))
-      (call-interactively #'org-preview-xelatex))
-    (when (string= latex-compiler "lualatex")
-      (call-interactively #'org-preview-lualatex))))
+	    (set (make-local-variable 'org-preview-latex-default-process) preview-process))
+    (org-preview-set engine class)))
 
-(add-hook 'org-mode-hook #'org-preview-with-compiler)
+
 #+END_SRC
 
 *** cdlatex
@@ -5521,6 +5499,7 @@ entry types and required fields."
                      :fork
                      (:host github :repo "jchaffin/org-ref"))
   :commands (org-ref-org-menu)
+  :demand t
   :after (ivy-bibtex)
   :custom
   (org-latex-prefer-user-labels t)
@@ -6144,10 +6123,24 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   :straight org-plus-contrib
   :demand t
   :preface
+  (set-fontset-font "fontset-default" '#xE876 "Material Icons")
   (defcustom dotemacs-default-agenda-file (expand-file-name "agenda/TODOS.org" org-directory)
     "The file path of the default agenda file."
     :type 'file
     :group 'dotemacs)
+  (defcustom org-done-keyword " DONE"
+    "The keyword for completed tasks."
+    :type 'string
+    :group 'org-agenda)
+  (defcustom org-todo-keyword "☛ TODO"
+    "The keyword for pending tasks."
+    :type 'string
+    :group 'org-agenda)
+  (defcustom org-cancelled-keyword "✘ CANCELLED"
+    "The keyword for cancelled tasks."
+    :type 'string
+    :group 'org-agenda)
+
   :custom-face
   (org-agenda-date
    ((t (:underline nil :foreground "#57c7ff" :inherit (variable-pitch)))))
@@ -6156,7 +6149,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   :custom
   (org-agenda-diary-file (expand-file-name "diary.org" org-directory))
   (org-agenda-category-icon-alist
-   `(("global"     ,(list "")  nil nil :ascent center)
+   `(("global"     ,(list "🌍")  nil nil :ascent center)
      ("schedule"   ,(list "📅")   nil nil :ascent center)))
   (org-agenda-inhibit-startup t)
   (org-agenda-skip-unavailable-files t)
@@ -6170,12 +6163,14 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (org-agenda-todo-ignore-timestamp t)
   (org-agenda-todo-ignore-with-date t)
   (org-todo-keywords
-   '((sequence "☛ TODO(t)" "|" " DONE(d)" )
-     (sequence "|" "✘ CANCELLED(c)")))
+   `((sequence ,(concat org-todo-keyword "(t)") "|" ,(concat org-done-keyword "(d)"))
+     (sequence "|" ,(concat org-cancelled-keyword "(c)"))))
+
   (org-todo-keyword-faces
-   '(("✘ CANCELLED" . (:foreground "yellow"))
-     (" DONE" . org-done)
-     ("☛ TODO" . org-todo)))
+   `((,org-cancelled-keyword . (:foreground "yellow"))
+     (,org-done-keyword . org-done)
+     (,org-todo-keyword . org-todo)))
+
   (org-tags-column 0)
   (org-complete-tags-always-offer-all-agenda-tags t)
   (org-sort-agenda-notime-is-late nil)
@@ -6194,7 +6189,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
        (alltodo "")))))
   :init
   (defun agenda-skip-cancelled ()
-    (org-agenda-skip-entry-if 'todo '("✘ CANCELLED")))
+    (org-agenda-skip-entry-if 'todo (list org-cancelled-keyword)))
   (setq org-agenda-skip-function-global #'agenda-skip-cancelled)
   ;; Agenda File Faces
   (defvar-local org-use-level-faces nil)
@@ -6222,6 +6217,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (when (file-exists-p dotemacs-default-agenda-file)
     (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
 #+END_SRC
+
+#+RESULTS: agenda/org-agenda
 
 **** Super agenda
 
@@ -7051,6 +7048,9 @@ and subtrees of the ignored headlines will be retained.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ox-latex
+  :straight org-plus-contrib
+  :after (ox)
+  :demand t
   :custom
   (org-latex-hyperref-template nil)
   (org-latex-packages-alist '(("" "booktabs" nil)))
@@ -7061,9 +7061,90 @@ and subtrees of the ignored headlines will be retained.
      ("frame" "lines")
      ("framesep" "2mm")))
   (org-latex-compiler "xelatex")
-  :straight org-plus-contrib
-  :after (ox)
-  :demand t
+  (org-latex-classes
+     '(("article"
+     "\\documentclass[11pt]{article}"
+     ("\\section{%s}" . "\\section*{%s}")
+     ("\\subsection{%s}" . "\\subsection*{%s}")
+     ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+     ("\\paragraph{%s}" . "\\paragraph*{%s}")
+     ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+    ("report"
+     "\\documentclass[11pt]{report}"
+     ("\\part{%s}" . "\\part*{%s}")
+     ("\\chapter{%s}" . "\\chapter*{%s}")
+     ("\\section{%s}" . "\\section*{%s}")
+     ("\\subsection{%s}" . "\\subsection*{%s}")
+     ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
+    ("book"
+     "\\documentclass[11pt]{book}"
+     ("\\part{%s}" . "\\part*{%s}")
+     ("\\chapter{%s}" . "\\chapter*{%s}")
+     ("\\section{%s}" . "\\section*{%s}")
+     ("\\subsection{%s}" . "\\subsection*{%s}")
+     ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
+    ("article-standalone"
+     "\\documentclass{article}
+      [NO-DEFAULT-PACKAGES]
+      [PACKAGES]
+      [EXTRA]" ;; header-string
+     ("\\section{%s}" . "\\section*{%s}")
+     ("\\subsection{%s}" . "\\subsection*a{%s}")
+     ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+     ("\\paragraph{%s}" . "\\paragraph*{%s}")
+     ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+    ("uclaling"
+     "\\documentclass{uclaling}
+      [NO-DEFAULT-PACKAGES]
+      [EXTRA]"
+     ("\\section{%s}" . "\\section*{%s}")
+     ("\\subsection{%s}" . "\\subsection*{%s}")
+     ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+     ("\\paragraph{%s}" . "\\paragraph*{%s}")
+     ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+    ("uclacs"
+     "\\documentclass{uclacs}
+      [NO-DEFAULT-PACKAGES]
+      [EXTRA]"
+     ("\\section{%s}" . "\\section*{%s}")
+     ("\\subsection{%s}" . "\\subsection*{%s}")
+     ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+     ("\\paragraph{%s}" . "\\paragraph*{%s}")
+     ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+     ("humanities"
+      "\\documentclass{humanities}
+      [NO-DEFAULT-PACKAGES]
+      [EXTRA]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+     ("unicode-math"
+	  "\\documentclass{article}
+     [PACKAGES]
+     [NO-DEFAULT-PACKAGES]
+     [EXTRA]
+	   \\usepackage{fontspec}
+	   \\usepackage{amsmath}
+	   \\usepackage{xltxtra}
+	   \\usepackage{unicode-math}
+	   \\setmathfont{STIX2Math}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     Scale=1]
+	   \\setmainfont{STIX2Text}[
+	     Path/Users/jacobchaffin/Library/Fonts/,
+	     Extension={.otf},
+	     UprightFont={*-Regular},
+	     BoldFont={*-Bold},
+	     ItalicFont={*-Italic},
+	     BoldItalicFont={*-BoldItalic}]"
+	  ("\\section{%s}" . "\\section*{%s}")
+	  ("\\subsection{%s}" . "\\subsection*{%s}")
+	  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	  ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	  ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
   :init
   ;; minted
   (defcustom org-latex-minted-from-org-p nil
@@ -7132,73 +7213,6 @@ and subtrees of the ignored headlines will be retained.
   (with-eval-after-load 'ox
     (org-latex-pdf-process-set org-latex-compiler))
 
-  (add-to-list 'org-latex-classes
-	             '(;; standalone
-                 ("article-standalone"
-		              "\\documentclass{article}
-              	    [NO-DEFAULT-PACKAGES]
-              	    [PACKAGES]
-              	    [EXTRA]" ;; header-string
-    		          ("\\section{%s}" . "\\section*{%s}")
-    		          ("\\subsection{%s}" . "\\subsection*a{%s}")
-    		          ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-    		          ("\\paragraph{%s}" . "\\paragraph*{%s}")
-    		          ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-                 ;;; Linguistics class
-     	           ("uclaling"
-     	            "\\documentclass{uclaling}
-             	     [NO-DEFAULT-PACKAGES]
-                   [EXTRA]"
-     	            ("\\section{%s}" . "\\section*{%s}")
-     	            ("\\subsection{%s}" . "\\subsection*{%s}")
-     	            ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-     	            ("\\paragraph{%s}" . "\\paragraph*{%s}")
-     	            ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-                 ;; Computer Science class
-	               ("uclacs"
-	                "\\documentclass{uclacs}
-            	    [NO-DEFAULT-PACKAGES]
-            	    [EXTRA]"
-	                ("\\section{%s}" . "\\section*{%s}")
-	                ("\\subsection{%s}" . "\\subsection*{%s}")
-	                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	                ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	                ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-                 ;; Humanties class
-	               ("humanities"
-	                "\\documentclass{humanities}
-	                [NO-DEFAULT-PACKAGES]
-	                [EXTRA]"
-	                ("\\section{%s}" . "\\section*{%s}")
-	                ("\\subsection{%s}" . "\\subsection*{%s}")
-	                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	                ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	                ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-	               ("unicode-math"
-	                "\\documentclass{article}
-	   [PACKAGES]
-	   [NO-DEFAULT-PACKAGES]
-	   [EXTRA]
-	   \\usepackage{fontspec}
-	   \\usepackage{amsmath}
-	   \\usepackage{xltxtra}
-	   \\usepackage{unicode-math}
-	   \\setmathfont{STIX2Math}[
-	     Path/Users/jacobchaffin/Library/Fonts/,
-	     Extension={.otf},
-	     Scale=1]
-	   \\setmainfont{STIX2Text}[
-	     Path/Users/jacobchaffin/Library/Fonts/,
-	     Extension={.otf},
-	     UprightFont={*-Regular},
-	     BoldFont={*-Bold},
-	     ItalicFont={*-Italic},
-	     BoldItalicFont={*-BoldItalic}]"
-	                ("\\section{%s}" . "\\section*{%s}")
-	                ("\\subsection{%s}" . "\\subsection*{%s}")
-	                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-	                ("\\paragraph{%s}" . "\\paragraph*{%s}")
-	                ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
   :bind
   (:map org-mode-map
 	      ("M-s l" . org-latex-pdf-process-set)))
@@ -7230,17 +7244,18 @@ and subtrees of the ignored headlines will be retained.
                             :files (:defaults "ox-tufte-latex.el"))
   :after (ox)
   :init
-  (append org-latex-classes
-          '(("tufte-handout"
-             "\\documentclass[twoside,nobib]{tufte-handout}
-             [NO-DEFAULT-PACKAGES]"
-             ("\\section{%s}" . "\\section*{%s}")
-             ("\\subsection{%s}" . "\\subsection*{%s}"))
-            '("tufte-handout"
+  (setq org-latex-classes
+      (append org-latex-classes
+           '(("tufte-handout"
               "\\documentclass[twoside,nobib]{tufte-handout}
-              [NO-DEFAULT-PACKAGES]"
+             [NO-DEFAULT-PACKAGES]"
               ("\\section{%s}" . "\\section*{%s}")
-              ("\\subsection{%s}" . "\\subsection*{%s}")))))
+              ("\\subsection{%s}" . "\\subsection*{%s}"))
+             '("tufte-handout"
+               "\\documentclass[twoside,nobib]{tufte-handout}
+              [NO-DEFAULT-PACKAGES]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}"))))))
 #+END_SRC
 
 **** Ox Linguistics
@@ -7433,18 +7448,26 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
   :straight org-plus-contrib
   :custom
   (org-entities-user
-   '(("cat"    "\\cat"    t "" "" "" "/")
-     ("lbrack" "\\lbrack" t "" "" "" "[")
-     ("rbrack" "\\rbrack" t "" "" "" "]")
-     ("lbrace" "\\lbrace" t "" "" "" "{")
-     ("rbrace" "\\rbrace" t "" "" "" "}")
-     ("vb"     "\\vb"     t "" "" "" "|")
-     ("xsol"   "\\xsol"   t "" "" "" "⧸")
-     ("Langle" "\\Langle" t "" "" "" "⟨")
-     ("textbackslash" "\\textbackslash" "" "" "" "＼")
-     ("Rangle" "\\Rangle" t "" "" "" "⟩")
-     ("lBrack" "\\lBrack" t "" "" "" "⟦")
-     ("rBrack" "\\rBrack" t "" "" "" "⟧"))))
+   '(
+     ("alpha"         "\\alpha"         t "" "" "" "𝛼")
+     ("beta"          "\\beta"          t "" "" "" "𝛽")
+     ("gamma"         "\\gamma"         t "" "" "" "𝛾")
+     ("lambda"        "\\lambda"        t "" "" "" "λ")
+     ("cat"           "\\cat"           t "" "" "" "/")
+     ("lbrack"        "\\lbrack"        t "" "" "" "[")
+     ("rbrack"        "\\rbrack"        t "" "" "" "]")
+     ("lbrace"        "\\lbrace"        t "" "" "" "{")
+     ("rbrace"        "\\rbrace"        t "" "" "" "}")
+     ("Rangle"        "\\Rangle"        t "" "" "" "⟩")
+     ("Langle"        "\\Langle"        t "" "" "" "⟨")
+     ("lBrack"        "\\lBrack"        t "" "" "" "⟦")
+     ("rBrack"        "\\rBrack"        t "" "" "" "⟧")
+     ("text"          "\\text"          t "" "" "" "T")
+     ("vb"            "\\vb"            t "" "" "" "|")
+     ("xsol"          "\\xsol"          t "" "" "" "⧸")
+     ("textbackslash" "\\textbackslash" t "" "" "" "＼")
+     ("subseteq"      "\\subseteq"      t "" "" "" "⊆")
+     ("subsetneq"      "\\subsetneq"     t "" "" "" "⊊"))))
 #+END_SRC
 
 * Appearance
@@ -8217,24 +8240,26 @@ bullets as UTF-8 characters.
   (set-fontset-font "fontset-default" '#xE600 "file-icons")
   (set-fontset-font "fontset-default" '#xE601 "file-icons")
   (set-fontset-font "fontset-default" '#xE926 "file-icons")
+  (set-fontset-font "fontset-default" '#xE5D2 "Material Icons")
+  (set-fontset-font "fontset-default" '#xE051 "Material Icons")
   :custom
   (org-pretty-tags-surrogate-strings
    '(;; school related
      ("homework" . "📕️")
      ("note" . "️📓")
-     ("assignment" . "")
-     ("exam" . "📜")
-     ("quiz" . "📝")
+     ("assignment" . "📒️")
+     ("exam" . "📝")
+     ("quiz" . "📘")
      ("reading" . "📚")
      ("lecture" . "🎓")
      ;; courses
      ("@semantics" . "λ")
      ("@phonetics" . "🗣")
-     ("@ai" . "♠")
+     ("@ai" . "♘")
      ("@comsci" . "💻")
      ;; org tags
      ("attach" . "📎")
-     ("TOC_3_gh" . "")
+     ("TOC_3_gh" . "")
      ("noexport" . "❌")
      ("ignore" . "🚫")
      ("website" . "")
@@ -8260,11 +8285,9 @@ bullets as UTF-8 characters.
      ("@gift" . "")
      ("@inbox" . "")
      ;; etc
-     ("speaker" . "")))
+     ("speaker" . "🔈")))
   :init
-  (when (featurep 'all-the-icons)
-    (org-pretty-tags-global-mode 1)))
-
+  (org-pretty-tags-global-mode 1))
 #+END_SRC
 
 **** Org Fancy Priorities
@@ -8414,8 +8437,10 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
   (use-package spaceline-config
     :straight spaceline)
 
-  (use-package spaceline-all-the-icons
-    :after spaceline)
+(use-package spaceline-all-the-icons
+  :preface
+  (set-fontset-font "fontset-default" '#xF091 "github-octicons")
+  :after spaceline)
 
   (use-package spaceline-all-the-icons-segments
     :straight spaceline-all-the-icons
@@ -8839,6 +8864,11 @@ Interactively.
   (mu4e-compose-context-policy 'ask-if-none)
   (mu4e-compose-format-flowed t)
   :init
+  ;; offlineimap is python 2x only
+  (defadvice mu4e-update-index (before mu4e-update-before activate)
+    (when (minor-mode-enabled-p 'pyenv-mode)
+      (when (member "pytools2" (pyenv-mode-versions))
+        (pyenv-mode-set "pytools2"))))
    ;;;;; smtpmail
   (when (require 'smtpmail nil  t)
     (setq message-send-mail-function 'smtpmail-send-it
@@ -8849,6 +8879,7 @@ Interactively.
   ;; Kill message buffers on send
   (setq message-kill-buffer-on-exit t)
   ;;;;; mu4e view
+
   (setq mu4e-attachment-dir "~/Downloads"
         mu4e-view-show-images t
         mu4e-show-addresses t
@@ -8860,15 +8891,16 @@ Interactively.
 
   (with-eval-after-load 'ivy
     (setq mu4e-completing-read-function 'ivy-completing-read))
+
 ;;;;; mu4e context
   (when (require 'mu4e-context nil t)
     (setq mu4e-contexts
           `(,(make-mu4e-context
             :name "personal"
             :enter-func
-            (lambda () (mu4e-message "Using Personal gmail account."))
+            (lambda () (mu4e-message "Using personal Gmail (jchaffin57) account."))
             :leave-func
-            (lambda () (mu4e-message "leaving Personal gmail account."))
+            (lambda () (mu4e-message "Leaving personal Gmail (jchaffin57) account."))
             :match-func
             (lambda (msg)
               (when msg
@@ -8886,6 +8918,7 @@ Interactively.
                                       (concat
                                        "Jacob Chaffin\n"
                                        "jchaffin57@gmail.com\n"
+                                       "Jchaffin@g.ucla.edu\n"
                                        "jchaffin@ucla.edu"))))
 
           ,(make-mu4e-context
@@ -8909,8 +8942,7 @@ Interactively.
                     (mu4e-compose-signature .
                                             (concat
                                              "Jacob Chaffin\n"
-                                             "UCLA 2019\n"
-                                             "Linguistics and Computer Science\n"
+                                             "jchaffin@g.ucla.edu\n"
                                              "jchaffin@ucla.edu")))))))
 
   ;; From [[https://www.djcbsoftware.nl/code/mu/mu4e/Some-context-tricks.html#Some-context-tricks][9.5 - Some Context Tricks]]
@@ -8962,7 +8994,8 @@ Interactively.
   (mu4e~headers-defun-mark-for archive)
   (define-key mu4e-headers-mode-map (kbd "g") 'mu4e-headers-mark-for-tag)
   (define-key mu4e-headers-mode-map (kbd "A") 'mu4e-headers-mark-for-archive)
-  )
+  :hook
+  (mu4e-view-mode . visual/writing))
 #+END_SRC
 
 **** GNUs Dired
@@ -10345,9 +10378,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 **** linkd.el
 
 #+BEGIN_SRC emacs-lisp
-(use-package linkd
-  :hook
-  (emacs-lisp-mode . linkd-mode))
+(use-package linkd)
 
 
 #+END_SRC
