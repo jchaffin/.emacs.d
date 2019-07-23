@@ -5056,8 +5056,8 @@ Generate latex fragments based on the latex compiler and class in the current bu
 			    :value-type (plist)))
 
 (defun org-preview-set (engine class)
-  (let* ((process-alist (intern (concat (symbol-name engine) "-preview-process-alist")))
-	       (class (symbol-name (org-preview/process-class)))
+  (let* ((process-alist (intern (concat engine "-preview-process-alist")))
+	       (class (org-preview/process-class))
 	       (preview-dir (emacs-etc-dir "preview"))
 	       (preview-file
 	        (expand-file-name
@@ -5065,9 +5065,9 @@ Generate latex fragments based on the latex compiler and class in the current bu
 	          (if (string= org-latex-default-class class)
 		            (symbol-name engine) class)
 	          "-preview.tex") preview-dir)))
-    (if (member (symbol-name engine) org-latex-compilers)
+    (if (member engine org-latex-compilers)
 	      (set (make-local-variable 'org-preview-latex-process-alist) (symbol-value process-alist))
-	    (error "%s is not in `org-latex-compilers'" (symbol-name engine)))
+	    (error "%s is not in `org-latex-compilers'" engine))
     (when (file-exists-p preview-file)
 	    (and (assoc 'latex org-babel-load-languages)
 	         (set (make-local-variable 'org-edit-latex-frag-master) preview-file))
@@ -5081,7 +5081,6 @@ Generate latex fragments based on the latex compiler and class in the current bu
     (when-let (preview-process (org-preview/set-process))
 	    (set (make-local-variable 'org-preview-latex-default-process) preview-process))
     (org-preview-set engine class)))
-
 
 #+END_SRC
 
@@ -5195,6 +5194,7 @@ Since Emacs 24.3, its built in with the Emacs distribution.
   :straight (bibtex :type built-in)
   :custom
   (bibtex-align-at-equal-sign t)
+  (bibtex-parse-keys-fast nil)
   (bibtex-BibTeX-entry-alist
    '(("Article" "Article in Journal"
       (("author")
@@ -5439,6 +5439,8 @@ entry types and required fields."
 (use-package ivy-bibtex
   :after (:all ivy bibtex)
   :demand t
+  :preface
+  (set-fontset-font "fontset-default" '#xE415 "Material Icons")
   :bind
   ("C-x c" . ivy-bibtex)
   :custom
@@ -5453,8 +5455,8 @@ entry types and required fields."
  :DOI: ${doi}
  :VOLUME: ${volume}
  :END:
-
 ")
+
   (bibtex-completion-additional-search-fields '(tags))
   (bibtex-completion-bibliography
    `(,(org-dir "ref/references.bib")))
@@ -7062,7 +7064,7 @@ and subtrees of the ignored headlines will be retained.
   (org-latex-compiler "xelatex")
   (org-latex-classes
      '(("article"
-     "\\documentclass[11pt]{article}"
+        "\\documentclass[11pt]{article}"
      ("\\section{%s}" . "\\section*{%s}")
      ("\\subsection{%s}" . "\\subsection*{%s}")
      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -7583,6 +7585,7 @@ This disables Emacs asking questions about loading a new theme.
 
 (defvar load-theme-hook nil
   "List of functions to run when `dotemacs/load-theme' is invoked.")
+
 (defvar theme-change-hook nil
   "List of function to run before `dotemacs/load-theme' changes the theme.")
 
@@ -7615,7 +7618,7 @@ function will load the theme associated with `dotemacs--theme-style'.
 
 Calling this function with the universal-argument `C-u' loads the new
 theme in \"quick mode\" by eliding hooks specified in
- `change-theme-hook' and `load-theme-hook'."
+ `theme-change-hook' and `load-theme-hook'."
 
   (interactive
    (let ((themes (mapcar 'symbol-name (custom-available-themes))))
@@ -7624,7 +7627,7 @@ theme in \"quick mode\" by eliding hooks specified in
   (let ((theme-symbol (if (symbolp theme) theme (intern theme))))
     (remove-themes)
     (unless (equal current-prefix-arg '(4))
-      (run-hooks 'change-theme-hook))
+      (run-hooks 'theme-change-hook))
     (if (not window-system) (load-theme dotemacs-term-theme)
       (setq dotemacs-theme theme-symbol)
       (and (dotemacs--setup-theme dotemacs-theme)
@@ -7978,7 +7981,7 @@ the absence of a window system. I'll check for the latter for now.
     (when (require 'all-the-icons nil t)
       (pretty-fonts-set-fontsets
        '(;; All-the-icons fontsets
-         ("fontawesome"
+         ("FontAwesome"
           ;;                      
           #xf07c #xf0c9 #xf0cb #xf017 #xf101)
 
@@ -7990,7 +7993,7 @@ the absence of a window system. I'll check for the latter for now.
           ;;                                     
           #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071 #xf0c4)
 
-         ("material icons"
+         ("Material Icons"
           ;;              
           #xe871 #xe918 #xe3e7  #xe5da
           ;;              
@@ -8050,9 +8053,16 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 **** Apple Color Emoji
 
+
 #+BEGIN_SRC emacs-lisp
-(set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
-(set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend)
+  (set-fontset-font t 'unicode (font-spec :family "all-the-icons") nil 'prepend)
+  (set-fontset-font t 'unicode (font-spec :family "file-icons") nil 'prepend)
+   (set-fontset-font t 'unicode (font-spec :family "Material Icons") nil 'prepend)
+  (set-fontset-font t 'unicode (font-spec :family "github-octicons") nil 'prepend)
+  (set-fontset-font t 'unicode (font-spec :family "FontAwesome") nil 'prepend)
+  (set-fontset-font t 'unicode (font-spec :family "Weather Icons") nil 'prepend)
+  (set-fontset-font t 'unicode (font-spec :family "Apple Color Emoji") nil 'prepend)
+  (set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend)
 #+END_SRC
 
 *** Default Text Scale
@@ -8127,11 +8137,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons
-  :straight (all-the-icons :type git
-                 :files (:defaults "data" "all-the-icons-pkg.el")
-                 :host github
-                 :repo "cxa/all-the-icons.el"))
+(use-package all-the-icons)
 #+END_SRC
 
 ****** all the icons dired
@@ -8295,8 +8301,8 @@ bullets as UTF-8 characters.
 (use-package org-fancy-priorities
   :config
   (setq org-fancy-priorities-list '((?A . "❗")
-                                     (?B . "⏫")
-                                     (?C . "⬆️")))
+                                    (?B . "⏫")
+                                    (?C . "⬆️")))
   :hook
   (org-mode . org-fancy-priorities-mode))
 
@@ -8430,6 +8436,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 #+END_SRC
 
 ** Modeline
+
 #+BEGIN_SRC emacs-lisp
   (use-package spaceline)
 
@@ -8568,9 +8575,12 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 #+NAME: browser/google
 #+BEGIN_SRC emacs-lisp
   (use-package google-this
+    :preface
+    (set-fontset-font "fontset-default" '#xF1A0 "FontAwesome")
     :init
     (google-this-mode 1)
     :config
+
     (with-eval-after-load 'which-key
       (which-key-add-key-based-replacements "C-c /" " This")
       (push '(( nil . "google-this-\\(.+\\)") . (nil . "this \\1"))
@@ -8688,6 +8698,9 @@ Interactively.
   :init
   (engine-mode t)
   :defines (engine-mode-prefixed-map)
+  :preface
+  (set-fontset-font "fontset-default" '#xE80C "Material Icons")
+  (set-fontset-font "fontset-default" '#xE3F4 "Material Icons")
   :bind*
   (:map web-prefix-map
         ("e". engine-mode-prefixed-map))
@@ -8793,7 +8806,7 @@ Interactively.
       "M-m b e p"    " Proquest"
       "M-m b e g"    " GitHub"
       "M-m b e G g"  " Google"
-      "M-m b e l "   " LibGen"
+      "M-m b e l "   "📚 LibGen"
       "M-m b e a"    " Wolfram"
       "M-m b e w"    " Wikipedia"
       "M-m b e s"    " Stack Overflow"
