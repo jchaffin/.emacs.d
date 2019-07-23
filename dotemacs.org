@@ -4926,12 +4926,11 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
   (org-element-map (org-element-parse-buffer) 'keyword
     (lambda (k)
       (if (string= p (org-element-property :key k))
-          (intern (org-element-property :value k))))
-    nil t))
+          (org-element-property :value k))) nil t))
 
 (defun org-preview/process-compiler ()
   (or (org-preview/process-keyword "LATEX_COMPILER")
-     org-latex-compiler))
+      org-latex-compiler))
 
 (defun org-preview/set-process ()
   (or (org-preview/process-keyword "PREVIEW")
