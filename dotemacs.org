@@ -866,13 +866,6 @@ generating a new one if the initial scratch buffer has been killed."
   :bind ("C-x C-b" . ibuffer))
 #+END_SRC
 
-**** Crosshairs
-
-Interactively get =point=
-
-#+BEGIN_SRC emacs-lisp
-(use-package crosshairs)
-#+END_SRC
 
 **** auto minor mode
 
