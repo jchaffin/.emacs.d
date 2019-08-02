@@ -1784,7 +1784,7 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 
 *** Bookmark+
 #+BEGIN_SRC emacs-lisp
-(use-package bookmark+)
+(use-package bookmark-plus)
 #+END_SRC
 
 *** Undo Tree
@@ -2035,7 +2035,7 @@ point reaches the beginning or end of the buffer, stop there."
 **** grep+
 
 #+BEGIN_SRC emacs-lisp
-(use-package grep+)
+(use-package grep-plus)
 #+END_SRC
 
 **** ag
@@ -2413,6 +2413,7 @@ Adds extensions and functionality to dired mode.
 #+NAME: dired-plus-config
 #+BEGIN_SRC emacs-lisp
 (use-package dired+
+  :straight (dired-plus :type git :host github :repo "emacsmirror/dired-plus")
   :demand t
   :after (dired)
   :init
@@ -2489,7 +2490,7 @@ parent directory."
 #+BEGIN_SRC emacs-lisp
 (use-package image-dired)
 
-(use-package image-dired+
+(use-package image-dired-plus
   :after image-dired)
 
 #+END_SRC
@@ -2642,7 +2643,7 @@ Jump to arbitrary point in Buffer
 **** grep+
 
 #+BEGIN_SRC emacs-lisp
-(use-package grep+)
+(use-package grep-plus)
 
 #+END_SRC
 
@@ -3051,28 +3052,32 @@ over ssh."
 
 #+BEGIN_SRC emacs-lisp
 (use-package help+
-    :demand t)
+  :straight (help-plus :type git :host github :repo "emacsmirror/help-plus")
+  :demand t)
 #+END_SRC
 
 ***** help-mode+
 
 #+BEGIN_SRC emacs-lisp
 (use-package help-mode+
-    :demand t)
+  :straight (help-mode-plus :type git :host github :repo "emacsmirror/help-mode-plus")
+  :demand t)
 #+END_SRC
 
 ***** help-macro+
 
 #+BEGIN_SRC emacs-lisp
 (use-package help-macro+
-    :demand t)
+  :straight (help-macro-plus :type git :host github :repo "emacsmirror/help-macro-plus")
+  :demand t)
 #+END_SRC
 
 ***** help-fns+
 
 #+BEGIN_SRC emacs-lisp
-(use-package help-fns+
-    :demand t)
+(use-package help-fns
+  :straight (help-fns-plus :type git :host github :repo "emacsmirror/help-fns-plus")
+  :demand t)
 #+END_SRC
 
 **** Helpful
@@ -3121,7 +3126,7 @@ over ssh."
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(use-package info+)
+(use-package info-plus)
 #+END_SRC
 
 ** Frames
@@ -3135,7 +3140,7 @@ over ssh."
 
 #+NAME: frame-plus
 #+BEGIN_SRC emacs-lisp
-(use-package frame+)
+(use-package frame-plus)
 #+END_SRC
 
 *** Frame fns
@@ -3248,7 +3253,7 @@ different window configurations.
 *** Faces+
 
 #+BEGIN_SRC emacs-lisp
-(use-package faces+)
+(use-package faces-plus)
 #+END_SRC
 
 *** Face functions
@@ -3260,7 +3265,7 @@ different window configurations.
 *** Face remap+
 
 #+BEGIN_SRC emacs-lisp
-(use-package face-remap+)
+(use-package face-remap-plus)
 #+END_SRC
 
 *** Face Explorer
@@ -3275,6 +3280,10 @@ different window configurations.
 #+NAME: font-lock-plus
 #+BEGIN_SRC emacs-lisp
 (use-package font-lock+
+  :straight (font-lock-plus
+             :type git
+             :host github
+             :repo "emacsmirror/font-lock-plus")
   :demand t)
 #+END_SRC
 
@@ -4275,7 +4284,7 @@ school's WLAN.
 [[https://github.com/mhayashi1120/Emacs-imagex][Image+]] provides extensions for image file manipulation in Emacs.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package image+
+  (use-package image-plus
     :if (display-graphic-p)
     :after (image)
     :config
@@ -6259,7 +6268,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 **** Org Sidebar
 
 #+NAME: agenda/sidebar
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-sidebar
   :straight
   (org-sidebar
@@ -9988,7 +9997,7 @@ Pair programming.
 **** C++ Mode
 
 #+BEGIN_SRC emacs-lisp
-(use-package c++-mode
+(use-package c-plus+-mode
   :straight (c++-mode :type built-in)
   :mode (("\\.cpp\\'" . c++-mode)
          ("\\.hpp\\'" . c++-mode)))
@@ -11264,7 +11273,7 @@ Mode for editing Homebrew formula.
 
 #+NAME: md/plus
 #+BEGIN_SRC emacs-lisp
-(use-package markdown-mode+)
+(use-package markdown-mode-plus)
 #+END_SRC
 
 **** markdown toc
