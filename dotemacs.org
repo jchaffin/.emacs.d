@@ -7054,7 +7054,6 @@ and subtrees of the ignored headlines will be retained.
   :demand t
   :custom
   (org-latex-hyperref-template nil)
-  (org-latex-packages-alist '(("" "booktabs" nil)))
   (org-latex-listings 'minted)
   (org-latex-minted-options
    '(("mathescape" "true")
