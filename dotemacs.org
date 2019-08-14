@@ -22,7 +22,7 @@
     - [[#buffer-list-names][Buffer List Names]]
     - [[#window-utilities][Window utilities]]
     - [[#file-utilities][File utilities]]
-  - [[#package-manager][Package Manager]]
+  - [[#straight][straight]]
     - [[#goto-local-package-repository][Goto local package repository]]
     - [[#browse-straight-repository-at-github][Browse straight repository at GitHub]]
     - [[#straight-ivy-actions][straight ivy actions]]
@@ -1089,7 +1089,7 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
                   (read-only-mode)))))
 #+END_Src
 
-** Package Manager
+** straight
 *** Goto local package repository
 
 Function to jump to a repository installed by [[#straight][straight]]. An interactive minibuffer completion menu using ivy.
@@ -1217,9 +1217,7 @@ Function to jump to a repository installed by [[#straight][straight]]. An intera
 *** Network security
 **** GnuTLS
 
-As GitHub user [[https://github.com/wasamasa][wasamasa]] points out in /h?(er|is)|^\S+/ dotfiles,
-[[https://gnutls.org/][GnuTLS]] throws several warnings when using the default 256 minimum
-prime bits over a TLS handshake.
+As pointed out by GitHub user wasama in their [[https://github.com/wasamasa][dotfiles]], [[https://gnutls.org/][GnuTLS]] throws several warnings when using the default 256 minimum prime bits over a TLS handshake.
 
 #+BEGIN_QUOTE
 Minimum number of prime bits accepted by GnuTLS for key exchange.
@@ -1783,8 +1781,10 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 #+END_SRC
 
 *** Bookmark+
+
 #+BEGIN_SRC emacs-lisp
-(use-package bookmark-plus)
+(use-package bookmark+
+  :straight bookmark-plus)
 #+END_SRC
 
 *** Undo Tree
