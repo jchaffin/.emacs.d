@@ -1,7 +1,7 @@
 #+title: Dotemacs
 #+language: en
 #+AUTHOR: Jacob Chaffin
-#+PROPERTY: :header-args :tangle yes :comments both
+#+PROPERTY: :header-args :tangle yes :comments both :results silent
 #+STARTUP: showeverything
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 
@@ -7220,23 +7220,21 @@ and subtrees of the ignored headlines will be retained.
 	      ("M-s l" . org-latex-pdf-process-set)))
 #+END_SRC
 
-**** Ox Latex subfigure
+**** Subfigures
 
 #+NAME: oxl/subfigure
 #+BEGIN_SRC emacs-lisp
 (use-package ox-latex-subfigure
-  :after (ox-latex)
-  :demand t
-  :straight
-  (ox-latex-subfigure :type git
-                      :host github
-                      :repo "linktohack/ox-latex-subfigure")
-  :config
-  (add-to-list 'org-latex-packages-alist '(("" "subcaption" nil))))
-
+:straight
+(ox-latex-subfigure :type git
+                    :host github
+                    :repo "linktohack/ox-latex-subfigure")
+:after (ox-latex)
+:demand t)
 #+END_SRC
 
 **** Ox tufte
+
 #+BEGIN_SRC emacs-lisp
 (use-package ox-tufte-latex
   :straight (ox-tufte-latex :type git
@@ -7349,6 +7347,7 @@ for exporting org-mode documents to various formats.
                      :files ("setup/*" "styles/*")))
 #+END_SRC
 
+
 ** Org Hacks
 :PROPERTIES:
 :ID:       872F7F61-7971-42E4-BC24-FEA9D67634D2
@@ -7415,7 +7414,7 @@ Neil Smithline posted this snippet to let you browse org files with
     :demand t)
 #+END_SRC
 
-** Org Download :ignore:
+** Org Download
 
 Drag and Drop images directly from a web browser to an org-mode buffer.
 
@@ -9085,8 +9084,12 @@ Interactively.
 :ID:       B9B7C7ED-8D05-44F2-95C3-C08F008966C5
 :END:
 
+**** Debbugs
+
 #+BEGIN_SRC emacs-lisp
-(use-package debbugs)
+(use-package debbugs
+  :straight (debbugs :type git :host github :repo "emacs-straight/debbugs"
+                     :files (:defaults "Debbugs.wsdl")))
 #+END_SRC
 
 ** Browse at remote
@@ -10365,6 +10368,49 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   (emacs-lisp-mode . emacs-lisp/setup))
 #+END_SRC
 
+**** Inferior emacs lisp
+
+ #+BEGIN_SRC emacs-lisp
+;;; Inferior Emacs Lisp
+(use-package ielm
+  :straight (ielm :type built-in)
+  :demand t
+  :init
+;;;; ielm font locking
+  ;; From http://www.modernemacs.com/post/comint-highlighting/
+  (require 'dash)
+  (defun kwd->comint-kwd (kwd)
+  "Converts a `font-lock-keywords' KWD for `comint-mode' input fontification."
+  (-let (((matcher . match-highlights) kwd))
+    ;; below is ` quoted but breaks my blogs syntax higlighting, so removing it!
+    ;; make sure to capture first paren in a ` if copying!
+    `((lambda (limit)
+       ;; Matcher can be a function or a regex
+       (when ,(if (symbolp matcher)
+                  `(,matcher limit)
+                `(re-search-forward ,matcher limit t))
+         ;; While the SUBEXP can be anything, this search always can use zero
+         (-let ((start (match-beginning 0))
+                ((comint-last-start . comint-last-end) comint-last-prompt)
+                (state (syntax-ppss)))
+           (and (> start comint-last-start)
+                ;; Make sure not in comment or string
+                ;; have to manually do this in custom MATCHERs
+                (not (or (nth 3 state) (nth 4 state)))))))
+     ,@match-highlights)))
+  (setq my-ielm-font-lock-kwds
+        `(,@(-map #'kwd->comint-kwd lisp-el-font-lock-keywords-2)
+          ,@(-map #'kwd->comint-kwd lisp-cl-font-lock-keywords-2)))
+  (defun ielm/font-lock-kwds ()
+    (interactive)
+    (setq-local font-lock-keywords my-ielm-font-lock-kwds))
+;;;; ielm hooks
+  :hook
+  (ielm-mode . emacs-lisp/setup)
+  (ielm-mode . ielm/font-lock-kwds))
+;;; end ielm
+ #+END_SRC
+
 **** lisp extra fontlocking
 
 #+BEGIN_SRC emacs-lisp
@@ -10388,12 +10434,10 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
     (elisp-format-column 80))
 #+END_SRC
 
-**** linkd.el
+**** Linkd
 
 #+BEGIN_SRC emacs-lisp
 (use-package linkd)
-
-
 #+END_SRC
 
 *** Groovy

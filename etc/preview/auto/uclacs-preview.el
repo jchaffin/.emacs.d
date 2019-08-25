@@ -4,13 +4,12 @@
    (setq TeX-command-extra-options
          "-shell-escape")
    (TeX-add-to-alist 'LaTeX-provided-package-options
-                     '(("color" "usenames") ("mathtools" "fleqn" "tbtags") ("algorithm2e" "algoruled" "linesnumbered")))
+                     '(("color" "usenames") ("algorithm2e" "algoruled" "linesnumbered")))
    (TeX-run-style-hooks
     "latex2e"
     "article"
     "art10"
     "color"
-    "mathtools"
     "fontspec"
     "unicode-math"
     "cabin"
@@ -18,7 +17,6 @@
     "marvosym"
     "tikz"
     "forest"
-    "clrscode3e"
     "algorithm2e")
    (TeX-add-symbols
     '("forcondj" 2)
