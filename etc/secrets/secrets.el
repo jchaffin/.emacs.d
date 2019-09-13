@@ -1,2 +1,2 @@
-(load-library "secrets.el.gpg")
+(load-library "secrets-encrypt.el.gpg")
 (provide 'secrets)

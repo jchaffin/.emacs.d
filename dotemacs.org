@@ -3770,7 +3770,7 @@ friends.
   :config
   (with-eval-after-load 'which-key
     (which-key-add-key-based-replacements
-      "M-m i"     " iTunes"
+      "M-m i"     "🎵 iTunes"
       "M-m i c"   "ℹ Info"
       "M-m i p"   " Playlist"
       "M-m i SPC" "⏯ Play/Pause"
@@ -3789,8 +3789,8 @@ friends.
 
 #+NAME: counsel/spotify
 #+BEGIN_SRC emacs-lisp
-(use-package counsel-spotify)
-
+(use-package spotify
+  :straight (spotify :host github :type git :repo "danielfm/spotify.el"))
 #+END_SRC
 
 **** counsel Dash
@@ -5441,8 +5441,6 @@ entry types and required fields."
 (use-package ivy-bibtex
   :after (:all ivy bibtex)
   :demand t
-  :preface
-  (set-fontset-font "fontset-default" '#xE415 "Material Icons")
   :bind
   ("C-x c" . ivy-bibtex)
   :custom
@@ -6126,7 +6124,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   :straight org-plus-contrib
   :demand t
   :preface
-  (set-fontset-font "fontset-default" '#xE876 "Material Icons")
   (defcustom dotemacs-default-agenda-file (expand-file-name "agenda/TODOS.org" org-directory)
     "The file path of the default agenda file."
     :type 'file
@@ -6221,8 +6218,6 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
 #+END_SRC
 
-#+RESULTS: agenda/org-agenda
-
 **** Super agenda
 
 #+BEGIN_SRC emacs-lisp
@@ -6277,27 +6272,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   :init
   (require 'org-ql)
   (require 'dash-functional)
-  (require 'org-sidebar)
-  :config
-  (cl-defmacro course-sidebar (name description)
-    `(progn
-       (org-sidebar-defsidebar
-         ,(intern (concat name "/sidebar"))
-         :header ,description
-         :sidebars (((and (not (done))
-                          (todo)
-                          (or (deadline <=)
-                              (scheduled <=))
-                          (not (tags "optional")))))
-         :super-groups
-         ',(append
-            '((:name "❗️Overdue" :scheduled past :deadline past)
-              (:name " Today" :scheduled today :deadline today)))
-         :files ,(expand-file-name
-                  (concat "~/Dropbox/courses/" name "/" name ".org")))
-       (defun ,(intern (concat name "-sidebar")) ()
-         (interactive)
-         (funcall ',(intern (concat name "/sidebar")))))))
+  (require 'org-sidebar))
+
 #+END_SRC
 
 **** Org Now
@@ -6369,6 +6345,12 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+END_SRC
 
+**** Org to Things
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-to-things
+  :straight (org-to-things :type git :host github :repo "telekid/org-to-things"))
+#+END_SRC
 
 *** Calendar
 **** Google Calendar
@@ -8030,6 +8012,36 @@ the absence of a window system. I'll check for the latter for now.
 (use-package pretty-fonts
   :straight (pretty-fonts :local-repo "~/.emacs.d/etc/local/pretty-emacs"
                           :files ("pretty-fonts.el"))
+  :preface
+  (defvar font-override-list
+    '(
+      ("all-the-icons"
+       ;;    
+       69655 59688)
+      ("Apple Color Emoji"
+       ;; ️📓   📒️     📝    📘       📚
+       128213 128210 128221 128216 128218
+       ;; 🎓   🗣      💻   📎
+       127891 128483 128187 128206
+       ;; ❌   🚫     🔗    🛒    🔈
+       10060 128683 128279 128722 128264)
+      ("file-icons"
+       ;;                  
+       58880 58881 59686 59671 59674)
+      ("FontAwesome"
+       ;;                     
+       61856 61564 61641 61643 61463 61697)
+
+      ("Material Icons"
+       ;;                
+       57439 58320 58321 58322 58324
+       ;;                 
+       58343 58389 58842 59505 59510
+       ;;                
+       59672  59404 58356 57425 69614)
+      ("github-octicons"
+       ;;                           
+       61585 61529 61558 61557 61462 61553 61636)))
   :init
   (defun pretty-fonts-before-theme ()
     (set-face-font
@@ -8043,30 +8055,12 @@ the absence of a window system. I'll check for the latter for now.
       (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
       (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist))
 
-    (when (require 'all-the-icons nil t)
-      (pretty-fonts-set-fontsets
-       '(;; All-the-icons fontsets
-         ("FontAwesome"
-          ;;                      
-          #xf07c #xf0c9 #xf0cb #xf017 #xf101)
-
-         ("all-the-icons"
-          ;;    
-          #xe907 #xe928)
-
-         ("github-octicons"
-          ;;                                     
-          #xf091 #xf059 #xf076 #xf075 #xe192  #xf016 #xf071 #xf0c4)
-
-         ("Material Icons"
-          ;;              
-          #xe871 #xe918 #xe3e7  #xe5da
-          ;;              
-          #xe3d0 #xe3d1 #xe3d2 #xe3d4)))))
+    (let ((fontsets (--filter (font-utils-exists-p (car it)) font-override-list)))
+      (when (require 'all-the-icons nil t)
+        (pretty-fonts-set-fontsets fontsets))))
   :hook
   (change-theme . pretty-fonts-before-theme)
   (load-theme . pretty-fonts-after-theme))
-
 #+END_SRC
 
 **** Pretty Code
@@ -8230,7 +8224,7 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 :ID:       BC97F6AC-F533-4E34-8656-7052704058A2
 :END:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (defcustom font-override-list
   '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
     ("file-icons" . (#xE917 #xE926 #xE600 #xE601 #xE91A))
@@ -8304,14 +8298,6 @@ bullets as UTF-8 characters.
              :type git
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
-  :preface
-  (set-fontset-font "fontset-default" '#xE917  "file-icons")
-  (set-fontset-font "fontset-default" '#xE91A  "file-icons")
-  (set-fontset-font "fontset-default" '#xE600 "file-icons")
-  (set-fontset-font "fontset-default" '#xE601 "file-icons")
-  (set-fontset-font "fontset-default" '#xE926 "file-icons")
-  (set-fontset-font "fontset-default" '#xE5D2 "Material Icons")
-  (set-fontset-font "fontset-default" '#xE051 "Material Icons")
   :custom
   (org-pretty-tags-surrogate-strings
    '(;; school related
@@ -8322,6 +8308,7 @@ bullets as UTF-8 characters.
      ("quiz" . "📘")
      ("reading" . "📚")
      ("lecture" . "🎓")
+     ("discussion" . "")
      ;; courses
      ("@semantics" . "λ")
      ("@phonetics" . "🗣")
@@ -8329,7 +8316,7 @@ bullets as UTF-8 characters.
      ("@comsci" . "💻")
      ;; org tags
      ("attach" . "📎")
-     ("TOC_3_gh" . "")
+     ("TOC_3_gh" . "")
      ("noexport" . "❌")
      ("ignore" . "🚫")
      ("website" . "")
@@ -8763,9 +8750,6 @@ Interactively.
   :init
   (engine-mode t)
   :defines (engine-mode-prefixed-map)
-  :preface
-  (set-fontset-font "fontset-default" '#xE80C "Material Icons")
-  (set-fontset-font "fontset-default" '#xE3F4 "Material Icons")
   :bind*
   (:map web-prefix-map
         ("e". engine-mode-prefixed-map))

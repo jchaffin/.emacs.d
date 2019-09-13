@@ -240,7 +240,6 @@
 ")
  '(bibtex-completion-pdf-symbol "")
  '(bibtex-parse-keys-fast nil)
- '(bmkp-last-as-first-bookmark-file "/Users/jacobchaffin/.emacs.d/var/bmkp/current-bookmark.el")
  '(browse-url-chromium-program "/Applications/Chromium.app/Contents/MacOS/Chromium")
  '(cdlatex-insert-auto-labels-in-env-templates t)
  '(cfw:display-calendar-holidays nil)
@@ -339,7 +338,7 @@
  '(langtool-mother-tongue "en")
  '(latex/no-fill-environments
    '("align" "align*" "forest" "forest*" "equation" "equation*" "exe" "tabular" "tikzpicture" "prooftree"))
- '(livedown-open nil)
+ '(livedown-open nil t)
  '(load-prefer-newer t)
  '(lsp-java-compilation-guess-arguments t t)
  '(lsp-java-server-install-dir "/Users/jacobchaffin/.emacs.d/var/eclipse.jdt.ls/server/" t)
@@ -360,8 +359,8 @@
  '(markdown-command "multimarkdown")
  '(markdown-open-command 'markdown-open-preview)
  '(mc/always-run-for-all t t)
- '(merlin-command 'opam t)
- '(merlin-error-after-save nil t)
+ '(merlin-command 'opam)
+ '(merlin-error-after-save nil)
  '(midnight-period 7200 t)
  '(monky-process-type 'cmdserver t)
  '(mu4e-alert-interesting-mail-query
