@@ -8913,8 +8913,7 @@ Interactively.
 ;;;; Mu4e
 (use-package mu4e
   :if (executable-find "mu")
-  :straight (mu4e :local-repo "/usr/local/share/emacs/site-lisp/mu-edge"
-                  :files (:defaults "*.el"))
+  :straight nil
   :demand t
   :custom
   (mail-user-agent 'mu4e-user-agent) ;; use mu4e for email in emacs
