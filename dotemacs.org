@@ -18,8 +18,6 @@
   - [[#utilities][Utilities]]
     - [[#macros][Macros]]
     - [[#functions][Functions]]
-    - [[#buffer-utilities][Buffer utilities]]
-    - [[#buffer-list-names][Buffer List Names]]
     - [[#window-utilities][Window utilities]]
     - [[#file-utilities][File utilities]]
   - [[#straight][straight]]
@@ -757,6 +755,22 @@ from within Emacs.
 #+END_SRC
 
 *** Functions
+
+**** Unadvise
+
+[[https://emacs.stackexchange.com/questions/24657/unadvise-a-function-remove-all-advice-from-it][Remove advice]].
+
+#+NAME: utility-unadvise
+#+BEGIN_SRC emacs-lisp
+
+(defun unadvise (sym)
+  "Remove all advices from symbol SYM."
+  (interactive "aFunction symbol: ")
+  (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
+
+#+END_SRC
+
+
 **** Mode utilities
 
 #+NAME: utility-minor-modes
@@ -778,21 +792,7 @@ from within Emacs.
   (member mode (list-enabled-minor-modes (current-buffer))))
 #+END_SRC
 
-**** Unadvise
-
-[[https://emacs.stackexchange.com/questions/24657/unadvise-a-function-remove-all-advice-from-it][Remove advice]].
-
-#+NAME: utility-unadvise
-#+BEGIN_SRC emacs-lisp
-
-(defun unadvise (sym)
-  "Remove all advices from symbol SYM."
-  (interactive "aFunction symbol: ")
-  (advice-mapc (lambda (advice _props) (advice-remove sym advice)) sym))
-
-#+END_SRC
-
-*** Buffer utilities
+**** Buffer utilities
 **** Uniquify buffer names
 
 #+BEGIN_SRC emacs-lisp
@@ -805,7 +805,7 @@ from within Emacs.
   (uniquify-ignore-buffers-re "^\\*"))
 #+END_SRC
 
-*** Buffer List Names
+***** Buffer List Names
 
 #+NAME: buffer-list-names
 #+BEGIN_SRC emacs-lisp
@@ -818,7 +818,7 @@ from within Emacs.
 
 #+END_SRC
 
-**** Regenerate scratch buffer
+***** Regenerate scratch buffer
 
 #+NAME: buf-scratch
 #+BEGIN_SRC emacs-lisp
@@ -836,7 +836,7 @@ generating a new one if the initial scratch buffer has been killed."
 
 #+END_SRC
 
-**** Midnight mode
+***** Midnight mode
 
 #+BEGIN_SRC emacs-lisp
 (use-package midnight
@@ -846,7 +846,7 @@ generating a new one if the initial scratch buffer has been killed."
   (midnight-mode 1))
 #+END_SRC
 
-**** bui
+***** bui
 :PROPERTIES:
 :ID:       A2492483-216E-445A-BABB-B760FF83938E
 :END:
@@ -858,7 +858,7 @@ generating a new one if the initial scratch buffer has been killed."
   (info-mode . bui-info-mode))
 #+END_SRC
 
-**** ibuffer
+***** ibuffer
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
@@ -866,8 +866,7 @@ generating a new one if the initial scratch buffer has been killed."
   :bind ("C-x C-b" . ibuffer))
 #+END_SRC
 
-
-**** auto minor mode
+***** auto minor mode
 
 #+BEGIN_SRC emacs-lisp
 (use-package auto-minor-mode)
@@ -936,6 +935,14 @@ As discussed in this 2011[[https://lists.gnu.org/archive/html/emacs-devel/2011-0
       (let ((dirname (directory-file-name pathname)))
         (file-name-nondirectory dirname))
     (file-name-nondirectory pathname)))
+#+END_SRC
+
+**** Insert timestamp
+
+#+BEGIN_SRC emacs-lisp
+(defun timestamp ()
+  (interactive)
+  (insert (format-time-string "%X %Z" (current-time) t)))
 #+END_SRC
 
 **** Copy File Path
@@ -3802,10 +3809,19 @@ ivy integration with dash docsets. This is not great, as installing
 #+NAME: counsel/dash
 #+BEGIN_SRC emacs-lisp
   (use-package counsel-dash
-    :after (:all counsel)
+    :after (:all counsel dash-docs)
     :if (eq system-type 'darwin)
     :ensure-system-package
     ("/Applications/Dash.app" . "brew cask install dash"))
+
+#+END_SRC
+
+***** Dash docsets
+
+#+BEGIN_SRC  emacs-lisp
+(use-package dash-docs
+  :custom
+  (dash-docs-browser-func 'xwidget-webkit-browse-url))
 
 #+END_SRC
 
@@ -8041,7 +8057,9 @@ the absence of a window system. I'll check for the latter for now.
        59672  59404 58356 57425 69614)
       ("github-octicons"
        ;;                           
-       61585 61529 61558 61557 61462 61553 61636)))
+       61585 61529 61558 61557 61462 61553 61636)
+      ("Weather Icons"
+       61599)))
   :init
   (defun pretty-fonts-before-theme ()
     (set-face-font
@@ -8298,6 +8316,8 @@ bullets as UTF-8 characters.
              :type git
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
+  :preface
+  (set-fontset-font "fontset-default" 61559 "Weather Icons")
   :custom
   (org-pretty-tags-surrogate-strings
    '(;; school related
@@ -8314,6 +8334,7 @@ bullets as UTF-8 characters.
      ("@phonetics" . "🗣")
      ("@ai" . "♘")
      ("@comsci" . "💻")
+     ("@astro" . "")
      ;; org tags
      ("attach" . "📎")
      ("TOC_3_gh" . "")
