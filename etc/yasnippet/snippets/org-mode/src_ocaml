@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: ocaml src block
+# key: >o
+# --
+#+BEGIN_SRC ocaml
+$1
+#+END_SRC

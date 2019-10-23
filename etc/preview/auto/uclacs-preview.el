@@ -16,6 +16,7 @@
     "soul"
     "marvosym"
     "tikz"
+    "rail"
     "forest"
     "algorithm2e")
    (TeX-add-symbols
