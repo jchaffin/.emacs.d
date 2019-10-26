@@ -6228,7 +6228,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                          :foreground foreground)))
          org-level-faces)
         (setq-local org-use-level-faces t))))
-  (defun org-agenda-set-agenda-face ()
+  (defun org-agenda-faces ()
     (cond ((org-agenda-file-p) (org-agenda--remap-org-level-faces))
           (org-use-level-faces
            (mapcar
@@ -6236,10 +6236,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               (setq face-remapping-alist (delq f face-remapping-alist)))
             org-level-remap-face))))
   (when (file-exists-p dotemacs-default-agenda-file)
-    (add-to-list 'org-agenda-files dotemacs-default-agenda-file))
-;;;; Hooks
-  :hook
-  (org-mode . org-agenda-set-agenda-face))
+    (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
 #+END_SRC
 
 **** Super agenda
@@ -7781,16 +7778,24 @@ theme in \"quick mode\" by eliding hooks specified in
       (set-face-attribute 'org-block-end-line nil
                           :inherit 'org-block-begin-line)))
 ;; https://github.com/syl20bnr/spacemacs/pull/7667
-  (defun org-mode-reset-all ()
+  (defun org-mode-reset (&optional skip-config-p)
     "Restart all open org-mode buffers."
-    (let ((org-buffers (org-buffer-list  'files t)))
+    (let ((org-buffers (org-buffer-list  'files t))
+)
       (dolist (buf org-buffers)
         (with-current-buffer buf
-          (org-mode-restart)))))
+          (unless (and skip-config-p
+                       (string=
+                        (buffer-name buf)
+                        (basename dotemacs-literate-config-file)))
+          (org-mode-restart))))))
 
   (defun org-modified-theme ()
+    (interactive)
     (org-theme-faces)
-    (org-mode-reset-all))
+      (org-agenda-faces)
+      (org-mode-reset (interactive-p)))
+
 
   (defun disable-scroll-bar (&optional frame)
     (if frame
