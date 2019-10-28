@@ -6260,6 +6260,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
             (lambda (f)
               (setq face-remapping-alist (delq f face-remapping-alist)))
             org-level-remap-face))))
+  (add-hook 'org-mode-hook #'org-agenda-theme)
   (when (file-exists-p dotemacs-default-agenda-file)
     (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
 #+END_SRC
@@ -7755,79 +7756,70 @@ theme in \"quick mode\" by eliding hooks specified in
 
 #+NAME: theme-org-mode
 #+BEGIN_SRC emacs-lisp
-;;; org faces
-(use-package org-faces
-  :straight org-plus-contrib
-  :demand t
-  :init
-  (require 'cus-edit)
-;;;;; theme faces
-  (defun org-theme-faces ()
-    "Customize `org-mode' faces for base-16 themes."
-    (let ((fg (face-foreground 'default nil 'default))
-          (fg2 (or (plist-get dotemacs-theme-colors :base04)))
-          (bg2 (or (plist-get dotemacs-theme-colors :base01))))
-      (when (and fg2 bg2)
-        (set-face-attribute 'org-document-info-keyword nil
-                            :foreground fg2 :slant 'italic :inherit 'org-document-info-face)
-        (set-face-attribute 'org-block-begin-line nil
-                            :height 1.0
-                            :foreground fg2
-                            :background bg2
-                            :inherit 'org-meta-line))
-      (set-face-attribute 'org-verbatim nil
-                          :foreground (color-darken-name fg 15)
-                          :inherit 'fixed-pitch-serif)
-
+(defun org-theme-faces ()
+  "Customize `org-mode' faces for base-16 themes."
+  (let ((fg (face-foreground 'default nil 'default))
+        (fg2 (or (plist-get dotemacs-theme-colors :base04)))
+        (bg2 (or (plist-get dotemacs-theme-colors :base01))))
+    (when (and fg2 bg2)
+      (set-face-attribute 'org-document-info-keyword nil
+                          :foreground fg2 :slant 'italic :inherit 'org-document-info-face)
       (set-face-attribute 'org-block-begin-line nil
-                          :inherit 'fixed-pitch)
-      (set-face-attribute 'org-level-2 nil
-                           :height 1.2 :inherit 'outline-2)
-      (set-face-attribute 'org-level-1 nil
-                           :height 1.6 :inherit 'outline-1)
-      (set-face-attribute 'org-level-2 nil
-                           :height 1.3 :inherit 'outline-2)
-      (set-face-attribute 'org-level-3 nil
-                           :height 1.2  :inherit 'outline-3)
-      (set-face-attribute 'org-level-4 nil
-                           :height 1.1  :inherit 'outline-4)
-      (set-face-attribute 'org-level-5 nil
-                           :height 1.1  :inherit 'outline-5)
-      (set-face-attribute 'org-level-6 nil
-                          :height 1.1  :inherit 'outline-6)
-      (set-face-attribute 'org-level-7 nil
-                           :height 1.0  :inherit 'outline-7)
-      (set-face-attribute 'org-block nil :inherit 'default)
-      (set-face-attribute 'org-document-title nil
-                           :foreground fg :height 1.8
-                          :underline nil)
-      (set-face-attribute 'org-block-end-line nil
-                          :inherit 'org-block-begin-line)))
+                          :height 1.0
+                          :foreground fg2
+                          :background bg2
+                          :inherit 'org-meta-line))
+    (set-face-attribute 'org-verbatim nil
+                        :foreground (color-darken-name fg 15)
+                        :inherit 'fixed-pitch-serif)
+
+    (set-face-attribute 'org-block-begin-line nil
+                        :inherit 'fixed-pitch)
+    (set-face-attribute 'org-level-2 nil
+                        :height 1.2 :inherit 'outline-2)
+    (set-face-attribute 'org-level-1 nil
+                        :height 1.6 :inherit 'outline-1)
+    (set-face-attribute 'org-level-2 nil
+                        :height 1.3 :inherit 'outline-2)
+    (set-face-attribute 'org-level-3 nil
+                        :height 1.2  :inherit 'outline-3)
+    (set-face-attribute 'org-level-4 nil
+                        :height 1.1  :inherit 'outline-4)
+    (set-face-attribute 'org-level-5 nil
+                        :height 1.1  :inherit 'outline-5)
+    (set-face-attribute 'org-level-6 nil
+                        :height 1.1  :inherit 'outline-6)
+    (set-face-attribute 'org-level-7 nil
+                        :height 1.0  :inherit 'outline-7)
+    (set-face-attribute 'org-block nil :inherit 'default)
+    (set-face-attribute 'org-document-title nil
+                        :foreground fg :height 1.8
+                        :underline nil)
+    (set-face-attribute 'org-block-end-line nil
+                        :inherit 'org-block-begin-line)))
 ;; https://github.com/syl20bnr/spacemacs/pull/7667
-  (defun org-modified-theme  (&optional skip-config-p)
-    "Restart all open org-mode buffers."
-    (interactive "P")
-    (let* ((org-buffers (org-buffer-list  'files t))
-           (agenda-buffers (org-buffer-list 'agenda t))
-           (config-buffer (get-file-buffer dotemacs-literate-config-file)))
-      (org-theme-faces)
-      (dolist (buf org-buffers)
-        (unless (and skip-config-p (equal buf config-buffer))
-          (with-current-buffer buf
-            (org-mode-restart)
-            (when (member buf (seq-intersection org-buffers agenda-buffers))
-              (org-agenda-theme)))))))
+(defun dotemacs/org-restart ()
+  "Restart all open org-mode buffers."
+  (let ((org-buffers (org-buffer-list  'files t)))
+    (dolist (buf org-buffers)
+      (with-current-buffer buf
+        (org-mode-restart)))))
+
+(defun org-modified-theme ()
+  (org-theme-faces)
+  (dotemacs/org-restart))
+
 
 (defun disable-scroll-bar (&optional frame)
-    (if frame
-        (with-selected-frame frame
-          (toggle-scroll-bar -1))
-      (toggle-scroll-bar -1)))
+  (if frame
+      (with-selected-frame frame
+        (toggle-scroll-bar -1))
+    (toggle-scroll-bar -1)))
 
-:hook
-(load-theme . org-modified-theme)
-((load-theme after-make-frame-functions) . disable-scroll-bar))
-
+;; Add Hooks
+(add-hook 'load-theme-hook #'org-modified-theme)
+(add-hook 'load-theme-hook #'disable-scroll-bar)
+(add-hook 'after-make-frame-functions #'disable-scroll-bar)
 #+END_SRC
 
 ** Overlays
