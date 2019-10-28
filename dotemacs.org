@@ -1793,7 +1793,25 @@ value of `user-emacs-directory', else go to the`user-init-file'."
 
 #+BEGIN_SRC emacs-lisp
 (use-package bookmark+
-  :straight bookmark-plus)
+  :straight (bookmark-plus :local-repo "~/.emacs.d/etc/local/bookmark-plus")
+  :preface
+  (let ((bookmarkplus-dir "~/.emacs.d/etc/local/bookmark-plus")
+        (emacswiki-base "https://www.emacswiki.org/emacs/download/")
+        (bookmark-files '("bookmark+.el"
+                          "bookmark+-mac.el"
+                          "bookmark+-bmu.el"
+                          "bookmark+-key.el"
+                          "bookmark+-lit.el"
+                          "bookmark+-1.el")))
+    (require 'url)
+    (make-directory bookmarkplus-dir t)
+    (mapcar (lambda (file)
+              (let ((local-file (expand-file-name file bookmarkplus-dir)))
+                (unless (file-exists-p local-file)
+                  (url-copy-file (concat emacswiki-base file) local-file t))))
+            bookmark-files)
+    (byte-recompile-directory bookmarkplus-dir 0))
+  :demand t)
 #+END_SRC
 
 *** Undo Tree
@@ -2980,6 +2998,8 @@ SHELL is the SHELL function to use (i.e. when FUNC represents a terminal)."
 #+NAME: remote/ssh
 #+BEGIN_SRC emacs-lisp
 (use-package ssh
+  :custom
+  (ssh-remote-user "classfin")
   :init
   (defun ssh/enable-path-completion ()
     "Enable directory tracking and path autocompletion
@@ -3013,7 +3033,13 @@ over ssh."
   :custom
   ;; use ssh by default
   (tramp-default-method "ssh")
-  (tramp-default-user "classbin"))
+  (tramp-default-user "classfin")
+  :init
+  (when (boundp 'tramp-remote-path)
+    (add-to-list "/usr/local/cs/bin" tramp-remote-path))
+  (with-eval-after-load 'info
+    (info-initialize)
+    (push (straight-build-dir "tramp/tramp.info")  Info-directory-list)))
 #+END_SRC
 
 **** Docker Tramp
@@ -4947,7 +4973,6 @@ You can use this to set \\mathversion{bold} for example to make it bolder."
     (lambda (k)
       (if (string= p (org-element-property :key k))
           (org-element-property :value k))) nil t))
-
 (defun org-preview/process-compiler ()
   (or (org-preview/process-keyword "LATEX_COMPILER")
       org-latex-compiler))
@@ -6228,7 +6253,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                          :foreground foreground)))
          org-level-faces)
         (setq-local org-use-level-faces t))))
-  (defun org-agenda-faces ()
+  (defun org-agenda-theme ()
     (cond ((org-agenda-file-p) (org-agenda--remap-org-level-faces))
           (org-use-level-faces
            (mapcar
@@ -7733,6 +7758,7 @@ theme in \"quick mode\" by eliding hooks specified in
 ;;; org faces
 (use-package org-faces
   :straight org-plus-contrib
+  :demand t
   :init
   (require 'cus-edit)
 ;;;;; theme faces
@@ -7778,34 +7804,29 @@ theme in \"quick mode\" by eliding hooks specified in
       (set-face-attribute 'org-block-end-line nil
                           :inherit 'org-block-begin-line)))
 ;; https://github.com/syl20bnr/spacemacs/pull/7667
-  (defun org-mode-reset (&optional skip-config-p)
+  (defun org-modified-theme  (&optional skip-config-p)
     "Restart all open org-mode buffers."
-    (let ((org-buffers (org-buffer-list  'files t))
-)
+    (interactive "P")
+    (let* ((org-buffers (org-buffer-list  'files t))
+           (agenda-buffers (org-buffer-list 'agenda t))
+           (config-buffer (get-file-buffer dotemacs-literate-config-file)))
+      (org-theme-faces)
       (dolist (buf org-buffers)
-        (with-current-buffer buf
-          (unless (and skip-config-p
-                       (string=
-                        (buffer-name buf)
-                        (basename dotemacs-literate-config-file)))
-          (org-mode-restart))))))
+        (unless (and skip-config-p (equal buf config-buffer))
+          (with-current-buffer buf
+            (org-mode-restart)
+            (when (member buf (seq-intersection org-buffers agenda-buffers))
+              (org-agenda-theme)))))))
 
-  (defun org-modified-theme ()
-    (interactive)
-    (org-theme-faces)
-      (org-agenda-faces)
-      (org-mode-reset (interactive-p)))
-
-
-  (defun disable-scroll-bar (&optional frame)
+(defun disable-scroll-bar (&optional frame)
     (if frame
         (with-selected-frame frame
           (toggle-scroll-bar -1))
       (toggle-scroll-bar -1)))
 
-  :hook
-  (load-theme . org-modified-theme)
-  ((load-theme after-make-frame-functions) . disable-scroll-bar))
+:hook
+(load-theme . org-modified-theme)
+((load-theme after-make-frame-functions) . disable-scroll-bar))
 
 #+END_SRC
 
@@ -10483,7 +10504,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
                 ;; Make sure not in comment or string
                 ;; have to manually do this in custom MATCHERs
                 (not (or (nth 3 state) (nth 4 state)))))))
-     ,@match-highlights)))
+      ,@match-highlights)))
   (setq my-ielm-font-lock-kwds
         `(,@(-map #'kwd->comint-kwd lisp-el-font-lock-keywords-2)
           ,@(-map #'kwd->comint-kwd lisp-cl-font-lock-keywords-2)))
