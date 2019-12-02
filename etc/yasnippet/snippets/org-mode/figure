@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: figure
+# key: figure
+# --
+#+BEGIN_figure
+$1
+#+END_figure

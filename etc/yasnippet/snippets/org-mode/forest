@@ -3,8 +3,5 @@
 # key: forest
 # --
 \begin{forest}
-[
-  [$1]
-  [$2]
-]
+[$1]
 \end{forest}

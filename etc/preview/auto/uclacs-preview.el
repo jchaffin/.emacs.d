@@ -15,8 +15,9 @@
     "cabin"
     "soul"
     "marvosym"
-    "tikz"
+    "booktabs"
     "rail"
+    "tikz"
     "forest"
     "algorithm2e")
    (TeX-add-symbols

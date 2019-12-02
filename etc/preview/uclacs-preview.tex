@@ -23,73 +23,39 @@
 \usepackage{cabin} % Sans Serif font
 \usepackage{soul}
 \usepackage{marvosym}
+\usepackage{booktabs}
+\usepackage{rail}
 \newcommand{\vertex}{\node[circle,draw,radius=1cm]}
 \usepackage{tikz}
-\usepackage{rail}
 \railoptions{-t}
 \usepackage{forest}
-\forestset{% node styles
-  nice nodes/.style={
-    for tree={ inner sep=1 pt, s sep=12pt, fit=band }
+\forestset{
+  circle nodes/.style{%
+    for tree={circle,draw, l sep=2mm}%
   },
-  fairly nice empty nodes/.style={
-    delay={
-      where content={}{
-        shape=coordinate,
-        for parent={
-          for children={anchor=north}
-        }
-      }
-    }
-  },
-  pretty nice empty nodes/.style={
-    for tree={
-      calign=fixed edge angles,
-      parent anchor=children,
-      delay={ if content={}{ inner sep=0pt, edge path={
-            \noexpand\path [\forestoption{edge}] (!u.parent anchor) --
-            (.children)\forestoption{edge label} ;
-          }
-        }{}
-      }
-    }
-  },
-  perfectly nice empty nodes/.style={
-    for tree={ calign=fixed edge angles, parent anchor=south },
-    before typesetting nodes={
-      where content={}{ text width=.001pt, inner sep=0pt,
-        before drawing tree={ shape=coordinate, typeset node },
-        for parent={ for children={ anchor=north } }
-      }{}
-    }
-  },
-  circle nodes/.style={
-    for tree={circle,draw,l sep=2mm}%
-  },
-  default preamble = {
+  default preamble={
     for tree={
       text height=1em, inner ysep=0.5ex, s sep=1em, edge={semithick},
       text depth={}, l sep=1em
     }
   }
 }
-
 \usepackage[algoruled,linesnumbered]{algorithm2e}
+% Default Keywords
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{output}
+\SetKwProg{proc}{Procedure}{}{}
+\SetKwComment{Comment}{ $\triangleright$\ }{}
+\SetKwProg{Fn}{Function}{:}{end}
 \newcommand{\nosemic}{\SetEndCharOfAlgoLine{\relax}} % Drop semi-colon ;
 \newcommand{\dosemic}{\SetEndCharOfAlgoLine{\string;}} % Reinstate
 \newcommand{\pushline}{\Indp}% Indent
 \newcommand{\popline}{\Indm\dosemic}% Remove indent
-% Default Keywords
-\SetKwInOut{Input}{Input}
-\SetKwInOut{Output}{Result}
-\SetKwProg{proc}{Procedure}{}{}
-\SetKwComment{Comment}{ $\triangleright$\ }{}
-\SetKwProg{Fn}{Function}{:}{end}
 % 'for' loop Macros
 \newcommand{\forcond}[3]{$#1=#2$ \KwTo $#3$}
 \newcommand{\forcondi}[2]{\forcond{i}{#1}{#2}}
 \newcommand{\forcondj}[2]{\forcond{j}{#1}{#2}}
-\SetFuncSty{\scshape}
+\SetFuncSty{textsc}
 % from Russell's Artificial intelligence A Modern Approach
 \SetKwFunction{InitialState}{Initial-State}
 \SetKwFunction{State}{State}
@@ -98,10 +64,13 @@
 \SetKwFunction{Actions}{Actions}
 \SetKwFunction{GoalTest}{Goal-Test}
 \SetKwFunction{Solution}{Solution}
+\SetKwFunction{Insert}{Insert}
 % Data
 \SetKwData{node}{node}
 \SetKwData{frontier}{frontier}
 \SetKwData{explored}{explored}
+\SetKwData{problem}{problem}
+\SetKwData{action}{action}
 % Data Structures
 \SetKwFunction{Empty}{Empty?}
 \SetKwFunction{Pop}{Pop}

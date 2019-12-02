@@ -227,13 +227,7 @@
                  (org-element-map (org-element-parse-buffer) 'src-block
                 (lambda (block)
                   (if (string= name (org-element-property :name block))
-                      (let ((code (org-element-property :value block))
-                            (params (org-element-property :parameters block))
-                            (noweb-p (literate-src-block-noweb-p
-                                      (org-element-property :parameters block))))
-
-                        (if noweb-p
-                            (mapcar #'literate-tangle-src-block (sanitize-no-web-block code))
+                      (let ((code (org-element-property :value block)))
                           (with-temp-buffer
                             (insert code)
                             (eval-buffer)))))))))))
@@ -242,6 +236,6 @@
           (if (file-exists-p dotemacs-literate-config-file)
               (org-babel-load-file dotemacs-literate-config-file)
             (error "File does not exist %s" dotemacs-literate-config-file))
-        (mapcar #'literate-tangle-src-block literate-debug-blocks))
+        (mapcar #'literate-tangle-src-block literate-debug-blocks)
       (setq initial-buffer-choice dotemacs-literate-config-file))
 ;;; init.el ends here

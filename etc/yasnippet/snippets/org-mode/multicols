@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: multicols
+# key: mcs
+# --
+#+LATEX: \begin{multicols}{2}
+$1
+#+LATEX: \columnbreak
+$2
+#+LATEX: \end{multicols}

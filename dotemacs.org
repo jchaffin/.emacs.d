@@ -328,9 +328,7 @@
   - [[#languages][Languages]]
     - [[#assembly][Assembly]]
     - [[#cc][C/C++]]
-    - [[#common-lisp][Common Lisp]]
-    - [[#clojure][Clojure]]
-    - [[#emacs-lisp][Emacs Lisp]]
+    - [[#lisps][Lisps]]
     - [[#groovy][Groovy]]
     - [[#java][Java]]
     - [[#javascript][JavaScript]]
@@ -342,7 +340,6 @@
     - [[#web-1][Web]]
     - [[#markdown][Markdown]]
     - [[#applescript][Applescript]]
-    - [[#scheme][Scheme]]
     - [[#yaml][Yaml]]
 - [[#footnotes][Footnotes]]
 
@@ -2180,7 +2177,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package visual-regexp
   :bind
   ("C-c v r" . vr/replace)
-  ("C-c v q" . vr/query-replace)
+  ("M-%" . vr/query-replace)
   ("C-c v m" . vr/mc-mark))
 
 
@@ -3041,8 +3038,6 @@ over ssh."
   (tramp-default-method "ssh")
   (tramp-default-user "classfin")
   :init
-  (when (boundp 'tramp-remote-path)
-    (add-to-list "/usr/local/cs/bin" tramp-remote-path))
   (with-eval-after-load 'info
     (info-initialize)
     (push (straight-build-dir "tramp/tramp.info")  Info-directory-list)))
@@ -4509,11 +4504,10 @@ This requires the pdf-tools package to be installed."
   (LaTeX-mode . latex/pdfview)
   (LaTeX-mode . latex/setup)
   (LaTeX-mode . LaTeX-math-mode)
+  (latex-mode . smartparens-mode)
   (LaTeX-mode . TeX-fold-mode)
   (LaTeX-mode . TeX-source-correlate-mode)
-  (LaTeX-mode . TeX-PDF-mode)
-
-)
+  (LlaTeX-mode . TeX-PDF-mode))
 
 #+END_SRC
 
@@ -6266,9 +6260,10 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
             (lambda (f)
               (setq face-remapping-alist (delq f face-remapping-alist)))
             org-level-remap-face))))
-  (add-hook 'org-mode-hook #'org-agenda-theme)
   (when (file-exists-p dotemacs-default-agenda-file)
-    (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
+    (add-to-list 'org-agenda-files dotemacs-default-agenda-file))
+  :hook
+  (org-mode . org-agenda-theme))
 #+END_SRC
 
 **** Super agenda
@@ -7095,6 +7090,8 @@ and subtrees of the ignored headlines will be retained.
   (org-latex-minted-options
    '(("mathescape" "true")
      ("linenos" "true")
+     ("breaklines" "true")
+     ("fontsize" "\\footnotesize")
      ("frame" "lines")
      ("framesep" "2mm")))
   (org-latex-compiler "xelatex")
@@ -8425,9 +8422,7 @@ bullets as UTF-8 characters.
   :straight (org-pretty-table
              :host github
              :type git
-             :repo "Fuco1/org-pretty-table")
-  :hook
-  (org-mode . org-pretty-table-mode))
+             :repo "Fuco1/org-pretty-table"))
 #+END_SRC
 
 ** Cursor
@@ -9615,10 +9610,13 @@ offers more meaningful semantics.
 #+NAME: core/paredit
 #+BEGIN_SRC emacs-lisp
 (use-package paredit
+  :bind
+  (:map paredit-mode-map
+        ("{" . paredit-open-curly)
+        ("}" . paredit-close-curly))
   :config
-  (progn
-    (autoload 'enable-paredit-mode "paredit"
-      "Turn on pseudo-structural editing of Lisp code." t)))
+  (autoload 'enable-paredit-mode "paredit"
+    "Turn on pseudo-structural editing of Lisp code." t))
    #+END_SRC
 
 *** Smartparens
@@ -10242,14 +10240,142 @@ Pair programming.
 
 #+END_SRC
 
-*** Common Lisp
+*** Lisps
+**** Setup
+
+#+begin_src emacs-lisp
+ (defun lisp-setup-hook ()
+   (when (require 'paredit nil t)
+	   (paredit-mode +1))
+   (when (require 'highlight-symbol nil t)
+	   (highlight-symbol-mode +1))
+   (when (require 'rainbow-delimiters nil t)
+     (rainbow-delimiters-mode +1)))
+#+end_src
+
+**** Emacs Lisp
+***** Emacs lisp mode
+
+ #+NAME: core/elisp
+ #+BEGIN_SRC emacs-lisp
+(use-package emacs-lisp-mode
+  :straight (emacs-lisp-mode :type built-in)
+  :init
+  (defun emacs-lisp/indent ()
+    (setq lisp-indent-function 'lisp-indent-function))
+  :hook
+  (emacs-lisp-mode . emacs-lisp/indent)
+  (emacs-lisp-mode . lisp-setup-hook))
+ #+END_SRC
+
+***** Inferior emacs lisp
+
+  #+BEGIN_SRC emacs-lisp
+;;; Inferior Emacs Lisp
+(use-package ielm
+  :straight (ielm :type built-in)
+  :demand t
+  :init
+;;;; ielm font locking
+  ;; From http://www.modernemacs.com/post/comint-highlighting/
+  (require 'dash)
+  (defun kwd->comint-kwd (kwd)
+  "Converts a `font-lock-keywords' KWD for `comint-mode' input fontification."
+  (-let (((matcher . match-highlights) kwd))
+    ;; below is ` quoted but breaks my blogs syntax higlighting, so removing it!
+    ;; make sure to capture first paren in a ` if copying!
+    `((lambda (limit)
+       ;; Matcher can be a function or a regex
+       (when ,(if (symbolp matcher)
+                  `(,matcher limit)
+                `(re-search-forward ,matcher limit t))
+         ;; While the SUBEXP can be anything, this search always can use zero
+         (-let ((start (match-beginning 0))
+                ((comint-last-start . comint-last-end) comint-last-prompt)
+                (state (syntax-ppss)))
+           (and (> start comint-last-start)
+                ;; Make sure not in comment or string
+                ;; have to manually do this in custom MATCHERs
+                (not (or (nth 3 state) (nth 4 state)))))))
+      ,@match-highlights)))
+  (setq my-ielm-font-lock-kwds
+        `(,@(-map #'kwd->comint-kwd lisp-el-font-lock-keywords-2)
+          ,@(-map #'kwd->comint-kwd lisp-cl-font-lock-keywords-2)))
+  (defun ielm/font-lock-kwds ()
+    (interactive)
+    (setq-local font-lock-keywords my-ielm-font-lock-kwds))
+;;;; ielm hooks
+  :hook
+  (ielm-mode . emacs-lisp/setup)
+  (ielm-mode . ielm/font-lock-kwds))
+;;; end ielm
+  #+END_SRC
+
+***** lisp extra fontlocking
+
+ #+BEGIN_SRC emacs-lisp
+(use-package lisp-extra-font-lock
+  :init
+  (lisp-extra-font-lock-global-mode +1))
+ #+END_SRC
+
+***** cl highlight
+
+ #+BEGIN_SRC emacs-lisp
+(use-package cl-lib-highlight)
+ #+END_SRC
+
+***** Emacs Lisp Format
+
+ #+NAME: elisp/format
+ #+BEGIN_SRC emacs-lisp
+(use-package elisp-format
+    :custom
+    (elisp-format-column 80))
+ #+END_SRC
+
+***** Linkd
+
+ #+BEGIN_SRC emacs-lisp
+(use-package linkd)
+ #+END_SRC
+
+
+**** Scheme
+
+ #+begin_src elisp
+
+(use-package scheme
+  :straight (scheme :type built-in))
+
+ #+end_src
+
+***** Racket
+
+ #+NAME: lang/racket
+ #+BEGIN_SRC emacs-lisp
+(use-package racket-mode
+  :mode "\\.ss\\'"
+  :hook
+  (racket-mode . lisp-setup-hook))
+ #+END_SRC
+
+***** geiser
+
+ #+begin_src emacs-lisp
+(use-package geiser
+  :custom
+  (geiser-scheme-implementation 'racket))
+ #+end_src
+
+**** Common Lisp
 
 Configuration for common-lisp.
 
-**** common lisp mode
+***** common lisp mode
 
-#+NAME: cl/mode
-#+BEGIN_SRC emacs-lisp
+ #+NAME: cl/mode
+ #+BEGIN_SRC emacs-lisp
 (use-package lisp-mode
   :straight (lisp-mode :type built-in)
   :init
@@ -10265,14 +10391,14 @@ Configuration for common-lisp.
         (setq-local dash-plugin-keywords '("lisp"))))
   :hook
   (lisp-mode . common-lisp-setup))
-#+END_SRC
+ #+END_SRC
 
-**** Slime
+***** Slime
 
-[[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
+ [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
 
-#+NAME: cl/slime
-#+BEGIN_SRC emacs-lisp :tangle no
+ #+NAME: cl/slime
+ #+BEGIN_SRC emacs-lisp :tangle no
 (use-package slime
   :defines
   (slime-complete-symbol*-fancy
@@ -10294,34 +10420,30 @@ Configuration for common-lisp.
       (turn-off-smartparens-mode)))
   :hook
   (slime-repl-mode . slime/disable-smartparens))
-#+END_SRC
+ #+END_SRC
 
-**** Sly
-
+***** Sly
 #+BEGIN_SRC emacs-lisp
-
 (use-package sly
   :custom
   (inferior-lisp-program "clisp")
   (sly-swithc-to-existing-lisp 'always)
   (sly-contribs '(sly-fancy)))
-
 #+END_SRC
 
-*** Clojure
+**** Clojure
+***** Clojure Mode
+      :PROPERTIES:
+      :ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
+      :END:
 
-**** Clojure Mode
-:PROPERTIES:
-:ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
-:END:
+ Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
+ before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
 
-Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
-before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
+ Provides key bindings and font-locking for Clojure.
 
-Provides key bindings and font-locking for Clojure.
-
-#+NAME: clj/mode
-#+BEGIN_SRC emacs-lisp
+ #+NAME: clj/mode
+ #+BEGIN_SRC emacs-lisp
 (use-package clojure-mode
   :custom (clojure-indent-style :always-indent)
 
@@ -10368,32 +10490,32 @@ Provides key bindings and font-locking for Clojure.
 
   (add-hook 'clojure-mode-hook #'dotemacs/clj-dash-docsets)
   (add-hook 'clojure-mode-hook #'dotemacs/clj-style-guide))
-#+END_SRC
+ #+END_SRC
 
-**** Clojure Mode Extra Font Locking
+***** Clojure Mode Extra Font Locking
 
-Additional syntax highlighting for ~clojure-mode~.
+ Additional syntax highlighting for ~clojure-mode~.
 
-#+NAME: clj/extra-font-locking
-#+BEGIN_SRC emacs-lisp
+ #+NAME: clj/extra-font-locking
+ #+BEGIN_SRC emacs-lisp
 (use-package clojure-mode-extra-font-locking
   :config
   (defun clj/enable-extra-font-locking ()
     (require 'clojure-mode-extra-font-locking))
   :hook
   (clojure-mode . clj/enable-extra-font-locking))
-#+END_SRC
+ #+END_SRC
 
-**** CIDER
-:PROPERTIES:
-:ID:       324C7B10-8B92-4C49-8FAC-702C65C7A2EE
-:CUSTOM_ID: cider
-:END:
+***** CIDER
+      :PROPERTIES:
+      :ID:       324C7B10-8B92-4C49-8FAC-702C65C7A2EE
+      :CUSTOM_ID: cider
+      :END:
 
-[[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
+ [[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
 
-#+NAME: clj/cider
-#+BEGIN_SRC emacs-lisp
+ #+NAME: clj/cider
+ #+BEGIN_SRC emacs-lisp
 (use-package cider
   :custom
   (cider-repl-use-clojure-font-lock t)
@@ -10407,12 +10529,12 @@ Additional syntax highlighting for ~clojure-mode~.
   ((cider-mode cider-repl-mode) . eldoc-mode)
   ((cider-mode cider-repl-mode) . cider-company-enable-fuzzy-completion)
   (cider-repl-mode . subword-mode))
-#+END_SRC
+ #+END_SRC
 
-**** Clojure Refactor
+***** Clojure Refactor
 
-#+NAME: clj/refactor
-#+BEGIN_SRC emacs-lisp
+ #+NAME: clj/refactor
+ #+BEGIN_SRC emacs-lisp
 (use-package clj-refactor
   :init
   (defun clj/refactor-enable ()
@@ -10425,125 +10547,30 @@ Additional syntax highlighting for ~clojure-mode~.
 
   :hook (clojure-mode . clj/refactor-enable))
 
-#+END_SRC
+ #+END_SRC
 
-**** ClojureScript
+***** ClojureScript
 
-***** elein
+****** elein
 
-[[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
+ [[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
 
-#+NAME: cljs/elein
-#+BEGIN_SRC emacs-lisp
+ #+NAME: cljs/elein
+ #+BEGIN_SRC emacs-lisp
 (use-package elein
   :if (executable-find "lein"))
-#+END_SRC
+ #+END_SRC
 
-***** Cljsbuild
+****** Cljsbuild
 
-Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
+ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
 
-#+NAME: cljs/build
-#+BEGIN_SRC emacs-lisp
+ #+NAME: cljs/build
+ #+BEGIN_SRC emacs-lisp
 (use-package cljsbuild-mode
   :if (executable-find "lein")
   :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
-#+END_SRC
-
-*** Emacs Lisp
-**** Emacs lisp mode
-
-#+NAME: core/elisp
-#+BEGIN_SRC emacs-lisp
-(use-package emacs-lisp-mode
-  :straight (emacs-lisp-mode :type built-in)
-  :init
-  (defun emacs-lisp/setup ()
-    "Setup elisp."
-    (when (require 'paredit nil t)
-	    (paredit-mode +1))
-    (when (require 'highlight-symbol nil t)
-	      (highlight-symbol-mode +1))
-    (when (require 'rainbow-delimiters nil t)
-      (rainbow-delimiters-mode +1))
-    (setq lisp-indent-function 'lisp-indent-function)
-    (setq-local dash-plugin-keywords '("elisp")))
-
-  :hook
-  (emacs-lisp-mode . emacs-lisp/setup))
-#+END_SRC
-
-**** Inferior emacs lisp
-
- #+BEGIN_SRC emacs-lisp
-;;; Inferior Emacs Lisp
-(use-package ielm
-  :straight (ielm :type built-in)
-  :demand t
-  :init
-;;;; ielm font locking
-  ;; From http://www.modernemacs.com/post/comint-highlighting/
-  (require 'dash)
-  (defun kwd->comint-kwd (kwd)
-  "Converts a `font-lock-keywords' KWD for `comint-mode' input fontification."
-  (-let (((matcher . match-highlights) kwd))
-    ;; below is ` quoted but breaks my blogs syntax higlighting, so removing it!
-    ;; make sure to capture first paren in a ` if copying!
-    `((lambda (limit)
-       ;; Matcher can be a function or a regex
-       (when ,(if (symbolp matcher)
-                  `(,matcher limit)
-                `(re-search-forward ,matcher limit t))
-         ;; While the SUBEXP can be anything, this search always can use zero
-         (-let ((start (match-beginning 0))
-                ((comint-last-start . comint-last-end) comint-last-prompt)
-                (state (syntax-ppss)))
-           (and (> start comint-last-start)
-                ;; Make sure not in comment or string
-                ;; have to manually do this in custom MATCHERs
-                (not (or (nth 3 state) (nth 4 state)))))))
-      ,@match-highlights)))
-  (setq my-ielm-font-lock-kwds
-        `(,@(-map #'kwd->comint-kwd lisp-el-font-lock-keywords-2)
-          ,@(-map #'kwd->comint-kwd lisp-cl-font-lock-keywords-2)))
-  (defun ielm/font-lock-kwds ()
-    (interactive)
-    (setq-local font-lock-keywords my-ielm-font-lock-kwds))
-;;;; ielm hooks
-  :hook
-  (ielm-mode . emacs-lisp/setup)
-  (ielm-mode . ielm/font-lock-kwds))
-;;; end ielm
  #+END_SRC
-
-**** lisp extra fontlocking
-
-#+BEGIN_SRC emacs-lisp
-(use-package lisp-extra-font-lock
-  :init
-  (lisp-extra-font-lock-global-mode +1))
-#+END_SRC
-
-**** cl highlight
-
-#+BEGIN_SRC emacs-lisp
-(use-package cl-lib-highlight)
-#+END_SRC
-
-**** Emacs Lisp  Format
-
-#+NAME: elisp/format
-#+BEGIN_SRC emacs-lisp
-(use-package elisp-format
-    :custom
-    (elisp-format-column 80))
-#+END_SRC
-
-**** Linkd
-
-#+BEGIN_SRC emacs-lisp
-(use-package linkd)
-#+END_SRC
 
 *** Groovy
 
@@ -11467,16 +11494,6 @@ Mode for editing Homebrew formula.
 #+BEGIN_SRC emacs-lisp
 (use-package apples-mode
   :mode "\\.applescript\\'")
-#+END_SRC
-
-*** Scheme
-
-#+NAME: lang/racket
-#+BEGIN_SRC emacs-lisp
-(use-package racket-mode
-  :mode "\\.ss\\'"
-  :hook
-  (racket-mode . paredit-mode))
 #+END_SRC
 
 *** Yaml
