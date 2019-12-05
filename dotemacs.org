@@ -268,6 +268,7 @@
     - [[#search-web][Search Web]]
     - [[#xwidget][Xwidget]]
     - [[#set-default-browser][Set default browser]]
+    - [[#eww-from-chrome][Eww from chrome]]
     - [[#engine-mode][Engine Mode]]
   - [[#email][Email]]
     - [[#org-mime][Org Mime]]
@@ -1410,10 +1411,14 @@ killall gpg-agent
             which-key-replacement-alist)
       (push '((nil . "^mc/\\(.+\\)") . (nil . " \\1"))
             which-key-replacement-alist))
+
     (which-key-add-key-based-replacements
       "C-x a" "abbrev"
       "C-x @" "event"
-      "C-x RET" "encoding"))
+      "C-x RET" "encoding"
+      "C-x n" "narrow"
+      "C-x k" "kmacro"
+      "C-x 8" "unicode"))
 #+END_SRC
 
 *** Speed Type
@@ -1767,9 +1772,15 @@ value of `user-emacs-directory', else go to the`user-init-file'."
   (let ((base (file-name-sans-extension dotemacs-literate-config-file)))
     (find-file (concat base ".el"))))
 
+(defun goto-messages ()
+  "Go to the messages buffer."
+  (interactive)
+  (switch-to-buffer "*Messages*"))
+
 (bind-keys :map goto-map
            ("i" . goto-init)
            ("l" . goto-literate)
+           ("m" . goto-messages)
            ("t" . goto-tangled-init))
 #+END_SRC
 
@@ -2461,7 +2472,8 @@ Adds extensions and functionality to dired mode.
 parent directory."
 	  (interactive)
     (find-alternate-file ".."))
-
+  (which-key-add-key-based-replacements
+    "C-x D" "diredp")
   :bind (:map dired-mode-map
               ;; When moving to parent directory by `^´, Dired by default
               ;; creates a new buffer for each movement up. This rebinds
@@ -3826,6 +3838,8 @@ friends.
 #+NAME: counsel/spotify
 #+BEGIN_SRC emacs-lisp
 (use-package spotify
+  :preface
+  (require 'secrets)
   :straight (spotify :host github :type git :repo "danielfm/spotify.el"))
 #+END_SRC
 
@@ -8794,6 +8808,21 @@ Interactively.
 
 #+END_SRC
 
+*** Eww from chrome
+
+#+begin_src emacs-lisp
+(defun eww-from-chrome ()
+  "Open the frontmost URL in a Google Chrome browser in EWW."
+  (interactive)
+  (cl-flet ((ol-to-url (url)
+                       (with-temp-buffer
+                         (insert url)
+                         (goto-char (point-min))
+                         (funcall-interactively #'org-extract-link))))
+    (when-let ((url (ol-to-url (org-mac-chrome-get-frontmost-url))))
+      (eww url))))
+#+end_src
+
 *** Engine Mode
 
 #+NAME: browser/engine
@@ -10306,7 +10335,7 @@ Pair programming.
     (setq-local font-lock-keywords my-ielm-font-lock-kwds))
 ;;;; ielm hooks
   :hook
-  (ielm-mode . emacs-lisp/setup)
+  (ielm-mode . lisp-setup-hook)
   (ielm-mode . ielm/font-lock-kwds))
 ;;; end ielm
   #+END_SRC
