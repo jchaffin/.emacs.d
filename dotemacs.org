@@ -2117,7 +2117,14 @@ point reaches the beginning or end of the buffer, stop there."
 **** Codesearch
 
 #+BEGIN_SRC emacs-lisp
-(use-package codesearch)
+(use-package codesearch
+  :init
+  (dolist (var '("csearch" "cindex" "cgrep"))
+    (eval `(setq ,(intern (concat "codesearch-" var))
+            (concat (expand-file-name var "~/go/bin/")))))
+  :custom
+  (codesearch-global-csearchindex
+    (emacs-var-dir "codesearch/index")))
 #+END_SRC
 
 ***** Counsel code search
@@ -4518,7 +4525,7 @@ This requires the pdf-tools package to be installed."
   (LaTeX-mode . latex/pdfview)
   (LaTeX-mode . latex/setup)
   (LaTeX-mode . LaTeX-math-mode)
-  (latex-mode . smartparens-mode)
+  (LaTeX-mode . smartparens-mode)
   (LaTeX-mode . TeX-fold-mode)
   (LaTeX-mode . TeX-source-correlate-mode)
   (LlaTeX-mode . TeX-PDF-mode))
@@ -5623,12 +5630,16 @@ entry types and required fields."
                "timestamp")))
   (ebib-latex-preamble
    (mapconcat #'identity '("\\documentclass{article}"
-                          "\\usepackage{natbib}"
-                          "\\bibliographystyle{plainnat}")
+                           "\\usepackage{natbib}"
+                           "\\bibliographystyle{plainnat}")
               " "))
   (ebib-file-search-dirs dotemacs-pdf-directory)
   (ebib-reading-list-file (org-dir "ref/reading.org"))
-  (ebib-preload-bib-files (list dotemacs-bibliography-file)))
+  (ebib-preload-bib-files (list dotemacs-bibliography-file))
+  :config
+  (with-eval-after-load 'info
+    (info-initialize)
+    (push (straight-build-dir "ebib/ebib.info")  Info-directory-list)))
 #+END_SRC
 
 *** PDFs
@@ -10269,6 +10280,14 @@ Pair programming.
 
 #+END_SRC
 
+*** Go
+#+BEGIN_SRC emacs-lisp
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook
+  (go-mode . lsp-deferred))
+
+#+END_SRC
 *** Lisps
 **** Setup
 
