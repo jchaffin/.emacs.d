@@ -329,6 +329,7 @@
   - [[#languages][Languages]]
     - [[#assembly][Assembly]]
     - [[#cc][C/C++]]
+    - [[#go][Go]]
     - [[#lisps][Lisps]]
     - [[#groovy][Groovy]]
     - [[#java][Java]]
@@ -8601,12 +8602,11 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 (use-package spaceline-all-the-icons-ebib
   :straight (spaceline-all-the-icons-ebib
              :local-repo  "~/.emacs.d/etc/local/spaceline-all-the-icons-ebib")
+  :defines (spaceline-all-the-icons--setup-ebib)
   :after (spaceline-all-the-icons spaceline-all-the-icons-segments)
-  :init
+  :config
   (spaceline-all-the-icons--setup-ebib))
-
 #+END_SRC
-
 
 * Web
 ** Web libraries
