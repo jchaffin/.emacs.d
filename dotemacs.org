@@ -5619,8 +5619,18 @@ entry types and required fields."
 **** Ebib
 #+BEGIN_SRC emacs-lisp
 (use-package ebib
+  :defines
+  (ebib-entry-open-pdf)
   :bind
   ("C-c e" . ebib)
+  (:map ebib-entry-mode-map
+        ("C-c C-o" . ebib-entry-open-pdf))
+  :init
+  (defun ebib-entry-open-pdf ()
+    (interactive)
+    (when (require 'bibtex-completion)
+      (let ((entry (list (ebib--get-key-at-point))))
+        (bibtex-completion-open-pdf entry))))
   :custom
   (ebib-file-associations '(("pdf")))
   (ebib-extra-fields
@@ -5640,6 +5650,9 @@ entry types and required fields."
   (with-eval-after-load 'info
     (info-initialize)
     (push (straight-build-dir "ebib/ebib.info")  Info-directory-list)))
+
+
+
 #+END_SRC
 
 *** PDFs
@@ -7114,11 +7127,9 @@ and subtrees of the ignored headlines will be retained.
   (org-latex-listings 'minted)
   (org-latex-minted-options
    '(("mathescape" "true")
-     ("linenos" "true")
      ("breaklines" "true")
      ("fontsize" "\\footnotesize")
-     ("frame" "lines")
-     ("framesep" "2mm")))
+     ("frame" "none")))
   (org-latex-compiler "xelatex")
   (org-latex-classes
      '(("article"
@@ -8577,7 +8588,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
   (set-fontset-font "fontset-default" '#xF091 "github-octicons")
   :after spaceline)
 
-  (use-package spaceline-all-the-icons-segments
+(use-package spaceline-all-the-icons-segments
     :straight spaceline-all-the-icons
     :init
     (require 'spaceline-all-the-icons)
@@ -8586,7 +8597,16 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     (spaceline-toggle-org-pomodoro-on)
     (spaceline-toggle-all-the-icons-flycheck-status-off)
     (spaceline-toggle-mu4e-alert-segment-on))
+
+(use-package spaceline-all-the-icons-ebib
+  :straight (spaceline-all-the-icons-ebib
+             :local-repo  "~/.emacs.d/etc/local/spaceline-all-the-icons-ebib")
+  :after (spaceline-all-the-icons spaceline-all-the-icons-segments)
+  :init
+  (spaceline-all-the-icons--setup-ebib))
+
 #+END_SRC
+
 
 * Web
 ** Web libraries
