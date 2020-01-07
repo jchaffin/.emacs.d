@@ -1826,7 +1826,14 @@ value of `user-emacs-directory', else go to the`user-init-file'."
                   (url-copy-file (concat emacswiki-base file) local-file t))))
             bookmark-files)
     (byte-recompile-directory bookmarkplus-dir 0))
-  :demand t)
+  :demand t
+  :init
+  (defun bmkp/setup ()
+    (interactive)
+    (when (require 'bookmark nil t)
+      (bookmark-load bookmark-default-file)))
+  :hook
+  (after-init . bmkp/setup))
 #+END_SRC
 
 *** Undo Tree
@@ -10311,7 +10318,9 @@ Pair programming.
 *** Lisps
 **** Setup
 
+#+NAME: core/lisps
 #+begin_src emacs-lisp
+;;;###autoload
  (defun lisp-setup-hook ()
    (when (require 'paredit nil t)
 	   (paredit-mode +1))
@@ -10326,8 +10335,8 @@ Pair programming.
 
  #+NAME: core/elisp
  #+BEGIN_SRC emacs-lisp
-(use-package emacs-lisp-mode
-  :straight (emacs-lisp-mode :type built-in)
+(use-package elisp-mode
+  :straight (elisp-mode :type built-in)
   :init
   (defun emacs-lisp/indent ()
     (setq lisp-indent-function 'lisp-indent-function))
@@ -10412,10 +10421,8 @@ Pair programming.
 **** Scheme
 
  #+begin_src elisp
-
 (use-package scheme
   :straight (scheme :type built-in))
-
  #+end_src
 
 ***** Racket

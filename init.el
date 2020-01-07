@@ -190,9 +190,11 @@
           "core/ivy"
           "core/counsel"
           "core/paredit"
-          "core/elisp"
           "core/rainbow-delimiters"
+          "core/lisps"
+          "core/elisp"
           "core/swiper")
+
         "Named source blocks to tangle when `use-literate-p' is enabled. ")
 ;;;; tangle and load
       ;; Extract source code and load the config
