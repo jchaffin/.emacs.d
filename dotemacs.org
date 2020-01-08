@@ -8512,7 +8512,7 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     (visual-fill-column-mode 1)
     (visual-line-mode 1))
   :hook
-  ((org-mode markdown-mode text-mode html-mode) . visual/writing)
+  ((org-mode markdown-mode text-mode) . visual/writing)
   :config
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 
@@ -9832,8 +9832,8 @@ ctags -e -R .
 #+NAME: git/modes
 #+BEGIN_SRC emacs-lisp
 (use-package git-modes
-
-  :mode (".projectile\\'" . gitignore-mode))
+  :mode ((".projectile\\'" . gitignore-mode)
+         (".flowconfig\\'" . gitconfig-mode)))
 #+END_SRC
 
 **** Magit
@@ -10308,13 +10308,14 @@ Pair programming.
 #+END_SRC
 
 *** Go
+
 #+BEGIN_SRC emacs-lisp
 (use-package go-mode
   :mode "\\.go\\'"
   :hook
   (go-mode . lsp-deferred))
-
 #+END_SRC
+
 *** Lisps
 **** Setup
 
@@ -10449,8 +10450,8 @@ Configuration for common-lisp.
 
 ***** common lisp mode
 
- #+NAME: cl/mode
- #+BEGIN_SRC emacs-lisp
+#+NAME: cl/mode
+#+BEGIN_SRC emacs-lisp
 (use-package lisp-mode
   :straight (lisp-mode :type built-in)
   :init
@@ -10466,14 +10467,14 @@ Configuration for common-lisp.
         (setq-local dash-plugin-keywords '("lisp"))))
   :hook
   (lisp-mode . common-lisp-setup))
- #+END_SRC
+#+END_SRC
 
 ***** Slime
 
- [[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
+[[https://common-lisp.net/project/slime/][SLIME]] is The Superior Lisp Interaction Mode for Emacs.
 
- #+NAME: cl/slime
- #+BEGIN_SRC emacs-lisp :tangle no
+#+NAME: cl/slime
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package slime
   :defines
   (slime-complete-symbol*-fancy
@@ -10495,9 +10496,10 @@ Configuration for common-lisp.
       (turn-off-smartparens-mode)))
   :hook
   (slime-repl-mode . slime/disable-smartparens))
- #+END_SRC
+#+END_SRC
 
 ***** Sly
+
 #+BEGIN_SRC emacs-lisp
 (use-package sly
   :custom
@@ -10508,9 +10510,9 @@ Configuration for common-lisp.
 
 **** Clojure
 ***** Clojure Mode
-      :PROPERTIES:
-      :ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
-      :END:
+:PROPERTIES:
+:ID:       B09DFF0C-3404-483C-824F-E51A5CE50BCD
+:END:
 
  Everything about [[https://gihub.com/clojure-emacs/clojure-mode][clojure]], is awesome. That's
  before we even get to [[#cider][CIDER]]...:beer::raised_hands_tone3:
@@ -10582,12 +10584,10 @@ Configuration for common-lisp.
  #+END_SRC
 
 ***** CIDER
-      :PROPERTIES:
-      :ID:       324C7B10-8B92-4C49-8FAC-702C65C7A2EE
-      :CUSTOM_ID: cider
-      :END:
-
- [[https://github.com/clojure-emacs/cider][Clojure Interactive Development Environment that Rocks for Emacs]]
+:PROPERTIES:
+:ID:       324C7B10-8B92-4C49-8FAC-702C65C7A2EE
+:CUSTOM_ID: cider
+:END:
 
  #+NAME: clj/cider
  #+BEGIN_SRC emacs-lisp
@@ -10608,8 +10608,8 @@ Configuration for common-lisp.
 
 ***** Clojure Refactor
 
- #+NAME: clj/refactor
- #+BEGIN_SRC emacs-lisp
+#+NAME: clj/refactor
+#+BEGIN_SRC emacs-lisp
 (use-package clj-refactor
   :init
   (defun clj/refactor-enable ()
@@ -10619,33 +10619,32 @@ Configuration for common-lisp.
     (yas-minor-mode 1)
     ;; Unbinds `cider-macroexpand-1'
     (cljr-add-keybindings-with-prefix "C-c C-m"))
-
-  :hook (clojure-mode . clj/refactor-enable))
-
- #+END_SRC
+  :hook
+  (clojure-mode . clj/refactor-enable))
+#+END_SRC
 
 ***** ClojureScript
 
 ****** elein
 
- [[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
+[[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
 
- #+NAME: cljs/elein
- #+BEGIN_SRC emacs-lisp
+#+NAME: cljs/elein
+#+BEGIN_SRC emacs-lisp
 (use-package elein
   :if (executable-find "lein"))
- #+END_SRC
+#+END_SRC
 
 ****** Cljsbuild
 
- Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
+Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github.com/emezeske/lein-cljsbuild][plugin]].
 
- #+NAME: cljs/build
- #+BEGIN_SRC emacs-lisp
+#+NAME: cljs/build
+#+BEGIN_SRC emacs-lisp
 (use-package cljsbuild-mode
   :if (executable-find "lein")
   :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
- #+END_SRC
+#+END_SRC
 
 *** Groovy
 
@@ -10665,6 +10664,7 @@ Configuration for common-lisp.
 
 *** Java
 **** java mode
+
 #+NAME: java/mode
 #+BEGIN_SRC emacs-lisp
 (use-package java-mode
@@ -10768,6 +10768,40 @@ Gradle is a build tool for Java. It's awesome.
          ("\\.mjs\\'" . js2-mode))
   :interpreter "node"
   :hook (js2-mode . lsp))
+#+END_SRC
+
+**** Flow Type
+***** Flow minor mode
+#+BEGIN_SRC emacs-lisp
+(use-package flow-minor-mode
+  :hook
+  (js2-mode . flow-minor-enable-automatically)
+  (rjsx-mode . flow-minor-enable-automatically))
+#+END_SRC
+
+***** Flow js2 mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package flow-js2-mode
+  :hook
+  (js2-mode . flow-js2-mode))
+#+END_SRC
+
+***** Flow company
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-flow
+  :after (company))
+#+END_SRC
+***** Flow flycheck
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck-flow
+  :after (flycheck)
+  :custom
+  (flycheck-javascript-flow-args '("--respect-pragma"))
+  :config
+  (flycheck-add-mode 'javascript-flow 'rjsx-mode)
+  (flycheck-add-next-checker 'javascript-flow 'javascript-eslint))
 #+END_SRC
 
 **** JSON
@@ -10920,45 +10954,45 @@ Real jsx support.
 
 #+NAME: js/indium
 #+BEGIN_SRC emacs-lisp
-  (use-package indium
-    :bind (:map indium-interaction-mode-map
-                  ("C-M-b" . indium-eval-buffer))
-      :init
-      (cl-defun chrome-debugger-launch (&optional
-                                          (port "3000")
-                                          (host "localhost")
-                                          (type "http"))
-        "Launch a chromium debugger process on HOST using PORT and protocol TYPE.
+(use-package indium
+  :bind (:map indium-interaction-mode-map
+              ("C-M-b" . indium-eval-buffer))
+  :init
+  (cl-defun chrome-debugger-launch (&optional
+                                    (port "3000")
+                                    (host "localhost")
+                                    (type "http"))
+    "Launch a chromium debugger process on HOST using PORT and protocol TYPE.
 
         Note this will kill any running instances of Chromium."
 
-        (interactive (list
-                      (read-string "Port: " "3000")
-                      (read-string "Host: " "localhost")
-                      (read-string "Type: " "http")))
+    (interactive (list
+                  (read-string "Port: " "3000")
+                  (read-string "Host: " "localhost")
+                  (read-string "Type: " "http")))
 
-        (unless (featurep 'secrets)
-          (require 'secrets))
+    (unless (featurep 'secrets)
+      (require 'secrets))
 
-        (if (boundp 'google-api-key)
-            (setenv "GOOGLE_API_KEY" google-api-key))
-        (if (boundp 'google-api-key)
-            (setenv "GOOGLE_DEFAULT_CLIENT_ID" google-default-client-id))
-        (if (boundp 'google-default-client-secret)
-            (setenv "GOOGLE_DEFAULT_CLIENT_SECRET" google-default-client-secret))
-        (let ((process-names (--> (process-list)
-                                  (mapcar (lambda (p) (process-name p)) it)))
-              (process (get-process "chromium"))
-              (ip (concat type "://" host ":" port))
-              (chromium-program browse-url-chromium-program))
-          (if (shell-command-to-list "pgrep \"Chromium\"")
-              (shell-command "killall Chromium"))
-          (if (process-live-p process)
-              (kill-process process))
-          (start-process "chromium" (get-buffer-create "chromium")
-                         chromium-program "--remote-debugging-port=9222" ip)))
-      :hook
-      (js-mode . indium-interaction-mode))
+    (if (boundp 'google-api-key)
+        (setenv "GOOGLE_API_KEY" google-api-key))
+    (if (boundp 'google-api-key)
+        (setenv "GOOGLE_DEFAULT_CLIENT_ID" google-default-client-id))
+    (if (boundp 'google-default-client-secret)
+        (setenv "GOOGLE_DEFAULT_CLIENT_SECRET" google-default-client-secret))
+    (let ((process-names (--> (process-list)
+                            (mapcar (lambda (p) (process-name p)) it)))
+          (process (get-process "chromium"))
+          (ip (concat type "://" host ":" port))
+          (chromium-program browse-url-chromium-program))
+      (if (shell-command-to-list "pgrep \"Chromium\"")
+          (shell-command "killall Chromium"))
+      (if (process-live-p process)
+          (kill-process process))
+      (start-process "chromium" (get-buffer-create "chromium")
+                     chromium-program "--remote-debugging-port=9222" ip)))
+  :hook
+  (js-mode . indium-interaction-mode))
 #+END_SRC
 
 *** Python
@@ -10990,54 +11024,54 @@ Real jsx support.
 
 #+NAME: pyenv/mode
 #+BEGIN_SRC emacs-lisp
-  (use-package pyenv-mode
-    :if (executable-find "pyenv")
-    :init
-    (add-to-list 'exec-path (user-home ".pyenv" "shims"))
-    (setenv "WORKON_HOME" (file-name-as-directory (user-home ".pyenv" "versions")))
-    (pyenv-mode)
-    :bind
-    ("C-x p e" . pyenv-activate-current-project)
-    ("C-x p s" . pyenv-mode-set)
-    (:map pyenv-mode-map
-          ("C-c C-s" . nil))
-    :commands
-    (pyenv-mode-set pyenv-mode-unset pyenv-mode-versions)
-    :config
+(use-package pyenv-mode
+  :if (executable-find "pyenv")
+  :init
+  (add-to-list 'exec-path (user-home ".pyenv" "shims"))
+  (setenv "WORKON_HOME" (file-name-as-directory (user-home ".pyenv" "versions")))
+  (pyenv-mode)
+  :bind
+  ("C-x p e" . pyenv-activate-current-project)
+  ("C-x p s" . pyenv-mode-set)
+  (:map pyenv-mode-map
+        ("C-c C-s" . nil))
+  :commands
+  (pyenv-mode-set pyenv-mode-unset pyenv-mode-versions)
+  :config
 
-    (defvar pyenv-current-version nil nil)
+  (defvar pyenv-current-version nil nil)
 
-    (defun pyenv-init()
-      "Initialize pyenv's current version to the global one."
-      (let ((global-pyenv (replace-regexp-in-string "\n" "" (shell-command-to-string "pyenv global"))))
-        (message (concat "Setting pyenv version to " global-pyenv))
-        (pyenv-mode-set global-pyenv)
-        (setq pyenv-current-version global-pyenv)))
+  (defun pyenv-init()
+    "Initialize pyenv's current version to the global one."
+    (let ((global-pyenv (replace-regexp-in-string "\n" "" (shell-command-to-string "pyenv global"))))
+      (message (concat "Setting pyenv version to " global-pyenv))
+      (pyenv-mode-set global-pyenv)
+      (setq pyenv-current-version global-pyenv)))
 
-    (add-hook 'after-init-hook 'pyenv-init)
+  (add-hook 'after-init-hook 'pyenv-init)
 
-    (progn
-      (with-eval-after-load 'projectile
-        (defun projectile-pyenv-mode-set ()
-          "Set pyenv version matching project name."
-          (let ((project (projectile-project-name)))
-            (if (member project (pyenv-mode-versions))
-                (pyenv-mode-set project)
-              (pyenv-mode-unset))))
+  (progn
+    (with-eval-after-load 'projectile
+      (defun projectile-pyenv-mode-set ()
+        "Set pyenv version matching project name."
+        (let ((project (projectile-project-name)))
+          (if (member project (pyenv-mode-versions))
+              (pyenv-mode-set project)
+            (pyenv-mode-unset))))
 
-        (add-hook 'projectile-after-switch-project-hook
-                  'projectile-pyenv-mode-set))
+      (add-hook 'projectile-after-switch-project-hook
+                'projectile-pyenv-mode-set))
 
-      ;; http://rakan.me/emacs/python-dev-with-emacs-and-pyenv/
-      (defun pyenv-activate-current-project ()
-        "Automatically activates pyenv version if .python-version file exists."
-        (interactive)
-        (let ((python-version-directory (locate-dominating-file (buffer-file-name) ".python-version")))
-          (if python-version-directory
-              (let* ((pyenv-version-path (f-expand ".python-version" python-version-directory))
-                     (pyenv-current-version (s-trim (f-read-text pyenv-version-path 'utf-8))))
-                (pyenv-mode-set pyenv-current-version)
-                (message (concat "Setting virtualenv to " pyenv-current-version))))))))
+    ;; http://rakan.me/emacs/python-dev-with-emacs-and-pyenv/
+    (defun pyenv-activate-current-project ()
+      "Automatically activates pyenv version if .python-version file exists."
+      (interactive)
+      (let ((python-version-directory (locate-dominating-file (buffer-file-name) ".python-version")))
+        (if python-version-directory
+            (let* ((pyenv-version-path (f-expand ".python-version" python-version-directory))
+                   (pyenv-current-version (s-trim (f-read-text pyenv-version-path 'utf-8))))
+              (pyenv-mode-set pyenv-current-version)
+              (message (concat "Setting virtualenv to " pyenv-current-version))))))))
 #+END_SRC
 
 **** Pyenv Auto Set
@@ -11052,16 +11086,15 @@ Real jsx support.
 #+NAME: py/virtualenvwrapper
 #+BEGIN_SRC emacs-lisp
 (use-package virtualenvwrapper
-    :init
-    (setq venv-dirlookup-names '(".pyenv" ".venv"))
-    (setq venv-location (getenv "WORKON_HOME"))
-    :config
-    (when (fboundp 'projectile-mode)
-      (setq projectile-switch-project-action
-            '(lambda ()
-              (venv-projectile-auto-workon)
-              (projectile-find-file)))))
-
+  :init
+  (setq venv-dirlookup-names '(".pyenv" ".venv"))
+  (setq venv-location (getenv "WORKON_HOME"))
+  :config
+  (when (fboundp 'projectile-mode)
+    (setq projectile-switch-project-action
+          '(lambda ()
+             (venv-projectile-auto-workon)
+             (projectile-find-file)))))
 #+END_SRC
 
 **** Pyvenv
@@ -11320,65 +11353,66 @@ Mode for editing Homebrew formula.
 **** web mode
 
 #+BEGIN_SRC emacs-lisp
-  (use-package web-mode
-    :bind
-    (:map web-mode-map
-          ("M-n" . web-mode-tag-match))
-    :mode
-    (("\\.phtml\\'"      . web-mode)
-     ("\\.tpl\\.php\\'"  . web-mode)
-     ("\\.twig\\'"       . web-mode)
-     ("\\.html\\'"       . web-mode)
-     ("\\.htm\\'"        . web-mode)
-     ("\\.[gj]sp\\'"     . web-mode)
-     ("\\.as[cp]x?\\'"   . web-mode)
-     ("\\.eex\\'"        . web-mode)
-     ("\\.erb\\'"        . web-mode)
-     ("\\.mustache\\'"   . web-mode)
-     ("\\.handlebars\\'" . web-mode)
-     ("\\.hbs\\'"        . web-mode)
-     ("\\.eco\\'"        . web-mode)
-     ("\\.ejs\\'"        . web-mode)
-     ("\\.djhtml\\'"     . web-mode)
-     ("\\.tsx\\'"        . web-mode))
+(use-package web-mode
+  :bind
+  (:map web-mode-map
+        ("M-n" . web-mode-tag-match))
+  :mode
+  (("\\.phtml\\'"      . web-mode)
+   ("\\.tpl\\.php\\'"  . web-mode)
+   ("\\.twig\\'"       . web-mode)
+   ("\\.html\\'"       . web-mode)
+   ("\\.htm\\'"        . web-mode)
+   ("\\.[gj]sp\\'"     . web-mode)
+   ("\\.as[cp]x?\\'"   . web-mode)
+   ("\\.eex\\'"        . web-mode)
+   ("\\.erb\\'"        . web-mode)
+   ("\\.mustache\\'"   . web-mode)
+   ("\\.handlebars\\'" . web-mode)
+   ("\\.hbs\\'"        . web-mode)
+   ("\\.eco\\'"        . web-mode)
+   ("\\.ejs\\'"        . web-mode)
+   ("\\.djhtml\\'"     . web-mode)
+   ("\\.tsx\\'"        . web-mode))
 
-    :custom
-    (web-mode-engines-alist
-     '(("php" . "\\.phtml\\'")
-       ("blade" . "\\.blade\\'")))
-    (web-mode-enable-auto-pairing t)
-    (web-mode-enable-css-colorization t)
-    (web-mode-enable-block-face t)
-    (web-mode-enable-part-face t)
-    (web-mode-enable-comment-keywords t)
-    (web-mode-enable-heredoc-fontification t)
-    (web-mode-enable-current-element-highlight t)
-    (web-mode-enable-current-column-highlight t)
-    (web-mode-markup-indent-offset 2)
-    (web-mode-code-indent-offset 2)
-    (web-mode-style-padding 1)
-    (web-mode-script-padding 1)
-    (web-mode-block-padding 0)
-    (web-mode-comment-style 2)
+  :custom
+  (web-mode-engines-alist
+   '(("php" . "\\.phtml\\'")
+     ("blade" . "\\.blade\\'")))
+  (web-mode-enable-auto-pairing t)
+  (web-mode-enable-css-colorization t)
+  (web-mode-enable-block-face t)
+  (web-mode-enable-part-face t)
+  (web-mode-enable-comment-keywords t)
+  (web-mode-enable-heredoc-fontification t)
+  (web-mode-enable-current-element-highlight t)
+  (web-mode-enable-current-column-highlight t)
+  (web-mode-markup-indent-offset 2)
+  (web-mode-code-indent-offset 2)
+  (web-mode-style-padding 1)
+  (web-mode-script-padding 1)
+  (web-mode-block-padding 0)
+  (web-mode-comment-style 2)
 
-    :config
+  :config
 
-    (defun web/tsx ()
-      "Enable tide-mode in Typescript tsx buffers."
-      (when (string-equal "tsx" (file-name-extension buffer-file-name))
-        (when (fboundp 'tide/setup)
-          (tide/setup))
-        (when (fboundp 'flycheck-add-mode)
-          (flycheck-add-mode 'typescript-tslint 'web-mode))))
+  (defun web/tsx ()
+    "Enable tide-mode in Typescript tsx buffers."
+    (when (string-equal "tsx" (file-name-extension buffer-file-name))
+      (when (fboundp 'tide/setup)
+        (tide/setup))
+      (when (fboundp 'flycheck-add-mode)
+        (flycheck-add-mode 'typescript-tslint 'web-mode))))
 
-    (defun web/docsets ()
-      "Set Dash docsets for `web-mode'"
-      (when (eq system-type 'darwin)
-        (setq-local dash-plugin-keywords
-                    '("css" "html" "javascript" "react"))))
-    :hook
-    (web-mode . web/tsx)
-    (web-mode . web/docsets))
+  (defun web/docsets ()
+    "Set Dash docsets for `web-mode'"
+    (when (eq system-type 'darwin)
+      (setq-local dash-plugin-keywords
+                  '("css" "html" "javascript" "react"))))
+  :hook
+  (web-mode . lsp)
+  (web-mode . web/tsx)
+  (web-mode . web/docsets))
 #+END_SRC
 
 **** HTML
@@ -11393,27 +11427,11 @@ Mode for editing Homebrew formula.
   (html-mode . lsp))
 #+END_SRC
 
-***** Tag Edit
-
-#+NAME: html/tagedit
-#+BEGIN_SRC emacs-lisp
-  (use-package tagedit
-    :init
-    (defun tagedit/enable ()
-      "Enable `tagedit-mode'"
-      (tagedit-add-experimental-features)
-      (tagedit-mode +1))
-
-    :hook
-    (html-mode . tagedit/enable))
-#+END_SRC
-
 ***** Auto rename tag
 
 #+BEGIN_SRC emacs-lisp
 (use-package auto-rename-tag)
 #+END_SRC
-
 
 ***** Htmlize
 
@@ -11475,9 +11493,7 @@ Mode for editing Homebrew formula.
 
 #+NAME: web/emmet
 #+BEGIN_SRC emacs-lisp
-(use-package emmet-mode
-  :hook
-  ((css-mode html-mode web-mode) . emmet-mode))
+(use-package emmet-mode)
 #+END_SRC
 
 *** Markdown
