@@ -221,7 +221,6 @@
   - [[#org-faces][Org faces]]
   - [[#overlays][Overlays]]
     - [[#highlight][Highlight]]
-    - [[#emacs-command-tooltip-mode][Emacs Command tooltip mode]]
     - [[#overlay][Overlay]]
     - [[#overlay-highlight][Overlay Highlight]]
     - [[#rainbow-mode][Rainbow Mode]]
@@ -331,6 +330,7 @@
     - [[#cc][C/C++]]
     - [[#go][Go]]
     - [[#lisps][Lisps]]
+    - [[#haskell][Haskell]]
     - [[#groovy][Groovy]]
     - [[#java][Java]]
     - [[#javascript][JavaScript]]
@@ -640,7 +640,6 @@ contributing to the solution.
 (customize-set-variable 'read-buffer-completion-ignore-case t)
 
 #+END_SRC
-
 
 **** Alias Yes Or No
 
@@ -1029,12 +1028,12 @@ the the returned file path will be formatted as a directory. "
   (when (require 'f nil t)
     (let ((segments (seq-filter #'stringp path-segments)))
       (--> (getenv "HOME")
-	   (f-split it)
-	   (append it segments)
-	   (cdr it)
-	   (cons (concat "/" (car it)) (cdr it))
-	   (apply #'resolve-path it)
-	   (if slash (file-name-as-directory it) it)))))
+	       (f-split it)
+	       (append it segments)
+	       (cdr it)
+	       (cons (concat "/" (car it)) (cdr it))
+	       (apply #'resolve-path it)
+	       (if slash (file-name-as-directory it) it)))))
 
 #+END_SRC
 
@@ -1824,14 +1823,14 @@ value of `user-emacs-directory', else go to the`user-init-file'."
               (let ((local-file (expand-file-name file bookmarkplus-dir)))
                 (unless (file-exists-p local-file)
                   (url-copy-file (concat emacswiki-base file) local-file t))))
-            bookmark-files)
-    (byte-recompile-directory bookmarkplus-dir 0))
+            bookmark-files))
   :demand t
   :init
   (defun bmkp/setup ()
     (interactive)
     (when (require 'bookmark nil t)
-      (bookmark-load bookmark-default-file)))
+      (and (file-exists-p bookmark-default-file)
+           (bookmark-load bookmark-default-file))))
   :hook
   (after-init . bmkp/setup))
 #+END_SRC
@@ -2175,7 +2174,7 @@ point reaches the beginning or end of the buffer, stop there."
   :init
   (require 'wrap-region)
   (wrap-region-add-wrappers
-   '(("*" "*" nil org-mode)
+   '(;; ("*" "*"  org-mode)
      ("~" "~" nil org-mode)
      ("/" "/" nil org-mode)
      ("=" "=" nil org-mode)
@@ -3123,7 +3122,10 @@ over ssh."
 
 #+BEGIN_SRC emacs-lisp
 (use-package help-mode+
-  :straight (help-mode-plus :type git :host github :repo "emacsmirror/help-mode-plus")
+  :straight (help-mode-plus
+             :type git
+             :host github
+             :repo "emacsmirror/help-mode-plus")
   :demand t)
 #+END_SRC
 
@@ -3131,14 +3133,17 @@ over ssh."
 
 #+BEGIN_SRC emacs-lisp
 (use-package help-macro+
-  :straight (help-macro-plus :type git :host github :repo "emacsmirror/help-macro-plus")
+  :straight (help-macro-plus
+             :type git
+             :host github
+             :repo "emacsmirror/help-macro-plus")
   :demand t)
 #+END_SRC
 
 ***** help-fns+
 
 #+BEGIN_SRC emacs-lisp
-(use-package help-fns
+(use-package help-fns+
   :straight (help-fns-plus :type git :host github :repo "emacsmirror/help-fns-plus")
   :demand t)
 #+END_SRC
@@ -3148,24 +3153,12 @@ over ssh."
 #+NAME: help-helpful
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
-    :init
-    (bind-keys
-     :prefix-map helpful-prefix-map
-     :prefix "M-m h"
-     ("f" . helpful-callable)
-     ("v" . helpful-variable)
-     ("k" . helpful-key)
-     ("C" . helpful-command)
-     ("d" . helpful-at-point)
-     ("F" . helpful-function))
-    :config
-    (which-key-add-key-based-replacements
-      "M-m h" " Helfpul"
-      "M-m h f" "describe callable"
-      "M-m h k" "describe key"
-      "M-m h C" "describe command"
-      "M-m h d" "describe at point "
-      "M-m h F" "describe function"))
+    :bind
+    (:map help-mode-map
+          ("f" . helpful-callable)
+          ("v" . helpful-variable)
+          ("k" . helpful-key)
+          ("<tab>" . helpful-at-point)))
 
 #+END_SRC
 
@@ -3259,12 +3252,15 @@ different window configurations.
 
 #+BEGIN_SRC emacs-lisp
 (use-package shackle
+  :custom
+  (shackle-rules '((compilation-mode :noselect t)
+                   (Info-mode  :other t :popup t)
+                   (helpful-mode  :size 0.5 :align 'below :popup t)
+                   (help-mode  :size 0.5 :align 'below :popup t)))
+  (shackle-inhibit-window-quit-on-same-windows t)
+  (shackle-default-rule '(:select t)))
   :init
   (shackle-mode 1)
-  :config
-  (setq shackle-rules '((compilation-mode :noselect t)
-                        ())
-        shackle-default-rule '(:select t)))
 
 #+END_SRC
 
@@ -3419,6 +3415,9 @@ From Xah Lee's [[http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html]
 #+END_SRC
 
 *** Ivy
+:PROPERTIES:
+:ORDERED:  t
+:END:
 
 [[https://github.com/abo-abo/swiper][Ivy]] is a completion and selection framework in the same vein
 as helm.
@@ -3744,7 +3743,16 @@ END:
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
     :custom
+    (counsel-describe-function-function #'helpful-callable)
+    (counsel-describe-variable-function #'helpful-variable)
     (counsel-bookmark-avoid-dired t)
+    (counsel-git-grep-cmd counsel-git-grep-cmd-default)
+    (counsel-grep-swiper-limit 250000)
+    (counsel-mode-override-describe-bindings t)
+    (counsel-find-file-at-point t)
+    (counsel-preselect-current-file t)
+    (counsel-find-file-ignore-regexp
+     (regexp-opt `("\\(?:\\`\\|[/\\]\\)\\(?:[#.]\\" ,@completion-ignored-extensions)))
     :bind (("<f1> l" . counsel-find-library)
            ("C-c l" . counsel-load-library)
            ("C-c g" . counsel-git)
@@ -3760,13 +3768,13 @@ END:
            (:map org-mode-map
                  ("C-c C-j" . counsel-org-goto)
                  ("C-c M-t" . counsel-org-tag)
+                 ("C-c C-u" . counsel-org-entity)
                  ("C-c f"   . counsel-org-file)))
     :init
     (counsel-mode +1)
-    :config
-    (setq-default counsel-git-grep-cmd counsel-git-grep-cmd-default)
-    (setq counsel-mode-override-describe-bindings t)
     :blackout t)
+
+
 
 #+END_SRC
 
@@ -4431,7 +4439,7 @@ school's WLAN.
 
 *** org player
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-player
   :straight (org-player :local-repo "~/.emacs.d/etc/local/org-player")
   :after (bongo))
@@ -4696,6 +4704,11 @@ Entered on [2018-06-13 Wed 11:42]
 #+BEGIN_SRC emacs-lisp
   (use-package math-symbols
     :init
+    (defun insert-three-em-space ()
+      (interactive)
+      (insert (char-from-name "THREE-PER-EM SPACE")))
+
+    (global-set-key (kbd "C-c C-SPC") 'insert-three-em-space)
 
     (defun latex/font (math-input before after)
      "Insert a LaTeX font.
@@ -5262,12 +5275,23 @@ Since Emacs 24.3, its built in with the Emacs distribution.
 **** BibTeX
 
 #+BEGIN_SRC emacs-lisp
+;;; Bibtex
 (use-package bibtex
   :demand t
   :straight (bibtex :type built-in)
+;;;; Customizations
   :custom
   (bibtex-align-at-equal-sign t)
   (bibtex-parse-keys-fast nil)
+;;;;; Bibtex autokey
+  (bibtex-autokey-year-length 4)
+  (bibtex-autokey-name-year-separator "-")
+  (bibtex-autokey-year-title-separator "-")
+  (bibtex-autokey-titleword-separator "-")
+  (bibtex-autokey-titlewords 2)
+  (bibtex-autokey-titlewords-stretch 1)
+  (bibtex-autokey-titleword-length 5)
+;;;;; Bibtex entry types
   (bibtex-BibTeX-entry-alist
    '(("Article" "Article in Journal"
       (("author")
@@ -5461,49 +5485,43 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("eprinttype" nil nil)
        ("url" nil nil)
        ("urldate" nil nil)))))
-  (bibtex-autokey-year-length 4)
-  (bibtex-autokey-name-year-separator "-")
-  (bibtex-autokey-year-title-separator "-")
-  (bibtex-autokey-titleword-separator "-")
-  (bibtex-autokey-titlewords 2)
-  (bibtex-autokey-titlewords-stretch 1)
-  (bibtex-autokey-titleword-length 5)
+;;;; Configuration
   :config
   (defun bibtex-create-entries-buffer ()
-  "Create a buffer listing the available bibtex
+    "Create a buffer listing the available bibtex
 entry types and required fields."
-  (interactive)
-  (let ((buf (get-buffer-create "*BibTeX Entries*")))
-    (with-current-buffer buf
-      (org-mode)
-      (insert "#+TITLE: BibTeX specification\n")
-      (insert "* Entries\n")
-      (loop for (type doc required crossref optional) in bibtex-BibTeX-entry-alist
-            do
-            (insert (format "\n** %s (%s)\n" type doc))
-            (insert "\n*** Required fields\n\n")
-            (loop for field in required do
-	                (insert (format "- %s" (car field)))
-	                (message "%s" field)
-	                (if (>= (length field) 2)
-		                  (insert (format " :: %s\n" (nth 1 field)))
-	                  (insert "\n")))
-            (insert "\n*** Optional if Crossref present but otherwise required fields\n\n")
-            (loop for field in crossref do
-	                (insert (format "- %s" (car field)))
-	                (if (>= (length field) 2)
-		                  (insert (format " :: %s\n" (nth 1 field)))
-	                  (insert "\n")))
-            (insert "\n*** Optional fields\n\n")
-            (loop for field in optional do
-	                (insert (format "- %s" (car field)))
-	                (if (>= (length field) 2)
-		                  (insert (format " :: %s\n" (nth 1 field)))
-	                  (insert "\n")))))
-    (switch-to-buffer-other-window buf)))
+    (interactive)
+    (let ((buf (get-buffer-create "*BibTeX Entries*")))
+      (with-current-buffer buf
+        (org-mode)
+        (insert "#+TITLE: BibTeX specification\n")
+        (insert "* Entries\n")
+        (loop for (type doc required crossref optional) in bibtex-BibTeX-entry-alist
+              do
+              (insert (format "\n** %s (%s)\n" type doc))
+              (insert "\n*** Required fields\n\n")
+              (loop for field in required do
+	                  (insert (format "- %s" (car field)))
+	                  (message "%s" field)
+	                  (if (>= (length field) 2)
+		                    (insert (format " :: %s\n" (nth 1 field)))
+	                    (insert "\n")))
+              (insert "\n*** Optional if Crossref present but otherwise required fields\n\n")
+              (loop for field in crossref do
+	                  (insert (format "- %s" (car field)))
+	                  (if (>= (length field) 2)
+		                    (insert (format " :: %s\n" (nth 1 field)))
+	                    (insert "\n")))
+              (insert "\n*** Optional fields\n\n")
+              (loop for field in optional do
+	                  (insert (format "- %s" (car field)))
+	                  (if (>= (length field) 2)
+		                    (insert (format " :: %s\n" (nth 1 field)))
+	                    (insert "\n")))))
+      (switch-to-buffer-other-window buf)))
+;;;; Bibtex hooks
   :hook
   (bibtex-mode . hs-minor-mode))
-
 #+END_SRC
 
 **** Ivy Bibtex
@@ -5676,20 +5694,54 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :mode (("\\.pdf\\'" . pdf-view-mode))
-  :bind (:map pdf-view-mode-map
-              ("C-s" . isearch-forward)
-              ;; PDF View annotions
-              ("+"   . pdf-view-enlarge)
-              ("h"   . pdf-annot-add-highlight-markup-annotation)
-              ("t"   . pdf-annot-add-text-annotation)
-              ("D"   . pdf-annot-delete))
+  :preface
+
+  (defun pdf-view-find--org-source (buf)
+    "Open the source "
+    (let ((base (file-name-base (buffer-file-name buf)))
+          (dir (directory-file-name default-directory)))
+      (cl-loop for file in (directory-files dir t) thereis
+               (and (string= "org" (file-name-extension file))
+                    (string= (file-name-base file) base)
+                    file))))
+
+(defun pdf-view-jump-to-org-source ()
+    (interactive)
+    (when-let ((src-file (pdf-view-find--org-source (current-buffer))))
+        (find-file src-file)))
+
+  (defun pdf-outline-jump-to-org-heading ()
+    "Jump to the corresponding heading from `pdf-outline-buffer-mode'"
+    (interactive)
+    (when-let ((org-file (pdf-view-find--org-source
+                          (get-file-buffer pdf-outline-pdf-document))))
+      (let ((title (cdr (assoc 'title (pdf-outline-link-at-pos (point)))))
+            (pos nil))
+        (with-current-buffer (find-file-noselect org-file)
+          (let ((headings
+                 (org-map-entries
+                  (lambda () (cons (nth 4 (org-heading-components)) (point))))))
+            (if-let ((entry (assoc title headings)))
+                (setq pos (cdr entry)))))
+        (when pos
+          (switch-to-buffer (get-file-buffer org-file))
+          (goto-char pos)))))
+  :bind
+  (:map pdf-view-mode-map
+        ("C-s" . isearch-forward)
+        ;; PDF View annotions
+        ("+"   . pdf-view-enlarge)
+        ("h"   . pdf-annot-add-highlight-markup-annotation)
+        ("t"   . pdf-annot-add-text-annotation)
+        ("D"   . pdf-annot-delete))
   :init
   (pdf-tools-install)
-  :config
-  (setq-default pdf-view-display-size 'fit-page)
   :custom
   (pdf-annot-activate-created-annotations t)
-  (pdf-view-resize-factor 2))
+  (pdf-view-resize-factor 2)
+  (pdf-view-display-size 'fit-page))
+
+
 #+END_SRC
 
 **** Org PDF View
@@ -5948,24 +6000,24 @@ Embed YouTube Links in =iframe=.
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(use-package ob
-  :straight org-plus-contrib
-  :custom
-  (org-babel-uppercase-example-markers t)
-  :config
-  (defun org-babel-remove-result-buffer ()
-    "Remove results from every code block in buffer."
-    (interactive)
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward org-babel-src-block-regexp nil t)
-        (org-babel-remove-result))))
-  (when  (featurep 'which-key)
-    (which-key-add-major-mode-key-based-replacements 'org-mode
-      "C-c C-v" "Babel"
-      "C-c \" " "Plot"
-      "C-c M-#" "Outshine"
-      "C-c M-+" "outshine babel")))
+  (use-package ob
+    :straight org-plus-contrib
+    :custom
+    (org-babel-uppercase-example-markers t)
+    :config
+    (defun org-babel-remove-result-buffer ()
+      "Remove results from every code block in buffer."
+      (interactive)
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward org-babel-src-block-regexp nil t)
+	  (org-babel-remove-result))))
+    (when  (featurep 'which-key)
+      (which-key-add-major-mode-key-based-replacements 'org-mode
+	"C-c C-v" "Babel"
+	"C-c \" " "Plot"
+	"C-c M-#" "Outshine"
+	"C-c M-+" "outshine babel")))
 #+END_SRC
 
 **** Ob Http
@@ -5980,7 +6032,7 @@ Embed YouTube Links in =iframe=.
 **** Ob async
 
 #+BEGIN_SRC emacs-lisp
-  (use-package ob-async)
+(use-package ob-async)
 #+END_SRC
 
 **** Ob Diagrams
@@ -5989,7 +6041,7 @@ Embed YouTube Links in =iframe=.
 (use-package ob-diagrams)
 #+END_SRC
 
-**** Load Languages
+**** Load libraries
 #+BEGIN_SRC emacs-lisp
   (with-eval-after-load 'org
     (org-babel-do-load-languages
@@ -6030,6 +6082,7 @@ Embed YouTube Links in =iframe=.
 
 (load-lob)
 #+END_SRC
+
 
 *** Org speed commands
 
@@ -6954,7 +7007,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 
 #+END_SRC
 
-*** Org Index :notetaking:
+*** Org Index
 
 #+NAME: org-docmgr-index
 #+BEGIN_SRC emacs-lisp
@@ -6971,7 +7024,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
     (org-noter-hide-other nil))
 #+END_SRC
 
-*** Org Journal :notetaking:
+*** Org Journal
 
 #+NAME: org-docmgr-journal
 #+BEGIN_SRC emacs-lisp
@@ -7135,9 +7188,9 @@ and subtrees of the ignored headlines will be retained.
   (org-latex-listings 'minted)
   (org-latex-minted-options
    '(("mathescape" "true")
+     ("escapeinside" "@@")
      ("breaklines" "true")
-     ("fontsize" "\\footnotesize")
-     ("frame" "none")))
+     ("fontsize" "\\footnotesize")))
   (org-latex-compiler "xelatex")
   (org-latex-classes
      '(("article"
@@ -7323,15 +7376,10 @@ and subtrees of the ignored headlines will be retained.
   (setq org-latex-classes
       (append org-latex-classes
            '(("tufte-handout"
-              "\\documentclass[twoside,nobib]{tufte-handout}
+              "\\documentclass[twoside,nobib,nofonts]{tufte-handout}
              [NO-DEFAULT-PACKAGES]"
               ("\\section{%s}" . "\\section*{%s}")
-              ("\\subsection{%s}" . "\\subsection*{%s}"))
-             '("tufte-handout"
-               "\\documentclass[twoside,nobib]{tufte-handout}
-              [NO-DEFAULT-PACKAGES]"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}"))))))
+              ("\\subsection{%s}" . "\\subsection*{%s}"))))))
 #+END_SRC
 
 **** Ox Linguistics
@@ -7608,8 +7656,12 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
      ("vb"            "\\vb"            t "" "" "" "|")
      ("xsol"          "\\xsol"          t "" "" "" "⧸")
      ("textbackslash" "\\textbackslash" t "" "" "" "＼")
+     ("mathslash"     "\\mathslash"     t "" "" "" "/")
+     ("rfrac"         "\\rfrac"         t "" "" "" "/")
      ("subseteq"      "\\subseteq"      t "" "" "" "⊆")
-     ("subsetneq"      "\\subsetneq"     t "" "" "" "⊊"))))
+     ("subsetneq"      "\\subsetneq"     t "" "" "" "⊊")
+     ("textdollar"      "\\textdollar"     t "" "" "" "＄")
+     ("Longrightarrow" "\\Longrightarrow" t "" "" "" "⟹"))))
 #+END_SRC
 
 * Appearance
@@ -7854,6 +7906,7 @@ theme in \"quick mode\" by eliding hooks specified in
 
 (defun org-modified-theme ()
   (org-theme-faces)
+  (org-agenda-theme)
   (dotemacs/org-restart))
 
 
@@ -7863,6 +7916,15 @@ theme in \"quick mode\" by eliding hooks specified in
         (toggle-scroll-bar -1))
     (toggle-scroll-bar -1)))
 
+;; Font lock inline code blocks
+;; https://stackoverflow.com/a/28059832
+(font-lock-add-keywords 'org-mode
+                        '(("\\(src_\\)\\([^[{]+\\)\\(\\[:.*\\]\\){\\([^}]*\\)}"
+                           (1 '(:foreground "black" :weight 'normal :height 10)) ; src_ part
+                           (2 '(:foreground "cyan" :weight 'bold :height 75 :underline "red")) ; "lang" part.
+                           (3 '(:foreground "#555555" :height 70)) ; [:header arguments] part.
+                           (4 'org-code) ; "code..." part.
+                           )))
 ;; Add Hooks
 (add-hook 'load-theme-hook #'org-modified-theme)
 (add-hook 'load-theme-hook #'disable-scroll-bar)
@@ -7875,17 +7937,6 @@ theme in \"quick mode\" by eliding hooks specified in
 #+NAME: hl-highlight
 #+BEGIN_SRC emacs-lisp
 (use-package highlight)
-#+END_SRC
-
-*** Emacs Command tooltip mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package emacs-keybinding-command-tooltip-mode
-  :straight (emacs-keybinding-command-tooltip-mode
-             :local-repo
-             "~/.emacs.d/etc/local/emacs-keybinding-command-tooltip-mode")
-  :init
-  (emacs-keybinding-command-tooltip-mode 1))
 #+END_SRC
 
 *** Overlay
@@ -8606,13 +8657,13 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     (spaceline-toggle-all-the-icons-flycheck-status-off)
     (spaceline-toggle-mu4e-alert-segment-on))
 
-(use-package spaceline-all-the-icons-ebib
-  :straight (spaceline-all-the-icons-ebib
-             :local-repo  "~/.emacs.d/etc/local/spaceline-all-the-icons-ebib")
-  :defines (spaceline-all-the-icons--setup-ebib)
-  :after (spaceline-all-the-icons spaceline-all-the-icons-segments)
-  :config
-  (spaceline-all-the-icons--setup-ebib))
+;; (use-package spaceline-all-the-icons-ebib
+;;   :straight (spaceline-all-the-icons-ebib
+;;              :local-repo  "~/.emacs.d/etc/local/spaceline-all-the-icons-ebib")
+;;   :defines (spaceline-all-the-icons--setup-ebib)
+;;   :after (spaceline-all-the-icons spaceline-all-the-icons-segments)
+;;   :config
+;;   (spaceline-all-the-icons--setup-ebib))
 #+END_SRC
 
 * Web
@@ -8805,6 +8856,24 @@ active xwidget buffer and write to file in DIRECTORY."
     (xwidget-webkit-browse-url
      (concat "file://" (copy-file-path)))))
 #+END_SRC
+
+**** Grip mode
+
+#+begin_src emacs-lisp
+(use-package grip
+  :init
+  (defun grip/get-github-credentials ()
+    (let ((credential (auth-source-user-and-password "api.github.com"
+                                                     user-mail-address)))
+      (setq grip-github-user (car credential))
+      (setq grip-github-password (cadr credential))))
+  :hook
+  ((markdown-mode org-mode) . grip-mode)
+  (grip-mode . grip/get-github-credentials)
+  :custom
+  (grip-binary-path (or (executable-find "grip") "grip"))
+  (grip-preview-use-webkit t))
+#+end_src
 
 *** Set default browser
 
@@ -9272,6 +9341,7 @@ Interactively.
       (when (fboundp 'osx-browse-url-chrome)
         (setq browse-url-browser/function 'osx-browse-url-chrome))))
 #+END_SRC
+
 
 * Writing
 ** Notetaking
@@ -10384,8 +10454,8 @@ Pair programming.
     (setq-local font-lock-keywords my-ielm-font-lock-kwds))
 ;;;; ielm hooks
   :hook
-  (ielm-mode . lisp-setup-hook)
-  (ielm-mode . ielm/font-lock-kwds))
+  (ielm-mode . ielm/font-lock-kwds)
+  (ielm-mode . lisp-setup-hook))
 ;;; end ielm
   #+END_SRC
 
@@ -10645,6 +10715,18 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   :if (executable-find "lein")
   :hook ((clojure-mode clojurescript-mode) . cljsbuild-mode))
 #+END_SRC
+
+*** Haskell
+
+#+begin_src emacs-lisp
+(use-package haskell-mode
+  :custom
+  (haskell-process-path-ghci "/Users/jacobchaffin/.ghcup/bin/ghci")
+  :init
+  (with-eval-after-load 'info
+    (info-initialize)
+    (push (straight-build-dir "haskell-mode.texi")  Info-directory-list)))
+#+end_src
 
 *** Groovy
 
@@ -11533,6 +11615,7 @@ Mode for editing Homebrew formula.
      ("\\.md\\'" . markdown-mode)
      ("\\.markdown\\'" . markdown-mode))
     :hook
+    (markdown-mode . md/visual)
     (markdown-mode . md/font))
 #+END_SRC
 

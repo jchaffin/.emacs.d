@@ -3,6 +3,7 @@
 # key: tufte-setup
 # --
 #+TITLE: $1
+#+LATEX_CLASS: tufte-handout
 #+OPTIONS: ':nil *:t -:t ::t <:t H:5 \n:nil ^:{} arch:headline
 #+OPTIONS: author:t c:nil creator:nil d:(not "LOGBOOK") date:t e:t
 #+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:nil
@@ -16,6 +17,7 @@
 #+MACRO: sidenote \sidenote[$2][$3]{$1}
 #+MACRO: marginnote \marginnote[$2]{$1}
 #+MACRO: tl Tufte-LaTeX
+#+LaTeX_HEADER: \usepackage{fontspec}
 #+LATEX_HEADER: \usepackage{etex}
 #+LATEX_HEADER: \reserveinserts{36}
 #+LATEX_HEADER: \usepackage[maxfloats=48]{morefloats}
@@ -26,6 +28,17 @@
 #+LATEX_HEADER: \titleformat{\part}[display]{\relax\itshape\huge}{}{0pt}{\huge\rmfamily\itshape}[]
 #+LATEX_HEADER: \usepackage{xparse}
 #+LATEX_HEADER: \usepackage{xpatch}
+#+LATEX_HEADER: \usepackage{ifxetex}
+#+LATEX_HEADER: \ifxetex
+#+LATEX_HEADER:   \renewcommand{\textls}[2][5]{%
+#+LATEX_HEADER:     \begingroup\addfontfeatures{LetterSpace=#1}#2\endgroup
+#+LATEX_HEADER:   }
+#+LATEX_HEADER:   \renewcommand{\allcapsspacing}[1]{\textls[15]{#1}}
+#+LATEX_HEADER:   \renewcommand{\smallcapsspacing}[1]{\textls[10]{#1}}
+#+LATEX_HEADER:   \renewcommand{\allcaps}[1]{\textls[15]{\MakeTextUppercase{#1}}}
+#+LATEX_HEADER:   \renewcommand{\smallcaps}[1]{\smallcapsspacing{\scshape\MakeTextLowercase{#1}}}
+#+LATEX_HEADER:   \renewcommand{\textsc}[1]{\smallcapsspacing{\textsmallcaps{#1}}}
+#+LATEX_HEADER: \fi
 #+LATEX_HEADER: \makeatletter
 #+LATEX_HEADER: \xpatchcmd{\@footnotetext}%
 #+LATEX_HEADER:       {\color@begingroup}
