@@ -35,9 +35,10 @@
 \noautomath
 \usepackage{adjustbox}
 \usepackage{tikz}
-\usetikzlibrary{decorations,decorations.pathreplacing,calc,fit,positioning,shapes,arrows.meta}
+\usetikzlibrary{arrows,automata,calc,decorations,decorations.pathreplacing,decorations.text,fit,positioning,quotes,shapes,topaths}
 \tikzset{
-exarrows/.style={%
+  every state/.style={draw,circle},
+  exarrows/.style={%
     semithick,
     arrows={%
       -Stealth[
@@ -46,28 +47,26 @@ exarrows/.style={%
         scale width=1
       ]
     }
-  }
-}
-\tikzset{
-    dc/.style = {rounded corners=1pt, semithick},
-    case/.style = {o, semithick, rounded corners=1pt},
-    mvt/.style = {rounded corners=1pt, semithick},
-    agree/.style = {rounded corners=1pt, semithick, o},
-    icon/.style = {pos=0.25, yshift=-0.7ex},
-    arrow-label/.style = {font=\scshape\itshape},
-    o/.style = {
-        shorten >=#1,
-        shorten <=#1,
-        decoration={
-            markings,
-            mark= at position 0 with
-                { \fill circle [xshift=#1,radius=#1]; } ,
-            mark= at position 1 with
-                { \fill circle [xshift=-#1,radius=#1]; } ,
-        },
-        postaction=decorate
-    },
-    o/.default=1.75pt
+  },
+  dc/.style = {rounded corners=1pt, semithick},
+  case/.style = {o, semithick, rounded corners=1pt},
+  mvt/.style = {rounded corners=1pt, semithick},
+  agree/.style = {rounded corners=1pt, semithick, o},
+  icon/.style = {pos=0.25, yshift=-0.7ex},
+  arrow-label/.style = {font=\scshape\itshape},
+  o/.style = {
+      shorten >=#1,
+      shorten <=#1,
+      decoration={
+          markings,
+          mark= at position 0 with
+              { \fill circle [xshift=#1,radius=#1]; } ,
+          mark= at position 1 with
+              { \fill circle [xshift=-#1,radius=#1]; } ,
+      },
+      postaction=decorate
+  },
+  o/.default=1.75pt
 }
 % In-line Tikz nodes.
 \newcommand{\tkn}[2]{%

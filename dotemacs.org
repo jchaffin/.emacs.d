@@ -2,7 +2,7 @@
 #+language: en
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes :comments both :results silent
-#+STARTUP: showeverything
+#+STARTUP: hideblocks
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 
 * Table Of Contents :TOC_3_gh:noexport:
@@ -1380,10 +1380,23 @@ killall gpg-agent
                   ("s" ace-swap-window "swap")
                   ("a" ace-select-window "select")
                   ("o" other-window "cycle")
-                  ("t" transpose-frame "transpose")))))
+                  ("t" transpose-frame "transpose"))))
+    (pretty-hydra-define hydra-insert (:hint nil :foreign-keys warn :quit-key "q")
+      (
+       "Unicode" (("m" math-symbols-insert "math")
+                  ("u" counsel-unicode-char "char"))
+
+       "MC"       (("n" mc/insert-nummbers "Numbers")
+                   ("l" mc/insert-letters "Letters"))
+
+       "Icon"    (("i" all-the-icons-insert "all the icon")
+                  ("M" all-the-icons-insert-material "material")
+                  ("F" all-the-icons-insert-fileicon)))))
+
   :bind
   (:map my-prefix-map
-        ("e" . hydra-emacs/body))
+        ("e" . hydra-emacs/body)
+        ("i" . hydra-insert/body))
   :config
   (with-eval-after-load 'which-key
     (which-key-add-key-based-replacements
@@ -1403,14 +1416,15 @@ killall gpg-agent
     :init
     (which-key-setup-minibuffer)
     (which-key-mode 1)
-    :config
-    (when (featurep 'all-the-icons)
-      (push '((nil . "^org-\\(.+\\)") . (nil . " \\1"))
-            which-key-replacement-alist)
-      (push '((nil . "^org-babel-\\(.+\\)") . (nil . "\\1"))
-            which-key-replacement-alist)
-      (push '((nil . "^mc/\\(.+\\)") . (nil . " \\1"))
-            which-key-replacement-alist))
+    (defun wk/iconicize-replacements ()
+      (when (featurep 'all-the-icons)
+        (let ((replacements
+               '(((nil . "^counsel-\\(.+\\)") . (nil . " \\1"))
+                 ((nil . "^org-\\(.+\\)") . (nil . " \\1"))
+                 ((nil . "^org-babel-\\(.+\\)") . (nil . "\\1"))
+                 ((nil . "^mc/\\(.+\\)") . (nil . " \\1")))))
+          (cl-loop for replacement in replacements do
+                   (push replacement which-key-replacement-alist)))))
 
     (which-key-add-key-based-replacements
       "C-x a" "abbrev"
@@ -1983,6 +1997,7 @@ PATH is optional, and defaults to the current directory."
   (mc/always-run-for-all t)
   :init
   (global-unset-key (kbd "M-<down-mouse-1>"))
+
   :bind
   (("C-c C-s-." . mc/edit-lines)
    ("C->" . mc/mark-next-like-this)
@@ -2389,6 +2404,7 @@ whistles, it makes up for in compatibility and hackability [fn:7].
                 '("gradle" "target" ".meghanada"
                   ".gradle" "build" "bin" "node_modules"
                   "ltximg" "CMakeFiles" ".cquery_cached_index"))))
+
 ;;;; end projectile
 
 #+END_SRC
@@ -3182,7 +3198,12 @@ over ssh."
 :END:
 
 #+BEGIN_SRC emacs-lisp
-(use-package info-plus)
+(use-package info-plus
+  :init
+  (defun info-plus-enable ()
+    (require 'info+))
+  :hook
+  (Info-mode . info-plus-enable))
 #+END_SRC
 
 ** Frames
@@ -3254,10 +3275,7 @@ different window configurations.
 (use-package shackle
   :custom
   (shackle-rules '((compilation-mode :noselect t)
-                   (Info-mode  :other t :popup t)
-                   (helpful-mode  :size 0.5 :align 'below :popup t)
-                   (help-mode  :size 0.5 :align 'below :popup t)))
-  (shackle-inhibit-window-quit-on-same-windows t)
+                   (Info-mode  :other t :popup t)))
   (shackle-default-rule '(:select t)))
   :init
   (shackle-mode 1)
@@ -3749,10 +3767,6 @@ END:
     (counsel-git-grep-cmd counsel-git-grep-cmd-default)
     (counsel-grep-swiper-limit 250000)
     (counsel-mode-override-describe-bindings t)
-    (counsel-find-file-at-point t)
-    (counsel-preselect-current-file t)
-    (counsel-find-file-ignore-regexp
-     (regexp-opt `("\\(?:\\`\\|[/\\]\\)\\(?:[#.]\\" ,@completion-ignored-extensions)))
     :bind (("<f1> l" . counsel-find-library)
            ("C-c l" . counsel-load-library)
            ("C-c g" . counsel-git)
@@ -3826,7 +3840,7 @@ friends.
   :preface
   (bind-keys
    :prefix-map itunes-prefix-map
-   :prefix "M-m i")
+   :prefix "M-m j")
   :bind
   (:map itunes-prefix-map
         ("c" . counsel-itunes-current-track)
@@ -3841,16 +3855,16 @@ friends.
   :config
   (with-eval-after-load 'which-key
     (which-key-add-key-based-replacements
-      "M-m i"     "🎵 iTunes"
-      "M-m i c"   "ℹ Info"
-      "M-m i p"   " Playlist"
-      "M-m i SPC" "⏯ Play/Pause"
-      "M-m i t"   " Tracklist"
-      "M-m i -"   "🔉 Volume Down"
-      "M-m i +"   "🔊 Volume Up"
-      "M-m i b"   "⏮ Previous Track "
-      "M-m i n"   "⏭ Next Track"
-      "M-m i s"   "🔀 Shuffle"))
+      "M-m j"     "🎵 iTunes"
+      "M-m j c"   "ℹ Info"
+      "M-m j p"   " Playlist"
+      "M-m j SPC" "⏯ Play/Pause"
+      "M-m j t"   " Tracklist"
+      "M-m j -"   "🔉 Volume Down"
+      "M-m j +"   "🔊 Volume Up"
+      "M-m j b"   "⏮ Previous Track "
+      "M-m j n"   "⏭ Next Track"
+      "M-m j s"   "🔀 Shuffle"))
   :after (:all counsel ivy)
   :demand t)
 
@@ -3889,7 +3903,6 @@ ivy integration with dash docsets. This is not great, as installing
   :custom
   (dash-docs-browser-func 'browse-url))
 #+END_SRC
-
 
 **** counsel Codesearch
 
@@ -3930,6 +3943,7 @@ ivy integration with dash docsets. This is not great, as installing
     (swiper-stay-on-quit t)
     :bind
     ("\C-s" . counsel-grep-or-swiper)
+    ("\C-c s" . counsel-grep)
     :config
     (if (eq system-type 'darwin)
         (global-set-key (kbd "s-f") 'swiper)))
@@ -4703,6 +4717,9 @@ Entered on [2018-06-13 Wed 11:42]
 #+NAME: latex-math-symbols
 #+BEGIN_SRC emacs-lisp
   (use-package math-symbols
+    :bind
+    (:map global-map
+          ("C-c m" . math-symbols-insert))
     :init
     (defun insert-three-em-space ()
       (interactive)
@@ -4789,12 +4806,6 @@ Entered on [2018-06-13 Wed 11:42]
     (LaTeX-mode . latex/unbind-osx-browse)
     (LaTeX-mode . latex/prettify-symbols-extra))
 
-#+END_SRC
-
-**** Unicode math input
-
-#+BEGIN_SRC emacs-lisp
-(use-package unicode-math-input)
 #+END_SRC
 
 *** Extra
@@ -5351,8 +5362,8 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("address")
        ("note")))
      ("InBook" "Chapter or Pages in a Book"
-      (("author" nil nil 0)
-       ("editor" nil nil 0)
+      (("author")
+       ("editor")
        ("title" "Title of the book")
        ("chapter" "Chapter in the book"))
       (("publisher")
@@ -5369,7 +5380,6 @@ Since Emacs 24.3, its built in with the Emacs distribution.
      ("Proceedings" "Conference Proceedings"
       (("title" "Title of the conference proceedings")
        ("year"))
-      nil
       (("booktitle" "Title of the proceedings for cross references")
        ("editor")
        ("volume" "Volume of the conference proceedings in the series")
@@ -5381,8 +5391,8 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("publisher" "Publishing company, its location")
        ("note")))
      ("Book" "Book"
-      (("author" nil nil 0)
-       ("editor" nil nil 0)
+      (("author")
+       ("editor")
        ("title" "Title of the book"))
       (("publisher")
        ("year"))
@@ -5395,7 +5405,6 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("note")))
      ("Booklet" "Booklet (Bound, but no Publisher)"
       (("title" "Title of the booklet (BibTeX converts it to lowercase)"))
-      nil
       (("author")
        ("howpublished" "The way in which the booklet was published")
        ("address")
@@ -5407,7 +5416,6 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("title" "Title of the PhD. thesis")
        ("school" "School where the PhD. thesis was written")
        ("year"))
-      nil
       (("type" "Type of the PhD. thesis")
        ("address" "Address of the school (if not part of field \"school\") or country")
        ("month")
@@ -5417,7 +5425,6 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("title" "Title of the master's thesis (BibTeX converts it to lowercase)")
        ("school" "School where the master's thesis was written")
        ("year"))
-      nil
       (("type" "Type of the master's thesis (if other than \"Master's thesis\")")
        ("address" "Address of the school (if not part of field \"school\") or country")
        ("month")
@@ -5427,7 +5434,6 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("title" "Title of the technical report (BibTeX converts it to lowercase)")
        ("institution" "Sponsoring institution of the report")
        ("year"))
-      nil
       (("type" "Type of the report (if other than \"technical report\")")
        ("number" "Number of the technical report")
        ("address")
@@ -5435,7 +5441,6 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("note")))
      ("Manual" "Technical Manual"
       (("title" "Title of the manual"))
-      nil
       (("author")
        ("organization" "Publishing organization of the manual")
        ("address")
@@ -5447,10 +5452,9 @@ Since Emacs 24.3, its built in with the Emacs distribution.
       (("author")
        ("title" "Title of the unpublished work (BibTeX converts it to lowercase)")
        ("note"))
-      nil
       (("month")
        ("year")))
-     ("Misc" "Miscellaneous" nil nil
+     ("Misc" "Miscellaneous"
       (("author")
        ("title" "Title of the work (BibTeX converts it to lowercase)")
        ("howpublished" "The way in which the work was published")
@@ -5458,33 +5462,32 @@ Since Emacs 24.3, its built in with the Emacs distribution.
        ("year")
        ("note")))
      ("Online" "Online Resource"
-      (("author" nil nil 0)
-       ("editor" nil nil 0)
-       ("title" nil nil nil)
-       ("year" nil nil 1)
-       ("date" nil nil 1)
-       ("url" nil nil nil))
-      nil
-      (("subtitle" nil nil)
-       ("titleaddon" nil nil)
-       ("language" nil nil)
-       ("howpublished" nil nil)
-       ("type" nil nil)
-       ("version" nil nil)
-       ("note" nil nil)
-       ("organization" nil nil)
-       ("location" nil nil)
-       ("date" nil nil)
-       ("month" nil nil)
-       ("year" nil nil)
-       ("addendum" nil nil)
-       ("pubstate" nil nil)
-       ("doi" nil nil)
-       ("eprint" nil nil)
-       ("eprintclass" nil nil)
-       ("eprinttype" nil nil)
-       ("url" nil nil)
-       ("urldate" nil nil)))))
+      (("author")
+       ("editor")
+       ("title")
+       ("year")
+       ("date")
+       ("url"))
+      (("subtitle")
+       ("titleaddon")
+       ("language")
+       ("howpublished")
+       ("type")
+       ("version")
+       ("note")
+       ("organization")
+       ("location")
+       ("date")
+       ("month")
+       ("year")
+       ("addendum")
+       ("pubstate")
+       ("doi")
+       ("eprint")
+       ("eprintclass")
+       ("eprinttype")
+       ("url")
+       ("urldate")))))
 ;;;; Configuration
   :config
   (defun bibtex-create-entries-buffer ()
@@ -5673,10 +5676,12 @@ entry types and required fields."
   (ebib-reading-list-file (org-dir "ref/reading.org"))
   (ebib-preload-bib-files (list dotemacs-bibliography-file))
   :config
+  (with-eval-after-load 'org-agenda
+    (setq ebib-reading-list-todo-marker org-todo-keyword
+          ebib-reading-list-done-marker org-done-keyword))
   (with-eval-after-load 'info
     (info-initialize)
     (push (straight-build-dir "ebib/ebib.info")  Info-directory-list)))
-
 
 
 #+END_SRC
@@ -6295,7 +6300,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   (org-agenda-category-icon-alist
    `(("global"     ,(list "🌍")  nil nil :ascent center)
      ("schedule"   ,(list "📅")   nil nil :ascent center)))
-  (org-agenda-inhibit-startup t)
+
+  (org-agenda-inhibit-startup nil)
 ;;;; Views
   (org-agenda-skip-unavailable-files t)
   (org-agenda-skip-scheduled-if-deadline-is-shown t)
@@ -6375,51 +6381,37 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 
 #+NAME: agenda/ng
 #+BEGIN_SRC emacs-lisp
-(use-package org-agenda-ng
-  :straight
-  (org-agenda-ng :host github
-                 :repo "alphapapa/org-agenda-ng"
-                 :files ("org-agenda-ng.el")))
-
-#+END_SRC
-
-**** Org ql
-
-#+BEGIN_SRC emacs-lisp
 (use-package org-ql
-    :straight
-    (org-ql
-      :type git
-      :host github
-      :repo "alphapapa/org-agenda-ng"
-      :files ("org-ql.el")))
-#+END_SRC
-
-***** QL Agenda
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-ql-agenda
-    :straight
-    (org-ql-agenda
-      :type git
-      :host github
-      :repo "alphapapa/org-agenda-ng"
-      :files ("org-ql-agenda.el")))
+  :init
+  (with-eval-after-load 'info
+    (info-initialize)
+    (push (straight-build-dir "org-ql/org-ql.info")  Info-directory-list)))
 #+END_SRC
 
 **** Org Sidebar
 
 #+NAME: agenda/sidebar
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package org-sidebar
-  :straight
+(use-package org-sidebar)
+
+
+(defun org-course-sidebar (course)
   (org-sidebar
-   :host github
-   :repo "alphapapa/org-sidebar")
-  :init
-  (require 'org-ql)
-  (require 'dash-functional)
-  (require 'org-sidebar))
+   :sidebars (make-org-sidebar
+              :name (concat "To-do items in " course)
+              :description (concat "To-do items in " course)
+              :items (org-ql (expand-file-name
+                              (concat "~/Dropbox/courses/" course "/" course ".org"))
+                       (and (not (done))
+                            (or (deadline auto)
+                                (scheduled :on today)))
+                       :action element-with-markers)
+              :super-groups '((:time-grid t)
+                              (:name "Assignments" :tag "homework")
+                              (:name "Attachments" :tag "attach")))))
+
+(org-course-sidebar "ling185a")
+
 
 #+END_SRC
 
@@ -8301,6 +8293,12 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 #+END_SRC
 
 *** Unicode
+**** UCS
+***** ucs cmds
+#+begin_src emacs-lisp
+
+
+#+end_src
 **** Emojis
 ***** Unicode Emoticons
 
@@ -8402,10 +8400,8 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 #+NAME: icons/vscode
 #+BEGIN_SRC emacs-lisp
-
 (use-package vscode-icon
-  :init
-  (require 'vscode-icon)
+  :demand t
   :commands (vscode-icon-for-file))
 
 #+END_SRC
@@ -8518,6 +8514,12 @@ bullets as UTF-8 characters.
              :host github
              :type git
              :repo "Fuco1/org-pretty-table"))
+#+END_SRC
+
+**** Unicode math input
+
+#+BEGIN_SRC emacs-lisp
+(use-package unicode-math-input)
 #+END_SRC
 
 ** Cursor
@@ -8860,7 +8862,7 @@ active xwidget buffer and write to file in DIRECTORY."
 **** Grip mode
 
 #+begin_src emacs-lisp
-(use-package grip
+(use-package grip-mode
   :init
   (defun grip/get-github-credentials ()
     (let ((credential (auth-source-user-and-password "api.github.com"
@@ -8868,7 +8870,6 @@ active xwidget buffer and write to file in DIRECTORY."
       (setq grip-github-user (car credential))
       (setq grip-github-password (cadr credential))))
   :hook
-  ((markdown-mode org-mode) . grip-mode)
   (grip-mode . grip/get-github-credentials)
   :custom
   (grip-binary-path (or (executable-find "grip") "grip"))
@@ -9341,7 +9342,6 @@ Interactively.
       (when (fboundp 'osx-browse-url-chrome)
         (setq browse-url-browser/function 'osx-browse-url-chrome))))
 #+END_SRC
-
 
 * Writing
 ** Notetaking
