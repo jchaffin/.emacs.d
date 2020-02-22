@@ -123,17 +123,20 @@
 ;;;;;;; Org source
 	      (org-confirm-babel-evaluate nil)
         (org-src-fontify-natively t)
-        (org-src-tab-acts-natively t)
         (org-src-preserve-indentation t)
         (org-src-persistent-message nil)
         (org-src-window-setup 'current-window)
         (org-ctrl-k-protect-subtree 'error)
+        (org-startup-indented t)
         (org-catch-invisible-edits 'smart)
 ;;;;;;; Structure and Appearance
+        (org-display-remote-inline-images 'cache)
         (org-insert-heading-respect-content t)
         (org-ellipsis "")
         (org-list-allow-alphabetical t)
         (org-hide-emphasis-markers t)
+        (org-hidden-keywords '(author title date))
+        (org-pretty-entities t)
         (org-use-sub-superscripts '{})
         (org-use-speed-commands t)
         (org-yank-folded-subtrees t)
@@ -142,7 +145,10 @@
          '((heading . auto)
            (plain-list-item . auto)))
 ;;;;;;; org libraries
-        (org-modules '(org-bbdb
+        (org-modules '(ol-bookmark
+                       ol-man
+                       ol-elisp-symbol
+                       org-bbdb
                        org-bibtex
                        org-crypt
                        org-eww
@@ -158,10 +164,7 @@
                        org-collector
                        org-mac-iCal
                        org-mac-link
-                       org-velocity
-                       ol-bookmark
-                       ol-man
-                       ol-elisp-symbol))
+                       org-velocity))
 ;;;;;; org keybindings
         :bind
         (("C-c a" . org-agenda)

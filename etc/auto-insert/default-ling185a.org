@@ -1,0 +1,19 @@
+#+title: `(replace-regexp-in-string "hw\\([0-9]+\\)" "Assignment #\\1" (basename (file-name-directory (buffer-file-name))))`
+#+DATE: `(format-time-string "%D")`
+#+LATEX_COMPILER: xelatex
+#+LATEX_CLASS: uclaling
+#+LATEX_CLASS_OPTIONS: [coursename={Computational Semantics}, coursenumber={LING 185A}, profname={Tim Hunter}]
+#+OPTIONS: toc:nil tex:t
+
+* Preamble :noexport:
+`(let ((stub (car (directory-files default-directory t "Stub.hs")))) (when (file-exists-p stub) (insert (format "#+BEGIN_SRC haskell \n%s\n#+END_SRC" (org-file-contents stub)))))`
+
+* Index
+printindex:nil
+* Glossaries :ignore:
+\glsaddall
+\printglossaries
+* Bibliography :noexport:
+
+bibliography:`(car org-ref-default-bibliography)`
+bibliographystyle:linquiry2

@@ -483,50 +483,29 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 
 ***** Dashboard
 
-[[https://github.com/rakanalh/emacs-dashboard][Dashboard]] is a highly customizable splash screen
-replacement library used in the popular [[https://github.com/syl20bnr/spacemacs][spacemacs]] framework.
-It's a nice way of consolidating any combination of tasks,
-agenda items, bookmarks, and pretty much any other enumerable
-list that one may use in the wacky world of Emacs.
-
 #+NAME: buffer/dashboard
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
   :init
-  (defun dotemacs/dashboard-banner ()
-      "Set a dashboard banner including information on
-  package initialization time and garbage collections."
-      (setq dashboard-banner-logo-title
-            (format
-             (concat "Emacs ready in %.2f seconds "
-                       "with %d garbage collections.")
-             (float-time (time-subtract
-                          after-init-time
-                          before-init-time))
-             gcs-done)))
+  (unless global-page-break-lines-mode
+    (global-page-break-lines-mode))
 
-    (unless global-page-break-lines-mode
-      (global-page-break-lines-mode))
+  (dashboard-setup-startup-hook)
+  :config
+  (add-to-list 'dashboard-items '(agenda) t)
+  ;; Get the week agenda.
+  ;; See `dashboard-get-agenda' for how this
+  ;; variable is being used.
+  (setq show-week-agenda-p t)
 
-    (dashboard-setup-startup-hook)
-
-    :config
-    (require 'org-agenda)
-    (add-to-list 'dashboard-items '(agenda) t)
-    ;; Get the week agenda.
-    ;; See `dashboard-get-agenda' for how this
-    ;; variable is being used.
-    (setq show-week-agenda-p t)
-
-    (setq dashboard-items '((agenda . 10)
-                            (projects . 5)
-                            (recents . 3)
-                            (bookmarks . 5)))
-
-    :hook
-    (dashboard-mode . dotemacs/dashboard-banner))
-
-
+  (setq dashboard-center-content t
+        dashboard-heading-icons t
+        dashboard-set-file-icons t
+        dashboard-set-navigator t
+        dashboard-items '((agenda . 10)
+                          (projects . 5)
+                          (recents . 3)
+                          (bookmarks . 5))))
 #+END_SRC
 
 **** Initial Frame
@@ -693,7 +672,6 @@ from within Emacs.
 (defun straight-reload-init ()
   "Reload init file using straight transaction system."
   (interactive)
-  (straight-mark-transaction-as-init)
   (message "Reloading initialization file...")
   (load user-init-file nil 'nomessage)
   (message "Reloading initialization file...done."))
@@ -716,8 +694,6 @@ from within Emacs.
            (not (file-exists-p buffer-file-name)))
         (eval-buffer)
       (progn
-        (when (string= buffer-file-name user-init-file)
-          (straight-mark-transaction-as-init))
         (load-file buffer-file-name)))
   (message "Evaluating %s...done." (buffer-name)))
 
@@ -1838,15 +1814,7 @@ value of `user-emacs-directory', else go to the`user-init-file'."
                 (unless (file-exists-p local-file)
                   (url-copy-file (concat emacswiki-base file) local-file t))))
             bookmark-files))
-  :demand t
-  :init
-  (defun bmkp/setup ()
-    (interactive)
-    (when (require 'bookmark nil t)
-      (and (file-exists-p bookmark-default-file)
-           (bookmark-load bookmark-default-file))))
-  :hook
-  (after-init . bmkp/setup))
+  :demand t)
 #+END_SRC
 
 *** Undo Tree
@@ -2070,6 +2038,12 @@ point reaches the beginning or end of the buffer, stop there."
    ("M-c" . fix-word-capitalize)))
 #+END_SRC
 
+**** align regexp
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-x a r") 'align-regexp)
+
+#+end_src
 *** Deleting
 **** Delete Selection Mode
 
@@ -2238,15 +2212,14 @@ point reaches the beginning or end of the buffer, stop there."
 #+NAME: flyspell-base
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
-    :init
-    (with-eval-after-load 'org
-      (add-hook 'org-mode-hook 'flyspell-mode))
-    :config
-    (progn
-      (when (executable-find "hunspell")
-        (setq-default ispell-program-name "hunspell")
-        (setq-default ispell-dictionary "en_US")
-        (setq ispell-really-hunspell t))))
+    :ensure-system-package hunspell
+    :hook
+    (org-mode . flyspell-mode)
+    (prog-mode . flyspell-prog-mode)
+    :custom
+    (ispell-program-name "hunspell")
+    (ispell-dictionary "en_US")
+    (ispell-really-hunspell t))
 #+END_SRC
 
 ***** Flyspell Correct
@@ -3274,8 +3247,7 @@ different window configurations.
 #+BEGIN_SRC emacs-lisp
 (use-package shackle
   :custom
-  (shackle-rules '((compilation-mode :noselect t)
-                   (Info-mode  :other t :popup t)))
+  (shackle-rules '((compilation-mode :noselect t)))
   (shackle-default-rule '(:select t)))
   :init
   (shackle-mode 1)
@@ -3937,16 +3909,18 @@ ivy integration with dash docsets. This is not great, as installing
 
 #+NAME: core/swiper
 #+BEGIN_SRC emacs-lisp
-(use-package swiper
-    :custom
-    (enable-recursive-minibuffers t)
-    (swiper-stay-on-quit t)
-    :bind
-    ("\C-s" . counsel-grep-or-swiper)
-    ("\C-c s" . counsel-grep)
-    :config
-    (if (eq system-type 'darwin)
-        (global-set-key (kbd "s-f") 'swiper)))
+  (use-package swiper
+      :custom
+      (enable-recursive-minibuffers t)
+      (swiper-stay-on-quit t)
+      :bind
+      ("\C-s" . counsel-grep-or-swiper)
+      ("\C-c s" . counsel-grep)
+      (:map org-mode-map
+	    ("\C-s" . counsel-grep))
+      :config
+      (if (eq system-type 'darwin)
+	  (global-set-key (kbd "s-f") 'swiper)))
 #+END_SRC
 
 *** Omnibox
@@ -4019,6 +3993,19 @@ for candidates in Ivy menus.
 
 #+END_SRC
 
+**** selectrum prescient
+#+begin_src
+#+end_src
+
+
+#+begin_src emacs-lisp
+(use-package selectrum-prescient
+  :straight (selectrum-prescient :host github :repo "raxod502/prescient.el"
+                                 :files ("selectrum-prescient.el"))
+  :init
+  (selectrum-prescient-mode +1))
+#+end_src
+
 *** Company
 
 Emacs has two popular packages for code completion --
@@ -4071,9 +4058,13 @@ any reason for me reconsider my choice.
   :demand t
   :init
   (add-to-list 'company-backends 'company-dict)
-  :config
-  (setq company-dict-enable-fuzzy t
-        company-dict-enable-yasnippet t))
+  :custom
+  (company-dict-enable-fuzzy t)
+  (company-dict-enable-yasnippet t)
+  (company-dict-dir
+   (and (executable-find "hunspell")
+        (shell-command-to-string
+         "hunspell -D 2>&1 | tail -n 1"))))
 #+END_SRC
 
 **** Company Quick Help
@@ -4113,6 +4104,7 @@ any reason for me reconsider my choice.
   :config
   (define-auto-insert "\\.el$" [ "default-elisp.el" autoinsert-yas-expand ])
   (define-auto-insert "\\.cls$" [ "default-cls.cls" autoinsert-yas-expand ])
+  ;; (define-auto-insert "ling185a-as[0-9]+.org" ["default-ling185a.org" autoinsert-yas-expand])
   :hook
   (find-file . auto-insert))
 
@@ -5727,6 +5719,7 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
                  (org-map-entries
                   (lambda () (cons (nth 4 (org-heading-components)) (point))))))
             (if-let ((entry (assoc title headings)))
+
                 (setq pos (cdr entry)))))
         (when pos
           (switch-to-buffer (get-file-buffer org-file))
@@ -6210,12 +6203,10 @@ is positive, move after, and if negative, move before."
                 ":EMAIL: %(org-contacts-template-email)"
                 ":PHONE:"
                 ":ALIAS:"
-                ":NICKNAME:"
                 ":IGNORE:"
                 ":ICON:"
                 ":NOTE: %^{NOTE}"
                 ":ALIAS:"
-                ":BIRTHDAY:"
                 ":END:") "\n")
     "Template for org-contacts.")
   :init
@@ -6301,7 +6292,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
    `(("global"     ,(list "🌍")  nil nil :ascent center)
      ("schedule"   ,(list "📅")   nil nil :ascent center)))
 
-  (org-agenda-inhibit-startup nil)
+  (org-agenda-inhibit-startup t)
 ;;;; Views
   (org-agenda-skip-unavailable-files t)
   (org-agenda-skip-scheduled-if-deadline-is-shown t)
@@ -6358,6 +6349,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
                          :foreground foreground)))
          org-level-faces)
         (setq-local org-use-level-faces t))))
+
   (defun org-agenda-theme ()
     (cond ((org-agenda-file-p) (org-agenda--remap-org-level-faces))
           (org-use-level-faces
@@ -6366,9 +6358,8 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               (setq face-remapping-alist (delq f face-remapping-alist)))
             org-level-remap-face))))
   (when (file-exists-p dotemacs-default-agenda-file)
-    (add-to-list 'org-agenda-files dotemacs-default-agenda-file))
-  :hook
-  (org-mode . org-agenda-theme))
+    (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
+
 #+END_SRC
 
 **** Super agenda
@@ -6447,6 +6438,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+NAME: org-taskmgr-projectile
 #+BEGIN_SRC emacs-lisp
 (use-package org-projectile
+  :demand t
   :commands (org-projectile-files-to-agenda org-projectile-per-project-function)
   :after (:all projectile org-agenda)
   :bind (:map projectile-command-map
@@ -6477,10 +6469,10 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
          (seq-filter #'todo-file-p)
          (mapcar #'project-agenda-filepath)
          build-agenda)))
-  :hook
-  ((org-agenda-mode dashboard-mode) . org-projectile-files-to-agenda)
+
   :config
-  (org-projectile-per-project))
+  (org-projectile-per-project)
+  (org-projectile-files-to-agenda))
 
 #+END_SRC
 
@@ -6778,8 +6770,7 @@ Some of the UI features I'm using are highly experimental and cause certain deri
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-indent
-  :straight org-plus-contrib
-  :hook (org-mode . org-indent-mode))
+  :straight org-plus-contrib)
 #+END_SRC
 
 *** Per-image display width
@@ -8667,6 +8658,14 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 ;;   :config
 ;;   (spaceline-all-the-icons--setup-ebib))
 #+END_SRC
+
+**** which function
+
+#+begin_src emacs-lisp
+(use-package which-func
+  :init
+  (which-function-mode +1))
+#+end_src
 
 * Web
 ** Web libraries
@@ -10717,15 +10716,47 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+END_SRC
 
 *** Haskell
-
+**** Haskell Mode
 #+begin_src emacs-lisp
 (use-package haskell-mode
   :custom
   (haskell-process-path-ghci "/Users/jacobchaffin/.ghcup/bin/ghci")
+  (haskell-stylish-on-save t)
+  (haskell-process-suggest-remove-import-lines t)
+  (haskell-process-auto-import-loaded-modules t)
+  (haskell-process-log t)
+  (haskell-tags-on-save t)
+  :bind
+  ((:map haskell-mode-map
+         ("C-c C-l" . haskell-process-load-or-reload)
+         ("C-`" . haskell-interactive-bring)
+         ("C-c C-t" . haskell-process-do-type)
+         ("C-c C-i" . haskell-process-do-info)
+         ("C-c C-c" . haskell-process-cabal-build)
+         ("C-c C-k" . haskell-interactive-mode-clear)
+         ("C-c c" . haskell-process-cabal)))
+  :hook
+  (haskell-mode . haskell-auto-insert-module-template)
+  (haskell-mode . interactive-haskell-mode)
+  (haskell-mode haskell-decl-scan-mode)
+  (haskell-mode . haskell-collapse-mode)
   :init
   (with-eval-after-load 'info
     (info-initialize)
     (push (straight-build-dir "haskell-mode.texi")  Info-directory-list)))
+
+
+#+end_src
+
+
+
+**** LSP Haskell
+
+#+begin_src emacs-lisp
+(use-package lsp-haskell
+  :hook
+  (haskell-mode . lsp))
+
 #+end_src
 
 *** Groovy
