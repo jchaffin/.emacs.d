@@ -1,7 +1,7 @@
 #+title: Dotemacs
-#+language: en
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes :comments both :results silent
+#+language: en
 #+STARTUP: hideblocks
 #+OPTIONS: num:nil toc:2 tags:nil todo:nil H:3 tex:nil latex:nil
 
@@ -3736,7 +3736,6 @@ END:
     (counsel-describe-function-function #'helpful-callable)
     (counsel-describe-variable-function #'helpful-variable)
     (counsel-bookmark-avoid-dired t)
-    (counsel-git-grep-cmd counsel-git-grep-cmd-default)
     (counsel-grep-swiper-limit 250000)
     (counsel-mode-override-describe-bindings t)
     :bind (("<f1> l" . counsel-find-library)
@@ -3759,8 +3758,6 @@ END:
     :init
     (counsel-mode +1)
     :blackout t)
-
-
 
 #+END_SRC
 
@@ -4934,6 +4931,13 @@ save.
           (t nil))))
 #+END_SRC
 
+**** Fragtog
+
+#+NAME: org-preview-fragtog
+#+begin_src emacs-lisp
+(use-package org-fragtog)
+#+end_src
+
 **** Justify Fragments
 
 #+BEGIN_SRC emacs-lisp
@@ -6081,7 +6085,6 @@ Embed YouTube Links in =iframe=.
 (load-lob)
 #+END_SRC
 
-
 *** Org speed commands
 
 #+BEGIN_SRC emacs-lisp
@@ -6646,7 +6649,6 @@ and subsequent lines as the event note."
 
 #+END_SRC
 
-
 *** Clock
 
 **** Pomodoro
@@ -6745,8 +6747,8 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 
 ** Org Appearance
 
-These settings subjectively improve the overall viewable-ness of
-org-mode buffers.
+These settings subjectively improve the overall viewable-ness of org-mode buffers.
+
 *** Toggle Hooks
 
 Some of the UI features I'm using are highly experimental and cause certain derived modes such as [[elisp-function:bind-key-autoloads:org-capture][org-capture]] to break.
@@ -6997,7 +6999,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
   (use-package org-index)
 #+END_SRC
 
-*** Org Noter :notetaking:
+*** Org Noter
 
 #+NAME: org-docmgr-interleave
 #+BEGIN_SRC emacs-lisp
@@ -7641,6 +7643,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
      ("textbackslash" "\\textbackslash" t "" "" "" "＼")
      ("mathslash"     "\\mathslash"     t "" "" "" "/")
      ("rfrac"         "\\rfrac"         t "" "" "" "/")
+     ("overline"      "\\overline"      nil "" "" "" "O")
      ("subseteq"      "\\subseteq"      t "" "" "" "⊆")
      ("subsetneq"      "\\subsetneq"     t "" "" "" "⊊")
      ("textdollar"      "\\textdollar"     t "" "" "" "＄")
@@ -8855,7 +8858,7 @@ active xwidget buffer and write to file in DIRECTORY."
     "Open local FILE in"
     (interactive "fFile: ")
     (xwidget-webkit-browse-url
-     (concat "file://" (copy-file-path)))))
+     (concat "file://" (file-path)))))
 #+END_SRC
 
 **** Grip mode
@@ -10738,7 +10741,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   :hook
   (haskell-mode . haskell-auto-insert-module-template)
   (haskell-mode . interactive-haskell-mode)
-  (haskell-mode haskell-decl-scan-mode)
+  (haskell-mode . haskell-decl-scan-mode)
   (haskell-mode . haskell-collapse-mode)
   :init
   (with-eval-after-load 'info
