@@ -1,4 +1,4 @@
-#+title: Dotemacs
+ #+title: Dotemacs
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes :comments both :results silent
 #+language: en
@@ -67,7 +67,7 @@
     - [[#dired][Dired]]
     - [[#pack][Pack]]
     - [[#neotree][Neotree]]
-    - [[#treemacs][Treemacs]]
+    -  [[#treemacs][Treemacs]]
     - [[#speedbar][Speedbar]]
     - [[#search-1][Search]]
   - [[#shell][Shell]]
@@ -2580,7 +2580,7 @@ parent directory."
           (message "Project root not found."))))))
 #+END_SRC
 
-*** Treemacs
+***  Treemacs
 #+BEGIN_SRC emacs-lisp
   (use-package treemacs
     :bind
@@ -2621,6 +2621,14 @@ parent directory."
     (treemacs-tag-follow-cleanup         t)
     (treemacs-tag-follow-delay           1.5)
     (treemacs-width                      35)
+    :init
+    (define-inline treemacs--extra-ignore-file-predicate (file _)
+      (declare (side-effect-free t) (pure t))
+      (inline-letevals (file)
+        (inline-quote
+         (or (string-prefix-p ,file "_minted")
+             (string-equal ,file "straight")
+             (string-equal ,file "auto")))))
     :config
     (treemacs-follow-mode t)
     (treemacs-filewatch-mode t)
@@ -2631,6 +2639,8 @@ parent directory."
        (treemacs-git-mode 'extended))
       (`(t . _)
        (treemacs-git-mode 'simple)))
+    (setq treemacs-ignored-file-predicates
+          (append treemacs-ignored-file-predicates (list 'treemacs--extra-ignore-file-predicate)))
     (which-key-add-key-based-replacements
       "C-x t" "treemacs"))
 #+END_SRC
@@ -7652,6 +7662,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 
 * Appearance
 
+
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
 
 ** Theme
@@ -7829,7 +7840,6 @@ theme in \"quick mode\" by eliding hooks specified in
   (interactive)
   (dotemacs--toggle-theme-style)
   (dotemacs/load-theme))
-
 (add-hook 'after-init-hook #'dotemacs/load-theme)
 ;; (add-hook 'after-make-frame-functions #'dotemacs/load-theme-with-frame)
 #+END_SRC
