@@ -133,6 +133,7 @@
     - [[#org-emms][org emms]]
     - [[#bongo][bongo]]
     - [[#org-player][org player]]
+  - [[#db][DB]]
 - [[#org][Org]]
   - [[#latex][Latex]]
     - [[#auctex][Auctex]]
@@ -172,11 +173,12 @@
   - [[#org-tasks][Org Tasks]]
     - [[#id][ID]]
     - [[#capture][Capture]]
+    - [[#brain][Brain]]
     - [[#habit][Habit]]
     - [[#agenda][Agenda]]
     - [[#calendar][Calendar]]
     - [[#clock][Clock]]
-    - [[#org-brain][Org Brain]]
+    - [[#alert][Alert]]
   - [[#org-appearance][Org Appearance]]
     - [[#toggle-hooks][Toggle Hooks]]
     - [[#org-indent][Org indent]]
@@ -3063,6 +3065,8 @@ over ssh."
   (tramp-default-method "ssh")
   (tramp-default-user "classfin")
   :init
+  ;; FIXME: tramp-crypt issue
+  (defun tramp-register-crypt-file-name-handler ())
   (with-eval-after-load 'info
     (info-initialize)
     (push (straight-build-dir "tramp/tramp.info")  Info-directory-list)))
@@ -3180,8 +3184,8 @@ over ssh."
 :ID:       81C8F5CC-5F6E-417F-B549-BE2523A726BB
 :END:
 
-#+BEGIN_SRC emacs-lisp
-(use-package info-plus
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package info+
   :init
   (defun info-plus-enable ()
     (require 'info+))
@@ -4457,6 +4461,11 @@ school's WLAN.
   :straight (org-player :local-repo "~/.emacs.d/etc/local/org-player")
   :after (bongo))
 #+END_SRC
+
+** DB
+#+begin_src emacs-lisp
+(use-package emacsql-sqlite)
+#+end_src
 
 * Org
 :PROPERTIES:
@@ -6201,7 +6210,7 @@ is positive, move after, and if negative, move before."
     (org-attach-store-link-p t))
 #+END_SRC
 
-*** Capture :tasks:
+*** Capture
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-capture
@@ -6253,6 +6262,21 @@ is positive, move after, and if negative, move before."
      (font . "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1" )
      (select-frame-by-name " *alfred capture*")
      (org-capture))))
+#+END_SRC
+
+*** Brain
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-brain
+  :if (eq system-type 'darwin)
+  :defines (org-brain-path)
+  :init
+  (setq org-brain-path (concat (file-name-as-directory org-directory) "brain"))
+  :config
+  (progn
+    (setq org-id-track-globally t
+          org-brain-visualize-default-choices 'all
+          org-brain-title-max-length 12)))
 #+END_SRC
 
 *** Habit
@@ -6660,7 +6684,6 @@ and subsequent lines as the event note."
 #+END_SRC
 
 *** Clock
-
 **** Pomodoro
 :PROPERTIES:
 :ID:       3600535E-2C20-4E33-8572-E933319E87B3
@@ -6739,21 +6762,17 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 
 ***
 
-*** Org Brain
 
-#+NAME: org-ideamgr-brain
-#+BEGIN_SRC emacs-lisp
-(use-package org-brain
-  :if (eq system-type 'darwin)
-  :defines (org-brain-path)
+*** Alert
+
+#+begin_src emacs-lisp
+(use-package org-alert
+  :custom
+  (org-alert-notification-title "Org Reminder")
+  (alert-default-style 'osx-notifier)
   :init
-  (setq org-brain-path (concat (file-name-as-directory org-directory) "brain"))
-  :config
-  (progn
-    (setq org-id-track-globally t
-          org-brain-visualize-default-choices 'all
-          org-brain-title-max-length 12)))
-#+END_SRC
+  (org-alert-enable))
+#+end_src
 
 ** Org Appearance
 
@@ -9968,11 +9987,10 @@ As a git client though, magit is awesome.
 ***** forge
 
 #+BEGIN_SRC emacs-lisp
-(use-package emacsql-sqlite)
-
 (use-package forge
-  :after (magit emacsql-sqlite))
-
+  :after (magit emacsql-sqlite)
+  :custom
+  (forge-owned-accounts '(("jchaffin"))))
 #+END_SRC
 
 ***** magithub
