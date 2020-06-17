@@ -6770,7 +6770,7 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
   :custom
   (org-alert-notification-title "Org Reminder")
   (alert-default-style 'osx-notifier)
-  :init
+  :config
   (org-alert-enable))
 #+end_src
 
@@ -7863,7 +7863,7 @@ theme in \"quick mode\" by eliding hooks specified in
 ;; (add-hook 'after-make-frame-functions #'dotemacs/load-theme-with-frame)
 #+END_SRC
 
-** Org faces
+**  Org faces
 :PROPERTIES:
 :ID:       D29BA324-2B5B-46A6-A0E6-E266D770AF1F
 :END:
@@ -7941,9 +7941,9 @@ theme in \"quick mode\" by eliding hooks specified in
                            (4 'org-code) ; "code..." part.
                            )))
 ;; Add Hooks
-(add-hook 'load-theme-hook #'org-modified-theme)
 (add-hook 'load-theme-hook #'disable-scroll-bar)
 (add-hook 'after-make-frame-functions #'disable-scroll-bar)
+(add-hook 'load-theme-hook #'org-modified-theme)
 #+END_SRC
 
 ** Overlays
