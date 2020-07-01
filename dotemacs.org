@@ -1,4 +1,4 @@
- #+title: Dotemacs
+  #+title: Dotemacs
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes :comments both :results silent
 #+language: en
@@ -63,6 +63,7 @@
   - [[#projects][Projects]]
     - [[#projectile][Projectile]]
     - [[#find-file-in-project][Find File in Project]]
+    - [[#courses][Courses]]
   - [[#file-system][File System]]
     - [[#dired][Dired]]
     - [[#pack][Pack]]
@@ -220,7 +221,7 @@
     - [[#custom-theme][Custom Theme]]
     - [[#themes][Themes]]
     - [[#load-theme][Load Theme]]
-  - [[#org-faces][Org faces]]
+  -  [[#org-faces][Org faces]]
   - [[#overlays][Overlays]]
     - [[#highlight][Highlight]]
     - [[#overlay][Overlay]]
@@ -2425,6 +2426,14 @@ whistles, it makes up for in compatibility and hackability [fn:7].
   (ffip-use-rust-fd t)
   (add-to-list 'ffip-prune-patterns "*/straight"))
 #+END_SRC
+
+*** Courses
+**** shell script to initialize course proejct
+
+
+#+begin_src sh :exports none :tangle no
+for i in {1..10}; do mkdir -p "resources/week$i"; done
+#+end_src
 
 ** File System
 *** Dired
@@ -6437,8 +6446,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
               :super-groups '((:time-grid t)
                               (:name "Assignments" :tag "homework")
                               (:name "Attachments" :tag "attach")))))
-
-(org-course-sidebar "ling185a")
+(org-course-sidebar "comsci181")
 
 
 #+END_SRC
@@ -6589,9 +6597,11 @@ Calendar.
 
 #+BEGIN_SRC emacs-lisp
 (use-package calfw-org
+  :after (calfw)
+  :bind
+  ("M-m c" . cfw:open-calendar)
   :demand t
   :init
-  (require 'calfw)
   (defun cfw:open-calendar ()
    (interactive)
    (let ((cp
@@ -6600,9 +6610,15 @@ Calendar.
            :contents-sources
            (list
             (cfw:org-create-file-source
-             "📅 Schedule" "~/Dropbox/org/agenda/schedule.org" (face-foreground 'org-agenda-calendar-event))))))
+             "Tasks" "~/Dropbox/org/agenda/TODOs.org" (face-foreground 'org-agenda-calendar-event))
+            (cfw:org-create-file-source
+             "Schedule" "~/Dropbox/org/agenda/schedule.org" (face-foreground 'org-agenda-calendar-event))))))
 
-     (switch-to-buffer (cfw:cp-get-buffer cp)))))
+     (switch-to-buffer (cfw:cp-get-buffer cp))
+     (funcall-interactively #'cfw:refresh-calendar-buffer nil))
+   :config
+   (which-key-add-key-based-replacements
+     "M-m c" "📅 Calendar")))
 
 #+END_SRC
 
