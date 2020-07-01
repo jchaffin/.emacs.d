@@ -1,4 +1,4 @@
-  #+title: Dotemacs
+  #+title:Dotemacs
 #+AUTHOR: Jacob Chaffin
 #+PROPERTY: :header-args :tangle yes :comments both :results silent
 #+language: en
