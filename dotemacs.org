@@ -7692,7 +7692,8 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
      ("subseteq"      "\\subseteq"      t "" "" "" "⊆")
      ("subsetneq"      "\\subsetneq"     t "" "" "" "⊊")
      ("textdollar"      "\\textdollar"     t "" "" "" "＄")
-     ("Longrightarrow" "\\Longrightarrow" t "" "" "" "⟹"))))
+     ("Longrightarrow" "\\Longrightarrow" t "" "" "" "⟹")
+     ("backslash" "\\backslash" t "" "" "" "\\"))))
 #+END_SRC
 
 * Appearance
@@ -9425,6 +9426,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
   :init
   (require 'secrets)
   :custom
+
   (org-onenote-token-file
    (emacs-var-dir "org/onenote-oauth2.plstore")))
 #+END_SRC
@@ -9442,6 +9444,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 *** Org annotate file
 
 Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Place Annotations]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package org-annotate-file
     :straight org-plus-contrib
