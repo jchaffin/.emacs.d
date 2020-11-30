@@ -27,6 +27,14 @@
 \usepackage{rail}
 \newcommand{\vertex}{\node[circle,draw,radius=1cm]}
 \usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows}
+  \tikzset{
+    ->, % makes the edges directed
+    node distance=3cm, % specifies the minimum distance between two nodes. Change if necessary.
+    every state/.style={thick}, % sets the properties for each ’state’ node
+    initial text=$ $, % sets the text that appears on the start arrow
+  }
+\usepackage{circuitikz}
 \railoptions{-t}
 \usepackage{forest}
 \forestset{

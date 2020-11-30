@@ -30,6 +30,7 @@
   - [[#keybindings][Keybindings]]
     - [[#bind-key][Bind key]]
     - [[#hydra][Hydra]]
+    - [[#major-mode-hydra][Major mode hydra]]
     - [[#which-key][Which Key]]
     - [[#speed-type][Speed Type]]
   - [[#system][System]]
@@ -1321,17 +1322,7 @@ killall gpg-agent
 
 **** Pretty Hydra
 
-#+BEGIN_SRC emacs-lisp
-(use-package major-mode-hydra
-  :bind
-  ("C-M-m" . major-mode-hydra)
-  :config
-  (setq major-mode-hydra-title-generator
-        '(lambda (mode)
-           (s-concat "\n" (s-repeat 10 " ")
-                     (all-the-icons-icon-for-mode mode :v-adjust 0.05)
-                     " " (symbol-name mode) " commands"))))
-
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-hydra
   :after (hydra)
   :demand t
@@ -1380,6 +1371,47 @@ killall gpg-agent
   (with-eval-after-load 'which-key
     (which-key-add-key-based-replacements
       "M-m e" "Emacs")))
+#+END_SRC
+
+*** Major mode hydra
+
+#+BEGIN_SRC emacs-lisp
+(use-package major-mode-hydra
+  :bind
+  ("M-SPC" .  major-mode-hydra)
+  :init
+(major-mode-hydra-define emacs-lisp-mode nil
+  ("Eval"
+   (("b" eval-buffer "buffer")
+    ("e" eval-defun "defun")
+    ("r" eval-region "region"))
+   "REPL"
+   (("I" ielm "ielm"))
+   "Test"
+   (("t" ert "prompt")
+    ("T" (ert t) "all")
+    ("F" (ert :failed) "failed"))
+   "Doc"
+   (("d" describe-foo-at-point "thing-at-pt")
+    ("f" describe-function "function")
+    ("v" describe-variable "variable")
+    ("i" info-lookup-symbol "info lookup"))))
+(major-mode-hydra-define lisp-mode nil
+  ("Eval"
+   (("b" sly-eval-buffer "buffer")
+    ("e" sly-eval-defun "defun")
+    ("r" sly-eval-region "region"))
+   "REPL"
+   (("I" sly "sly"))))
+
+  :config
+  (setq major-mode-hydra-title-generator
+        '(lambda (mode)
+           (s-concat "\n" (s-repeat 10 " ")
+                     (all-the-icons-icon-for-mode mode :v-adjust 0.05)
+                     " " (symbol-name mode) " commands"))))
+
+
 #+END_SRC
 
 *** Which Key
@@ -5769,8 +5801,8 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   :custom
   (pdf-annot-activate-created-annotations t)
   (pdf-view-resize-factor 2)
-  (pdf-view-display-size 'fit-page))
-
+  (pdf-view-display-size 'fit-page)
+  (pdf-misc-print-program "lpr"))
 
 #+END_SRC
 
@@ -6545,7 +6577,8 @@ Calendar.
     (require 'org-gcal)
     :custom
     (org-gcal-file-alist
-     `(("jchaffin@g.ucla.edu" . ,gcal-agenda-file)))
+     `(("jchaffin@g.ucla.edu" . ,gcal-agenda-file)
+       ("t2iba0hggoc8c8u0h85667dkj0@group.calendar.google.com" . "~/Dropbox/Documents/2020/fall/cs181/schedule.org")))
     :config
     (require 'org-agenda)
     (unless (member gcal-agenda-file org-agenda-files)
@@ -7693,6 +7726,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
      ("subsetneq"      "\\subsetneq"     t "" "" "" "⊊")
      ("textdollar"      "\\textdollar"     t "" "" "" "＄")
      ("Longrightarrow" "\\Longrightarrow" t "" "" "" "⟹")
+     ("longleftarrow" "\\longleftarrow" t "" "" "" "⟵")
      ("backslash" "\\backslash" t "" "" "" "\\"))))
 #+END_SRC
 
@@ -10595,6 +10629,8 @@ Configuration for common-lisp.
 #+NAME: cl/slime
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package slime
+  :custom
+  (inferior-lisp-program "scbl")
   :defines
   (slime-complete-symbol*-fancy
    slime-completion-at-point-functions)
