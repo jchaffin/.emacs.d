@@ -10619,12 +10619,15 @@ Configuration for common-lisp.
 
 ***** Sly
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package sly
+  :preface
+  (setq inferior-lisp-program (executable-find "sbcl"))
   :custom
-  (inferior-lisp-program "clisp")
-  (sly-swithc-to-existing-lisp 'always)
-  (sly-contribs '(sly-fancy)))
+  (sly-switch-to-existing-lisp 'always)
+  (sly-contribs
+   '(sly-autodoc sly-fancy sly-indentation sly-mrepl sly-scratch
+     sly-trace-dialog sly-stickers)))
 #+END_SRC
 
 **** Clojure
