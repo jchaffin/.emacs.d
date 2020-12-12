@@ -71,7 +71,7 @@
     - [[#neotree][Neotree]]
     -  [[#treemacs][Treemacs]]
     - [[#speedbar][Speedbar]]
-    - [[#search-1][Search]]
+    - [[#search][Search]]
   - [[#shell][Shell]]
     - [[#terminal-colors][Terminal Colors]]
     - [[#emacs-shell][Emacs shell]]
@@ -101,7 +101,7 @@
     - [[#golden-ratio][Golden Ratio]]
     - [[#purpose][Purpose]]
   - [[#faces][Faces]]
-    - [[#faces-1][Faces+]]
+    - [[#faces][Faces+]]
     - [[#face-functions][Face functions]]
     - [[#face-remap][Face remap+]]
     - [[#face-explorer][Face Explorer]]
@@ -302,7 +302,7 @@
     - [[#line-numbers][Line numbers]]
     - [[#folding][Folding]]
     - [[#comments][Comments]]
-    - [[#comments-1][Comments]]
+    - [[#comments][Comments]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
     - [[#formatting][Formatting]]
@@ -313,7 +313,7 @@
     - [[#smartparens][Smartparens]]
     - [[#rainbow-delimiters][Rainbow Delimiters]]
     - [[#parinfer][Parinfer]]
-  - [[#tags-1][Tags]]
+  - [[#tags][Tags]]
     - [[#gtags][Gtags]]
     - [[#ctags][Ctags]]
   - [[#version-control][Version Control]]
@@ -343,7 +343,7 @@
     - [[#ruby][Ruby]]
     - [[#ocaml][Ocaml]]
     - [[#scala][Scala]]
-    - [[#web-1][Web]]
+    - [[#web][Web]]
     - [[#markdown][Markdown]]
     - [[#applescript][Applescript]]
     - [[#yaml][Yaml]]
@@ -2203,6 +2203,7 @@ point reaches the beginning or end of the buffer, stop there."
      ("/" "/" nil org-mode)
      ("=" "=" nil org-mode)
      ("+" "+" nil org-mode)
+     ("*" "*" nil org-mode)
      ("_" "_" nil org-mode)
      ("$" "$" nil (org-mode latex-mode))
      ("⟦" "⟧" "|" (org-mode latex-mode))
@@ -2634,6 +2635,8 @@ parent directory."
           ("C-x t B"   . treemacs-bookmark)
           ("C-x t C-t" . treemacs-find-file)
           ("C-x t M-t" . treemacs-find-tag))
+    :preface
+    (pyenv-mode-set "3.7.2")
     :custom
     (treemacs-python-executable (or (executable-find "python3") (executable-find "python")))
     (treemacs-collapse-dirs
@@ -5888,6 +5891,9 @@ instead of ~outline-show-entry~.
 
 ** Org Links
 *** Ol
+:PROPERTIES:
+:ID:       55BDC261-B827-4471-A5B9-38F3E58BD636
+:END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package ol
@@ -10655,7 +10661,7 @@ Configuration for common-lisp.
 
 ***** Sly
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package sly
   :preface
   (setq inferior-lisp-program (executable-find "sbcl"))
