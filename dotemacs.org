@@ -7568,6 +7568,37 @@ for exporting org-mode documents to various formats.
     (add-to-list 'org-file-apps '("\\.docx?\\'" . system))))
 #+END_SRC
 
+*** Ox Markdown
+
+#+begin_src emacs-lisp
+(use-package ox-md
+  :straight (ox-md :type built-in)
+  :init
+  (el-patch-feature ox-md)
+  ;; Add title export support to `ox-md'.
+  ;; Credit to Jay Kamat for the patch
+  ;; See https://lists.gnu.org/archive/html/emacs-orgmode/2017-08/msg00553.html
+    (el-patch-defun org-md-template (contents _info)
+    "Return complete document string after Markdown conversion.
+CONTENTS is the transcoded contents string.  INFO is a plist used
+as a communication channel."
+    (el-patch-wrap 1
+      (concat
+       ;; Generate title and subtitle, if possible
+       (let ((title (and (plist-get _info :with-title)
+                         (plist-get _info :title)))
+             (subtitle (plist-get _info :subtitle))
+             (style (plist-get _info :md-headline-style)))
+         (when title
+           (concat
+            (org-md--headline-title style
+                                   1 (org-export-data title _info))
+            (when subtitle
+              (org-md--headline-title style
+                                     2 (org-export-data subtitle _info))))))
+       contents))))
+#+end_src
+
 *** Ox GFM
 
 #+NAME: ox/gfm
