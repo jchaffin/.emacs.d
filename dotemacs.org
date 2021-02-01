@@ -223,7 +223,7 @@
     - [[#custom-theme][Custom Theme]]
     - [[#themes][Themes]]
     - [[#load-theme][Load Theme]]
-  -  [[#org-faces][Org faces]]
+  - [[#org-faces][Org faces]]
   - [[#overlays][Overlays]]
     - [[#highlight][Highlight]]
     - [[#overlay][Overlay]]
@@ -3195,7 +3195,7 @@ over ssh."
 
 **** Helpful
 
-#+NAME: help-helpful
+#+NAME: core/helpful
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
     :bind
@@ -3681,10 +3681,10 @@ Use a prefix arg FONTIFY for colored headlines."
     :demand t
     :init
     (when (bound-and-true-p dotemacs-default-agenda-file)
-      (setq-default ivy-todo-file dotemacs-default-agenda-file)))
+      (setq-default ivy-todo-file dotemacs/org-agenda-global-agenda-file)))
 #+END_SRC
 
-**** Ivy rich
+**** Ivy richi
 
 #+NAME: ivy/rich
 #+BEGIN_SRC emacs-lisp
@@ -5757,7 +5757,6 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
 (use-package pdf-tools
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :preface
-
   (defun pdf-view-find--org-source (buf)
     "Open the source "
     (let ((base (file-name-base (buffer-file-name buf)))
@@ -5792,12 +5791,16 @@ Credits to Dr. Ben Maughan over at Pragmatic Emacs for this
   :bind
   (:map pdf-view-mode-map
         ("C-s" . isearch-forward)
-        ;; PDF View annotions
+        ;; PDF View annotations
         ("+"   . pdf-view-enlarge)
         ("h"   . pdf-annot-add-highlight-markup-annotation)
         ("t"   . pdf-annot-add-text-annotation)
         ("D"   . pdf-annot-delete))
   :init
+  (when (eq window-system 'ns)
+    (let ((paths '("/usr/local/lib/pkgconfig"
+		   "/usr/local/Cellar/libffi/3.3_2/lib/pkgconfig")))
+    (setenv "PKG_CONFIG_PATH" (mapconcat 'identity paths ":"))))
   (pdf-tools-install)
   :custom
   (pdf-annot-activate-created-annotations t)
@@ -6345,7 +6348,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
   :demand t
   :preface
 ;;;; Agenda keywords
-  (defcustom dotemacs-default-agenda-file (expand-file-name "agenda/TODOS.org" org-directory)
+  (defcustom dotemacs/org-agenda-global-agenda-file (expand-file-name "agenda/TODOS.org" org-directory)
     "The file path of the default agenda file."
     :type 'file
     :group 'dotemacs)
@@ -6411,7 +6414,17 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
    '(("c" "Simple agenda view"
       ((agenda "")
        (alltodo "")))))
+  :bind
+  (:map goto-map
+        ("a" . goto-agenda-file))
   :init
+  (when (file-exists-p dotemacs/org-agenda-global-agenda-file)
+    (add-to-list 'org-agenda-files dotemacs/org-agenda-global-agenda-file))
+;;;###autoload
+  (defun goto-agenda-file ()
+    "Open the global agenda file"
+    (interactive)
+    (find-file dotemacs/org-agenda-global-agenda-file))
 ;;;; Skip function
   (defun agenda-skip-cancelled ()
     (org-agenda-skip-entry-if 'todo (list org-cancelled-keyword)))
@@ -6438,9 +6451,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
            (mapcar
             (lambda (f)
               (setq face-remapping-alist (delq f face-remapping-alist)))
-            org-level-remap-face))))
-  (when (file-exists-p dotemacs-default-agenda-file)
-    (add-to-list 'org-agenda-files dotemacs-default-agenda-file)))
+            org-level-remap-face)))))
 
 #+END_SRC
 
@@ -7978,14 +7989,27 @@ theme in \"quick mode\" by eliding hooks specified in
 ;; (add-hook 'after-make-frame-functions #'dotemacs/load-theme-with-frame)
 #+END_SRC
 
-**  Org faces
+**** Disable scroll bar
+#+begin_src emacs-lisp
+(defun disable-scroll-bar (&optional frame)
+  "Disable the scroll bar."
+  (if frame
+      (with-selected-frame frame
+        (toggle-scroll-bar -1))
+    (toggle-scroll-bar -1)))
+
+(add-hook 'load-theme-hook #'disable-scroll-bar)
+(add-hook 'after-make-frame-functions #'disable-scroll-bar)
+#+end_src
+
+** Org faces
 :PROPERTIES:
 :ID:       D29BA324-2B5B-46A6-A0E6-E266D770AF1F
 :END:
 
 #+NAME: theme-org-mode
 #+BEGIN_SRC emacs-lisp
-(defun org-theme-faces ()
+(defun org-theme-set ()
   "Customize `org-mode' faces for base-16 themes."
   (let ((fg (face-foreground 'default nil 'default))
         (fg2 (or (plist-get dotemacs-theme-colors :base04)))
@@ -8025,37 +8049,32 @@ theme in \"quick mode\" by eliding hooks specified in
                         :foreground fg :height 1.8
                         :underline nil)
     (set-face-attribute 'org-block-end-line nil
-                        :inherit 'org-block-begin-line)))
-;; https://github.com/syl20bnr/spacemacs/pull/7667
-
-(defun org-modified-theme ()
-  (org-theme-faces)
-  (let ((org-buffers (org-buffer-list  'files t)))
-    (dolist (buf org-buffers)
-      (with-current-buffer buf
-        (org-agenda-theme))
-      (org-mode-restart))))
-
-
-(defun disable-scroll-bar (&optional frame)
-  (if frame
-      (with-selected-frame frame
-        (toggle-scroll-bar -1))
-    (toggle-scroll-bar -1)))
-
-;; Font lock inline code blocks
-;; https://stackoverflow.com/a/28059832
-(font-lock-add-keywords 'org-mode
-                        '(("\\(src_\\)\\([^[{]+\\)\\(\\[:.*\\]\\){\\([^}]*\\)}"
+                        :inherit 'org-block-begin-line))
+  ;; Font lock inline code blocks
+  ;; https://stackoverflow.com/a/28059832
+  (font-lock-add-keywords 'org-mode
+                          '(("\\(src_\\)\\([^[{]+\\)\\(\\[:.*\\]\\){\\([^}]*\\)}"
                            (1 '(:foreground "black" :weight 'normal :height 10)) ; src_ part
                            (2 '(:foreground "cyan" :weight 'bold :height 75 :underline "red")) ; "lang" part.
                            (3 '(:foreground "#555555" :height 70)) ; [:header arguments] part.
                            (4 'org-code) ; "code..." part.
-                           )))
+                           ))))
+
+(defun org-theme-load ()
+  "Sets up theme-related faces for org-mode and org-agenda."
+  (funcall-interactively #'org-theme-set)
+  (let ((org-buffers (org-buffer-list  'files t)))
+    (dolist (buf org-buffers)
+      (with-current-buffer buf
+        (org-agenda-theme)))))
+
+(defun org-theme-init ()
+  (org-theme-load)
+;; https://github.com/syl20bnr/spacemacs/pull/7667
+  (org-mode-restart))
+
 ;; Add Hooks
-(add-hook 'load-theme-hook #'disable-scroll-bar)
-(add-hook 'after-make-frame-functions #'disable-scroll-bar)
-(add-hook 'after-init-hook #'org-modified-theme)
+(add-hook 'load-theme-hook #'org-theme-init)
 #+END_SRC
 
 ** Overlays

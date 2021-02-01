@@ -197,7 +197,8 @@
           "core/rainbow-delimiters"
           "core/lisps"
           "core/elisp"
-          "core/swiper")
+          "core/swiper"
+	  "core/helpful")
 
         "Named source blocks to tangle when `use-literate-p' is enabled. ")
 ;;;; tangle and load
