@@ -3681,10 +3681,10 @@ Use a prefix arg FONTIFY for colored headlines."
     :demand t
     :init
     (when (bound-and-true-p dotemacs-default-agenda-file)
-      (setq-default ivy-todo-file dotemacs/org-agenda-global-agenda-file)))
+      (setq-default ivy-todo-file dotemacs-default-agenda-file)))
 #+END_SRC
 
-**** Ivy richi
+**** Ivy rich
 
 #+NAME: ivy/rich
 #+BEGIN_SRC emacs-lisp
