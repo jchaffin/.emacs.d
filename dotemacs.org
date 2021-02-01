@@ -1081,7 +1081,7 @@ See  [[https://emacs.stackexchange.com/a/38635][post on Emacs Stack Exchange]]
 ** straight
 *** Goto local package repository
 
-Function to jump to a repository installed by [[#straight][straight]]. An interactive minibuffer completion menu using ivy.
+Function to jump to a local straight repository . An interactive minibuffer completion menu using ivy.
 
 #+BEGIN_SRC emacs-lisp
 (defun straight-installed-packages ()
@@ -1611,7 +1611,6 @@ editors and various other applications on macOS.
     "M-m o" " Open With"
     "M-m o o" " Default"
     "M-m o s" " ST3"
-    "M-m o a" " Atom"
     "M-m o v" " VSCode "
     "M-m o b" " BBEdit"
     "M-m o p" " PDFPen"
@@ -6842,7 +6841,7 @@ These settings subjectively improve the overall viewable-ness of org-mode buffer
 
 *** Toggle Hooks
 
-Some of the UI features I'm using are highly experimental and cause certain derived modes such as [[elisp-function:bind-key-autoloads:org-capture][org-capture]] to break.
+Some of the UI features I'm using are highly experimental and cause certain derived modes such as =org-capture= to break.
 
 #+BEGIN_SRC emacs-lisp
 (defvar org-hook--enabled t)
