@@ -33,7 +33,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(bmkp-last-as-first-bookmark-file "~/.emacs.d/var/bookmark-default.el")
+ '(bmkp-last-as-first-bookmark-file "/Users/jacobchaffin/.emacs.d/var/bookmark-default.el")
  '(load-prefer-newer t)
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t))

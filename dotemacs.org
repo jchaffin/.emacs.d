@@ -205,6 +205,7 @@
     - [[#ox-org][Ox Org]]
     - [[#ox-latex][Ox Latex]]
     - [[#ox-pandoc][Ox Pandoc]]
+    - [[#ox-markdown][Ox Markdown]]
     - [[#ox-gfm][Ox GFM]]
     - [[#ox-hugo][Ox Hugo]]
     - [[#ox-html][Ox HTML]]
@@ -1607,16 +1608,17 @@ editors and various other applications on macOS.
   :bind-keymap
   ("M-m o" . macos-open-with-command-map)
   :config
-  (which-key-add-key-based-replacements
-    "M-m o" " Open With"
-    "M-m o o" " Default"
-    "M-m o s" " ST3"
-    "M-m o v" " VSCode "
-    "M-m o b" " BBEdit"
-    "M-m o p" " PDFPen"
-    "M-m o c" " Coda"
-    "M-m o t" " iTerm"
-    "M-m o t" " Tower"))
+  (when (featurep 'which-key)
+    (which-key-add-key-based-replacements
+      "M-m o" " Open With"
+      "M-m o o" " Default"
+      "M-m o s" " ST3"
+      "M-m o v" " VSCode "
+      "M-m o b" " BBEdit"
+      "M-m o p" " PDFPen"
+      "M-m o c" " Coda"
+      "M-m o t" " iTerm"
+      "M-m o t" " Tower")))
 #+END_SRC
 
 **** Reveal in macOS Finder
@@ -3052,7 +3054,19 @@ SHELL is the SHELL function to use (i.e. when FUNC represents a terminal)."
   (make-shell-pop-command term shell-pop-term-shell)
   (make-shell-pop-command ansi-term shell-pop-term-shell)
   (make-shell-pop-command inferior-shell)
-  (make-shell-pop-command multiterm))
+  (make-shell-pop-command multiterm)
+  :bind
+  ("C-`" . shell-pop-ansi-term)
+  (:map shell-command-map
+        ("e" . shell-pop-eshell)
+        ("t" . shell-pop-ansi-term)
+        ("m" . shell-pop-multiterm))
+  :config
+  (when (featurep 'which-key)
+    (which-key-add-key-based-replacements
+      "M-m t e"  "Eshell"
+      "M-m t t" "Ansi-Term"
+      "M-m t m" "Multiterm")))
 #+END_SRC
 
 *** With Editor
@@ -8140,7 +8154,7 @@ theme in \"quick mode\" by eliding hooks specified in
   :config
   (when (featurep 'which-key)
     (which-key-add-key-based-replacements
-        "C-c h" "_ Highlight")))
+        "C-c h" "Highlight")))
 #+END_SRC
 
 *** Rainbow Mode
@@ -10215,7 +10229,6 @@ Travel back in time (to your last commit).
   :bind
   ("C-c v t" . git-timemachine-toggle)
   :config
-  (setq)
   (which-key-add-key-based-replacements
     "C-c v t" " Timemachine"))
 #+END_SRC
