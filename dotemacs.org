@@ -6603,8 +6603,7 @@ Calendar.
     (require 'org-gcal)
     :custom
     (org-gcal-file-alist
-     `(("jchaffin@g.ucla.edu" . ,gcal-agenda-file)
-       ("t2iba0hggoc8c8u0h85667dkj0@group.calendar.google.com" . "~/Dropbox/Documents/2020/fall/cs181/schedule.org")))
+     `(("jchaffin@g.ucla.edu" . ,gcal-agenda-file)))
     :config
     (require 'org-agenda)
     (unless (member gcal-agenda-file org-agenda-files)
@@ -9756,7 +9755,7 @@ display the buffer."
   (lsp-ui-doc-position 'at-point)
   (lsp-ui-doc-header t)
   (lsp-ui-flycheck-enable t)
-  (lsp-ui-peek-always-show t)
+  (lsp-ui-peek-always-show nil)
   :init
   (with-eval-after-load 'lsp-ui
     (el-patch-feature lsp-ui-doc)
