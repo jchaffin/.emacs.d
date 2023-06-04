@@ -1,4 +1,4 @@
-;;; init.el -- User initialization file for GNU Emacs
+;; init.el -- User initialization file for GNU Emacs
 ;;
 
 ;; Copyright (c) 2019 Jacob Chaffin:
@@ -84,10 +84,9 @@
       (use-package no-littering
         :demand t
         :commands (no-littering-expand-etc-file-name)
-        :custom
-        (no-littering-etc-directory (expand-file-name "etc" user-emacs-directory))
-        (no-littering-var-directory (expand-file-name "var" user-emacs-directory))
         :init
+	(setq no-littering-etc-directory (expand-file-name "etc" user-emacs-directory))
+	(setq no-littering-var-directory (expand-file-name "var" user-emacs-directory))
         (require 'recentf)
         ;; exclude from recentf
         (add-to-list 'recentf-exclude no-littering-var-directory)
@@ -110,10 +109,10 @@
 
 ;;; Org
 ;;;;; install org mode:
-      (straight-use-package 'org-plus-contrib)
+      (straight-use-package 'org)
 ;;;;; Org configuration
       (use-package org
-        :straight org-plus-contrib
+        :straight org
 ;;;;;; customizations
         :custom
 ;;;;;;; Files

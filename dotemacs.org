@@ -218,7 +218,6 @@
   - [[#org-download][Org Download]]
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
-  - [[#org-entities][Org entities]]
 - [[#appearance][Appearance]]
   - [[#theme][Theme]]
     - [[#custom-theme][Custom Theme]]
@@ -304,7 +303,6 @@
     - [[#line-numbers][Line numbers]]
     - [[#folding][Folding]]
     - [[#comments][Comments]]
-    - [[#comments-1][Comments]]
     - [[#editorconfig][Editorconfig]]
     - [[#google-c-style][Google C Style]]
     - [[#formatting][Formatting]]
@@ -519,7 +517,7 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 
 #+BEGIN_SRC emacs-lisp
 (tool-bar-mode -1)
-(scroll-bar-mode -1)
+(menu-bar-no-scroll-bar)
 (unless (eq system-type 'darwin)
   (menu-bar-mode -1))
 #+END_SRC
@@ -681,8 +679,6 @@ from within Emacs.
   (message "Reloading initialization file...")
   (load user-init-file nil 'nomessage)
   (message "Reloading initialization file...done."))
-
-
 #+END_SRC
 
 *** Evaluating
@@ -775,7 +771,6 @@ from within Emacs.
   (member mode (list-enabled-minor-modes (current-buffer))))
 #+END_SRC
 
-**** Buffer utilities
 **** Uniquify buffer names
 
 #+BEGIN_SRC emacs-lisp
@@ -2248,7 +2243,7 @@ point reaches the beginning or end of the buffer, stop there."
 **** Flyspell
 
 #+NAME: flyspell-base
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package flyspell
     :ensure-system-package hunspell
     :hook
@@ -3083,8 +3078,6 @@ SHELL is the SHELL function to use (i.e. when FUNC represents a terminal)."
 #+NAME: remote/ssh
 #+BEGIN_SRC emacs-lisp
 (use-package ssh
-  :custom
-  (ssh-remote-user "classfin")
   :init
   (defun ssh/enable-path-completion ()
     "Enable directory tracking and path autocompletion
@@ -3127,15 +3120,6 @@ over ssh."
     (push (straight-build-dir "tramp/tramp.info")  Info-directory-list)))
 #+END_SRC
 
-**** Docker Tramp
-:PROPERTIES:
-:ID:       0BC85ED8-9B18-4CDA-9C45-B4B54BFE632E
-:END:
-
-#+NAME: docker/tramp
-#+BEGIN_SRC emacs-lisp
-(use-package docker-tramp)
-#+END_SRC
 
 **** Kubernetes Tramp
 
@@ -3703,7 +3687,6 @@ Use a prefix arg FONTIFY for colored headlines."
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-rich
   :after ivy
-
   :custom
   (ivy-rich-switch-buffer-align-virtual-buffer t)
   (ivy-format-function #'ivy-format-function-line)
@@ -3853,6 +3836,7 @@ friends.
     ;; ppUse Dired
     (setcar counsel-projectile-switch-project-action 4))
 #+END_SRC
+
 
 **** counsel Gtags
 
@@ -4060,14 +4044,9 @@ for candidates in Ivy menus.
 #+END_SRC
 
 **** selectrum prescient
-#+begin_src
-#+end_src
-
 
 #+begin_src emacs-lisp
 (use-package selectrum-prescient
-  :straight (selectrum-prescient :host github :repo "raxod502/prescient.el"
-                                 :files ("selectrum-prescient.el"))
   :init
   (selectrum-prescient-mode +1))
 #+end_src
@@ -4265,7 +4244,8 @@ any reason for me reconsider my choice.
           (add-to-list 'skeletor-python-bin-search-path
                        python-bin))))
 
-    (when (executable-find "pyenv")
+    (when (and (executable-find "pyenv")
+	       (file-directory-p "~/.pyenv/versions"))
       (skeletor-add-pyenv-pythons))
 
     :config
@@ -4629,11 +4609,9 @@ This requires the pdf-tools package to be installed."
 
 Credits to @jkitchin and scimax.
 
-#+BEGIN_SRC emacs-lisp
-
+#+BEGIN_SRC emacs-lisp :tangle no
 (defvar tlmgr-installed-packages nil
   "Cached list of installed LaTeX packages.")
-
 
 (defun tlmgr-installed (&optional refresh)
   "Get a list of installed LaTeX packages. Uses a cached value if
@@ -4659,7 +4637,7 @@ possible unless REFRESH is non-nil."
   (message (shell-command-to-string (format "kpsewhich %s" symbol))))
 
 
-(defun latex/setup ()
+(defun latex--setup ()
   "Display buffer with LaTeX setup information."
   (interactive)
   (message "Please wait while I gather some information. This can take a while.")
@@ -5911,7 +5889,7 @@ instead of ~outline-show-entry~.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ol
-  :straight org-plus-contrib
+  :straight org
   :demand t
   :custom
   (org-link-use-indirect-buffer-for-internals t)
@@ -6065,14 +6043,14 @@ Embed YouTube Links in =iframe=.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ol-man
-  :straight org-plus-contrib)
+  :straight org)
 #+END_SRC
 
 *** Git links
 
 #+BEGIN_SRC emacs-lisp
 (use-package ol-git-link
-  :straight org-plus-contrib)
+  :straight org)
 #+END_SRC
 
 ** Org Coding
@@ -6083,7 +6061,7 @@ Embed YouTube Links in =iframe=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ob
-    :straight org-plus-contrib
+    :straight org
     :custom
     (org-babel-uppercase-example-markers t)
     :config
@@ -6168,24 +6146,24 @@ Embed YouTube Links in =iframe=.
 *** Org speed commands
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'org-speed-commands-user (cons "P" 'org-set-property))
-(add-to-list 'org-speed-commands-user (cons "d" 'org-deadline))
+(add-to-list 'org-speed-commands (cons "P" 'org-set-property))
+(add-to-list 'org-speed-commands (cons "d" 'org-deadline))
 
 ;; Mark a subtree
-(add-to-list 'org-speed-commands-user (cons "m" 'org-mark-subtree))
+(add-to-list 'org-speed-commands (cons "m" 'org-mark-subtree))
 
 ;; Widen
-(add-to-list 'org-speed-commands-user (cons "S" 'widen))
+(add-to-list 'org-speed-commands (cons "S" 'widen))
 
 ;; kill a subtree
-(add-to-list 'org-speed-commands-user (cons "k" (lambda ()
+(add-to-list 'org-speed-commands (cons "k" (lambda ()
 						  (org-mark-subtree)
 						  (kill-region
 						   (region-beginning)
 						   (region-end)))))
 
 ;; Jump to headline
-(add-to-list 'org-speed-commands-user
+(add-to-list 'org-speed-commands
 	     (cons "q" (lambda ()
 			 (avy-with avy-goto-line
 			   (avy--generic-jump "^\\*+" nil avy-style)))))
@@ -6242,7 +6220,7 @@ is positive, move after, and if negative, move before."
       (yank))))
   (outline-hide-leaves))
 
-(add-to-list 'org-speed-commands-user (cons "T" 'org-teleport))
+(add-to-list 'org-speed-commands (cons "T" 'org-teleport))
 
 #+END_SRC
 
@@ -6251,7 +6229,7 @@ is positive, move after, and if negative, move before."
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-id
-  :straight org-plus-contrib
+  :straight org
   :custom
   (org-id-link-to-org-use-id 'create-if-interactive)
   (org-link-search-must-match-exact-headline 'query-to-create)
@@ -6265,7 +6243,7 @@ is positive, move after, and if negative, move before."
 #+NAME: org-docmgr-attach
 #+BEGIN_SRC emacs-lisp
   (use-package org-attach
-    :straight org-plus-contrib
+    :straight org
     :custom
     (org-attach-auto-tag "attach")
     (org-attach-store-link-p t))
@@ -6275,7 +6253,7 @@ is positive, move after, and if negative, move before."
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-capture
-  :straight org-plus-contrib
+  :straight org
   :custom
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
   :preface
@@ -6344,7 +6322,7 @@ is positive, move after, and if negative, move before."
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-habit
-  :straight org-plus-contrib)
+  :straight org)
 #+END_SRC
 
 *** Agenda
@@ -6357,7 +6335,7 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
 #+BEGIN_SRC emacs-lisp
 ;;; Org Agenda
 (use-package org-agenda
-  :straight org-plus-contrib
+  :straight org
   :demand t
   :preface
 ;;;; Agenda keywords
@@ -6594,7 +6572,7 @@ The [[https://github.com/myuhe/org-gcal.el][org-gcal]] package provides org-mode
 Calendar.
 
 #+NAME: org-taskmgr-gcal
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package org-gcal
     :preface
     (defvar gcal-agenda-file (org-dir "agenda/schedule.org"))
@@ -6826,7 +6804,7 @@ Check out this [[http://mbork.pl/2018-04-28_org-mru-clock][article]] for how the
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-clock
-  :straight org-plus-contrib
+  :straight org
   :custom
   (org-clock-persist t)
   :init
@@ -6875,7 +6853,7 @@ Some of the UI features I'm using are highly experimental and cause certain deri
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-indent
-  :straight org-plus-contrib)
+  :straight org)
 #+END_SRC
 
 *** Per-image display width
@@ -7047,7 +7025,6 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
   :config
   (setq org-special-block-extras--docs-libraries
         (straight-repos-dir "org-special-block-extras/documentation.org"))
-  (org-special-block-extras-short-names)
   (defun amsthm->mathjax-css (env)
     (format ".%s {
        display: block;
@@ -7062,7 +7039,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
      content: \"%s (\" attr(text) \") \";}"
             env env (s-capitalize env) env (s-capitalize env)))
 
-  (defblock proof
+  (org-defblock proof
     (label) nil nil
     (format
      (pcase backend
@@ -7072,7 +7049,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
      contents))
 
 
-  (defblock theorem
+  (org-defblock theorem
     (label nil :face '(:weight bold)) nil nil
     (format
      (pcase backend
@@ -7083,7 +7060,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
                     (amsthm->mathjax-css "theorem") (if label (format "text='%s" label) ""))))
      contents))
 
-  (defblock definition
+  (org-defblock definition
     (label) nil nil
     (format
      (pcase backend
@@ -7093,6 +7070,7 @@ Anotha [[http://kitchingroup.cheme.cmu.edu/blog/2016/11/07/Better-equation-numbe
        (_   (format "<style>%s</style><div class=\"definition@\"%s>%%s</div>"
                     (amsthm->mathjax-css "definition") (if label (format "text='%s" label) ""))))
      contents)))
+
 #+end_src
 
 ** Org Prose
@@ -7156,7 +7134,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 
 #+NAME: org-docmgr-index
 #+BEGIN_SRC emacs-lisp
-  (use-package org-index)
+ (use-package org-index)
 #+END_SRC
 
 *** Org Noter
@@ -7192,7 +7170,7 @@ From this StackExchange [[https://emacs.stackexchange.com/a/16746][post]]:
 #+NAME: core/ox
 #+BEGIN_SRC emacs-lisp
 (use-package ox
-  :straight org-plus-contrib
+  :straight org
   :custom
   (org-export-with-sub-superscripts '{})
   :init
@@ -7274,9 +7252,9 @@ Ignores headlines tagged =:ignore:=. Unlike =:noexport:=, the contents
 and subtrees of the ignored headlines will be retained.
 
 #+NAME: ox/extra
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package ox-extra
-  :straight org-plus-contrib
+  :straight org
   :demand t
   :config
   (ox-extras-activate
@@ -7289,7 +7267,7 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: ox/publish
 #+BEGIN_SRC emacs-lisp
 (use-package ox-publish
-  :straight org-plus-contrib
+  :straight org
   :after (ox)
   :demand t)
 #+END_SRC
@@ -7299,7 +7277,7 @@ and subtrees of the ignored headlines will be retained.
 #+NAME: ox/org
 #+BEGIN_SRC emacs-lisp
   (use-package ox-org
-    :straight org-plus-contrib
+    :straight org
     :init
     (defun org-to-org-handle-includes ()
        "Copy the contents of the current buffer to OUTFILE,
@@ -7325,7 +7303,7 @@ and subtrees of the ignored headlines will be retained.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ox-latex
-  :straight org-plus-contrib
+  :straight org
   :after (ox)
   :demand t
   :custom
@@ -7757,7 +7735,7 @@ Neil Smithline posted this snippet to let you browse org files with
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-protocol
-    :straight org-plus-contrib
+    :straight org
     :init
     (setq org-protocol-default-template-key "l")
     (require 'server)
@@ -7770,7 +7748,6 @@ Neil Smithline posted this snippet to let you browse org files with
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-contacts
-    :straight org-plus-contrib
     :custom
     (org-contacts-files '("~/Dropbox/org/contacts.org"))
     :demand t)
@@ -7804,14 +7781,14 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 (use-package org-preview-html)
 #+END_SRC
 
-** Org entities
+** COMMENT Org entities
 :PROPERTIES:
 :ORDERED:  t
 :END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-entities
-  :straight org-plus-contrib
+  :straight org
   :custom
   (org-entities-user
    '(
@@ -7976,7 +7953,7 @@ This disables Emacs asking questions about loading a new theme.
 
 (defun dotemacs--set-theme-colors (theme)
   (and (base16-p theme)
-       (symbol-value `,(intern (concat (symbol-name theme) "-colors")))))
+       (symbol-value `,(intern (concat (symbol-name theme) "-theme-colors")))))
 
 (defun dotemacs--setup-theme (theme)
   (dotemacs--require-theme theme)
@@ -8288,7 +8265,7 @@ the absence of a window system. I'll check for the latter for now.
 **** Pretty Eshell
 
 #+NAME: esh/pretty
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-eshell
   :straight (pretty-eshell
              :local-repo "~/.emacs.d/etc/local/pretty-emacs"
@@ -8343,7 +8320,7 @@ the absence of a window system. I'll check for the latter for now.
 
 **** Pretty Fonts
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-fonts
   :straight (pretty-fonts :local-repo "~/.emacs.d/etc/local/pretty-emacs"
                           :files ("pretty-fonts.el"))
@@ -8402,7 +8379,7 @@ the absence of a window system. I'll check for the latter for now.
 
 **** Pretty Code
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package pretty-code
   :straight
   (pretty-code :local-repo "~/.emacs.d/etc/local/pretty-emacs"
@@ -8418,13 +8395,14 @@ the absence of a window system. I'll check for the latter for now.
 
 *** Pretty Outlines
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pretty-outlines
   :straight  (pretty-outlines
               :local-repo "~/.emacs.d/etc/local/pretty-emacs"
                :files ("pretty-outlines.el"))
   :custom
-  (pretty-outlines-ellipsis ""))
+  (pretty-outlines-ellipsis "…")
+  (org-ellipsis "…"))
 #+END_SRC
 
 ** Fonts
@@ -8439,7 +8417,6 @@ the absence of a window system. I'll check for the latter for now.
 #+END_SRC
 
 *** Font Settings
-
 **** Symbols Font
 See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_blocks/][defining unicode character blocks : emacs]]
 
@@ -8448,17 +8425,16 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 #+END_SRC
 
 **** Apple Color Emoji
-
-
 #+BEGIN_SRC emacs-lisp
+(when (fboundp 'set-fontset-font)
   (set-fontset-font t 'unicode (font-spec :family "all-the-icons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "file-icons") nil 'prepend)
-   (set-fontset-font t 'unicode (font-spec :family "Material Icons") nil 'prepend)
+  (set-fontset-font t 'unicode (font-spec :family "Material Icons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "github-octicons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "FontAwesome") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "Weather Icons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "Apple Color Emoji") nil 'prepend)
-  (set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend)
+  (set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend))
 #+END_SRC
 
 *** Default Text Scale
@@ -8474,8 +8450,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 #+BEGIN_SRC emacs-lisp
 (use-package org-variable-pitch
   :defines (org-variable-pitch-fixed-faces)
-  :straight (org-variable-pitch
-             :type git :host github :repo "emacsmirror/org-variable-pitch")
   :custom-face
   (org-variable-pitch
    ((((type w32))
@@ -8484,7 +8458,9 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
   (fixed-pitch ((t (:family "Fira Code"))))
   :custom
   (org-variable-pitch-fixed-font "Fira Code")
-    :config
+  :config
+  (defun org-variable-pitch-mode--enable ()
+    (org-variable-pitch-minor-mode '1))
   (setq org-variable-pitch-fixed-faces
         (append org-variable-pitch-fixed-faces '(org-latex-and-related)))
   :hook
@@ -8495,9 +8471,9 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 **** UCS
 ***** ucs cmds
 #+begin_src emacs-lisp
-
-
+(use-package ucs-cmds)
 #+end_src
+
 **** Emojis
 ***** Unicode Emoticons
 
@@ -8539,7 +8515,8 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 [[https://github.com/domtronn/all-the-icons.el][All The Icons]] is a utility package for icons in Emacs.
 
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons)
+(use-package all-the-icons
+  :demand t)
 #+END_SRC
 
 ****** all the icons dired
@@ -8564,10 +8541,10 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 
 ****** Modify default fontspec
 :PROPERTIES:
-:ID:       BC97F6AC-F533-4E34-8656-7052704058A2
+:ID:       BC97F6AC-F533-4E34-8656-7052gtg704058A2
 :END:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (defcustom font-override-list
   '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
     ("file-icons" . (#xE917 #xE926 #xE600 #xE601 #xE91A))
@@ -8602,7 +8579,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 (use-package vscode-icon
   :demand t
   :commands (vscode-icon-for-file))
-
 #+END_SRC
 
 **** Org Bullets
@@ -8845,7 +8821,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 
 (use-package spaceline-all-the-icons
   :preface
-  (set-fontset-font "fontset-default" '#xF091 "github-octicons")
+  (when (fboundp 'set-fontset-font)
+    (set-fontset-font "fontset-default" '#xF091 "github-octicons"))
   :after spaceline)
 
 (use-package spaceline-all-the-icons-segments
@@ -9104,7 +9081,7 @@ Interactively.
                  '("safari" . osx-browse-url-safari)))
 
 (defun set-browser-function (browser)
-  "Interactively set the browser used by `browse-url'. "
+  "set Interactively the browser used by `browse-url'. "
   (interactive
    (list (completing-read "Browser: " browse-url-browser-alist)))
   (when-let ((browser-function (cdr (assoc browser browse-url-browser-alist))))
@@ -9595,7 +9572,7 @@ Work account is for office portal, not a Microsoft account. I need integration o
 #+NAME: notes/velocity
 #+BEGIN_SRC emacs-lisp
   (use-package org-velocity
-    :straight org-plus-contrib
+    :straight org
     :custom
     (org-velocity-bucket (expand-file-name "notes.org" org-directory)))
 #+END_SRC
@@ -9606,7 +9583,7 @@ Also see [[https://www.emacswiki.org/emacs/InPlaceAnnotations][EmacsWiki: In Pla
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-annotate-file
-    :straight org-plus-contrib
+    :straight org
     :bind
     ("C-c C-x j" . org-annotate-file)
     :custom
@@ -9870,12 +9847,6 @@ display the buffer."
           ("C-c H" . hs-org/minor-mode)))
 #+END_SRC
 
-*** Comments
-
-#+BEGIN_SRC emacs-lisp
-(use-package smart-comment
-  :bind ("M-;" . smart-comment))
-#+END_SRC
 
 *** Comments
 
@@ -10548,7 +10519,7 @@ Pair programming.
 **** llvm mode
 
 #+NAME: cc/llvm
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package llvm-mode
   :straight (llvm-mode :local-repo "~/.emacs.d/etc/local/llvm-mode"))
 #+END_SRC
