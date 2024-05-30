@@ -10148,6 +10148,9 @@ As a git client though, magit is awesome.
 (use-package magithub
   :straight (:host github :repo "mgcyung/magithub")
   :after magit
+  :init
+  (defalias #'define-transient-command #'transient-define-prefix)
+  (defalias #'define-infix-command #'transient-define-infix)
   :config
   (magithub-feature-autoinject t)
   (setq magithub-clone-default-directory "~/Developer/github"))
