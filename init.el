@@ -24,85 +24,83 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
-    (let ((straight-treat-as-init t))
-      (when (locate-library "gnutls")
-        (require 'gnutls)
-        ;; Prevent elpa from loading `package.el' in case loading fails.
-        ;; Use LibreSSL certificates to bootstrap dependencies.
-        (add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem"))
+(let ((straight-treat-as-init t))
+  (when (locate-library "gnutls")
+    (require 'gnutls)
+    ;; Prevent elpa from loading `package.el' in case loading fails.
+    ;; Use LibreSSL certificates to bootstrap dependencies.
+    (add-to-list 'gnutls-trustfiles "/usr/local/etc/libressl/cert.pem"))
 ;;; straight
 ;;;; Variables
-      (setq straight-repository-branch "develop"
-            straight-profiles '((dotemacs . "versions.el")
-                                (nil . "default.el"))
-            straight-current-profile 'dotemacs)
-      ;; Enable `straight-live-modifications-mode' if its dependencies are
-      ;; found.
+  (setq straight-repository-branch "develop"
+        straight-profiles '((dotemacs . "versions.el")
+                            (nil . "default.el"))
+        straight-current-profile 'dotemacs)
+  ;; Enable `straight-live-modifications-mode' if its dependencies are
+  ;; found.
 ;;;; straight live modifications:
-      (if (and (executable-find "watchexec")
-               (executable-find "python3"))
-          (setq straight-check-for-modifications
-                '(watch-files find-when-checking))
-        (setq straight-check-for-modifications
-              '(check-on-save find-when-checking)))
-;;;; Bootstrap straight.el:
-      (let ((bootstrap-file
-             (expand-file-name
-              "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-            (bootstrap-version 5)
-            (domain "https://raw.githubusercontent.com")
-            (repo "raxod502/straight.el")
-            (branch straight-repository-branch)
-            (remote-file "install.el"))
-        (unless (file-exists-p bootstrap-file)
-          (with-current-buffer
-              (url-retrieve-synchronously
-               (mapconcat #'identity (list domain repo branch remote-file) "/")
-               'silent 'inhibit-cookies)
-            (goto-char (point-max))
-            (eval-print-last-sexp)))
-        (load bootstrap-file nil 'nomessage))
-;;;; use package
-      ;; Enable the `:bind-key' keyword
-      (straight-use-package 'bind-key)
-      ;; Now clone the `use-package' library
-      (straight-use-package 'use-package)
-      ;; Enable the `:ensure-system-package' keyword
-      (straight-use-package 'use-package-ensure-system-package)
-      ;; Use `blackout' to clean mode lighters, essentially a drop in
-      ;; replacement for ':diminish'
-      (straight-use-package
-       '(blackout :host github :repo "raxod502/blackout"))
-      (require 'blackout)
-      ;; lazy load by default
-      (setq use-package-always-defer t)
-      ;; Enable the newer version of `use-package'.
-      (setq straight-use-package-version 'straight
-            straight-use-package-by-default t)
-      ;; reduce the clutter in `user-emacs-directory'
-;;;; no littering
-      (use-package no-littering
-        :demand t
-        :commands (no-littering-expand-etc-file-name)
-        :init
-	(setq no-littering-etc-directory (expand-file-name "etc" user-emacs-directory))
-	(setq no-littering-var-directory (expand-file-name "var" user-emacs-directory))
-        (require 'recentf)
-        ;; exclude from recentf
-        (add-to-list 'recentf-exclude no-littering-var-directory)
-        (add-to-list 'recentf-exclude no-littering-etc-directory)
-        ;; store auto save files in the var directory.
-        :config
-        (setq auto-save-file-name-transforms
-              `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+  (if (and (executable-find "watchexec")
+           (executable-find "python3"))
+      (setq straight-check-for-modifications
+            '(watch-files find-when-checking))
+    (setq straight-check-for-modifications
+          '(check-on-save find-when-checking)))
 
-      (customize-set-variable 'load-prefer-newer t) ;; load newer bytecode
+;;;; Bootstrap straight.el:
+  (let ((bootstrap-file
+         (expand-file-name
+          "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5)
+        (domain "https://raw.githubusercontent.com")
+        (repo "raxod502/straight.el")
+        (branch straight-repository-branch)
+        (remote-file "install.el"))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           (mapconcat #'identity (list domain repo branch remote-file) "/")
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+
+;;;; use package
+  ;; Enable the `:bind-key' keyword
+  (straight-use-package 'bind-key)
+  ;; Now clone the `use-package' library
+  (straight-use-package 'use-package)
+  ;; Enable the `:ensure-system-package' keyword
+  (straight-use-package 'use-package-ensure-system-package)
+  ;; Use `blackout' to clean mode lighters, essentially a drop in
+  ;; replacement for ':diminish'
+  (straight-use-package
+   '(blackout :host github :repo "raxod502/blackout"))
+  (require 'blackout)
+  ;; lazy load by default
+  (setq use-package-always-defer t)
+  ;; Enable the newer version of `use-package'.
+  (setq straight-use-package-version 'straight
+        straight-use-package-by-default t)
+  ;; reduce the clutter in `user-emacs-directory'
+  (customize-set-variable 'load-prefer-newer t) ;; load newer bytecode
+
+;;;; no littering
+  (use-package no-littering
+    :demand t
+    :custom
+    (no-littering-etc-directory (expand-file-name "etc" user-emacs-directory))
+    (no-littering-var-directory (expand-file-name "var" user-emacs-directory))
+    :config
+    (setq auto-save-file-name-transforms
+          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+
 ;;;; auto compile
-      (use-package auto-compile
-        :demand t
-        :init
-        (auto-compile-on-load-mode))
-      ;; `el-patch' is like advice, but with state awareness and validation.
+  (use-package auto-compile
+    :demand t
+    :config
+    (auto-compile-on-load-mode))
+
+;; `el-patch' is like advice, but with state awareness and validation.
       (straight-use-package 'el-patch)
       (require 'subr-x)
       (straight-use-package 'git)
@@ -112,7 +110,6 @@
       (straight-use-package 'org)
 ;;;;; Org configuration
       (use-package org
-        :straight org
 ;;;;;; customizations
         :custom
 ;;;;;;; Files
@@ -172,6 +169,7 @@
          ("C-<tab>" . org-global-cycle)
          (:map org-mode-map
                ("C-c C-x h" . org-toggle-link-display)
+               ("M-;" . org-toggle-comment)
                ("C-c C-s" . org-schedule))))
 ;;; Literate
 ;;;; Custom variables
@@ -197,7 +195,7 @@
           "core/lisps"
           "core/elisp"
           "core/swiper"
-	  "core/helpful")
+	        "core/helpful")
 
         "Named source blocks to tangle when `use-literate-p' is enabled. ")
 ;;;; tangle and load
@@ -236,12 +234,13 @@
                       (let ((code (org-element-property :value block)))
                           (with-temp-buffer
                             (insert code)
-                            (eval-buffer)))))))))))
+                            (eval-buffer))))))))))
+       (if use-literate-p
+           (if (file-exists-p dotemacs-literate-config-file)
+               (org-babel-load-file dotemacs-literate-config-file)
+             (error "File does not exist %s" dotemacs-literate-config-file))
+         (mapcar #'literate-tangle-src-block literate-debug-blocks)
+         (setq initial-buffer-choice dotemacs-literate-config-file)))
 
-(if use-literate-p
-    (if (file-exists-p dotemacs-literate-config-file)
-        (org-babel-load-file dotemacs-literate-config-file)
-      (error "File does not exist %s" dotemacs-literate-config-file))
-  (mapcar #'literate-tangle-src-block literate-debug-blocks)
-  (setq initial-buffer-choice dotemacs-literate-config-file))
+
 ;;; init.el ends here

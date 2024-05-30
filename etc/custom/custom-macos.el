@@ -33,28 +33,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(bmkp-last-as-first-bookmark-file "/Users/jacobchaffin/.emacs.d/var/bookmark-default.el")
- '(load-prefer-newer t)
- '(read-buffer-completion-ignore-case t)
- '(read-file-name-completion-ignore-case t))
+ '(org-done-keyword "DONE")
+ '(sh-basic-offset 2 nil nil "Customized with use-package sh-mode"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(aw-leading-char-face ((t (:inverse-video t :inherit avy-lead-face :height 2.0))))
- '(cfw:face-day-title ((t (:weight bold))))
- '(cfw:face-grid ((t (:foreground "DarkGrey"))))
- '(cfw:face-header ((t (:weight bold :foreground "red"))))
- '(cfw:face-holiday ((t (:weight bold :background "#51481F"))))
- '(cfw:face-select ((t (:background "#0195FF"))))
- '(cfw:face-sunday ((t (:inherit (cfw:face-saturday)))))
- '(cfw:face-title ((t (:height 2.0 :weight bold :inherit (variable-pitch)))))
- '(cfw:face-today ((t (:weight bold :background "#182633"))))
- '(cfw:face-toolbar ((t (:background "#3B3B3B"))))
- '(cfw:face-toolbar-button-off ((t (:weight bold :background "Gray10"))))
- '(cfw:face-toolbar-button-on ((t (:background "red"))))
- '(fixed-pitch ((t (:family "Fira Code"))))
- '(org-agenda-calendar-event ((t (:foreground "#cc9393" :inherit (default)))))
- '(org-agenda-date ((t (:underline nil :foreground "#57c7ff" :inherit (variable-pitch)))))
- '(org-variable-pitch ((((type w32)) (:foundry "outline" :family "Arial")) (t (:family "Fira Sans")))))
+ )

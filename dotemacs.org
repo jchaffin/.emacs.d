@@ -69,7 +69,7 @@
     - [[#dired][Dired]]
     - [[#pack][Pack]]
     - [[#neotree][Neotree]]
-    -  [[#treemacs][Treemacs]]
+    - [[#treemacs][Treemacs]]
     - [[#speedbar][Speedbar]]
     - [[#search-1][Search]]
   - [[#shell][Shell]]
@@ -218,6 +218,7 @@
   - [[#org-download][Org Download]]
     - [[#org-web-tools][Org Web Tools]]
     - [[#org-preview-html][Org preview html]]
+  - [[#org-entities][Org entities]]
 - [[#appearance][Appearance]]
   - [[#theme][Theme]]
     - [[#custom-theme][Custom Theme]]
@@ -480,6 +481,8 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 **** Initial scratch
 
 #+BEGIN_SRC emacs-lisp
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+(add-to-list 'default-frame-alist '(fullscreen . fullheight))
 (setq initial-scratch-message nil
       initial-major-mode 'emacs-lisp-mode
       inhibit-startup-echo-area-message t)
@@ -1295,7 +1298,7 @@ killall gpg-agent
 (with-eval-after-load 'which-key
 (which-key-add-key-based-replacements
   "M-m"  "🗝 Leader"
-  "M-m t" " Shell"))
+  "M-m t" " Shell"))
 #+END_SRC
 
 *** Hydra
@@ -1313,7 +1316,7 @@ killall gpg-agent
 #+NAME: ivy/hydra
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-hydra
-  :after (hydra)
+  :after (hydra ivy)
   :demand t)
 #+END_SRC
 
@@ -1402,11 +1405,12 @@ killall gpg-agent
    (("I" sly "sly"))))
 
   :config
-  (setq major-mode-hydra-title-generator
-        '(lambda (mode)
-           (s-concat "\n" (s-repeat 10 " ")
-                     (all-the-icons-icon-for-mode mode :v-adjust 0.05)
-                     " " (symbol-name mode) " commands"))))
+  (with-eval-after-load 'all-the-icons
+    (setq major-mode-hydra-title-generator
+          '(lambda (mode)
+             (s-concat "\n" (s-repeat 10 " ")
+                       (all-the-icons-icon-for-mode mode :v-adjust 0.05)
+                       " " (symbol-name mode) " commands")))))
 
 
 #+END_SRC
@@ -2074,8 +2078,8 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+begin_src emacs-lisp
 (global-set-key (kbd "C-x a r") 'align-regexp)
-
 #+end_src
+
 *** Deleting
 **** Delete Selection Mode
 
@@ -2620,7 +2624,7 @@ parent directory."
           (message "Project root not found."))))))
 #+END_SRC
 
-***  Treemacs
+*** Treemacs
 #+BEGIN_SRC emacs-lisp
   (use-package treemacs
     :bind
@@ -2686,7 +2690,6 @@ parent directory."
 #+END_SRC
 
 *** Speedbar
-
 **** same frame
 #+NAME: speed-sr
 #+BEGIN_SRC emacs-lisp
@@ -3120,12 +3123,6 @@ over ssh."
     (push (straight-build-dir "tramp/tramp.info")  Info-directory-list)))
 #+END_SRC
 
-
-**** Kubernetes Tramp
-
-#+BEGIN_SRC emacs-lisp
-(use-package kubernetes-tramp)
-#+END_SRC
 
 *** sh-script mode
 
@@ -3784,6 +3781,7 @@ END:
 #+NAME: core/counsel
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
+    :demand t
     :custom
     (counsel-describe-function-function #'helpful-callable)
     (counsel-describe-variable-function #'helpful-variable)
@@ -3920,7 +3918,7 @@ ivy integration with dash docsets. This is not great, as installing
 
 ***** Dash docsets
 
-#+BEGIN_SRC  emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package dash-docs
   :custom
   (dash-docs-browser-func 'browse-url))
@@ -6126,13 +6124,12 @@ Embed YouTube Links in =iframe=.
 *** Library of Babel
 
 #+BEGIN_SRC emacs-lisp
-(defvar lob-directory (directory-file-name (no-littering-expand-etc-file-name "lob"))
+(with-eval-after-load 'no-littering
+  (defvar lob-directory (directory-file-name (no-littering-expand-etc-file-name "lob"))
   "Directory where library of babel org files reside.")
-
-(unless (file-directory-p lob-directory)
-  (make-directory lob-directory t))
-
-(defun load-lob ()
+  (unless (file-directory-p lob-directory)
+    (make-directory lob-directory t))
+  (defun load-lob ()
   "Load the library of babel files."
   (interactive)
   (cl-loop for org-file in (f-entries lob-directory (lambda (f) (f-ext? f "org")) t)
@@ -6140,7 +6137,9 @@ Embed YouTube Links in =iframe=.
 	   (message "ingesting %s" org-file)
 	   (org-babel-lob-ingest org-file)))
 
-(load-lob)
+  (load-lob))
+
+
 #+END_SRC
 
 *** Org speed commands
@@ -6343,11 +6342,11 @@ using [[#org-projectile][org-projectile]]), but I like having a designated globa
     "The file path of the default agenda file."
     :type 'file
     :group 'dotemacs)
-  (defcustom org-done-keyword " DONE"
+  (defcustom org-done-keyword " DONE"
     "The keyword for completed tasks."
     :type 'string
     :group 'org-agenda)
-  (defcustom org-todo-keyword "☛ TODO"
+  (defcustom org-todo-keyword "TODO"
     "The keyword for pending tasks."
     :type 'string
     :group 'org-agenda)
@@ -7362,6 +7361,15 @@ and subtrees of the ignored headlines will be retained.
      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
      ("\\paragraph{%s}" . "\\paragraph*{%s}")
      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+    ("resume"
+     "\\documentclass{awesome-cv}
+      [NO-DEFAULT-PACKAGES]
+      [EXTRA]"
+      ("\\section{%s}" . "\\section*{%s}")
+      ("\\subsection{%s}" . "\\subsection*{%s}")
+      ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+      ("\\paragraph{%s}" . "\\paragraph*{%s}")
+      ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
      ("humanities"
       "\\documentclass{humanities}
       [NO-DEFAULT-PACKAGES]
@@ -7747,10 +7755,10 @@ Neil Smithline posted this snippet to let you browse org files with
 *** Org Contacts
 
 #+BEGIN_SRC emacs-lisp
-  (use-package org-contacts
-    :custom
-    (org-contacts-files '("~/Dropbox/org/contacts.org"))
-    :demand t)
+(use-package org-contacts
+  :custom
+  (org-contacts-files '("~/Dropbox/org/contacts.org"))
+  :demand t)
 #+END_SRC
 
 ** Org Download
@@ -7781,7 +7789,7 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 (use-package org-preview-html)
 #+END_SRC
 
-** COMMENT Org entities
+** Org entities
 :PROPERTIES:
 :ORDERED:  t
 :END:
@@ -7823,7 +7831,6 @@ Drag and Drop images directly from a web browser to an org-mode buffer.
 #+END_SRC
 
 * Appearance
-
 
 Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this stuff. Dude makes really fantastic Emacs UI libraries and enhancements.
 
@@ -7986,7 +7993,7 @@ theme in \"quick mode\" by eliding hooks specified in
       (and (dotemacs--setup-theme dotemacs-theme)
            (load-theme dotemacs-theme)))
     (unless (equal current-prefix-arg '(4))
-      (run-hooks 'load-theme-hook))))
+     (run-hooks 'load-theme-hook))))
 
 (defun dotemacs/load-theme-with-frame (frame)
   (with-selected-frame frame
@@ -8004,12 +8011,12 @@ theme in \"quick mode\" by eliding hooks specified in
   (dotemacs--toggle-theme-style)
   (dotemacs/load-theme))
 
-(add-hook 'after-init-hook #'dotemacs/load-theme)
-
-;; (add-hook 'after-make-frame-functions #'dotemacs/load-theme-with-frame)
+(add-hook 'after-init-hook (lambda () (dotemacs/load-theme)))
+(add-hook 'after-make-frame-functions #'dotemacs/load-theme-with-frame)
 #+END_SRC
 
 **** Disable scroll bar
+
 #+begin_src emacs-lisp
 (defun disable-scroll-bar (&optional frame)
   "Disable the scroll bar."
@@ -8272,50 +8279,49 @@ the absence of a window system. I'll check for the latter for now.
              :files ("pretty-eshell.el"))
   :custom
     ;; Eshell prompt regexp and string.
-    (eshell-prompt-regexp "λ ")   ; or "└─> "
-    :init
-    (progn
-      (with-eval-after-load 'magit
-	(require 'magit-process)
-	(require 'pretty-eshell)
-	(setq pretty-eshell-header "\n ")
-	(setq pretty-eshell-prompt-string "λ ")
-	;; Directory
-	(pretty-eshell-section
-	 esh-dir
-	 "\xf07c"  ; 
-	 (abbreviate-file-name (eshell/pwd))
-	 '(:foreground "gold" :weight bold :underline t))
+  (eshell-prompt-regexp "λ ")   ; or "└─> "
+  ;; Change default banner message
+  (eshell-banner-message (s-concat (s-repeat 20 "---") "\n\n"))
+  :config
+  (require 'magit)
+  (with-eval-after-load 'magit
+	  (require 'magit-process)
+	  (require 'pretty-eshell)
+   (setq pretty-eshell-header "\n "
+         pretty-eshell-prompt-string "λ ")
+   (progn
+     ;; Git Branch
+     (pretty-eshell-section
+	    esh-git
+	    "\xe907"                            ; 
+	    (magit-get-current-branch)
+	    '(:foreground "pink"))
+     ;; Python Virtual Environment
+     (pretty-eshell-section
+	    esh-python
+	    "\xe928"                            ; 
+	    pyvenv-virtual-env-name)
+     ;; Time
+     (pretty-eshell-section
+	    esh-clock
+	    "\xf017"                            ; 
+	    (format-time-string "%H:%M" (current-time))
+	    '(:foreground "forest green"))
+     ;; Prompt Number
+     (pretty-eshell-section
+	    esh-num
+	    "\xf0c9"                            ; 
+	    (number-to-string pretty-eshell-prompt-num)
+	    '(:foreground "brown"))
+     (pretty-eshell-section
+      esh-dir
+	    "\xf07c"                             ; 
+	    (abbreviate-file-name (eshell/pwd))
+	    '(:foreground "gold" :weight bold :underline t))
 
-	;; Git Branch
-	(pretty-eshell-section
-	 esh-git
-	 "\xe907"  ; 
-	 (magit-get-current-branch)
-	 '(:foreground "pink"))
+     (setq pretty-eshell-funcs
+           (list esh-dir esh-git esh-python esh-clock esh-num)))))
 
-	;; Python Virtual Environment
-	(pretty-eshell-section
-	 esh-python
-	 "\xe928"  ; 
-	 pyvenv-virtual-env-name)
-
-	;; Time
-	(pretty-eshell-section
-	 esh-clock
-	 "\xf017"  ; 
-	 (format-time-string "%H:%M" (current-time))
-	 '(:foreground "forest green"))
-
-	;; Prompt Number
-	(pretty-eshell-section
-	 esh-num
-	 "\xf0c9"  ; 
-	 (number-to-string pretty-eshell-prompt-num)
-	 '(:foreground "brown"))
-
-	(setq pretty-eshell-funcs
-	      (list esh-dir esh-git esh-python esh-clock esh-num)))))
 #+END_SRC
 
 **** Pretty Fonts
@@ -8616,7 +8622,8 @@ bullets as UTF-8 characters.
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
   :preface
-  (set-fontset-font "fontset-default" 61559 "Weather Icons")
+  (when (fboundp 'set-fontset-font)
+  (set-fontset-font "fontset-default" 61559 "Weather Icons"))
   :custom
   (org-pretty-tags-surrogate-strings
    '(;; school related
@@ -8813,6 +8820,8 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
 
 ** Modeline
 
+**** Spaceline
+
 #+BEGIN_SRC emacs-lisp
   (use-package spaceline)
 
@@ -8835,13 +8844,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     (spaceline-toggle-all-the-icons-flycheck-status-off)
     (spaceline-toggle-mu4e-alert-segment-on))
 
-;; (use-package spaceline-all-the-icons-ebib
-;;   :straight (spaceline-all-the-icons-ebib
-;;              :local-repo  "~/.emacs.d/etc/local/spaceline-all-the-icons-ebib")
-;;   :defines (spaceline-all-the-icons--setup-ebib)
-;;   :after (spaceline-all-the-icons spaceline-all-the-icons-segments)
-;;   :config
-;;   (spaceline-all-the-icons--setup-ebib))
 #+END_SRC
 
 **** which function
@@ -8969,7 +8971,8 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 #+BEGIN_SRC emacs-lisp
   (use-package google-this
     :preface
-    (set-fontset-font "fontset-default" '#xF1A0 "FontAwesome")
+    (when (fboundp 'set-fontset-font)
+      (set-fontset-font "fontset-default" '#xF1A0 "FontAwesome"))
     :init
     (google-this-mode 1)
     :config
@@ -9748,7 +9751,6 @@ display the buffer."
         ([remap xref-find-references]  . lsp-ui-peek-find-references)))
 #+END_SRC
 
-
 *** company lsp
 
 #+NAME: lsp/company
@@ -9799,7 +9801,6 @@ display the buffer."
 #+END_SRC
 
 **** Hide show
-
 ***** hideshow visual
 
 #+BEGIN_SRC emacs-lisp
@@ -9846,7 +9847,6 @@ display the buffer."
     (:map org-mode-map
           ("C-c H" . hs-org/minor-mode)))
 #+END_SRC
-
 
 *** Comments
 
@@ -10124,7 +10124,7 @@ As a git client though, magit is awesome.
      ("C-c v S" . magit-stash))
 
     :init
-    (which-key-add-key-based-replacements "C-c v" " Magit")
+    (which-key-add-key-based-replacements "C-c v" " Magit")
 
     (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
           which-key-replacement-alist)
@@ -10146,7 +10146,7 @@ As a git client though, magit is awesome.
 
 #+BEGIN_SRC emacs-lisp
 (use-package magithub
-  :straight (:host github :repo "mgcyung/magithub" :branch "transient")
+  :straight (:host github :repo "mgcyung/magithub")
   :after magit
   :config
   (magithub-feature-autoinject t)
@@ -10629,11 +10629,7 @@ Pair programming.
           ,@(-map #'kwd->comint-kwd lisp-cl-font-lock-keywords-2)))
   (defun ielm/font-lock-kwds ()
     (interactive)
-    (setq-local font-lock-keywords my-ielm-font-lock-kwds))
-;;;; ielm hooks
-  :hook
-  (ielm-mode . ielm/font-lock-kwds)
-  (ielm-mode . lisp-setup-hook))
+    (setq-local font-lock-keywords my-ielm-font-lock-kwds)))
 ;;; end ielm
   #+END_SRC
 
