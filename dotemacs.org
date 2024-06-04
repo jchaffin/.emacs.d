@@ -252,6 +252,7 @@
   - [[#visual][Visual]]
     - [[#visual-fill-column][Visual Fill Column]]
     - [[#fill-column-indicator][Fill Column Indicator]]
+    - [[#org-phscroll][Org Phscroll]]
     - [[#justify-kp][Justify Kp]]
   - [[#scrolling][Scrolling]]
     - [[#scroll-to-first-error-on-compilation][Scroll to first error on compilation]]
@@ -2228,8 +2229,8 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package visual-regexp
   :bind
   ("C-c v r" . vr/replace)
-  ("M-%" . vr/query-replace)
-  ("C-c v m" . vr/mc-mark))
+  ("M-%" . query-replace)
+  ("C-c v m" . vr/mc-Mark))
 
 
 (use-package visual-regexp-steroids
@@ -3296,12 +3297,11 @@ different window configurations.
 
 #+BEGIN_SRC emacs-lisp
 (use-package shackle
+  :init
+  (shackle-mode 1)
   :custom
   (shackle-rules '((compilation-mode :noselect t)))
   (shackle-default-rule '(:select t)))
-  :init
-  (shackle-mode 1)
-
 #+END_SRC
 
 *** Poporg
@@ -8433,14 +8433,14 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
 **** Apple Color Emoji
 #+BEGIN_SRC emacs-lisp
 (when (fboundp 'set-fontset-font)
+  (set-fontset-font t 'unicode (font-spec :family "Apple Color Emoji") nil 'prepend)
+  (set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "all-the-icons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "file-icons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "Material Icons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "github-octicons") nil 'prepend)
   (set-fontset-font t 'unicode (font-spec :family "FontAwesome") nil 'prepend)
-  (set-fontset-font t 'unicode (font-spec :family "Weather Icons") nil 'prepend)
-  (set-fontset-font t 'unicode (font-spec :family "Apple Color Emoji") nil 'prepend)
-  (set-fontset-font t 'symbol (font-spec :family "Apple Symbols")  nil 'prepend))
+  (set-fontset-font t 'unicode (font-spec :family "Weather Icons") nil 'prepend))
 #+END_SRC
 
 *** Default Text Scale
@@ -8572,7 +8572,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
                                 glyph (car font-glyphs)
                                 nil 'prepend))
             (cdr font-glyphs)))))
-
 #+END_SRC
 
 ***** VS Code Icons
@@ -8622,8 +8621,17 @@ bullets as UTF-8 characters.
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
   :preface
-  (when (fboundp 'set-fontset-font)
-  (set-fontset-font "fontset-default" 61559 "Weather Icons"))
+  (setq opt/overrides-alist
+        '(("all-the-icons" . (59682 59687))
+          ("file-icons" . (59674 59688 58880 58881))
+          ("Weather Icons" . (61559))
+          ("Material Icons" . (57425))))
+  (defun opt/map-fontsets (font-family-codes)
+    (let ((font-name (car font-family-codes))
+          (codes (cdr font-family-codes)))
+      (mapcar (lambda (c) (set-fontset-font "fontset-default" c font-name)) codes)))
+  (defun opt/initialize ()
+    (mapcar #'opt/map-fontsets opt/overrides-alist))
   :custom
   (org-pretty-tags-surrogate-strings
    '(;; school related
@@ -8671,7 +8679,9 @@ bullets as UTF-8 characters.
      ;; etc
      ("speaker" . "🔈")))
   :init
-  (org-pretty-tags-global-mode 1))
+  (org-pretty-tags-global-mode 1)
+  :hook
+  (org-pretty-tags-mode . opt/initialize))
 #+END_SRC
 
 **** Org Fancy Priorities
@@ -8766,6 +8776,20 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
   :hook
   (prog-mode . fci-mode))
 #+END_SRC
+
+
+
+
+*** Org Phscroll
+
+#+begin_src emacs-lisp
+(use-package org-phscroll
+  :straight
+  (phscroll :type git
+            :host github
+            :repo "misohena/phscroll")
+  :after (org))
+#+end_src
 
 *** Justify Kp
 :PROPERTIES:
@@ -9716,7 +9740,7 @@ display the buffer."
 ** LSP
 *** LSP mode
 
-#+NAME: lsp/mode
+#+NAME : lsp/mode
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :commands (lsp)
@@ -9841,11 +9865,11 @@ display the buffer."
 
 #+BEGIN_SRC emacs-lisp
  (use-package hideshow-org
-   :init
-    (require 'hideshow-org)
-    :bind
-    (:map org-mode-map
-          ("C-c H" . hs-org/minor-mode)))
+   :bind
+   (:map org-mode-map
+         ("C-c H" . hs-org/minor-mode))
+   :hook
+   (org-mode . hs-org/minor-mode))
 #+END_SRC
 
 *** Comments
@@ -10126,7 +10150,7 @@ As a git client though, magit is awesome.
     :init
     (which-key-add-key-based-replacements "C-c v" " Magit")
 
-    (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
+    (push '(( nil . "magit-\\(.+\\)") . (nil . " \\1"))
           which-key-replacement-alist)
     :custom
     (magit-save-repository-buffers 'dontask)
@@ -10597,10 +10621,12 @@ Pair programming.
   (emacs-lisp-mode . lisp-setup-hook))
  #+END_SRC
 
-***** Inferior emacs lisp
+***** ielm
+
+Inferior emacs lisp
 
   #+BEGIN_SRC emacs-lisp
-;;; Inferior Emacs Lisp
+;;; Inferior Emacs lisp
 (use-package ielm
   :straight (ielm :type built-in)
   :demand t
@@ -10630,10 +10656,18 @@ Pair programming.
   (setq my-ielm-font-lock-kwds
         `(,@(-map #'kwd->comint-kwd lisp-el-font-lock-keywords-2)
           ,@(-map #'kwd->comint-kwd lisp-cl-font-lock-keywords-2)))
-  (defun ielm/font-lock-kwds ()
-    (interactive)
-    (setq-local font-lock-keywords my-ielm-font-lock-kwds)))
+  (defun ielm/init ()
+    (setq-local font-lock-keywords my-ielm-font-lock-kwds)
+    (when (featurep 'smartparens)
+      (smartparens-mode +1))
+    (when (featurep 'rainbow-delimiters-mode)
+      (rainbow-delimiters-mode +1)))
+    :hook
+    (inferior-emacs-lisp-mode . ielm/init))
 ;;; end ielm
+
+
+
   #+END_SRC
 
 ***** lisp extra fontlocking
@@ -10780,18 +10814,15 @@ Configuration for common-lisp.
          ("\\.cljs\\'"  . clojurescript-mode)
          ("\\.cljx\\'"  . clojurex-mode)
          ("\\.cljsc\\'" . clojurec-mode))
-
-  :hook ((clojure-mode . enable-paredit-mode))
-  :config
-  (defun dotemacs/clj-dash-docsets ()
+  :init
+  (defun clj/dash ()
     "Keywords for Clojure Docsets via Dash.app."
     (setq-local dash-plugin-keywords '("clojure")))
 
-  (defun dotemacs/clj-style-compojure ()
+  (defun clj/style-compojure ()
     "Indendation for macros defined in compojure routing framework.
 
      See https://github.com/weavejester/compojure/wiki/Emacs-indentation."
-
     (define-clojure-indent
         (defroutes 'defun)
         (GET 2)
@@ -10806,19 +10837,22 @@ Configuration for common-lisp.
         (let-routes 1)
         (context 2)))
 
-
-  (defun dotemacs/clj-style-om-next ()
+  (defun clj/style-om-next ()
     "Indendation for om-next macros."
       (put-clojure-indent 'defui '(1 nil nil (1)))
       (put-clojure-indent 'dom/div 1))
 
-  (defun dotemacs/clj-style-guide ()
+  (defun clj/style ()
     "Styleguide for clojure."
-    (dotemacs/clj-style-compojure)
-    (dotemacs/clj-style-om-next))
+    (clj/style-compojure)
+    (clj/style-om-next))
 
-  (add-hook 'clojure-mode-hook #'dotemacs/clj-dash-docsets)
-  (add-hook 'clojure-mode-hook #'dotemacs/clj-style-guide))
+  (defun clj/init ()
+    (clj/dash)
+    (clj/style))
+
+  :hook
+  (clojure-mode . clj/init))
  #+END_SRC
 
 ***** Clojure Mode Extra Font Locking
@@ -10829,10 +10863,10 @@ Configuration for common-lisp.
  #+BEGIN_SRC emacs-lisp
 (use-package clojure-mode-extra-font-locking
   :config
-  (defun clj/enable-extra-font-locking ()
+  (defun clj/font-lock-init ()
     (require 'clojure-mode-extra-font-locking))
   :hook
-  (clojure-mode . clj/enable-extra-font-locking))
+  (clojure-mode . clj/font-lock-init))
  #+END_SRC
 
 ***** CIDER
@@ -10876,7 +10910,6 @@ Configuration for common-lisp.
 #+END_SRC
 
 ***** ClojureScript
-
 ****** elein
 
 [[https://github.com/remvee/elein][Elein]] rovides support for leiningen commands in Emacs.
@@ -10903,7 +10936,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 #+begin_src emacs-lisp
 (use-package haskell-mode
   :custom
-  (haskell-process-path-ghci "/Users/jacobchaffin/.ghcup/bin/ghci")
+  (haskell-process-path-ghci (executable-find "ghci"))
   (haskell-stylish-on-save t)
   (haskell-process-suggest-remove-import-lines t)
   (haskell-process-auto-import-loaded-modules t)
@@ -10927,10 +10960,7 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
   (with-eval-after-load 'info
     (info-initialize)
     (push (straight-build-dir "haskell-mode.texi")  Info-directory-list)))
-
-
 #+end_src
-
 
 
 **** LSP Haskell
@@ -10939,7 +10969,6 @@ Minor mode offering ~lein cljsbuild~ commands for the Leiningen [[https://github
 (use-package lsp-haskell
   :hook
   (haskell-mode . lsp))
-
 #+end_src
 
 *** Groovy
@@ -11089,6 +11118,7 @@ Gradle is a build tool for Java. It's awesome.
 (use-package company-flow
   :after (company))
 #+END_SRC
+
 ***** Flow flycheck
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck-flow

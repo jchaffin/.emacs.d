@@ -33,8 +33,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(org-done-keyword "DONE")
- '(sh-basic-offset 2 nil nil "Customized with use-package sh-mode"))
+ '(org-agenda-files
+   '("~/.emacs.d/dotemacs.org" "/Users/jacobchaffin/Dropbox/org/agenda/TODOS.org" "/Users/jacobchaffin/Dropbox/org/notes.org" "/Users/jacobchaffin/Dropbox/Documents/2020/fall/cs161/cs161.org" "/Users/jacobchaffin/Dropbox/Documents/2020/fall/cs181/cs181.org" "/Users/jacobchaffin/Dropbox/Documents/2020/spring/ling165c/ling165c.org" "/Users/jacobchaffin/Dropbox/Documents/2020/spring/ling119a/ling119a.org")))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

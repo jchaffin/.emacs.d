@@ -65,6 +65,7 @@
     (load bootstrap-file nil 'nomessage))
 
 ;;;; use package
+  (straight-use-package 'no-littering)
   ;; Enable the `:bind-key' keyword
   (straight-use-package 'bind-key)
   ;; Now clone the `use-package' library
