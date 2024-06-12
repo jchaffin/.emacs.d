@@ -144,27 +144,6 @@
         (org-blank-before-new-entry
          '((heading . auto)
            (plain-list-item . auto)))
-;;;;;;; org libraries
-        (org-modules '(ol-bookmark
-                       ol-man
-                       ol-elisp-symbol
-                       org-bbdb
-                       org-bibtex
-                       org-crypt
-                       org-eww
-                       org-habit
-                       org-id
-                       org-info
-                       org-inlinetask
-                       org-protocol
-                       org-tempo
-                       org-eshell
-                       org-annotate-file
-                       org-checklist
-                       org-collector
-                       org-mac-iCal
-                       org-mac-link
-                       org-velocity))
 ;;;;;; org keybindings
         :bind
         (("C-c a" . org-agenda)
@@ -196,11 +175,9 @@
           "core/counsel"
           "core/paredit"
           "core/rainbow-delimiters"
-          "core/lisps"
           "core/elisp"
           "core/swiper"
 	        "core/helpful")
-
         "Named source blocks to tangle when `use-literate-p' is enabled. ")
 ;;;; tangle and load
       ;; Extract source code and load the config
@@ -245,6 +222,5 @@
              (error "File does not exist %s" dotemacs-literate-config-file))
          (mapcar #'literate-tangle-src-block literate-debug-blocks)
          (setq initial-buffer-choice dotemacs-literate-config-file)))
-
 
 ;;; init.el ends here

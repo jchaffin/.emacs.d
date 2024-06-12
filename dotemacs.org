@@ -6124,20 +6124,20 @@ Embed YouTube Links in =iframe=.
 *** Library of Babel
 
 #+BEGIN_SRC emacs-lisp
-(with-eval-after-load 'no-littering
-  (defvar lob-directory (directory-file-name (no-littering-expand-etc-file-name "lob"))
-  "Directory where library of babel org files reside.")
-  (unless (file-directory-p lob-directory)
-    (make-directory lob-directory t))
-  (defun load-lob ()
-  "Load the library of babel files."
-  (interactive)
-  (cl-loop for org-file in (f-entries lob-directory (lambda (f) (f-ext? f "org")) t)
-	   do
-	   (message "ingesting %s" org-file)
-	   (org-babel-lob-ingest org-file)))
-
-  (load-lob))
+(with-eval-after-load 'org-mode
+  (when (fboundp 'no-littering-expand-etc-file-name)
+    (defvar lob-directory (directory-file-name (no-littering-expand-etc-file-name "lob"))
+      "Directory where library of babel org files reside.")
+    (unless (file-directory-p lob-directory)
+      (make-directory lob-directory t))
+    (defun load-lob ()
+      "Load the library of babel files."
+      (interactive)
+      (cl-loop for org-file in (f-entries lob-directory (lambda (f) (f-ext? f "org")) t)
+	             do
+	             (message "ingesting %s" org-file)
+	             (org-babel-lob-ingest org-file)))
+    (load-lob)))
 
 
 #+END_SRC
@@ -8325,46 +8325,47 @@ the absence of a window system. I'll check for the latter for now.
 
 **** Pretty Fonts
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pretty-fonts
-  :straight (pretty-fonts :local-repo "~/.emacs.d/etc/local/pretty-emacs"
-                          :files ("pretty-fonts.el"))
+  :straight (pretty-fonts
+             :local-repo "~/.emacs.d/etc/local/pretty-emacs"
+             :files ("pretty-fonts.el"))
   :preface
-  (defvar font-override-list
-    '(
-      ("all-the-icons"
-       ;;    
-       69655 59688)
-      ("Apple Color Emoji"
-       ;; ️📓   📒️     📝    📘       📚
-       128213 128210 128221 128216 128218
-       ;; 🎓   🗣      💻   📎
-       127891 128483 128187 128206
-       ;; ❌   🚫     🔗    🛒    🔈
-       10060 128683 128279 128722 128264)
-      ("file-icons"
-       ;;                  
-       58880 58881 59686 59671 59674)
-      ("FontAwesome"
-       ;;                     
-       61856 61564 61641 61643 61463 61697)
-
-      ("Material Icons"
-       ;;                
-       57439 58320 58321 58322 58324
-       ;;                 
-       58343 58389 58842 59505 59510
-       ;;                
-       59672  59404 58356 57425 69614)
-      ("github-octicons"
+  (defcustom font/family-overrides-alist
+    '(("github-octicons"
        ;;                           
        61585 61529 61558 61557 61462 61553 61636)
-      ("Weather Icons"
-       61599)))
-  :init
+      ("all-the-icons"
+       ;;                 
+       59682 59687 59688 69655)
+      ("file-icons"
+       ;;                     
+        58880  58881  59686  59671  59674
+        #xE917 #xE926 #xE600 #xE601 #xE91A)
+      ("Material Icons"
+       #xE80C #xE8CE 57425 57439 57425 58320 58321 58322
+        58324 58343  58356 58389 58842 59404 59505 59510
+        59672 69614)
+      ("Weather Icons" 61559)
+      ("Apple Color Emoji"
+      ;; ️📓   📒️     📝    📘       📚
+       128213 128210 128221 128216 128218
+       ;; 🎓   🗣      💻   📎      🌍     🔎
+       127891 128483 128187 128206 0x1F30D 0x1F50E
+       ;; ❌   🚫     🔗    🛒    🔈
+       10060 128683 128279 128722 128264)
+      ("FontAwesome"
+       #xF167 #xF1A0
+     ;;                        
+       61856 61564 61641 61643 61463 61697))
+  "Alist of font family glyphs to manually override in the defaul fontspec."
+  :type '(alist :tag "Font families to glyphs"
+                :value-type '(choice integer (repeat integer))))
+
   (defun pretty-fonts-before-theme ()
     (set-face-font
      'default "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
+
 
   (defun pretty-fonts-after-theme ()
     (require 'pretty-fonts)
@@ -8373,8 +8374,7 @@ the absence of a window system. I'll check for the latter for now.
                (font-utils-exists-p "Fira Code Symbol"))
       (pretty-fonts-add-hook 'prog-mode-hook pretty-fonts-fira-code-alist)
       (pretty-fonts-add-hook 'org-mode-hook  pretty-fonts-fira-code-alist))
-
-    (let ((fontsets (--filter (font-utils-exists-p (car it)) font-override-list)))
+    (let ((fontsets (--filter (font-utils-exists-p (car it)) font/family-overrides-alist)))
       (when (require 'all-the-icons nil t)
         (pretty-fonts-set-fontsets fontsets))))
   :hook
@@ -8384,7 +8384,7 @@ the absence of a window system. I'll check for the latter for now.
 
 **** Pretty Code
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pretty-code
   :straight
   (pretty-code :local-repo "~/.emacs.d/etc/local/pretty-emacs"
@@ -8544,35 +8544,6 @@ See [[https://www.reddit.com/r/emacs/comments/6yh9r0/defining_unicode_character_
     (all-the-icons-ivy-setup))
 #+END_SRC
 
-****** Modify default fontspec
-:PROPERTIES:
-:ID:       BC97F6AC-F533-4E34-8656-7052gtg704058A2
-:END:
-
-#+BEGIN_SRC emacs-lisp
-(defcustom font-override-list
-  '(("github-octicons" . (#xF0C5 #xF02F #xF00E))
-    ("file-icons" . (#xE917 #xE926 #xE600 #xE601 #xE91A))
-    ("Material Icons" . (#xE80C #xE8CE))
-    ("FontAwesome" . (#xF167)))
-  "Alist of font family glyphs to manually override in the defaul fontspec."
-  :type '(alist :tag "Font families to glyphs"
-                :value-type '(choice integer (repeat integer))))
-
- (defun font-override-glyphs ()
-     "Modify the default fontset to choose the right icons."
-     (interactive)
-       (dolist (font-glyphs font-override-list)
-         (when (and (require 'font-utils nil t)
-                    (font-utils-exists-p (car font-glyphs)))
-           (mapcar
-            (lambda (glyph)
-              (set-fontset-font "fontset-default"
-                                glyph (car font-glyphs)
-                                nil 'prepend))
-            (cdr font-glyphs)))))
-#+END_SRC
-
 ***** VS Code Icons
 :PROPERTIES:
 :ID:       4196FB0F-6A8F-4476-AFBD-651C7E5ED8AD
@@ -8619,21 +8590,11 @@ bullets as UTF-8 characters.
              :type git
              :host gitlab
              :repo "marcowahl/org-pretty-tags")
-  :preface
-  (setq opt/overrides-alist
-        '(("all-the-icons" . (59682 59687))
-          ("file-icons" . (59674 59688 58880 58881))
-          ("Weather Icons" . (61559))
-          ("Material Icons" . (57425))))
-  (defun opt/map-fontsets (font-family-codes)
-    (let ((font-name (car font-family-codes))
-          (codes (cdr font-family-codes)))
-      (mapcar (lambda (c) (set-fontset-font "fontset-default" c font-name)) codes)))
-  (defun opt/initialize ()
-    (mapcar #'opt/map-fontsets opt/overrides-alist))
+
   :custom
   (org-pretty-tags-surrogate-strings
    '(;; school related
+     ;;
      ("homework" . "📕️")
      ("note" . "️📓")
      ("assignment" . "📒️")
@@ -8678,9 +8639,7 @@ bullets as UTF-8 characters.
      ;; etc
      ("speaker" . "🔈")))
   :init
-  (org-pretty-tags-global-mode 1)
-  :hook
-  (org-pretty-tags-mode . opt/initialize))
+  (org-pretty-tags-global-mode 1))
 #+END_SRC
 
 **** Org Fancy Priorities
@@ -8852,9 +8811,6 @@ Ultimately, I'd like to set a longer blink interval, like the "phase" ~caret_sty
     :straight spaceline)
 
 (use-package spaceline-all-the-icons
-  :preface
-  (when (fboundp 'set-fontset-font)
-    (set-fontset-font "fontset-default" '#xF091 "github-octicons"))
   :after spaceline)
 
 (use-package spaceline-all-the-icons-segments
@@ -8993,9 +8949,6 @@ Google Chrome, Safari, and Firefox web browsers on macOS.
 #+NAME: browser/google
 #+BEGIN_SRC emacs-lisp
   (use-package google-this
-    :preface
-    (when (fboundp 'set-fontset-font)
-      (set-fontset-font "fontset-default" '#xF1A0 "FontAwesome"))
     :init
     (google-this-mode 1)
     :config
@@ -9174,27 +9127,27 @@ Interactively.
 
   (defengine google
     "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
-    :keybinding "Gg"
+    :keybinding "G"
     :docstring "Search Google")
 
   (defengine google-bookmarks
     "chrome://bookmarks/?q=%s"
-    :keybinding "Gb"
+    :keybinding "B"
     :docstring "Search bookmarks in Google Chrome")
 
   (defengine google-images
     "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-    :keybinding "Gi"
+    :keybinding "i"
     :docstring "Search google-images")
 
   (defengine google-maps
     "http://maps.google.com/maps?q=%s"
-    :keybinding "Gm"
+    :keybinding "m"
     :docstring "Mappin' it up.")
 
   (defengine google-scholar
     "http://scholar.google.com/scholar?q=%s"
-    :keybinding "Gs"
+    :keybinding "S"
     :docstring "Schoolin'it up.")
 
   (defengine lib-genesis
@@ -9219,8 +9172,6 @@ Interactively.
     :keybinding "s"
     :docstring "Search StackOverflow.")
 
-  (defengine twitter
-    "https://twitter.com/search?q=%s")
 
   (defengine wikipedia
     "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
@@ -9246,25 +9197,24 @@ Interactively.
     :keybinding "y"
     :docstring "Search Youtube")
 
-  (when (featurep 'which-key)
-    (which-key-add-key-based-replacements
-      "M-m b"        "🌍 Browse"
-      "M-m b e"      "🔎 Web Engine"
-      "M-m b e y"    " Youtube"
-      "M-m b e p"    " Proquest"
-      "M-m b e g"    " GitHub"
-      "M-m b e G g"  " Google"
-      "M-m b e l "   "📚 LibGen"
-      "M-m b e a"    " Wolfram"
-      "M-m b e w"    " Wikipedia"
-      "M-m b e s"    " Stack Overflow"
-      "M-m b e W"    " Worldcat"
-      "M-m b e c"    " CTan"
-      "M-m b e G"    " Google"
-      "M-m b e G i"  "Images"
-      "M-m b e G b"  " Bookmarks"
-      "M-m b e G m"  " Maps"
-      "M-m b e G s"  " Scholar")))
+  (setq engine-mode-wk-replacement-alist
+    '(( "M-m b"        "🌍 Browse")
+      ( "M-m b e"      "🔎 Web Engine")
+      ( "M-m b e y"    " Youtube")
+      ( "M-m b e p"    " Proquest")
+      ( "M-m b e g"    " GitHub")
+      ( "M-m b e G "  " Google")
+      ( "M-m b e l "   "📚 LibGen")
+      ( "M-m b e a"    " Wolfram")
+      ( "M-m b e w"    " Wikipedia")
+      ( "M-m b e s"    " Stack Overflow")
+      ( "M-m b e W"    " Worldcat")
+      ( "M-m b e c"    " CTan")
+      ( "M-m b e G"    " Google")
+      ( "M-m b e I"  " Images")
+      ( "M-m b e B"  " Bookmarks")
+      ( "M-m b e m"  " Maps")
+      ( "M-m b e S"  " Scholar"))))
 #+END_SRC
 
 ** Email
@@ -10165,28 +10115,6 @@ As a git client though, magit is awesome.
   (forge-owned-accounts '(("jchaffin"))))
 #+END_SRC
 
-***** magithub
-
-#+BEGIN_SRC emacs-lisp
-(use-package magithub
-  :straight (:host github :repo "mgcyung/magithub")
-  :after magit
-  :init
-  (defalias #'define-transient-command #'transient-define-prefix)
-  (defalias #'define-infix-command #'transient-define-infix)
-  :config
-  (magithub-feature-autoinject t)
-  (setq magithub-clone-default-directory "~/Developer/github"))
-#+END_SRC
-
-***** Magit popup
-#+BEGIN_SRC emacs-lisp
-(use-package magit-popup
-  :after (magit)
-  :demand t)
-#+END_SRC
-
-
 **** gist.el
 
 Emacs integration for gist.github.com.
@@ -10219,7 +10147,7 @@ Travel back in time (to your last commit).
 #+NAME: git/timemachine
 #+BEGIN_SRC emacs-lisp
 (use-package git-timemachine
-  :after (magit-popup)
+  :after (magit)
   :custom
   (git-timemachine-abbreviation-length 7)
   :bind
@@ -10613,10 +10541,16 @@ Pair programming.
 (use-package elisp-mode
   :straight (elisp-mode :type built-in)
   :init
-  (defun emacs-lisp/indent ()
-    (setq lisp-indent-function 'lisp-indent-function))
+  (defun emacs-lisp/setup ()
+    (setq lisp-indent-function 'lisp-indent-function)
+   (when (require 'paredit nil t)
+	   (paredit-mode +1))
+   (when (require 'highlight-symbol nil t)
+	   (highlight-symbol-mode +1))
+   (when (require 'rainbow-delimiters nil t)
+     (rainbow-delimiters-mode +1)))
   :hook
-  (emacs-lisp-mode . emacs-lisp/indent)
+  (emacs-lisp-mode . emacs-lisp/setup)
   (emacs-lisp-mode . lisp-setup-hook))
  #+END_SRC
 
@@ -10664,12 +10598,9 @@ Inferior emacs lisp
     :hook
     (inferior-emacs-lisp-mode . ielm/init))
 ;;; end ielm
+#+END_SRC
 
 
-
-  #+END_SRC
-
-***** lisp extra fontlocking
 
  #+BEGIN_SRC emacs-lisp
 (use-package lisp-extra-font-lock
