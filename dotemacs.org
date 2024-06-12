@@ -1323,7 +1323,7 @@ killall gpg-agent
 
 **** Pretty Hydra
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package pretty-hydra
   :after (hydra)
   :demand t
@@ -4920,7 +4920,7 @@ Not tangling right now because it's creating a new buffer after every
 save.
 
 #+NAME: latex-latex-preview-pane
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package latex-preview-pane
     :after (:all pdf-tools tex)
     :init (latex-preview-pane-enable))
@@ -4996,7 +4996,7 @@ save.
 (defun org-latex-fragment-tooltip (beg end image imagetype)
   "Add the fragment tooltip to the overlay and set click function to toggle it."
   (overlay-put (ov-at) 'help-echo
-	       (concat (buffer-substring beg end)
+	       (concat (filter-buffer-substring beg end)
 		       "\nmouse-1 to toggle."))
   (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
 				    (define-key map (kbd "C-c C-x C-l") 'org-toggle-latex-fragment)
@@ -5029,7 +5029,7 @@ JUSTIFICATION is a symbol for 'left, 'center or 'right."
 	       ;; This means the equation is at the start of the line
 	       (= beg (line-beginning-position))
 	       (or
-		(string= "" (s-trim (buffer-substring end (line-end-position))))
+		(string= "" (s-trim (filter-buffer-substring end (line-end-position))))
 		(eq 'latex-environment (car (org-element-context)))))
       (setq space-left (- (window-max-chars-per-line) (car (image-size img)))
 	    offset (floor (cond
@@ -6715,7 +6715,7 @@ From [[https://jblevins.org/log/emacs-fantastical][Sending Events to Fantastical
 Parse the first line to create the event and use the second
 and subsequent lines as the event note."
   (interactive "r")
-  (let* ((region (buffer-substring-no-properties beg end))
+  (let* ((region (filter-buffer-substring-no-properties beg end))
          (match (string-match "^\\(.*\\)$" region))
          (event (substring region (match-beginning 1) (match-end 1)))
          (notes (if (< (match-end 0) (length region))
@@ -7929,7 +7929,6 @@ This disables Emacs asking questions about loading a new theme.
                                    user-emacs-directory))
     :config
     (setq base16-distinct-fringe-background nil))
-
 #+END_SRC
 
 *** Load Theme

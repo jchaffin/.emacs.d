@@ -66,6 +66,7 @@
 
 ;;;; use package
   (straight-use-package 'no-littering)
+  (straight-use-package 'auto-compile)
   ;; Enable the `:bind-key' keyword
   (straight-use-package 'bind-key)
   ;; Now clone the `use-package' library
@@ -97,14 +98,16 @@
 
 ;;;; auto compile
   (use-package auto-compile
+    :after (no-littering)
     :demand t
     :config
     (auto-compile-on-load-mode))
 
 ;; `el-patch' is like advice, but with state awareness and validation.
-      (straight-use-package 'el-patch)
-      (require 'subr-x)
-      (straight-use-package 'git)
+  (straight-use-package 'el-patch)
+  (require 'subr-x)
+  (straight-use-package 'git)
+
 
 ;;; Org
 ;;;;; install org mode:
