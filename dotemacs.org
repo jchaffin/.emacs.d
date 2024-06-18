@@ -482,8 +482,6 @@ Use [[https://github.com/raxod502/el-patch#lazy-loading-packages][el patch]] to 
 **** Initial scratch
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
-(add-to-list 'default-frame-alist '(fullscreen . fullheight))
 (setq initial-scratch-message nil
       initial-major-mode 'emacs-lisp-mode
       inhibit-startup-echo-area-message t)
@@ -1752,7 +1750,6 @@ other machines.
 (define-key goto-map "C" #'goto-custom)
 #+END_SRC
 
-
 *** Backup Files
 
 This might come back to bite me one day but I never use them.
@@ -1863,6 +1860,8 @@ interactive tree .
 #+BEGIN_SRC emacs-lisp
 (use-package undo-tree
   :custom
+  (undo-tree-history-directory-alist
+   `(("." . ,(emacs-var-dir "undo-tree"))))
   (undo-tree-auto-save-history t)
   (undo-tree-visualizer-timestamps t)
   (undo-tree-visualizer-diff t)
