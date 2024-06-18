@@ -1984,7 +1984,6 @@ PATH is optional, and defaults to the current directory."
   :after (ivy)
   :commands
   (counsel-osx-app))
-
 #+END_SRC
 
 ** Editor
@@ -7873,7 +7872,7 @@ Credits to [[https://github.com/domtronn][domtronn]] for a solid portion of this
 (defcustom dotemacs-theme-colors nil
   "plist of colors for the current theme."
   :type '(plist :key-type symbol :value-type sexp)
-  :group 'dotemace)
+  :group 'dotemacs)
 #+END_SRC
 
 *** Custom Theme
@@ -8332,31 +8331,40 @@ the absence of a window system. I'll check for the latter for now.
   :preface
   (defcustom font/family-overrides-alist
     '(("github-octicons"
-       ;;                           
+       ;;                           
        61585 61529 61558 61557 61462 61553 61636)
       ("all-the-icons"
-       ;;                 
+       ;;            
        59682 59687 59688 69655)
       ("file-icons"
-       ;;                     
-        58880  58881  59686  59671  59674
-        #xE917 #xE926 #xE600 #xE601 #xE91A)
+       ;;                      
+        58880  58881  59686  59671  59674)
       ("Material Icons"
-       #xE80C #xE8CE 57425 57439 57425 58320 58321 58322
-        58324 58343  58356 58389 58842 59404 59505 59510
-        59672 69614)
-      ("Weather Icons" 61559)
+       ;;                   
+       #xE80C #xE8CE 57425 57439 57425
+       ;;                  
+       58320  58321  58322 58324 58343
+       ;;                  
+       58356  58389  58819 58842 59404
+       ;;              𐿮
+       59505  59510  59672 69614)
+      ("Weather Icons"
+       ;; 
+       61559)
       ("Apple Color Emoji"
-      ;; ️📓   📒️     📝    📘       📚
+      ;;️📓     📒️     📝    📘      📚
        128213 128210 128221 128216 128218
-       ;; 🎓   🗣      💻   📎      🌍     🔎
-       127891 128483 128187 128206 0x1F30D 0x1F50E
-       ;; ❌   🚫     🔗    🛒    🔈
-       10060 128683 128279 128722 128264)
+      ;; 🎓   🗣      💻    📎      🌍
+       127891 128483 128187 128206 #x1F30D
+      ;; ❌   🚫     🔗    🛒    🔈
+       10060 128683 128279 128722 128264
+      ;;  🔎
+       #x1F50E)
       ("FontAwesome"
-       #xF167 #xF1A0
-     ;;                        
-       61856 61564 61641 61643 61463 61697))
+      ;;                
+       #xF167 #xF1A0 61564 61641
+      ;;            
+       61643  61463  61697))
   "Alist of font family glyphs to manually override in the defaul fontspec."
   :type '(alist :tag "Font families to glyphs"
                 :value-type '(choice integer (repeat integer))))
@@ -8364,7 +8372,6 @@ the absence of a window system. I'll check for the latter for now.
   (defun pretty-fonts-before-theme ()
     (set-face-font
      'default "-*-Fira Code-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
-
 
   (defun pretty-fonts-after-theme ()
     (require 'pretty-fonts)
@@ -9778,27 +9785,29 @@ display the buffer."
 #+BEGIN_SRC emacs-lisp
 (use-package hideshowvis
   :init
-  (defface dotemacs-folded-face
-    `((((background dark))
-       :inherit font-lock-comment-face
-       :background ,(plist-get dotemacs-theme-colors :base00))
-      (((background light))
-       :inherit font-lock-comment-face
-       :background ,(plist-get dotemacs-theme-colors :base03)))
+  (when (symbolp 'dotemacs-theme-colors)
+    (defface dotemacs-folded-face
+      `((((background dark))
+         :inherit font-lock-comment-face
+         :background ,(plist-get dotemacs-theme-colors :base00))
+        (((background light))
+         :inherit font-lock-comment-face
+         :background ,(plist-get dotemacs-theme-colors :base03)))
       "Face to highlight `hideshow' overlays."
       :group 'hideshow)
-  (defun display-fold-overlay (ov)
-    (when (eq 'code (overlay-get ov 'hs))
-      (when (featurep 'vimish-fold)
+    (defun display-fold-overlay (ov)
+      (when (eq 'code (overlay-get ov 'hs))
+        (when (featurep 'vimish-fold)
+          (overlay-put
+           ov 'before-string
+           (propertize "..." 'display
+                       (list vimish-fold-indication-mode
+                             'empty-line
+                             'vimish-fold-fringe))))
         (overlay-put
-         ov 'before-string
-         (propertize "..." 'display
-                     (list vimish-fold-indication-mode
-                           'empty-line
-                           'vimish-fold-fringe))))
-      (overlay-put
-       ov 'display
-       (propertize" [...] " 'face 'dotemacs-folded-face))))
+         ov 'display
+         (propertize" [...] " 'face 'dotemacs-folded-face)))))
+
   (setq hs-set-up-overlay 'display-fold-overlay)
 
   (defun hideshowvis/enable ()
@@ -9806,7 +9815,6 @@ display the buffer."
   :hook
   (prog-mode . hideshowvis/enable)
   (bibtex-mode . hideshowvis/enable))
-
 #+END_SRC
 
 ***** hideshow org
@@ -10590,11 +10598,14 @@ Inferior emacs lisp
           ,@(-map #'kwd->comint-kwd lisp-cl-font-lock-keywords-2)))
   (defun ielm/init ()
     (setq-local font-lock-keywords my-ielm-font-lock-kwds)
+    (when (featurep 'paredit)
+      (paredit-mode +1))
     (when (featurep 'smartparens)
       (smartparens-mode +1))
     (when (featurep 'rainbow-delimiters-mode)
       (rainbow-delimiters-mode +1)))
     :hook
+    (ielm-mode . ielm/init)
     (inferior-emacs-lisp-mode . ielm/init))
 ;;; end ielm
 #+END_SRC
